@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Sparkles } from "lucide-react";
 
 type Props = {
   implementationId: string;
@@ -30,6 +31,7 @@ export default function ControlDetailForm({
   );
   const [policySopRefs, setPolicySopRefs] = useState(initialPolicySopRefs ?? "");
   const [saving, setSaving] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [message, setMessage] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
@@ -63,11 +65,11 @@ export default function ControlDetailForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       <h2 className="font-medium text-zinc-800">Implementation</h2>
       <div>
-        <label className="mb-1 block text-sm text-zinc-600">Status</label>
+        <label className="mb-1 block text-sm font-medium text-gray-700">Status</label>
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value)}
-          className="w-full rounded border border-zinc-300 px-3 py-2 text-zinc-900"
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]"
         >
           {STATUS_OPTIONS.map((s) => (
             <option key={s} value={s}>{s}</option>
@@ -75,12 +77,46 @@ export default function ControlDetailForm({
         </select>
       </div>
       <div>
-        <label className="mb-1 block text-sm text-zinc-600">Implementation narrative</label>
+        <div className="mb-2 flex items-center justify-between">
+          <label className="block text-sm font-medium text-gray-700">Implementation narrative</label>
+          <button
+            type="button"
+            onClick={async () => {
+              setGenerating(true);
+              setMessage("");
+              try {
+                const res = await fetch("/api/ai/generate-narrative", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ controlId: implementationId }),
+                });
+                if (!res.ok) {
+                  const d = await res.json().catch(() => ({}));
+                  setMessage(d.error ?? "Generation failed");
+                  return;
+                }
+                const data = await res.json();
+                setNarrative(data.narrative || "");
+                setMessage("Narrative generated. Review and edit as needed.");
+              } catch (err) {
+                setMessage("Failed to generate narrative");
+              } finally {
+                setGenerating(false);
+              }
+            }}
+            disabled={generating}
+            className="flex items-center gap-2 rounded-md bg-[#3B82F6] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#2563EB] disabled:opacity-50"
+          >
+            <Sparkles className="h-4 w-4" />
+            {generating ? "Generating..." : "Generate with AI"}
+          </button>
+        </div>
         <textarea
           value={narrative}
           onChange={(e) => setNarrative(e.target.value)}
-          rows={4}
-          className="w-full rounded border border-zinc-300 px-3 py-2 text-zinc-900"
+          rows={6}
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]"
+          placeholder="Describe how this control is implemented in your organization..."
         />
       </div>
       <div>
@@ -114,13 +150,17 @@ export default function ControlDetailForm({
           className="w-full rounded border border-zinc-300 px-3 py-2 text-zinc-900"
         />
       </div>
-      {message && <p className="text-sm text-zinc-600">{message}</p>}
+      {message && (
+        <p className={`text-sm ${message.includes("error") || message.includes("Failed") ? "text-[#EF4444]" : "text-[#10B981]"}`}>
+          {message}
+        </p>
+      )}
       <button
         type="submit"
         disabled={saving}
-        className="rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
+        className="rounded-lg bg-[#0F172A] px-4 py-2 text-sm font-medium text-white hover:bg-[#1E293B] disabled:opacity-50"
       >
-        {saving ? "Saving…" : "Save"}
+        {saving ? "Saving…" : "Save Changes"}
       </button>
     </form>
   );

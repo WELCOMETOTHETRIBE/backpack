@@ -2,8 +2,9 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { db } from "@/db";
-import { controlImplementations, controls, controlFamilies } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { controlImplementations, controls, controlFamilies, flowdownRequirements, contracts, subcontractorRelationships } from "@/db/schema";
+import { eq, and, inArray } from "drizzle-orm";
+import { Network } from "lucide-react";
 
 export default async function ControlsPage() {
   const session = await auth();
@@ -19,12 +20,31 @@ export default async function ControlsPage() {
         controlId: controls.controlId,
         title: controls.title,
         familyCode: controlFamilies.code,
+        controlUuid: controls.id,
       },
     })
     .from(controlImplementations)
     .innerJoin(controls, eq(controlImplementations.controlId, controls.id))
     .innerJoin(controlFamilies, eq(controls.controlFamilyId, controlFamilies.id))
     .where(eq(controlImplementations.organizationId, orgId));
+
+  // Fetch flow-down requirements for this subcontractor
+  const subContracts = await db
+    .select({ id: contracts.id })
+    .from(contracts)
+    .where(eq(contracts.subOrganizationId, orgId));
+
+  const contractIds = subContracts.map((c) => c.id);
+  let flowdownControlUuids: string[] = [];
+
+  if (contractIds.length > 0) {
+    const flowdowns = await db
+      .select({ controlId: flowdownRequirements.controlId })
+      .from(flowdownRequirements)
+      .where(inArray(flowdownRequirements.contractId, contractIds));
+
+    flowdownControlUuids = flowdowns.map((f) => f.controlId);
+  }
 
   const byFamily = impls.reduce(
     (acc: Record<string, typeof impls>, c) => {
@@ -55,7 +75,15 @@ export default async function ControlsPage() {
                     href={`/dashboard/controls/${c.id}`}
                     className="flex items-center justify-between rounded border border-zinc-200 bg-white px-3 py-2 text-sm hover:border-zinc-300"
                   >
-                    <span className="font-mono text-zinc-700">{c.control?.controlId}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-zinc-700">{c.control?.controlId}</span>
+                      {c.control?.controlUuid && flowdownControlUuids.includes(c.control.controlUuid) && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-[#3B82F6]/10 px-2 py-0.5 text-xs font-medium text-[#3B82F6]">
+                          <Network className="h-3 w-3" />
+                          Flow-Down
+                        </span>
+                      )}
+                    </div>
                     <span className="max-w-md truncate text-zinc-600">{c.control?.title}</span>
                     <span
                       className={`rounded px-2 py-0.5 text-xs ${

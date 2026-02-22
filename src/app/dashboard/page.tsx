@@ -1,15 +1,22 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { db } from "@/db";
 import ExportButton from "@/components/ExportButton";
+import ComplianceScoreGauge from "@/components/ComplianceScoreGauge";
+import ControlFamilyHeatMap from "@/components/ControlFamilyHeatMap";
+import ActivityTimeline from "@/components/ActivityTimeline";
+import FlowDownBanner from "@/components/FlowDownBanner";
 import {
   controlImplementations,
   controls,
+  controlFamilies,
   poamItems,
   evidenceMetadata,
+  auditLogs,
+  users,
+  subcontractorRelationships,
 } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -17,32 +24,50 @@ export default async function DashboardPage() {
   const orgId = user?.organizationId;
   if (!orgId) redirect("/auth/signin");
 
+  // Fetch control implementations with family data
   const implsWithControl = await db
     .select({
       status: controlImplementations.status,
       controlId: controls.controlId,
+      familyCode: controlFamilies.code,
+      familyName: controlFamilies.name,
     })
     .from(controlImplementations)
     .innerJoin(controls, eq(controlImplementations.controlId, controls.id))
+    .innerJoin(controlFamilies, eq(controls.controlFamilyId, controlFamilies.id))
     .where(eq(controlImplementations.organizationId, orgId));
+
   const total = implsWithControl.length;
   const implemented = implsWithControl.filter((i) => i.status === "Implemented").length;
-  const poamCount = implsWithControl.filter((i) => i.status === "POA&M").length;
-  const inherited = implsWithControl.filter((i) => i.status === "Inherited").length;
-  const naCount = implsWithControl.filter((i) => i.status === "Not Applicable").length;
-  const compliancePct = total ? Math.round((implemented / total) * 100) : 0;
-  const adjudicatedCount = implemented + inherited + naCount;
-  const outstandingCount = Math.max(0, total - adjudicatedCount);
+  const compliancePct = total > 0 ? Math.round((implemented / total) * 100) : 0;
 
+  // Calculate family-level stats
+  const familyStats = implsWithControl.reduce(
+    (acc, impl) => {
+      const code = impl.familyCode || "Unknown";
+      if (!acc[code]) {
+        acc[code] = { code, name: impl.familyName || code, implemented: 0, total: 0 };
+      }
+      acc[code].total++;
+      if (impl.status === "Implemented") {
+        acc[code].implemented++;
+      }
+      return acc;
+    },
+    {} as Record<string, { code: string; name: string; implemented: number; total: number }>
+  );
+
+  // Fetch POA&M stats
   const openPoam = await db
     .select()
     .from(poamItems)
     .where(eq(poamItems.organizationId, orgId));
   const openPoamCount = openPoam.filter((p) => p.status !== "Closed").length;
-  const highRiskCount = openPoam.filter(
-    (p) => p.status !== "Closed" && (p.riskSeverity === "High" || p.riskSeverity === "Critical")
+  const controlsNeedingReview = implsWithControl.filter(
+    (i) => i.status === "Partial" || i.status === "POA&M"
   ).length;
 
+  // Fetch evidence expiration stats
   const evidence = await db
     .select({ retentionUntil: evidenceMetadata.retentionUntil })
     .from(evidenceMetadata)
@@ -52,80 +77,90 @@ export default async function DashboardPage() {
   const expiringSoon = evidence.filter(
     (e) => e.retentionUntil && new Date(e.retentionUntil) <= in30Days
   ).length;
-  const auditReadinessScore = total
-    ? Math.min(100, compliancePct - (openPoamCount > 0 ? 10 : 0) - (expiringSoon > 0 ? 5 : 0))
-    : 0;
+
+  // Calculate SPRS score
+  const { calculateSprsScore } = await import("@/lib/sprs");
+  const sprsScore = await calculateSprsScore(orgId);
+
+  // Fetch recent activity
+  const recentActivity = await db
+    .select({
+      id: auditLogs.id,
+      action: auditLogs.action,
+      resourceType: auditLogs.resourceType,
+      createdAt: auditLogs.createdAt,
+      userName: users.name,
+    })
+    .from(auditLogs)
+    .leftJoin(users, eq(auditLogs.userId, users.id))
+    .where(eq(auditLogs.organizationId, orgId))
+    .orderBy(desc(auditLogs.createdAt))
+    .limit(10);
+
+  // Check if this org is a subcontractor with active flow-down requirements
+  const activeFlowdowns = await db
+    .select()
+    .from(subcontractorRelationships)
+    .where(
+      and(
+        eq(subcontractorRelationships.subOrganizationId, orgId),
+        eq(subcontractorRelationships.status, "Active")
+      )
+    );
+  const primeCount = activeFlowdowns.length;
 
   return (
-    <div>
-      <h1 className="mb-4 text-2xl font-semibold text-zinc-900">Dashboard</h1>
-      <p className="mb-6 text-zinc-600">
-        Welcome, {user?.email}. Role: {user?.role ?? "—"}
-      </p>
-      <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-lg border border-zinc-200 bg-white p-4">
-          <p className="text-sm text-zinc-500">Compliance %</p>
-          <p className="text-2xl font-semibold text-zinc-900">{compliancePct}%</p>
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold text-[#0F172A]">Dashboard</h1>
+        <p className="mt-2 text-gray-600">Welcome back, {user?.email}</p>
+      </div>
+
+      {/* Flow-Down Banner for Subcontractors */}
+      {primeCount > 0 && <FlowDownBanner primeCount={primeCount} />}
+
+      {/* Compliance Score Gauge */}
+      <div className="flex justify-center rounded-lg border border-gray-200 bg-white p-8">
+        <ComplianceScoreGauge score={compliancePct} size={240} />
+      </div>
+
+      {/* KPI Cards */}
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+          <p className="text-sm font-medium text-gray-600">Open POA&Ms</p>
+          <p className="mt-2 text-3xl font-bold text-[#0F172A]">{openPoamCount}</p>
         </div>
-        <div className="rounded-lg border border-zinc-200 bg-white p-4">
-          <p className="text-sm text-zinc-500">Open POA&Ms</p>
-          <p className="text-2xl font-semibold text-zinc-900">{openPoamCount}</p>
+        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+          <p className="text-sm font-medium text-gray-600">Controls Needing Review</p>
+          <p className="mt-2 text-3xl font-bold text-[#0F172A]">{controlsNeedingReview}</p>
         </div>
-        <div className="rounded-lg border border-zinc-200 bg-white p-4">
-          <p className="text-sm text-zinc-500">High/Critical risk</p>
-          <p className="text-2xl font-semibold text-zinc-900">{highRiskCount}</p>
+        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+          <p className="text-sm font-medium text-gray-600">Evidence Expiring in 30 Days</p>
+          <p className="mt-2 text-3xl font-bold text-[#0F172A]">{expiringSoon}</p>
         </div>
-        <div className="rounded-lg border border-zinc-200 bg-white p-4">
-          <p className="text-sm text-zinc-500">Inherited controls</p>
-          <p className="text-2xl font-semibold text-zinc-900">{inherited}</p>
+        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+          <p className="text-sm font-medium text-gray-600">Live SPRS Score</p>
+          <p className="mt-2 text-3xl font-bold text-[#3B82F6]">{sprsScore}</p>
         </div>
       </div>
-      <div className="mb-8 rounded-lg border border-zinc-200 bg-white p-4">
-        <h2 className="mb-2 font-medium text-zinc-800">Codex adjudication (Trust Codex Manual)</h2>
-        <p className="mb-2 text-sm text-zinc-600">
-          Adjudicated: {adjudicatedCount}/{total} — Outstanding: {Math.max(0, outstandingCount)}
-        </p>
-        <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-100">
-          <div
-            className="h-full rounded-full bg-zinc-800"
-            style={{ width: total ? `${(adjudicatedCount / total) * 100}%` : "0%" }}
-          />
-        </div>
-        <p className="mt-2 text-xs text-zinc-500">
-          Use <strong>Controls</strong> for per-control status and the Auditor manual section on each control for evidence location and regeneration.
-        </p>
+
+      {/* Two-column layout: Activity Timeline and Control Family Heat Map */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <ActivityTimeline
+          activities={recentActivity.map((a) => ({
+            id: a.id,
+            action: a.action,
+            resourceType: a.resourceType,
+            createdAt: a.createdAt,
+            userName: a.userName,
+          }))}
+        />
+        <ControlFamilyHeatMap families={Object.values(familyStats)} />
       </div>
-      <div className="mb-8 rounded-lg border border-zinc-200 bg-white p-4">
-        <h2 className="mb-2 font-medium text-zinc-800">Technical view</h2>
-        <p className="text-sm text-zinc-600">Controls needing monitoring: {poamCount}</p>
-        <p className="text-sm text-zinc-600">Evidence expiring soon: {expiringSoon}</p>
-        <p className="text-sm text-zinc-600">Audit readiness score: {auditReadinessScore}%</p>
-      </div>
-      <div className="mb-8">
+
+      {/* Export Section */}
+      <div className="rounded-lg border border-gray-200 bg-white p-6">
         <ExportButton />
-      </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Link
-          href="/dashboard/controls"
-          className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm hover:border-zinc-300"
-        >
-          <h2 className="font-medium text-zinc-900">Controls</h2>
-          <p className="text-sm text-zinc-500">Manage 110 NIST SP 800-171 controls</p>
-        </Link>
-        <Link
-          href="/dashboard/poam"
-          className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm hover:border-zinc-300"
-        >
-          <h2 className="font-medium text-zinc-900">POA&M</h2>
-          <p className="text-sm text-zinc-500">Plans of Action and Milestones</p>
-        </Link>
-        <Link
-          href="/dashboard/evidence"
-          className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm hover:border-zinc-300"
-        >
-          <h2 className="font-medium text-zinc-900">Evidence Registry</h2>
-          <p className="text-sm text-zinc-500">Metadata-only evidence ledger</p>
-        </Link>
       </div>
     </div>
   );

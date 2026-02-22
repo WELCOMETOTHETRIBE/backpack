@@ -111,6 +111,13 @@ export const controls = pgTable(
   (t) => [uniqueIndex("controls_control_id_idx").on(t.controlId)]
 );
 
+export const reviewFrequencyEnum = pgEnum("review_frequency", [
+  "Monthly",
+  "Quarterly",
+  "Semiannual",
+  "Annual",
+]);
+
 export const controlImplementations = pgTable("control_implementations", {
   id: uuid("id").primaryKey().defaultRandom(),
   organizationId: uuid("organization_id").references(() => organizations.id).notNull(),
@@ -121,6 +128,9 @@ export const controlImplementations = pgTable("control_implementations", {
   monitoringCadence: monitoringCadenceEnum("monitoring_cadence"),
   lastValidationDate: timestamp("last_validation_date", { withTimezone: true }),
   policySopRefs: text("policy_sop_refs"),
+  lastReviewedAt: timestamp("last_reviewed_at", { withTimezone: true }),
+  reviewFrequency: reviewFrequencyEnum("review_frequency"),
+  nextReviewDue: timestamp("next_review_due", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
@@ -283,6 +293,45 @@ export const attestations = pgTable("attestations", {
   signatureCrypto: text("signature_crypto"),
 });
 
+// ============== Module 8: Supply Chain Portal ==============
+export const subcontractorRelationshipStatusEnum = pgEnum("subcontractor_relationship_status", [
+  "Pending",
+  "Active",
+  "Suspended",
+]);
+
+export const cmmcLevelEnum = pgEnum("cmmc_level", ["Level1", "Level2", "Level3"]);
+
+export const subcontractorRelationships = pgTable("subcontractor_relationships", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  primeOrganizationId: uuid("prime_organization_id").references(() => organizations.id).notNull(),
+  subOrganizationId: uuid("sub_organization_id").references(() => organizations.id),
+  status: subcontractorRelationshipStatusEnum("status").notNull().default("Pending"),
+  inviteEmail: text("invite_email"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const contracts = pgTable("contracts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  primeOrganizationId: uuid("prime_organization_id").references(() => organizations.id).notNull(),
+  subOrganizationId: uuid("sub_organization_id").references(() => organizations.id).notNull(),
+  contractName: text("contract_name").notNull(),
+  contractNumber: text("contract_number"),
+  cmmcLevelRequired: cmmcLevelEnum("cmmc_level_required").notNull(),
+  startDate: timestamp("start_date", { withTimezone: true }),
+  endDate: timestamp("end_date", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const flowdownRequirements = pgTable("flowdown_requirements", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  contractId: uuid("contract_id").references(() => contracts.id).notNull(),
+  controlId: uuid("control_id").references(() => controls.id).notNull(),
+  isRequired: integer("is_required").default(1).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 // ============== Relations ==============
 export const organizationsRelations = relations(organizations, ({ many }) => ({
   users: many(users),
@@ -295,6 +344,10 @@ export const organizationsRelations = relations(organizations, ({ many }) => ({
   policies: many(policies),
   auditLogs: many(auditLogs),
   attestations: many(attestations),
+  primeRelationships: many(subcontractorRelationships, { relationName: "primeRelationships" }),
+  subRelationships: many(subcontractorRelationships, { relationName: "subRelationships" }),
+  primeContracts: many(contracts, { relationName: "primeContracts" }),
+  subContracts: many(contracts, { relationName: "subContracts" }),
 }));
 
 export const usersRelations = relations(users, ({ one, many }) => ({
@@ -310,6 +363,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
 export const controlsRelations = relations(controls, ({ one, many }) => ({
   controlFamily: one(controlFamilies),
   implementations: many(controlImplementations),
+  flowdownRequirements: many(flowdownRequirements),
 }));
 
 export const controlImplementationsRelations = relations(controlImplementations, ({ one, many }) => ({
@@ -338,4 +392,36 @@ export const poamItemsRelations = relations(poamItems, ({ one, many }) => ({
   milestones: many(poamMilestones),
   riskAssessments: many(poamRiskAssessments),
   closureApprovals: many(poamClosureApprovals),
+}));
+
+export const subcontractorRelationshipsRelations = relations(subcontractorRelationships, ({ one }) => ({
+  primeOrganization: one(organizations, {
+    fields: [subcontractorRelationships.primeOrganizationId],
+    references: [organizations.id],
+    relationName: "primeRelationships",
+  }),
+  subOrganization: one(organizations, {
+    fields: [subcontractorRelationships.subOrganizationId],
+    references: [organizations.id],
+    relationName: "subRelationships",
+  }),
+}));
+
+export const contractsRelations = relations(contracts, ({ one, many }) => ({
+  primeOrganization: one(organizations, {
+    fields: [contracts.primeOrganizationId],
+    references: [organizations.id],
+    relationName: "primeContracts",
+  }),
+  subOrganization: one(organizations, {
+    fields: [contracts.subOrganizationId],
+    references: [organizations.id],
+    relationName: "subContracts",
+  }),
+  flowdownRequirements: many(flowdownRequirements),
+}));
+
+export const flowdownRequirementsRelations = relations(flowdownRequirements, ({ one }) => ({
+  contract: one(contracts),
+  control: one(controls),
 }));
