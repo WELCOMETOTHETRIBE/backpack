@@ -8,6 +8,8 @@ import {
   jsonb,
   uniqueIndex,
   primaryKey,
+  varchar,
+  date,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -54,6 +56,96 @@ export const documentTypeEnum = pgEnum("document_type", [
   "asset",
   "data_flow",
 ]);
+
+// ============== Unified Control Record (CMMC Governance Wizard) ==============
+export const implementationStatusEnum = pgEnum("implementation_status", [
+  "not_started",
+  "in_progress",
+  "implemented",
+  "assessed",
+]);
+export const evidenceTypeEnum = pgEnum("evidence_type", [
+  "screenshot",
+  "config_file",
+  "scan_result",
+  "log_file",
+]);
+export const poamEntryStatusEnum = pgEnum("poam_entry_status", ["open", "closed"]);
+
+export const roles = pgTable("roles", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id").references(() => organizations.id).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const controlRecords = pgTable(
+  "control_records",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id").references(() => organizations.id).notNull(),
+    controlId: varchar("control_id", { length: 20 }).notNull(),
+    implementationStatus: implementationStatusEnum("implementation_status")
+      .notNull()
+      .default("not_started"),
+    governanceNarrative: text("governance_narrative"),
+    technicalNarrative: text("technical_narrative"),
+    responsibleRoleId: uuid("responsible_role_id").references(() => roles.id),
+    inheritedFrom: varchar("inherited_from", { length: 255 }),
+    assessorId: uuid("assessor_id").references(() => users.id),
+    assessorFindings: text("assessor_findings"),
+    assessmentDate: date("assessment_date"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [uniqueIndex("control_records_org_control_idx").on(t.organizationId, t.controlId)]
+);
+
+export const artifacts = pgTable("artifacts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id").references(() => organizations.id).notNull(),
+  controlRecordId: uuid("control_record_id").references(() => controlRecords.id).notNull(),
+  artifactLabel: varchar("artifact_label", { length: 255 }).notNull(),
+  fileName: varchar("file_name", { length: 255 }).notNull(),
+  fileUrl: text("file_url").notNull(),
+  /** Storage provider's key/id for getDownloadUrl and delete (e.g. S3 key, blob name). */
+  storageKey: text("storage_key"),
+  fileType: varchar("file_type", { length: 100 }),
+  fileSize: integer("file_size"),
+  version: varchar("version", { length: 50 }),
+  approvalDate: date("approval_date"),
+  uploadedBy: uuid("uploaded_by").references(() => users.id),
+  vaultDocumentId: varchar("vault_document_id", { length: 255 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const technicalEvidence = pgTable("technical_evidence", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id").references(() => organizations.id).notNull(),
+  controlRecordId: uuid("control_record_id").references(() => controlRecords.id).notNull(),
+  evidenceType: evidenceTypeEnum("evidence_type").notNull(),
+  description: text("description"),
+  fileUrl: text("file_url"),
+  sourceUrl: text("source_url"),
+  uploadedBy: uuid("uploaded_by").references(() => users.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const poamEntries = pgTable("poam_entries", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id").references(() => organizations.id).notNull(),
+  controlRecordId: uuid("control_record_id").references(() => controlRecords.id).notNull(),
+  status: poamEntryStatusEnum("status").notNull().default("open"),
+  weaknessDescription: text("weakness_description"),
+  remediationPlan: text("remediation_plan"),
+  scheduledCompletionDate: date("scheduled_completion_date"),
+  responsibleRoleId: uuid("responsible_role_id").references(() => roles.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
 
 // ============== Multi-tenancy & Auth (Module 6) ==============
 export const organizations = pgTable("organizations", {
@@ -335,8 +427,11 @@ export const flowdownRequirements = pgTable("flowdown_requirements", {
 // ============== Relations ==============
 export const organizationsRelations = relations(organizations, ({ many }) => ({
   users: many(users),
+  roles: many(roles),
+  controlRecords: many(controlRecords),
   controlImplementations: many(controlImplementations),
   poamItems: many(poamItems),
+  poamEntries: many(poamEntries),
   evidenceMetadata: many(evidenceMetadata),
   sspSections: many(sspSections),
   assets: many(assets),
@@ -352,11 +447,14 @@ export const organizationsRelations = relations(organizations, ({ many }) => ({
 
 export const usersRelations = relations(users, ({ one, many }) => ({
   organization: one(organizations),
+  controlRecordsAssessed: many(controlRecords),
   controlImplementationsOwned: many(controlImplementations),
   controlHistory: many(controlHistory),
   poamItemsResponsible: many(poamItems),
   poamClosureApprovals: many(poamClosureApprovals),
   evidenceGenerated: many(evidenceMetadata),
+  artifactsUploaded: many(artifacts),
+  technicalEvidenceUploaded: many(technicalEvidence),
   attestations: many(attestations),
 }));
 
@@ -424,4 +522,37 @@ export const contractsRelations = relations(contracts, ({ one, many }) => ({
 export const flowdownRequirementsRelations = relations(flowdownRequirements, ({ one }) => ({
   contract: one(contracts),
   control: one(controls),
+}));
+
+export const rolesRelations = relations(roles, ({ one, many }) => ({
+  organization: one(organizations),
+  controlRecords: many(controlRecords),
+  poamEntries: many(poamEntries),
+}));
+
+export const controlRecordsRelations = relations(controlRecords, ({ one, many }) => ({
+  organization: one(organizations),
+  responsibleRole: one(roles),
+  assessor: one(users),
+  artifacts: many(artifacts),
+  technicalEvidence: many(technicalEvidence),
+  poamEntries: many(poamEntries),
+}));
+
+export const artifactsRelations = relations(artifacts, ({ one }) => ({
+  organization: one(organizations),
+  controlRecord: one(controlRecords),
+  uploadedByUser: one(users),
+}));
+
+export const technicalEvidenceRelations = relations(technicalEvidence, ({ one }) => ({
+  organization: one(organizations),
+  controlRecord: one(controlRecords),
+  uploadedByUser: one(users),
+}));
+
+export const poamEntriesRelations = relations(poamEntries, ({ one }) => ({
+  organization: one(organizations),
+  controlRecord: one(controlRecords),
+  responsibleRole: one(roles),
 }));

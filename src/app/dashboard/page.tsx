@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
@@ -156,6 +157,16 @@ export default async function DashboardPage() {
           }))}
         />
         <ControlFamilyHeatMap families={Object.values(familyStats)} />
+      </div>
+
+      {/* Governance Wizard CTA */}
+      <div className="rounded-lg border border-gray-200 bg-white p-6">
+        <Link
+          href="/dashboard/governance-wizard"
+          className="inline-flex items-center gap-2 rounded-md bg-[#0F172A] px-4 py-2 text-sm font-medium text-white hover:bg-[#1e293b]"
+        >
+          Continue Governance Wizard
+        </Link>
       </div>
 
       {/* Export Section */}
