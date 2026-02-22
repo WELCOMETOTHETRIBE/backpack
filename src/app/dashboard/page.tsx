@@ -5,6 +5,7 @@ import { db } from "@/db";
 import ExportButton from "@/components/ExportButton";
 import {
   controlImplementations,
+  controls,
   poamItems,
   evidenceMetadata,
 } from "@/db/schema";
