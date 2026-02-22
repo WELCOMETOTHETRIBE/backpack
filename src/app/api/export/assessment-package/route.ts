@@ -111,7 +111,7 @@ export async function POST() {
 
     const archive = archiver("zip", { zlib: { level: 9 } });
     const chunks: Buffer[] = [];
-    archive.on("data", (chunk: Buffer) => chunks.push(chunk));
+    archive.on("data", (chunk: Buffer) => { chunks.push(chunk); });
 
     await new Promise<void>((resolve, reject) => {
       archive.on("end", resolve);
