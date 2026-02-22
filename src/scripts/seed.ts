@@ -68,12 +68,29 @@ async function seed() {
         title: string;
         nist_exact_text?: string;
         nist_discussion_guidance?: string;
+        classification?: string;
+        pilot_status?: string;
+        pilot_status_basis?: string;
+        evidence?: { evidence_type?: string; artifact_name?: string; location?: string; regeneration_method?: string };
+        policy_sop_refs?: string;
+        implementation_summary?: string;
       }>;
     };
     console.log("Seeding", manual.controls.length, "controls...");
     for (const c of manual.controls) {
       const familyId = familyIds[c.family];
       if (!familyId) continue;
+      const codexMetadata =
+        c.classification || c.pilot_status_basis || c.evidence || c.policy_sop_refs
+          ? {
+              classification: c.classification ?? null,
+              pilot_status: c.pilot_status ?? null,
+              pilot_status_basis: c.pilot_status_basis ?? null,
+              evidence: c.evidence ?? null,
+              policy_sop_refs: c.policy_sop_refs ?? null,
+              implementation_summary: c.implementation_summary ?? null,
+            }
+          : null;
       await db
         .insert(controls)
         .values({
@@ -83,8 +100,17 @@ async function seed() {
           title: c.title,
           nistExactText: c.nist_exact_text ?? null,
           nistDiscussionGuidance: c.nist_discussion_guidance ?? null,
+          codexMetadata,
         })
-        .onConflictDoNothing({ target: controls.controlId });
+        .onConflictDoUpdate({
+          target: controls.controlId,
+          set: {
+            title: c.title,
+            nistExactText: c.nist_exact_text ?? null,
+            nistDiscussionGuidance: c.nist_discussion_guidance ?? null,
+            codexMetadata: codexMetadata ?? undefined,
+          },
+        });
     }
   }
 

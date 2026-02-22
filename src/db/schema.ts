@@ -105,6 +105,8 @@ export const controls = pgTable(
     title: text("title").notNull(),
     nistExactText: text("nist_exact_text"),
     nistDiscussionGuidance: text("nist_discussion_guidance"),
+    /** Trust Codex: classification, evidence location/regeneration, status basis (from manual-data.json) */
+    codexMetadata: jsonb("codex_metadata"),
   },
   (t) => [uniqueIndex("controls_control_id_idx").on(t.controlId)]
 );
