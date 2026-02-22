@@ -65,6 +65,27 @@ export function ControlCard({
   const requiredArtifacts = spec?.artifacts ?? [];
   const uploadArtifacts = requiredArtifacts.filter((a) => a.handling === "UPLOAD" || a.handling === "NATIVE");
 
+  const is31311 = record.controlId === "3.13.11";
+  const show31311Prompt =
+    is31311 &&
+    record.implementationStatus !== "implemented" &&
+    record.implementationStatus !== "assessed";
+  const [saving31311, setSaving31311] = useState(false);
+
+  async function setSprs31311Condition(value: "no_crypto" | "non_fips") {
+    setSaving31311(true);
+    try {
+      const res = await fetch(`/api/control-records/${record.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sprs31311Condition: value }),
+      });
+      if (res.ok) onRefresh();
+    } finally {
+      setSaving31311(false);
+    }
+  }
+
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-6">
       <div className="flex flex-wrap items-center gap-2">
@@ -90,6 +111,37 @@ export function ControlCard({
       )}
       {nist?.nistDiscussionGuidance && (
         <p className="mt-1 text-sm text-gray-600">What this means: {nist.nistDiscussionGuidance}</p>
+      )}
+
+      {show31311Prompt && (
+        <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4">
+          <p className="text-sm font-medium text-amber-900">
+            Does your organization use any cryptography that is not FIPS-validated, or no cryptography at all?
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setSprs31311Condition("no_crypto")}
+              disabled={saving31311 || record.sprs31311Condition === "no_crypto"}
+              className="rounded border border-amber-300 bg-white px-3 py-1.5 text-sm font-medium text-amber-900 hover:bg-amber-100 disabled:opacity-70"
+            >
+              No cryptography at all (5 pt deduction)
+            </button>
+            <button
+              type="button"
+              onClick={() => setSprs31311Condition("non_fips")}
+              disabled={saving31311 || record.sprs31311Condition === "non_fips"}
+              className="rounded border border-amber-300 bg-white px-3 py-1.5 text-sm font-medium text-amber-900 hover:bg-amber-100 disabled:opacity-70"
+            >
+              Cryptography used but mostly not FIPS-validated (3 pt deduction)
+            </button>
+          </div>
+          {record.sprs31311Condition && (
+            <p className="mt-2 text-xs text-amber-800">
+              Your selection has been saved and applied to the SPRS score.
+            </p>
+          )}
+        </div>
       )}
 
       <div className="mt-4">

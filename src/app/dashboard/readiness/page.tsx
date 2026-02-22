@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle2, FileText, Calculator } from "lucide-react";
 import { db } from "@/db";
-import { calculateSprsScore } from "@/lib/sprs";
+import { getSprsScore } from "@/lib/sprs";
 import { controlImplementations, controls } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
@@ -14,7 +14,7 @@ export default async function ReadinessPage() {
   if (!orgId) redirect("/auth/signin");
 
   // Calculate SPRS score
-  const sprsScore = await calculateSprsScore(orgId);
+  const sprsScore = await getSprsScore(orgId);
 
   // Get compliance percentage
   const impls = await db

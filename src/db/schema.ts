@@ -96,6 +96,8 @@ export const controlRecords = pgTable(
     assessorId: uuid("assessor_id").references(() => users.id),
     assessorFindings: text("assessor_findings"),
     assessmentDate: date("assessment_date"),
+    /** For control 3.13.11 only: no_crypto = 5 pt deduction, non_fips = 3 pt deduction. */
+    sprs31311Condition: varchar("sprs_31311_condition", { length: 20 }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
@@ -152,6 +154,8 @@ export const organizations = pgTable("organizations", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(),
+  /** SPRS score (110 to negative). Recomputed on every control status change. */
+  sprsScore: integer("sprs_score"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 

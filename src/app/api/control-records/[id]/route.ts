@@ -4,6 +4,7 @@ import { controlRecords } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { requireOrg, requireRole } from "@/lib/auth";
 import { calculateControlStatus } from "@/lib/control-status";
+import { computeAndPersistSprsScore } from "@/lib/sprs";
 
 /**
  * PATCH /api/control-records/:id — update governance narrative, responsibleRoleId, etc.
@@ -31,9 +32,14 @@ export async function PATCH(
     const updates: Partial<{
       governanceNarrative: string | null;
       responsibleRoleId: string | null;
+      sprs31311Condition: string | null;
     }> = {};
     if (typeof body.governanceNarrative !== "undefined") updates.governanceNarrative = body.governanceNarrative ?? null;
     if (typeof body.responsibleRoleId !== "undefined") updates.responsibleRoleId = body.responsibleRoleId ?? null;
+    if (existing.controlId === "3.13.11" && typeof body.sprs31311Condition !== "undefined") {
+      const v = body.sprs31311Condition;
+      updates.sprs31311Condition = v === "no_crypto" || v === "non_fips" ? v : null;
+    }
 
     if (Object.keys(updates).length === 0) {
       return NextResponse.json(existing);
@@ -45,6 +51,9 @@ export async function PATCH(
       .where(eq(controlRecords.id, id));
 
     await calculateControlStatus(id);
+    if ("sprs31311Condition" in updates) {
+      await computeAndPersistSprsScore(existing.organizationId);
+    }
 
     const [updated] = await db
       .select()

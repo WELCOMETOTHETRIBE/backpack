@@ -8,7 +8,7 @@ import {
   controls,
 } from "@/db/schema";
 import { eq, and, count } from "drizzle-orm";
-import { calculateSprsScore } from "@/lib/sprs";
+import { getSprsScore } from "@/lib/sprs";
 
 export async function GET(
   _req: Request,
@@ -41,7 +41,7 @@ export async function GET(
     }
 
     // Fetch metadata-only status information
-    const sprsScore = await calculateSprsScore(subOrganizationId);
+    const sprsScore = await getSprsScore(subOrganizationId);
     
     // Calculate compliance percentage based on implemented controls
     const totalImpls = await db

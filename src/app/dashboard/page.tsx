@@ -79,9 +79,21 @@ export default async function DashboardPage() {
     (e) => e.retentionUntil && new Date(e.retentionUntil) <= in30Days
   ).length;
 
-  // Calculate SPRS score
-  const { calculateSprsScore } = await import("@/lib/sprs");
-  const sprsScore = await calculateSprsScore(orgId);
+  // SPRS score (persisted) and breakdown by family
+  const { getSprsScore, getSprsBreakdown } = await import("@/lib/sprs");
+  const [sprsScore, sprsBreakdown] = await Promise.all([
+    getSprsScore(orgId),
+    getSprsBreakdown(orgId),
+  ]);
+
+  const sprsBand =
+    sprsScore >= 88
+      ? { label: "Strong Posture", color: "text-green-600", bg: "bg-green-50" }
+      : sprsScore >= 70
+        ? { label: "Moderate Posture", color: "text-yellow-700", bg: "bg-yellow-50" }
+        : sprsScore >= 0
+          ? { label: "At Risk", color: "text-orange-700", bg: "bg-orange-50" }
+          : { label: "Critical Gaps", color: "text-red-700", bg: "bg-red-50" };
 
   // Fetch recent activity
   const recentActivity = await db
@@ -139,10 +151,26 @@ export default async function DashboardPage() {
           <p className="text-sm font-medium text-gray-600">Evidence Expiring in 30 Days</p>
           <p className="mt-2 text-3xl font-bold text-[#0F172A]">{expiringSoon}</p>
         </div>
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <p className="text-sm font-medium text-gray-600">Live SPRS Score</p>
-          <p className="mt-2 text-3xl font-bold text-[#3B82F6]">{sprsScore}</p>
-        </div>
+      </div>
+
+      {/* SPRS Score — prominent with color band and family breakdown */}
+      <div className={`rounded-xl border border-gray-200 p-8 ${sprsBand.bg}`}>
+        <p className="text-sm font-medium text-gray-600">SPRS Score</p>
+        <p className={`mt-2 text-5xl font-bold ${sprsBand.color}`}>{sprsScore}</p>
+        <p className={`mt-1 text-lg font-medium ${sprsBand.color}`}>{sprsBand.label}</p>
+        {sprsBreakdown.length > 0 && (
+          <div className="mt-6">
+            <p className="text-sm font-medium text-gray-700">Points lost by family</p>
+            <ul className="mt-2 space-y-1">
+              {sprsBreakdown.map(({ family, pointsLost }) => (
+                <li key={family} className="flex justify-between text-sm">
+                  <span className="text-gray-700">{family}</span>
+                  <span className="font-medium text-gray-900">−{pointsLost}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
       {/* Two-column layout: Activity Timeline and Control Family Heat Map */}

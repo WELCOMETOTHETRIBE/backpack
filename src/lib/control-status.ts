@@ -6,6 +6,7 @@ import { db } from "@/db";
 import { controlRecords, artifacts } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { getRequiredUploadArtifactLabels } from "./artifact-guide";
+import { computeAndPersistSprsScore } from "./sprs";
 
 export type ImplementationStatus = "not_started" | "in_progress" | "implemented" | "assessed";
 
@@ -61,6 +62,8 @@ export async function calculateControlStatus(controlRecordId: string): Promise<I
       updatedAt: new Date(),
     })
     .where(eq(controlRecords.id, controlRecordId));
+
+  await computeAndPersistSprsScore(record.organizationId);
 
   return status;
 }

@@ -59,6 +59,7 @@ export async function GET(req: Request) {
         governanceNarrative: controlRecords.governanceNarrative,
         responsibleRoleId: controlRecords.responsibleRoleId,
         roleName: roles.name,
+        sprs31311Condition: controlRecords.sprs31311Condition,
       })
       .from(controlRecords)
       .leftJoin(roles, eq(controlRecords.responsibleRoleId, roles.id))

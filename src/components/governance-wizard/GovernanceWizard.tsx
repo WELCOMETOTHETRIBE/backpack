@@ -15,6 +15,7 @@ export type ControlRecord = {
   responsibleRoleId: string | null;
   roleName: string | null;
   artifactCount: number;
+  sprs31311Condition?: string | null;
 };
 
 export type NistControl = {
