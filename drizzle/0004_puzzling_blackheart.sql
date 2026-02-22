@@ -1,0 +1,1 @@
+ALTER TABLE "technical_evidence" ADD COLUMN "requirement_id" varchar(80);

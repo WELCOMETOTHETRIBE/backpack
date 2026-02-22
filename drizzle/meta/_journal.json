@@ -22,6 +22,20 @@
       "when": 1771796462773,
       "tag": "0002_square_talon",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1771798721147,
+      "tag": "0003_fearless_speed_demon",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1771798810865,
+      "tag": "0004_puzzling_blackheart",
+      "breakpoints": true
     }
   ]
 }

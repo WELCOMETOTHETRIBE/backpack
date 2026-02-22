@@ -127,6 +127,8 @@ export const technicalEvidence = pgTable("technical_evidence", {
   id: uuid("id").primaryKey().defaultRandom(),
   organizationId: uuid("organization_id").references(() => organizations.id).notNull(),
   controlRecordId: uuid("control_record_id").references(() => controlRecords.id).notNull(),
+  /** Links to EvidenceRequirement.id from technical_evidence_requirements (e.g. 3.1.1-win-local-users). */
+  requirementId: varchar("requirement_id", { length: 80 }),
   evidenceType: evidenceTypeEnum("evidence_type").notNull(),
   description: text("description"),
   fileUrl: text("file_url"),
@@ -158,6 +160,21 @@ export const organizations = pgTable("organizations", {
   sprsScore: integer("sprs_score"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
+
+/** One per org: selected technology stack for evidence requirements (keys from technical_evidence_requirements). */
+export const boundaryProfiles = pgTable(
+  "boundary_profiles",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id")
+      .references(() => organizations.id, { onDelete: "cascade" })
+      .notNull()
+      .unique(),
+    selectedTechnologies: jsonb("selected_technologies").$type<string[]>().notNull().default([]),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  }
+);
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -429,7 +446,8 @@ export const flowdownRequirements = pgTable("flowdown_requirements", {
 });
 
 // ============== Relations ==============
-export const organizationsRelations = relations(organizations, ({ many }) => ({
+export const organizationsRelations = relations(organizations, ({ one, many }) => ({
+  boundaryProfile: one(boundaryProfiles),
   users: many(users),
   roles: many(roles),
   controlRecords: many(controlRecords),
@@ -447,6 +465,10 @@ export const organizationsRelations = relations(organizations, ({ many }) => ({
   subRelationships: many(subcontractorRelationships, { relationName: "subRelationships" }),
   primeContracts: many(contracts, { relationName: "primeContracts" }),
   subContracts: many(contracts, { relationName: "subContracts" }),
+}));
+
+export const boundaryProfilesRelations = relations(boundaryProfiles, ({ one }) => ({
+  organization: one(organizations),
 }));
 
 export const usersRelations = relations(users, ({ one, many }) => ({

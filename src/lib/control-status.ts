@@ -1,11 +1,12 @@
 /**
  * Server-side control implementation status calculation.
- * Source of truth: controlRecords.implementationStatus. Called after every artifact upload, delete, and narrative save.
+ * Source of truth: controlRecords.implementationStatus. Called after every artifact upload, delete, narrative save, and technical evidence change.
  */
 import { db } from "@/db";
-import { controlRecords, artifacts } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { controlRecords, artifacts, technicalEvidence, boundaryProfiles } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { getRequiredUploadArtifactLabels } from "./artifact-guide";
+import { getEvidenceRequirements } from "./compliance";
 import { computeAndPersistSprsScore } from "./sprs";
 
 export type ImplementationStatus = "not_started" | "in_progress" | "implemented" | "assessed";
@@ -13,10 +14,10 @@ export type ImplementationStatus = "not_started" | "in_progress" | "implemented"
 /**
  * Recomputes implementationStatus for the given control record and persists it.
  * Logic:
- * - Assessed: leave as assessed (assessor has marked satisfied).
- * - Not Started: no artifacts uploaded, no narrative.
- * - In Progress: at least one artifact or narrative, but not all required artifacts + narrative.
- * - Implemented: all required artifacts (per artifact guide) uploaded and governance narrative present.
+ * - Assessed: leave as assessed.
+ * - Governance: all required upload artifacts + narrative.
+ * - Technical: when boundary profile exists, all non-inherited technical requirements must have at least one technicalEvidence row with matching requirement_id; inherited requirements are treated as satisfied.
+ * - Implemented: governance complete AND technical complete (or no technical requirements).
  */
 export async function calculateControlStatus(controlRecordId: string): Promise<ImplementationStatus> {
   const [record] = await db
@@ -43,15 +44,51 @@ export async function calculateControlStatus(controlRecordId: string): Promise<I
     .where(eq(artifacts.controlRecordId, controlRecordId));
 
   const uploadedLabels = new Set(existingArtifacts.map((a) => a.artifactLabel));
-  const allRequiredUploaded =
+  const governanceComplete =
     requiredLabels.length === 0
       ? true
       : requiredLabels.every((label) => uploadedLabels.has(label));
+  const governanceDone = governanceComplete && hasNarrative;
+
+  // Technical: get org's boundary profile and requirements for this control
+  const [profileRow] = await db
+    .select({ selectedTechnologies: boundaryProfiles.selectedTechnologies })
+    .from(boundaryProfiles)
+    .where(eq(boundaryProfiles.organizationId, record.organizationId))
+    .limit(1);
+
+  const profile = profileRow
+    ? { selectedTechnologies: (profileRow.selectedTechnologies ?? []) as string[] }
+    : null;
+  const { technical: technicalReqs } = getEvidenceRequirements(controlId, profile);
+  const requiredTechnicalIds = technicalReqs.filter((r) => !r.inherited).map((r) => r.id);
+  let technicalComplete = true;
+  if (requiredTechnicalIds.length > 0) {
+    const evidenceRows = await db
+      .select({ requirementId: technicalEvidence.requirementId })
+      .from(technicalEvidence)
+      .where(eq(technicalEvidence.controlRecordId, controlRecordId));
+    const satisfiedIds = new Set(
+      evidenceRows.map((r) => r.requirementId).filter((id): id is string => Boolean(id))
+    );
+    technicalComplete = requiredTechnicalIds.every((id) => satisfiedIds.has(id));
+  }
+
+  const allComplete = governanceDone && technicalComplete;
+  const hasSomeProgress =
+    existingArtifacts.length > 0 ||
+    hasNarrative ||
+    (await db
+      .select({ id: technicalEvidence.id })
+      .from(technicalEvidence)
+      .where(eq(technicalEvidence.controlRecordId, controlRecordId))
+      .limit(1)
+    ).length > 0;
 
   let status: ImplementationStatus = "not_started";
-  if (allRequiredUploaded && hasNarrative) {
+  if (allComplete) {
     status = "implemented";
-  } else if (existingArtifacts.length > 0 || hasNarrative) {
+  } else if (hasSomeProgress) {
     status = "in_progress";
   }
 

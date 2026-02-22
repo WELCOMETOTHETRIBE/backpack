@@ -6,16 +6,21 @@ export function FileUploadWidget({
   controlRecordId,
   artifactLabel,
   onUploaded,
+  technicalEvidencePayload,
 }: {
   controlRecordId: string;
   artifactLabel: string;
   onUploaded?: () => void;
+  /** When set, uploads to /api/technical-evidence with requirementId and evidenceType instead of artifacts. */
+  technicalEvidencePayload?: { requirementId: string; evidenceType: string };
 }) {
   const [version, setVersion] = useState("");
   const [approvalDate, setApprovalDate] = useState("");
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const isTechnical = Boolean(technicalEvidencePayload);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -27,16 +32,29 @@ export function FileUploadWidget({
     setError(null);
     setUploading(true);
     try {
-      const form = new FormData();
-      form.set("file", file);
-      form.set("controlRecordId", controlRecordId);
-      form.set("artifactLabel", artifactLabel);
-      if (version) form.set("version", version);
-      if (approvalDate) form.set("approvalDate", approvalDate);
-      const res = await fetch("/api/artifacts", { method: "POST", body: form });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Upload failed");
+      if (isTechnical && technicalEvidencePayload) {
+        const form = new FormData();
+        form.set("file", file);
+        form.set("controlRecordId", controlRecordId);
+        form.set("requirementId", technicalEvidencePayload.requirementId);
+        form.set("evidenceType", technicalEvidencePayload.evidenceType);
+        const res = await fetch("/api/technical-evidence", { method: "POST", body: form });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || "Upload failed");
+        }
+      } else {
+        const form = new FormData();
+        form.set("file", file);
+        form.set("controlRecordId", controlRecordId);
+        form.set("artifactLabel", artifactLabel);
+        if (version) form.set("version", version);
+        if (approvalDate) form.set("approvalDate", approvalDate);
+        const res = await fetch("/api/artifacts", { method: "POST", body: form });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || "Upload failed");
+        }
       }
       if (inputRef.current) inputRef.current.value = "";
       setVersion("");
@@ -60,27 +78,31 @@ export function FileUploadWidget({
           disabled={uploading}
         />
       </div>
-      <div>
-        <label className="block text-xs font-medium text-gray-600">Version</label>
-        <input
-          type="text"
-          value={version}
-          onChange={(e) => setVersion(e.target.value)}
-          placeholder="e.g. 1.0"
-          className="mt-1 w-24 rounded border border-gray-300 px-2 py-1 text-sm"
-          disabled={uploading}
-        />
-      </div>
-      <div>
-        <label className="block text-xs font-medium text-gray-600">Approval date</label>
-        <input
-          type="date"
-          value={approvalDate}
-          onChange={(e) => setApprovalDate(e.target.value)}
-          className="mt-1 rounded border border-gray-300 px-2 py-1 text-sm"
-          disabled={uploading}
-        />
-      </div>
+      {!isTechnical && (
+        <>
+          <div>
+            <label className="block text-xs font-medium text-gray-600">Version</label>
+            <input
+              type="text"
+              value={version}
+              onChange={(e) => setVersion(e.target.value)}
+              placeholder="e.g. 1.0"
+              className="mt-1 w-24 rounded border border-gray-300 px-2 py-1 text-sm"
+              disabled={uploading}
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600">Approval date</label>
+            <input
+              type="date"
+              value={approvalDate}
+              onChange={(e) => setApprovalDate(e.target.value)}
+              className="mt-1 rounded border border-gray-300 px-2 py-1 text-sm"
+              disabled={uploading}
+            />
+          </div>
+        </>
+      )}
       <button
         type="submit"
         disabled={uploading}
