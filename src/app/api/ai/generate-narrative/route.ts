@@ -4,7 +4,7 @@ import { z } from "zod";
 import { requireOrg, requireRole } from "@/lib/auth";
 import { db } from "@/db";
 import { controls, controlImplementations, sspSections } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -34,8 +34,12 @@ export async function POST(req: Request) {
       })
       .from(controlImplementations)
       .innerJoin(controls, eq(controlImplementations.controlId, controls.id))
-      .where(eq(controlImplementations.id, controlId))
-      .where(eq(controlImplementations.organizationId, orgId))
+      .where(
+        and(
+          eq(controlImplementations.id, controlId),
+          eq(controlImplementations.organizationId, orgId)
+        )
+      )
       .limit(1);
 
     if (!controlImpl) {
