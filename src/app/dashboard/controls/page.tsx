@@ -1,10 +1,11 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import Link from "next/link";
+import { Suspense } from "react";
 import { db } from "@/db";
-import { controlImplementations, controls, controlFamilies, flowdownRequirements, contracts, subcontractorRelationships } from "@/db/schema";
-import { eq, and, inArray } from "drizzle-orm";
-import { Network } from "lucide-react";
+import { controlImplementations, controls, controlFamilies, flowdownRequirements, contracts } from "@/db/schema";
+import { eq, inArray } from "drizzle-orm";
+import ControlsFilter from "./ControlsFilter";
+import ControlsList from "./ControlsList";
 
 export default async function ControlsPage() {
   const session = await auth();
@@ -58,51 +59,46 @@ export default async function ControlsPage() {
 
   const familyOrder = ["AC", "AT", "AU", "CM", "IA", "IR", "MA", "MP", "PE", "PL", "PS", "RA", "SA", "SC", "SI"];
 
+  // Calculate tallies
+  const GOVERNANCE_FAMILIES = ["PL", "PS", "RA"];
+  const technicalCount = impls.filter(
+    (c) =>
+      !GOVERNANCE_FAMILIES.includes(c.control?.familyCode || "") &&
+      c.status !== "Inherited" &&
+      c.status !== "Not Applicable"
+  ).length;
+  const governanceCount = impls.filter((c) =>
+    GOVERNANCE_FAMILIES.includes(c.control?.familyCode || "")
+  ).length;
+  const inheritedCount = impls.filter((c) => c.status === "Inherited").length;
+  const naCount = impls.filter((c) => c.status === "Not Applicable").length;
+
   return (
     <div>
-      <h1 className="mb-4 text-2xl font-semibold text-zinc-900">Controls</h1>
-      <p className="mb-6 text-zinc-600">
-        NIST SP 800-171 Rev 2 — 110 controls. Click a control to view or edit implementation.
-      </p>
-      <div className="space-y-6">
-        {familyOrder.filter((code) => byFamily[code]?.length).map((code) => (
-          <div key={code}>
-            <h2 className="mb-2 text-lg font-medium text-zinc-800">{code}</h2>
-            <ul className="space-y-1">
-              {(byFamily[code] ?? []).map((c) => (
-                <li key={c.id}>
-                  <Link
-                    href={`/dashboard/controls/${c.id}`}
-                    className="flex items-center justify-between rounded border border-zinc-200 bg-white px-3 py-2 text-sm hover:border-zinc-300"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-zinc-700">{c.control?.controlId}</span>
-                      {c.control?.controlUuid && flowdownControlUuids.includes(c.control.controlUuid) && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-[#3B82F6]/10 px-2 py-0.5 text-xs font-medium text-[#3B82F6]">
-                          <Network className="h-3 w-3" />
-                          Flow-Down
-                        </span>
-                      )}
-                    </div>
-                    <span className="max-w-md truncate text-zinc-600">{c.control?.title}</span>
-                    <span
-                      className={`rounded px-2 py-0.5 text-xs ${
-                        c.status === "Implemented"
-                          ? "bg-green-100 text-green-800"
-                          : c.status === "POA&M"
-                            ? "bg-amber-100 text-amber-800"
-                            : "bg-zinc-100 text-zinc-600"
-                      }`}
-                    >
-                      {c.status}
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+      <div className="mb-6">
+        <h1 className="mb-2 text-3xl font-bold text-[#0F172A]">Controls</h1>
+        <p className="text-gray-600">
+          NIST SP 800-171 Rev 2 — 110 controls. Click a control to view or edit implementation.
+        </p>
       </div>
+      
+      <Suspense fallback={<div className="mb-6 h-12 animate-pulse rounded-lg bg-gray-100" />}>
+        <ControlsFilter
+          totalCount={impls.length}
+          technicalCount={technicalCount}
+          governanceCount={governanceCount}
+          inheritedCount={inheritedCount}
+          naCount={naCount}
+        />
+      </Suspense>
+      <Suspense fallback={<div className="h-64 animate-pulse rounded-lg bg-gray-100" />}>
+        <ControlsList
+          impls={impls}
+          byFamily={byFamily}
+          familyOrder={familyOrder}
+          flowdownControlUuids={flowdownControlUuids}
+        />
+      </Suspense>
     </div>
   );
 }
