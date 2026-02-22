@@ -36,6 +36,7 @@ export default async function ControlDetailPage({
         nistReqId: controls.nistReqId,
         title: controls.title,
         nistExactText: controls.nistExactText,
+        nistDiscussionGuidance: controls.nistDiscussionGuidance,
         familyCode: controlFamilies.code,
       },
     })
@@ -67,20 +68,44 @@ export default async function ControlDetailPage({
 
   return (
     <div>
-      <Link href="/dashboard/controls" className="mb-4 inline-block text-sm text-zinc-600 hover:text-zinc-900">
+      <Link href="/dashboard/controls" className="mb-4 inline-block text-sm text-gray-600 hover:text-gray-900">
         ← Back to Controls
       </Link>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-zinc-900">
-          {impl.control?.controlId} — {impl.control?.title}
+      <div className="mb-6">
+        <div className="mb-2 flex items-center gap-2">
+          <span className="rounded bg-[#3B82F6]/10 px-2 py-1 text-xs font-semibold text-[#3B82F6]">
+            {impl.control?.familyCode}
+          </span>
+          <span className="font-mono text-sm text-gray-500">{impl.control?.controlId}</span>
+        </div>
+        <h1 className="text-3xl font-bold text-[#0F172A]">
+          {impl.control?.title}
         </h1>
+        {impl.control?.nistReqId && (
+          <p className="mt-1 text-sm text-gray-600">NIST Requirement ID: {impl.control.nistReqId}</p>
+        )}
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-lg border border-zinc-200 bg-white p-4">
-          <h2 className="mb-2 font-medium text-zinc-800">NIST requirement (exact text)</h2>
-          <p className="text-sm text-zinc-600">{impl.control?.nistExactText ?? "—"}</p>
+        <div className="space-y-6">
+          <div className="rounded-lg border border-gray-200 bg-white p-6">
+            <h2 className="mb-3 text-lg font-semibold text-[#0F172A]">NIST Requirement</h2>
+            <div className="mb-4">
+              <p className="mb-1 text-xs font-medium text-gray-500 uppercase tracking-wide">Exact Text</p>
+              <p className="text-sm leading-relaxed text-gray-700 whitespace-pre-wrap">
+                {impl.control?.nistExactText ?? "—"}
+              </p>
+            </div>
+            {impl.control?.nistDiscussionGuidance && (
+              <div className="mt-4 border-t border-gray-200 pt-4">
+                <p className="mb-2 text-xs font-medium text-gray-500 uppercase tracking-wide">Discussion & Guidance</p>
+                <p className="text-sm leading-relaxed text-gray-700 whitespace-pre-wrap">
+                  {impl.control.nistDiscussionGuidance}
+                </p>
+              </div>
+            )}
+          </div>
         </div>
-        <div className="rounded-lg border border-zinc-200 bg-white p-4">
+        <div className="rounded-lg border border-gray-200 bg-white p-6">
           <ControlDetailForm
             implementationId={id}
             initialStatus={impl.status}
@@ -91,22 +116,34 @@ export default async function ControlDetailPage({
           />
         </div>
       </div>
-      <div className="mt-6 rounded-lg border border-zinc-200 bg-white p-4">
-        <h2 className="mb-2 font-medium text-zinc-800">History</h2>
-        <ul className="space-y-2 text-sm">
-          {history.length === 0 ? (
-            <li className="text-zinc-500">No changes yet.</li>
-          ) : (
-            history.map((h) => (
-              <li key={h.id} className="flex gap-2 text-zinc-600">
-                <span className="font-mono">{h.fieldName}</span>
-                <span>{h.oldValue ?? "—"} → {h.newValue ?? "—"}</span>
-                <span>{h.changedByEmail ?? "—"}</span>
-                <span>{new Date(h.createdAt).toLocaleString()}</span>
-              </li>
-            ))
-          )}
-        </ul>
+      <div className="mt-6 rounded-lg border border-gray-200 bg-white p-6">
+        <h2 className="mb-4 text-lg font-semibold text-[#0F172A]">Change History</h2>
+        {history.length === 0 ? (
+          <p className="text-sm text-gray-500">No changes recorded yet.</p>
+        ) : (
+          <div className="space-y-3">
+            {history.map((h) => (
+              <div key={h.id} className="rounded border border-gray-100 bg-gray-50 p-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs font-medium text-gray-700">{h.fieldName}</span>
+                      <span className="text-xs text-gray-500">→</span>
+                    </div>
+                    <div className="mt-1 text-sm text-gray-600">
+                      <span className="text-gray-500 line-through">{h.oldValue ?? "—"}</span>
+                      <span className="ml-2 font-medium text-gray-900">{h.newValue ?? "—"}</span>
+                    </div>
+                  </div>
+                  <div className="ml-4 text-right text-xs text-gray-500">
+                    <div>{h.changedByEmail ?? "System"}</div>
+                    <div>{new Date(h.createdAt).toLocaleDateString()}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
