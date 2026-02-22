@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  trustHost: true, // required for Railway, Vercel, and other reverse proxies
   providers: [
     Credentials({
       name: "credentials",
