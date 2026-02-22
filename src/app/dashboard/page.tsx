@@ -16,7 +16,7 @@ import {
   users,
   subcontractorRelationships,
 } from "@/db/schema";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, and, desc, sql } from "drizzle-orm";
 
 export default async function DashboardPage() {
   const session = await auth();

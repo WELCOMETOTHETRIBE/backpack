@@ -1,14 +1,17 @@
 import { NextResponse } from "next/server";
-import { OpenAI } from "openai";
 import { z } from "zod";
 import { requireOrg, requireRole } from "@/lib/auth";
 import { db } from "@/db";
 import { controls, controlImplementations, sspSections } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Lazy load OpenAI to avoid build-time errors if API key is not set
+async function getOpenAI() {
+  const { OpenAI } = await import("openai");
+  return new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+}
 
 const requestSchema = z.object({
   controlId: z.string().uuid(),
@@ -50,8 +53,12 @@ export async function POST(req: Request) {
     const [systemSection] = await db
       .select({ content: sspSections.content })
       .from(sspSections)
-      .where(eq(sspSections.organizationId, orgId))
-      .where(eq(sspSections.sectionKey, "system_description"))
+      .where(
+        and(
+          eq(sspSections.organizationId, orgId),
+          eq(sspSections.sectionKey, "system_description")
+        )
+      )
       .limit(1);
 
     const systemDescription = systemSection?.content || "A CMMC Level 2 compliant system handling Controlled Unclassified Information (CUI).";
@@ -76,6 +83,7 @@ Requirements for the narrative:
 
 Generate the implementation narrative:`;
 
+    const openai = await getOpenAI();
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
@@ -101,7 +109,7 @@ Generate the implementation narrative:`;
     return NextResponse.json({ narrative });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Invalid request", details: error.errors }, { status: 400 });
+      return NextResponse.json({ error: "Invalid request", details: error.issues }, { status: 400 });
     }
     const message = error instanceof Error ? error.message : "Internal server error";
     const status = message.includes("Unauthorized") ? 401 : message.includes("Forbidden") ? 403 : 500;

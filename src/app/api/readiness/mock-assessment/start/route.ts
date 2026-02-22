@@ -3,7 +3,7 @@ import { z } from "zod";
 import { requireOrg } from "@/lib/auth";
 import { db } from "@/db";
 import { controlImplementations, controls, controlFamilies, evidenceMetadata, evidenceControlLinks } from "@/db/schema";
-import { eq, inArray } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 
 const requestSchema = z.object({
   scope: z.enum(["full", "focused"]),
@@ -115,7 +115,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ controls: controlsWithEvidence });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Invalid request", details: error.errors }, { status: 400 });
+      return NextResponse.json({ error: "Invalid request", details: error.issues }, { status: 400 });
     }
     const message = error instanceof Error ? error.message : "Internal server error";
     const status = message.includes("Unauthorized") ? 401 : 500;

@@ -37,7 +37,7 @@ export async function POST(req: Request) {
         allControls.map((control) => ({
           organizationId: orgId,
           controlId: control.id,
-          status: "Not Started",
+          status: "Not Started" as const,
         }))
       );
     }
@@ -111,7 +111,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Invalid request", details: error.errors }, { status: 400 });
+      return NextResponse.json({ error: "Invalid request", details: error.issues }, { status: 400 });
     }
     const message = error instanceof Error ? error.message : "Internal server error";
     const status = message.includes("Unauthorized") ? 401 : message.includes("Forbidden") ? 403 : 500;
