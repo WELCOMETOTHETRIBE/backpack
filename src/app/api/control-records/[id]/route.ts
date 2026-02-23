@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { controlRecords } from "@/db/schema";
+import { controlRecords, controlRecordHistory } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { requireOrg, requireRole } from "@/lib/auth";
 import { calculateControlStatus } from "@/lib/control-status";
@@ -15,7 +15,7 @@ export async function PATCH(
 ) {
   try {
     const orgId = await requireOrg();
-    await requireRole(["Admin", "Compliance", "Assessor"]);
+    const user = await requireRole(["Admin", "Compliance", "Assessor"]);
     const { id } = await params;
 
     const [existing] = await db
@@ -43,6 +43,23 @@ export async function PATCH(
 
     if (Object.keys(updates).length === 0) {
       return NextResponse.json(existing);
+    }
+
+    if (user.id) {
+      for (const [fieldName, newVal] of Object.entries(updates)) {
+        const oldVal = existing[fieldName as keyof typeof existing];
+        const oldStr = oldVal != null ? String(oldVal) : null;
+        const newStr = newVal != null ? String(newVal) : null;
+        if (oldStr !== newStr) {
+          await db.insert(controlRecordHistory).values({
+            controlRecordId: id,
+            changedById: user.id,
+            fieldName,
+            oldValue: oldStr,
+            newValue: newStr,
+          });
+        }
+      }
     }
 
     await db

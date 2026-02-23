@@ -63,6 +63,7 @@ export const implementationStatusEnum = pgEnum("implementation_status", [
   "in_progress",
   "implemented",
   "assessed",
+  "inherited",
 ]);
 export const evidenceTypeEnum = pgEnum("evidence_type", [
   "screenshot",
@@ -98,11 +99,28 @@ export const controlRecords = pgTable(
     assessmentDate: date("assessment_date"),
     /** For control 3.13.11 only: no_crypto = 5 pt deduction, non_fips = 3 pt deduction. */
     sprs31311Condition: varchar("sprs_31311_condition", { length: 20 }),
+    /** ConMon: when this control was last validated. */
+    lastValidationDate: timestamp("last_validation_date", { withTimezone: true }),
+    /** ConMon: review cadence for "due for review" (Quarterly = 90d, Monthly = 30d, Annual = 365d). */
+    monitoringCadence: monitoringCadenceEnum("monitoring_cadence"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => [uniqueIndex("control_records_org_control_idx").on(t.organizationId, t.controlId)]
 );
+
+/** Read-only change history for control records (assessor view). */
+export const controlRecordHistory = pgTable("control_record_history", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  controlRecordId: uuid("control_record_id")
+    .references(() => controlRecords.id, { onDelete: "cascade" })
+    .notNull(),
+  changedById: uuid("changed_by_id").references(() => users.id).notNull(),
+  fieldName: text("field_name").notNull(),
+  oldValue: text("old_value"),
+  newValue: text("new_value"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
 
 export const artifacts = pgTable("artifacts", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -149,6 +167,23 @@ export const poamEntries = pgTable("poam_entries", {
   responsibleRoleId: uuid("responsible_role_id").references(() => roles.id),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const poamEntryMilestones = pgTable("poam_entry_milestones", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  poamEntryId: uuid("poam_entry_id").references(() => poamEntries.id, { onDelete: "cascade" }).notNull(),
+  title: text("title").notNull(),
+  dueDate: date("due_date"),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+  orderIndex: integer("order_index").default(0).notNull(),
+});
+
+export const poamEntryClosureApprovals = pgTable("poam_entry_closure_approvals", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  poamEntryId: uuid("poam_entry_id").references(() => poamEntries.id, { onDelete: "cascade" }).notNull(),
+  approverId: uuid("approver_id").references(() => users.id).notNull(),
+  approvalOrder: integer("approval_order").notNull(),
+  attestedAt: timestamp("attested_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
 // ============== Multi-tenancy & Auth (Module 6) ==============
@@ -556,6 +591,11 @@ export const rolesRelations = relations(roles, ({ one, many }) => ({
   poamEntries: many(poamEntries),
 }));
 
+export const controlRecordHistoryRelations = relations(controlRecordHistory, ({ one }) => ({
+  controlRecord: one(controlRecords),
+  changedBy: one(users),
+}));
+
 export const controlRecordsRelations = relations(controlRecords, ({ one, many }) => ({
   organization: one(organizations),
   responsibleRole: one(roles),
@@ -563,6 +603,7 @@ export const controlRecordsRelations = relations(controlRecords, ({ one, many })
   artifacts: many(artifacts),
   technicalEvidence: many(technicalEvidence),
   poamEntries: many(poamEntries),
+  history: many(controlRecordHistory),
 }));
 
 export const artifactsRelations = relations(artifacts, ({ one }) => ({
@@ -577,8 +618,19 @@ export const technicalEvidenceRelations = relations(technicalEvidence, ({ one })
   uploadedByUser: one(users),
 }));
 
-export const poamEntriesRelations = relations(poamEntries, ({ one }) => ({
+export const poamEntryMilestonesRelations = relations(poamEntryMilestones, ({ one }) => ({
+  poamEntry: one(poamEntries),
+}));
+
+export const poamEntryClosureApprovalsRelations = relations(poamEntryClosureApprovals, ({ one }) => ({
+  poamEntry: one(poamEntries),
+  approver: one(users),
+}));
+
+export const poamEntriesRelations = relations(poamEntries, ({ one, many }) => ({
   organization: one(organizations),
   controlRecord: one(controlRecords),
   responsibleRole: one(roles),
+  milestones: many(poamEntryMilestones),
+  closureApprovals: many(poamEntryClosureApprovals),
 }));

@@ -28,7 +28,7 @@ export async function GET() {
     doc.fontSize(10).text(`Generated: ${new Date().toISOString().slice(0, 10)}`, { align: "center" });
     doc.moveDown(2);
 
-    const implemented = records.filter((r) => r.implementationStatus === "implemented" || r.implementationStatus === "assessed").length;
+    const implemented = records.filter((r) => r.implementationStatus === "implemented" || r.implementationStatus === "assessed" || r.implementationStatus === "inherited").length;
     const inProgress = records.filter((r) => r.implementationStatus === "in_progress").length;
     const notStarted = records.filter((r) => r.implementationStatus === "not_started").length;
 
@@ -38,7 +38,7 @@ export async function GET() {
 
     for (const family of CONTROL_FAMILIES) {
       const inFamily = records.filter((r) => r.controlId.startsWith(family.controlPrefix));
-      const done = inFamily.filter((r) => r.implementationStatus === "implemented" || r.implementationStatus === "assessed").length;
+      const done = inFamily.filter((r) => r.implementationStatus === "implemented" || r.implementationStatus === "assessed" || r.implementationStatus === "inherited").length;
       doc.fontSize(11).text(`${family.code} — ${family.name}: ${done}/${inFamily.length}`, { continued: false });
       doc.moveDown(0.5);
     }

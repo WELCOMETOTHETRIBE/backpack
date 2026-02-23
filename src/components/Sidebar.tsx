@@ -10,6 +10,7 @@ import {
   BookOpen,
   Network,
   CheckCircle2,
+  Activity,
   Settings,
 } from "lucide-react";
 
@@ -48,6 +49,11 @@ const navigation = [
     name: "Readiness",
     href: "/dashboard/readiness",
     icon: CheckCircle2,
+  },
+  {
+    name: "Monitoring",
+    href: "/dashboard/monitoring",
+    icon: Activity,
   },
   {
     name: "Settings",

@@ -2,9 +2,17 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireOrg, requireRole } from "@/lib/auth";
 import { db } from "@/db";
-import { controlImplementations, controls, sspSections } from "@/db/schema";
+import {
+  controlImplementations,
+  controls,
+  sspSections,
+  controlRecords,
+  boundaryProfiles,
+} from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { writeAuditLog } from "@/lib/audit";
+import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
+import { getInheritedControls } from "@/lib/compliance";
 
 const requestSchema = z.object({
   organizationType: z.string().optional(),
@@ -12,6 +20,7 @@ const requestSchema = z.object({
   cuiBoundary: z.string().optional(),
   systemScope: z.string().optional(),
   teamMembers: z.array(z.string().email()).optional(),
+  selectedTechnologies: z.array(z.string()).optional(),
 });
 
 export async function POST(req: Request) {
@@ -21,7 +30,57 @@ export async function POST(req: Request) {
 
     const body = await requestSchema.parseAsync(await req.json());
 
-    // Initialize all controls to "Not Started" if not already initialized
+    // Ensure all 110 controlRecords exist for the org
+    const existingRecords = await db
+      .select({ id: controlRecords.id })
+      .from(controlRecords)
+      .where(eq(controlRecords.organizationId, orgId))
+      .limit(1);
+    if (existingRecords.length === 0) {
+      await db.insert(controlRecords).values(
+        ALL_CONTROL_IDS.map((controlId) => ({ organizationId: orgId, controlId }))
+      );
+    }
+
+    // If boundary profile provided, save it and set inherited controls
+    const selectedTechnologies = body.selectedTechnologies ?? [];
+    if (selectedTechnologies.length > 0) {
+      const [existingProfile] = await db
+        .select({ id: boundaryProfiles.id })
+        .from(boundaryProfiles)
+        .where(eq(boundaryProfiles.organizationId, orgId))
+        .limit(1);
+      const deduped = [...new Set(selectedTechnologies)];
+      if (existingProfile) {
+        await db
+          .update(boundaryProfiles)
+          .set({ selectedTechnologies: deduped, updatedAt: new Date() })
+          .where(eq(boundaryProfiles.id, existingProfile.id));
+      } else {
+        await db.insert(boundaryProfiles).values({
+          organizationId: orgId,
+          selectedTechnologies: deduped,
+        });
+      }
+      const inherited = getInheritedControls(deduped);
+      for (const { controlId, inheritedFrom } of inherited) {
+        await db
+          .update(controlRecords)
+          .set({
+            implementationStatus: "inherited",
+            inheritedFrom,
+            updatedAt: new Date(),
+          })
+          .where(
+            and(
+              eq(controlRecords.organizationId, orgId),
+              eq(controlRecords.controlId, controlId)
+            )
+          );
+      }
+    }
+
+    // Initialize all controls to "Not Started" if not already initialized (legacy controlImplementations)
     const existingImpls = await db
       .select()
       .from(controlImplementations)

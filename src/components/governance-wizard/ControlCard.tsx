@@ -32,6 +32,15 @@ export function ControlCard({
   const [savingNarrative, setSavingNarrative] = useState(false);
   const [responsibleRoleId, setResponsibleRoleId] = useState(record.responsibleRoleId ?? "");
   const [saving31311, setSaving31311] = useState(false);
+  const [generatingLabel, setGeneratingLabel] = useState<string | null>(null);
+  const [poamEntryId, setPoamEntryId] = useState<string | null>(null);
+  const [addingPoam, setAddingPoam] = useState(false);
+
+  useEffect(() => {
+    fetch(`/api/poam/entries?controlRecordId=${record.id}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => setPoamEntryId(data?.id ?? null));
+  }, [record.id]);
 
   useEffect(() => {
     setNarrative(record.governanceNarrative ?? "");
@@ -110,6 +119,39 @@ export function ControlCard({
     if (res.ok) {
       setTechEvidence((prev) => prev.filter((e) => e.id !== evidenceId));
       onRefresh();
+    }
+  }
+
+  async function generateWithAI(artifactLabel: string) {
+    setGeneratingLabel(artifactLabel);
+    try {
+      const res = await fetch("/api/ai/generate-document", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ controlRecordId: record.id, artifactLabel }),
+      });
+      if (res.ok) onRefresh();
+    } finally {
+      setGeneratingLabel(null);
+    }
+  }
+
+  async function addToPoam() {
+    if (addingPoam || poamEntryId) return;
+    setAddingPoam(true);
+    try {
+      const res = await fetch("/api/poam/entries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ controlRecordId: record.id }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data?.id) {
+        setPoamEntryId(data.id);
+        onRefresh();
+      }
+    } finally {
+      setAddingPoam(false);
     }
   }
 
@@ -192,7 +234,15 @@ export function ControlCard({
                     {uploadedLabels.has(a.label) ? (
                       <span className="ml-2 text-xs text-green-600">Uploaded</span>
                     ) : (
-                      <div className="mt-1">
+                      <div className="mt-1 flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => generateWithAI(a.label)}
+                          disabled={generatingLabel !== null}
+                          className="rounded border border-[#3B82F6] bg-white px-2 py-1 text-xs font-medium text-[#3B82F6] hover:bg-[#3B82F6]/10 disabled:opacity-50"
+                        >
+                          {generatingLabel === a.label ? "Generating…" : "Generate with AI"}
+                        </button>
                         <FileUploadWidget
                           controlRecordId={record.id}
                           artifactLabel={a.label}
@@ -296,6 +346,26 @@ export function ControlCard({
                 <option key={r.id} value={r.id}>{r.name}</option>
               ))}
             </select>
+          </div>
+
+          <div>
+            {poamEntryId ? (
+              <a
+                href={`/dashboard/poam/entry/${poamEntryId}`}
+                className="inline-block rounded border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                View POA&M
+              </a>
+            ) : (
+              <button
+                type="button"
+                onClick={addToPoam}
+                disabled={addingPoam}
+                className="rounded border border-amber-300 bg-white px-3 py-1.5 text-sm font-medium text-amber-900 hover:bg-amber-50 disabled:opacity-50"
+              >
+                {addingPoam ? "Adding…" : "Add to POA&M"}
+              </button>
+            )}
           </div>
         </div>
       </div>

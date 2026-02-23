@@ -36,7 +36,7 @@ export function WizardGauntlet({
           {CONTROL_FAMILIES.map((f) => {
             const inFamily = records.filter((r) => r.controlId.startsWith(f.controlPrefix));
             const implemented = inFamily.filter(
-              (r) => r.implementationStatus === "implemented" || r.implementationStatus === "assessed"
+              (r) => r.implementationStatus === "implemented" || r.implementationStatus === "assessed" || r.implementationStatus === "inherited"
             ).length;
             const pct = inFamily.length ? Math.round((implemented / inFamily.length) * 100) : 0;
             return (

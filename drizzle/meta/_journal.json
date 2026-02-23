@@ -36,6 +36,34 @@
       "when": 1771798810865,
       "tag": "0004_puzzling_blackheart",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1771802713617,
+      "tag": "0005_high_infant_terrible",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1771802875882,
+      "tag": "0006_parched_omega_sentinel",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1771803233873,
+      "tag": "0007_moaning_paladin",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1771804541610,
+      "tag": "0008_rare_lizard",
+      "breakpoints": true
     }
   ]
 }

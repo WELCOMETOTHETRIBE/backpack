@@ -27,7 +27,8 @@ export async function computeAndPersistSprsScore(
     controlId: r.controlId,
     isImplemented:
       r.implementationStatus === "implemented" ||
-      r.implementationStatus === "assessed",
+      r.implementationStatus === "assessed" ||
+      r.implementationStatus === "inherited",
   }));
 
   const record31311 = records.find((r) => r.controlId === "3.13.11");
@@ -36,6 +37,7 @@ export async function computeAndPersistSprsScore(
     record31311 &&
     record31311.implementationStatus !== "implemented" &&
     record31311.implementationStatus !== "assessed" &&
+    record31311.implementationStatus !== "inherited" &&
     record31311.sprs31311Condition === "non_fips"
   ) {
     controlDeductionOverrides["3.13.11"] = 3;
@@ -91,7 +93,8 @@ export async function getSprsBreakdown(
     records.filter(
       (r) =>
         r.implementationStatus === "implemented" ||
-        r.implementationStatus === "assessed"
+        r.implementationStatus === "assessed" ||
+        r.implementationStatus === "inherited"
     ).map((r) => r.controlId)
   );
 
@@ -100,6 +103,7 @@ export async function getSprsBreakdown(
     record31311 &&
     record31311.implementationStatus !== "implemented" &&
     record31311.implementationStatus !== "assessed" &&
+    record31311.implementationStatus !== "inherited" &&
     record31311.sprs31311Condition === "non_fips"
       ? 3
       : 5;

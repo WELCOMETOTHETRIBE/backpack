@@ -1,40 +1,43 @@
 import { auth } from "@/lib/auth";
 import Link from "next/link";
 import { db } from "@/db";
-import { controlImplementations, controls, controlFamilies } from "@/db/schema";
+import { controlRecords, controls } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 
 export default async function AssessorDashboardPage() {
   const session = await auth();
-  const user = session?.user as { organizationId?: string } | undefined;
+  const user = session?.user as { organizationId?: string; role?: string } | undefined;
   const orgId = user?.organizationId;
   if (!orgId) return null;
 
-  const impls = await db
+  const records = await db
     .select({
-      id: controlImplementations.id,
-      status: controlImplementations.status,
-      implementationNarrative: controlImplementations.implementationNarrative,
-      control: {
-        controlId: controls.controlId,
-        title: controls.title,
-        familyCode: controlFamilies.code,
-      },
+      controlId: controlRecords.controlId,
+      implementationStatus: controlRecords.implementationStatus,
+      title: controls.title,
     })
-    .from(controlImplementations)
-    .innerJoin(controls, eq(controlImplementations.controlId, controls.id))
-    .innerJoin(controlFamilies, eq(controls.controlFamilyId, controlFamilies.id))
-    .where(eq(controlImplementations.organizationId, orgId));
+    .from(controlRecords)
+    .leftJoin(controls, eq(controlRecords.controlId, controls.controlId))
+    .where(eq(controlRecords.organizationId, orgId));
 
-  const implemented = impls.filter((i) => i.status === "Implemented").length;
-  const total = impls.length;
+  const byId: Record<string, (typeof records)[0]> = {};
+  for (const r of records) byId[r.controlId] = r;
+
+  const implemented = records.filter(
+    (r) =>
+      r.implementationStatus === "implemented" ||
+      r.implementationStatus === "assessed" ||
+      r.implementationStatus === "inherited"
+  ).length;
+  const total = ALL_CONTROL_IDS.length;
   const pct = total ? Math.round((implemented / total) * 100) : 0;
 
   return (
     <div>
       <h1 className="mb-4 text-2xl font-semibold text-zinc-900">Assessor — Control compliance</h1>
       <p className="mb-6 text-zinc-600">
-        Read-only view. Trace controls to implementation narrative and evidence metadata.
+        Read-only view. Full narratives, governance artifacts, technical evidence, and change history per control.
       </p>
       <div className="mb-6 rounded border border-zinc-200 bg-white p-4">
         <p className="text-lg font-medium text-zinc-800">
@@ -42,28 +45,34 @@ export default async function AssessorDashboardPage() {
         </p>
       </div>
       <ul className="space-y-1">
-        {impls.slice(0, 50).map((c) => (
-          <li key={c.id}>
-            <Link
-              href={`/assessor/controls/${c.id}`}
-              className="flex items-center justify-between rounded border border-zinc-200 bg-white px-3 py-2 text-sm hover:border-zinc-300"
-            >
-              <span className="font-mono text-zinc-700">{c.control?.controlId}</span>
-              <span className="max-w-md truncate text-zinc-600">{c.control?.title}</span>
-              <span
-                className={`rounded px-2 py-0.5 text-xs ${
-                  c.status === "Implemented" ? "bg-green-100 text-green-800" : "bg-zinc-100 text-zinc-600"
-                }`}
+        {ALL_CONTROL_IDS.map((controlId) => {
+          const r = byId[controlId];
+          const status = r?.implementationStatus ?? "not_started";
+          const title = r?.title ?? controlId;
+          return (
+            <li key={controlId}>
+              <Link
+                href={`/assessor/controls/${controlId}`}
+                className="flex items-center justify-between rounded border border-zinc-200 bg-white px-3 py-2 text-sm hover:border-zinc-300"
               >
-                {c.status}
-              </span>
-            </Link>
-          </li>
-        ))}
+                <span className="font-mono text-zinc-700">{controlId}</span>
+                <span className="max-w-md truncate text-zinc-600">{title}</span>
+                <span
+                  className={`rounded px-2 py-0.5 text-xs ${
+                    status === "implemented" || status === "assessed" || status === "inherited"
+                      ? "bg-green-100 text-green-800"
+                      : status === "in_progress"
+                        ? "bg-amber-100 text-amber-800"
+                        : "bg-zinc-100 text-zinc-600"
+                  }`}
+                >
+                  {status}
+                </span>
+              </Link>
+            </li>
+          );
+        })}
       </ul>
-      {impls.length > 50 && (
-        <p className="mt-4 text-sm text-zinc-500">Showing first 50. Use Controls list for full view.</p>
-      )}
     </div>
   );
 }

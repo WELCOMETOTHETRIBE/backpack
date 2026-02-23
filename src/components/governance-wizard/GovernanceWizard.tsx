@@ -60,12 +60,12 @@ export function GovernanceWizard() {
   const familyStats = CONTROL_FAMILIES.map((f) => {
     const prefix = f.controlPrefix;
     const inFamily = records.filter((r) => r.controlId.startsWith(prefix));
-    const implemented = inFamily.filter((r) => r.implementationStatus === "implemented" || r.implementationStatus === "assessed").length;
+    const implemented = inFamily.filter((r) => r.implementationStatus === "implemented" || r.implementationStatus === "assessed" || r.implementationStatus === "inherited").length;
     return { code: f.code, name: f.name, total: inFamily.length, implemented };
   });
 
   const familiesComplete = familyStats.filter((s) => s.total > 0 && s.implemented === s.total).length;
-  const totalImplemented = records.filter((r) => r.implementationStatus === "implemented" || r.implementationStatus === "assessed").length;
+  const totalImplemented = records.filter((r) => r.implementationStatus === "implemented" || r.implementationStatus === "assessed" || r.implementationStatus === "inherited").length;
   const totalInProgress = records.filter((r) => r.implementationStatus === "in_progress").length;
   const totalNotStarted = records.filter((r) => r.implementationStatus === "not_started").length;
 
