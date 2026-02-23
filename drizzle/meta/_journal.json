@@ -64,6 +64,20 @@
       "when": 1771804541610,
       "tag": "0008_rare_lizard",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1771806383125,
+      "tag": "0009_dashing_whizzer",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1771806459210,
+      "tag": "0010_green_kabuki",
+      "breakpoints": true
     }
   ]
 }

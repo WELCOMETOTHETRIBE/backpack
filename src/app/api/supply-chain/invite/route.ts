@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import crypto from "crypto";
 import { requireOrg, requireRole } from "@/lib/auth";
 import { db } from "@/db";
-import { subcontractorRelationships, organizations } from "@/db/schema";
+import { subcontractorRelationships, subcontractorFlowdownResponses, organizations } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { writeAuditLog } from "@/lib/audit";
+import { Resend } from "resend";
 
 const requestSchema = z.object({
   companyName: z.string().min(1),
@@ -19,6 +21,14 @@ export async function POST(req: Request) {
     const body = await requestSchema.parseAsync(await req.json());
     const { companyName, email } = body;
 
+    const [primeOrg] = await db
+      .select({ name: organizations.name })
+      .from(organizations)
+      .where(eq(organizations.id, orgId))
+      .limit(1);
+
+    const primeName = primeOrg?.name ?? "Your prime contractor";
+
     // Check if organization already exists with this email domain
     const [existingOrg] = await db
       .select()
@@ -28,13 +38,6 @@ export async function POST(req: Request) {
 
     let subOrganizationId = existingOrg?.id;
 
-    // If org doesn't exist, create it (or leave null for pending invite)
-    if (!subOrganizationId) {
-      // For now, we'll create the relationship with inviteEmail
-      // The organization will be created when the user accepts the invite
-    }
-
-    // Create or update relationship
     const [relationship] = await db
       .insert(subcontractorRelationships)
       .values({
@@ -45,15 +48,44 @@ export async function POST(req: Request) {
       })
       .returning();
 
+    if (!relationship) {
+      return NextResponse.json({ error: "Failed to create relationship" }, { status: 500 });
+    }
+
+    const token = crypto.randomBytes(32).toString("hex");
+    await db.insert(subcontractorFlowdownResponses).values({
+      subcontractorRelationshipId: relationship.id,
+      token,
+    });
+
     await writeAuditLog({
       organizationId: orgId,
       action: "supply_chain.invite",
       resourceType: "subcontractor_relationship",
-      resourceId: relationship?.id,
+      resourceId: relationship.id,
       details: { companyName, email },
     });
 
-    // TODO: Send invitation email via Resend
+    const baseUrl = process.env.NEXTAUTH_URL ?? "https://example.com";
+    const responseLink = `${baseUrl}/subcontractor-response/${token}`;
+
+    if (process.env.RESEND_API_KEY) {
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      const from = process.env.RESEND_FROM ?? "CMMC OS <onboarding@resend.dev>";
+      await resend.emails.send({
+        from,
+        to: email,
+        subject: `${primeName} has invited you to respond to flow-down requirements`,
+        html: `
+          <p>Hello,</p>
+          <p><strong>${primeName}</strong> has invited you to respond to their CMMC flow-down requirements.</p>
+          <p>You can either link your CMMC OS workspace (if you have an account) or submit a manual attestation.</p>
+          <p><a href="${responseLink}" style="display:inline-block; margin-top:12px; padding:10px 20px; background:#3B82F6; color:white; text-decoration:none; border-radius:6px;">Respond to flow-down request</a></p>
+          <p>Or copy this link: ${responseLink}</p>
+          <p>This link is unique and should not be shared.</p>
+        `,
+      });
+    }
 
     return NextResponse.json({ success: true, relationship });
   } catch (error) {

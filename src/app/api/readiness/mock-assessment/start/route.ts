@@ -2,14 +2,21 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireOrg } from "@/lib/auth";
 import { db } from "@/db";
-import { controlImplementations, controls, controlFamilies, evidenceMetadata, evidenceControlLinks } from "@/db/schema";
+import {
+  mockAssessments,
+  controlImplementations,
+  controls,
+  controlFamilies,
+  evidenceMetadata,
+  evidenceControlLinks,
+} from "@/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 
 const requestSchema = z.object({
   scope: z.enum(["full", "focused"]),
 });
 
-// Sample test cases and interview questions for different control types
+// Sample test cases and interview questions for different control types (for backward-compat payload)
 const getTestCase = (controlId: string, title: string): string => {
   if (controlId.startsWith("AC.")) {
     return `Test access controls: Attempt to access a restricted resource and verify access is denied. Verify that access logs are generated.`;
@@ -39,31 +46,26 @@ export async function POST(req: Request) {
     const { scope } = body;
 
     // Fetch controls based on scope
-    let controlIds: string[] = [];
+    let allControlIds: string[] = [];
     if (scope === "full") {
-      const allControls = await db.select({ id: controls.id }).from(controls);
-      controlIds = allControls.map((c) => c.id);
+      const rows = await db.select({ id: controls.id, controlId: controls.controlId }).from(controls);
+      allControlIds = rows.map((c) => c.id);
     } else {
-      // Focused: AC and IA families
       const focusedFamilies = await db
         .select({ id: controlFamilies.id })
         .from(controlFamilies)
         .where(inArray(controlFamilies.code, ["AC", "IA"]));
-      
       const familyIds = focusedFamilies.map((f) => f.id);
-      const focusedControls = await db
-        .select({ id: controls.id })
+      const rows = await db
+        .select({ id: controls.id, controlId: controls.controlId })
         .from(controls)
         .where(inArray(controls.controlFamilyId, familyIds));
-      
-      controlIds = focusedControls.map((c) => c.id);
+      allControlIds = rows.map((c) => c.id);
     }
 
-    // Sample a representative subset (max 20 controls for focused assessment)
-    const sampleSize = scope === "full" ? Math.min(30, controlIds.length) : Math.min(20, controlIds.length);
-    const sampledIds = controlIds.sort(() => 0.5 - Math.random()).slice(0, sampleSize);
+    const sampleSize = scope === "full" ? Math.min(30, allControlIds.length) : Math.min(20, allControlIds.length);
+    const sampledIds = [...allControlIds].sort(() => 0.5 - Math.random()).slice(0, sampleSize);
 
-    // Fetch control details
     const controlDetails = await db
       .select({
         controlId: controls.controlId,
@@ -73,7 +75,22 @@ export async function POST(req: Request) {
       .from(controls)
       .where(inArray(controls.id, sampledIds));
 
-    // For each control, fetch linked evidence
+    const storedControlIds = controlDetails.map((c) => c.controlId);
+
+    const [assessment] = await db
+      .insert(mockAssessments)
+      .values({
+        organizationId: orgId,
+        status: "in_progress",
+        scope,
+        controlIds: storedControlIds,
+      })
+      .returning();
+
+    if (!assessment) {
+      return NextResponse.json({ error: "Failed to create assessment" }, { status: 500 });
+    }
+
     const controlsWithEvidence = await Promise.all(
       controlDetails.map(async (control) => {
         const impl = await db
@@ -98,7 +115,6 @@ export async function POST(req: Request) {
             .innerJoin(evidenceMetadata, eq(evidenceControlLinks.evidenceMetadataId, evidenceMetadata.id))
             .where(eq(evidenceControlLinks.controlImplementationId, impl[0].id))
             .limit(5);
-
           evidence = evidenceLinks.map((e) => `${e.evidenceId}: ${e.artifactFilename}`);
         }
 
@@ -112,7 +128,10 @@ export async function POST(req: Request) {
       })
     );
 
-    return NextResponse.json({ controls: controlsWithEvidence });
+    return NextResponse.json({
+      mockAssessmentId: assessment.id,
+      controls: controlsWithEvidence,
+    });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "Invalid request", details: error.issues }, { status: 400 });

@@ -480,6 +480,67 @@ export const flowdownRequirements = pgTable("flowdown_requirements", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+// ============== Mock Assessment Simulator (V2) ==============
+export const mockAssessmentStatusEnum = pgEnum("mock_assessment_status", [
+  "in_progress",
+  "completed",
+]);
+export const mockAssessmentScoreEnum = pgEnum("mock_assessment_score", [
+  "Met",
+  "Partially Met",
+  "Not Met",
+]);
+
+export const mockAssessments = pgTable("mock_assessments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id")
+    .references(() => organizations.id, { onDelete: "cascade" })
+    .notNull(),
+  status: mockAssessmentStatusEnum("status").notNull().default("in_progress"),
+  scope: varchar("scope", { length: 20 }).notNull().default("full"),
+  /** Stored control IDs (e.g. ["3.13.2", "AC.L1-3.1.1"]) for this run so GET returns same set. */
+  controlIds: jsonb("control_ids").$type<string[]>().notNull().default([]),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+});
+
+export const mockAssessmentResponses = pgTable("mock_assessment_responses", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  mockAssessmentId: uuid("mock_assessment_id")
+    .references(() => mockAssessments.id, { onDelete: "cascade" })
+    .notNull(),
+  controlId: varchar("control_id", { length: 20 }).notNull(),
+  questionText: text("question_text").notNull(),
+  userResponse: text("user_response").notNull(),
+  llmEvaluation: text("llm_evaluation").notNull(),
+  score: mockAssessmentScoreEnum("score").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// ============== Supply Chain Portal V2: Flow-down response ==============
+export const flowdownResponseTypeEnum = pgEnum("flowdown_response_type", [
+  "linked_workspace",
+  "manual_attestation",
+]);
+
+export const subcontractorFlowdownResponses = pgTable(
+  "subcontractor_flowdown_responses",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    subcontractorRelationshipId: uuid("subcontractor_relationship_id")
+      .references(() => subcontractorRelationships.id, { onDelete: "cascade" })
+      .notNull(),
+    token: varchar("token", { length: 64 }).notNull().unique(),
+    responseType: flowdownResponseTypeEnum("response_type"),
+    linkedOrganizationId: uuid("linked_organization_id").references(() => organizations.id),
+    attestationData: jsonb("attestation_data").$type<Record<string, unknown>>(),
+    sspDocumentUrl: text("ssp_document_url"),
+    poamDocumentUrl: text("poam_document_url"),
+    respondedAt: timestamp("responded_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  }
+);
+
 // ============== Relations ==============
 export const organizationsRelations = relations(organizations, ({ one, many }) => ({
   boundaryProfile: one(boundaryProfiles),
@@ -500,6 +561,7 @@ export const organizationsRelations = relations(organizations, ({ one, many }) =
   subRelationships: many(subcontractorRelationships, { relationName: "subRelationships" }),
   primeContracts: many(contracts, { relationName: "primeContracts" }),
   subContracts: many(contracts, { relationName: "subContracts" }),
+  mockAssessments: many(mockAssessments),
 }));
 
 export const boundaryProfilesRelations = relations(boundaryProfiles, ({ one }) => ({
@@ -553,7 +615,7 @@ export const poamItemsRelations = relations(poamItems, ({ one, many }) => ({
   closureApprovals: many(poamClosureApprovals),
 }));
 
-export const subcontractorRelationshipsRelations = relations(subcontractorRelationships, ({ one }) => ({
+export const subcontractorRelationshipsRelations = relations(subcontractorRelationships, ({ one, many }) => ({
   primeOrganization: one(organizations, {
     fields: [subcontractorRelationships.primeOrganizationId],
     references: [organizations.id],
@@ -564,7 +626,19 @@ export const subcontractorRelationshipsRelations = relations(subcontractorRelati
     references: [organizations.id],
     relationName: "subRelationships",
   }),
+  flowdownResponses: many(subcontractorFlowdownResponses),
 }));
+
+export const subcontractorFlowdownResponsesRelations = relations(
+  subcontractorFlowdownResponses,
+  ({ one }) => ({
+    subcontractorRelationship: one(subcontractorRelationships),
+    linkedOrganization: one(organizations, {
+      fields: [subcontractorFlowdownResponses.linkedOrganizationId],
+      references: [organizations.id],
+    }),
+  })
+);
 
 export const contractsRelations = relations(contracts, ({ one, many }) => ({
   primeOrganization: one(organizations, {
@@ -583,6 +657,15 @@ export const contractsRelations = relations(contracts, ({ one, many }) => ({
 export const flowdownRequirementsRelations = relations(flowdownRequirements, ({ one }) => ({
   contract: one(contracts),
   control: one(controls),
+}));
+
+export const mockAssessmentsRelations = relations(mockAssessments, ({ one, many }) => ({
+  organization: one(organizations),
+  responses: many(mockAssessmentResponses),
+}));
+
+export const mockAssessmentResponsesRelations = relations(mockAssessmentResponses, ({ one }) => ({
+  mockAssessment: one(mockAssessments),
 }));
 
 export const rolesRelations = relations(roles, ({ one, many }) => ({

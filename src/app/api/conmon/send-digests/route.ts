@@ -6,15 +6,18 @@ import { getControlsDueForReview, getEvidenceExpiringSoon } from "@/lib/conmon";
 import { renderConmonDigestHtml } from "@/lib/email/conmon-digest";
 import { Resend } from "resend";
 
-/**
- * GET /api/cron/conmon-summary
- * Legacy cron entry point. For each org, sends ConMon digest using shared template.
- * Prefer POST /api/conmon/send-digests for new cron jobs.
- */
-export async function GET(req: Request) {
+function isCronAuthorized(req: Request): boolean {
   const authHeader = req.headers.get("authorization");
   const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
-  if (token !== process.env.CRON_SECRET || !process.env.CRON_SECRET) {
+  return token === process.env.CRON_SECRET && Boolean(process.env.CRON_SECRET);
+}
+
+/**
+ * POST /api/conmon/send-digests
+ * Cron-only. For each org, builds ConMon digest and emails compliance contacts.
+ */
+export async function POST(req: Request) {
+  if (!isCronAuthorized(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

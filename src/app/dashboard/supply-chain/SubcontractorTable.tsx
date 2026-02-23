@@ -19,29 +19,41 @@ interface Subcontractor {
   };
 }
 
+interface DashboardRow {
+  relationshipId: string;
+  subOrganizationId: string | null;
+  subName: string | null;
+  status: string;
+  compliancePct: number;
+  sprsScore: number | null;
+  openPoams: number;
+  lastActivity: string | null;
+}
+
 interface SubcontractorTableProps {
   subcontractors: Subcontractor[];
 }
 
 export default function SubcontractorTable({ subcontractors }: SubcontractorTableProps) {
-  const [statuses, setStatuses] = useState<Record<string, any>>({});
+  const [dashboard, setDashboard] = useState<DashboardRow[] | null>(null);
 
   useEffect(() => {
-    // Fetch status for each subcontractor that has an organization
-    subcontractors
-      .filter((s) => s.subOrganization?.id)
-      .forEach(async (sub) => {
-        try {
-          const res = await fetch(`/api/supply-chain/status/${sub.subOrganization!.id}`);
-          if (res.ok) {
-            const data = await res.json();
-            setStatuses((prev) => ({ ...prev, [sub.subOrganization!.id]: data }));
-          }
-        } catch (err) {
-          // Silently fail - status will show as unavailable
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/supply-chain/dashboard");
+        if (!cancelled && res.ok) {
+          const data = await res.json();
+          setDashboard(data.subcontractors ?? []);
         }
-      });
-  }, [subcontractors]);
+      } catch {
+        // Silently fail
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   if (subcontractors.length === 0) {
     return (
@@ -63,13 +75,16 @@ export default function SubcontractorTable({ subcontractors }: SubcontractorTabl
               CMMC Level Required
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Compliance Score
+              Compliance %
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              SPRS Score
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Open POA&Ms
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Certification Status
+              Last Activity
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Status
@@ -78,9 +93,12 @@ export default function SubcontractorTable({ subcontractors }: SubcontractorTabl
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {subcontractors.map((sub) => {
-            const status = statuses[sub.subOrganization?.id || ""];
-            const companyName = sub.subOrganization?.name || sub.inviteEmail || "Pending";
-            const isPending = sub.status === "Pending";
+            const row = dashboard?.find((d) => d.relationshipId === sub.id);
+            const companyName = sub.subOrganization?.name ?? row?.subName ?? sub.inviteEmail ?? "Pending";
+
+            const lastActivityFormatted = row?.lastActivity
+              ? new Date(row.lastActivity).toLocaleDateString()
+              : "—";
 
             return (
               <tr key={sub.id} className="hover:bg-gray-50">
@@ -93,16 +111,19 @@ export default function SubcontractorTable({ subcontractors }: SubcontractorTabl
                   </Link>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {sub.contract?.cmmcLevelRequired || "—"}
+                  {sub.contract?.cmmcLevelRequired ?? "—"}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {status?.complianceScore !== undefined ? `${status.complianceScore}%` : "—"}
+                  {row?.compliancePct !== undefined ? `${row.compliancePct}%` : "—"}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {status?.openPoams !== undefined ? status.openPoams : "—"}
+                  {row?.sprsScore != null ? row.sprsScore : "—"}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {status?.certificationStatus || "—"}
+                  {row?.openPoams !== undefined ? row.openPoams : "—"}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {lastActivityFormatted}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span
