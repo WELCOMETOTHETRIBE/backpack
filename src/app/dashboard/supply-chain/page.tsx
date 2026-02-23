@@ -57,17 +57,22 @@ export default async function SupplyChainPage() {
     })
   );
 
+  const cardClass = "rounded-xl border border-slate-200 bg-white p-6 shadow-sm";
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div>
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-[#0F172A]">Supply Chain</h1>
-          <p className="mt-2 text-gray-600">Manage subcontractor relationships and flow-down requirements</p>
+          <p className="mt-2 text-gray-600">Manage subcontractor relationships and flow-down requirements.</p>
         </div>
         <InviteSubcontractorButton />
       </div>
 
-      <SubcontractorTable subcontractors={subcontractorsWithStatus} />
+      <div className={cardClass}>
+        <h2 className="mb-4 text-sm font-semibold text-slate-800">Subcontractors</h2>
+        <SubcontractorTable subcontractors={subcontractorsWithStatus} />
+      </div>
     </div>
   );
 }

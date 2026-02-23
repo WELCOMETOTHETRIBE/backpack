@@ -26,7 +26,7 @@ export default async function WelcomePage() {
 
   return (
     <div className="min-h-screen bg-[#f8fafc]">
-      <div className="mx-auto max-w-[28rem] px-4 py-16 sm:px-6 sm:py-20">
+      <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-20">
         <WelcomeQuestionnaire />
       </div>
     </div>

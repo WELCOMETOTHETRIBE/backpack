@@ -16,7 +16,6 @@ const ROUTE_TITLES: Record<string, string> = {
   "/dashboard/monitoring": "Monitoring",
   "/dashboard/settings": "Settings",
   "/dashboard/reporting": "Reporting",
-  "/dashboard/governance": "Governance",
 };
 
 function getPageTitle(pathname: string | null): string {

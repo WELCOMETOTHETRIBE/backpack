@@ -26,22 +26,32 @@ export default async function SettingsPage() {
     .where(eq(users.id, user.id!))
     .limit(1);
 
+  const cardClass = "rounded-xl border border-slate-200 bg-white p-6 shadow-sm";
+
   return (
-    <div className="space-y-6">
-      <div>
+    <div>
+      <div className="mb-8">
         <h1 className="text-3xl font-bold text-[#0F172A]">Settings</h1>
-        <p className="mt-2 text-gray-600">Manage your organization and account settings</p>
+        <p className="mt-2 text-gray-600">Manage your organization and account settings.</p>
       </div>
 
-      <SettingsForm
-        organization={org}
-        user={currentUser}
-        userRole={user.role}
-      />
+      <div className="grid grid-cols-1 gap-6">
+        <div className={cardClass}>
+          <h2 className="mb-4 text-sm font-semibold text-slate-800">Organization & account</h2>
+          <SettingsForm
+            organization={org}
+            user={currentUser}
+            userRole={user.role}
+          />
+        </div>
 
-      {(user.role === "Admin" || user.role === "Compliance") && (
-        <InviteTeamSection />
-      )}
+        {(user.role === "Admin" || user.role === "Compliance") && (
+          <div className={cardClass}>
+            <h2 className="mb-4 text-sm font-semibold text-slate-800">Invite team</h2>
+            <InviteTeamSection />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
