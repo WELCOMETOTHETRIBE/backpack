@@ -5,8 +5,9 @@ import type { ControlRecord, NistControl, Role } from "./GovernanceWizard";
 import { FileUploadWidget } from "./FileUploadWidget";
 import { StatusBadge } from "./StatusBadge";
 import { getAdjudicationQuestionsForControl } from "@/lib/compliance/control_adjudication_questions";
+import { CONTROL_EVIDENCE_GUIDE } from "@/lib/compliance/control_evidence_guide";
 import { getRequiredUploadArtifactLabels, getFirstControlRequiringUploadLabel } from "@/lib/artifact-guide";
-import { CheckCircle2, AlertCircle, XCircle, ChevronDown, ChevronUp, Wand2, FileText, Monitor } from "lucide-react";
+import { CheckCircle2, AlertCircle, XCircle, ChevronDown, ChevronUp, Wand2, FileText, Monitor, Upload } from "lucide-react";
 
 type EvidenceRequirements = {
   governance: { label: string; handling: string }[];
@@ -62,6 +63,16 @@ export function ControlCardV2({
   const [poamRoleId, setPoamRoleId] = useState("");
   const [augmentingPoam, setAugmentingPoam] = useState(false);
   const [questionAnswers, setQuestionAnswers] = useState<Record<number, "yes" | "no">>({});
+  const [evidencePanelOpen, setEvidencePanelOpen] = useState(true);
+  const [uploadModalLabel, setUploadModalLabel] = useState<string | null>(null);
+
+  const guideEntry = useMemo(
+    () => CONTROL_EVIDENCE_GUIDE[record.controlId],
+    [record.controlId]
+  );
+  const inheritedFromGuide = guideEntry?.inheritedFrom;
+  const evidenceExamples = guideEntry?.evidenceExamples ?? [];
+  const hasEvidencePanel = evidenceExamples.length > 0;
 
   const requiredUploadLabels = useMemo(
     () => getRequiredUploadArtifactLabels(record.controlId),
@@ -335,12 +346,18 @@ export function ControlCardV2({
               )}
             </section>
 
-            {/* Section B: Question-driven adjudication (gated by required documents) */}
+            {/* Section B: Inherited badge or question-driven adjudication (gated by required documents) */}
             <section aria-labelledby={`control-${record.controlId}-have`}>
               <h3 id={`control-${record.controlId}-have`} className="text-sm font-semibold text-gray-900">
                 Do you have a process for this control?
               </h3>
-              {documentGateBlocked ? (
+              {inheritedFromGuide ? (
+                <div className="mt-3">
+                  <span className="inline-flex items-center rounded-md bg-indigo-100 px-2.5 py-1 text-sm font-medium text-indigo-800">
+                    Inherited — Satisfied by {inheritedFromGuide}
+                  </span>
+                </div>
+              ) : documentGateBlocked ? (
                 <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
                   <p className="text-sm text-amber-900">
                     This control requires{" "}
@@ -396,6 +413,84 @@ export function ControlCardV2({
                 </>
               )}
             </section>
+
+            {/* Expected Evidence (from unified guide) */}
+            {hasEvidencePanel && (
+              <section aria-labelledby={`control-${record.controlId}-expected-evidence`}>
+                <button
+                  type="button"
+                  onClick={() => setEvidencePanelOpen((o) => !o)}
+                  className="flex w-full items-center justify-between text-left"
+                  aria-expanded={evidencePanelOpen}
+                  aria-controls={`control-${record.controlId}-evidence-list`}
+                >
+                  <h3 id={`control-${record.controlId}-expected-evidence`} className="text-sm font-semibold text-gray-900">
+                    Expected Evidence
+                  </h3>
+                  {evidencePanelOpen ? (
+                    <ChevronUp className="h-5 w-5 text-gray-500" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5 text-gray-500" />
+                  )}
+                </button>
+                {evidencePanelOpen && (
+                  <div id={`control-${record.controlId}-evidence-list`} className="mt-3 flex flex-wrap gap-2">
+                    {evidenceExamples.map((item, idx) => {
+                      const lower = item.toLowerCase();
+                      const isUploadable = lower.endsWith(".pdf") || lower.endsWith(".docx") || lower.endsWith(".xlsx") || lower.endsWith(".zip");
+                      const labelForUpload = isUploadable ? item.replace(/\.[^.]+$/, "").trim() : null;
+                      return (
+                        <span
+                          key={idx}
+                          className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm text-gray-800"
+                        >
+                          <FileText className="h-4 w-4 shrink-0 text-gray-500" aria-hidden />
+                          <span className="min-w-0 truncate max-w-[280px]">{item}</span>
+                          {isUploadable && labelForUpload && (
+                            <button
+                              type="button"
+                              onClick={() => setUploadModalLabel(labelForUpload)}
+                              className="shrink-0 rounded p-0.5 text-gray-500 hover:bg-gray-200 hover:text-gray-800"
+                              aria-label={`Upload ${labelForUpload}`}
+                            >
+                              <Upload className="h-4 w-4" />
+                            </button>
+                          )}
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
+              </section>
+            )}
+
+            {/* Upload modal (for evidence chip shortcut) */}
+            {uploadModalLabel !== null && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true" aria-labelledby="upload-modal-title">
+                <div className="w-full max-w-md rounded-lg border border-gray-200 bg-white p-6 shadow-lg">
+                  <h2 id="upload-modal-title" className="text-lg font-semibold text-gray-900 mb-3">
+                    Upload: {uploadModalLabel}
+                  </h2>
+                  <FileUploadWidget
+                    controlRecordId={record.id}
+                    artifactLabel={uploadModalLabel}
+                    onUploaded={() => {
+                      onRefresh();
+                      setUploadModalLabel(null);
+                    }}
+                  />
+                  <div className="mt-4">
+                    <button
+                      type="button"
+                      onClick={() => setUploadModalLabel(null)}
+                      className="rounded border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* 3.13.11 prompt */}
             {show31311Prompt && (
