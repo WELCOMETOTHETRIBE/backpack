@@ -1,13 +1,25 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
+import Link from "next/link";
 import type { ControlRecord, NistControl, Role } from "./GovernanceWizard";
 import { FileUploadWidget } from "./FileUploadWidget";
 import { StatusBadge } from "./StatusBadge";
 import { getAdjudicationQuestionsForControl } from "@/lib/compliance/control_adjudication_questions";
 import { CONTROL_EVIDENCE_GUIDE } from "@/lib/compliance/control_evidence_guide";
-import { getRequiredUploadArtifactLabels, getFirstControlRequiringUploadLabel } from "@/lib/artifact-guide";
-import { CheckCircle2, AlertCircle, XCircle, ChevronDown, ChevronUp, Wand2, FileText, Monitor, Upload } from "lucide-react";
+import {
+  getRequiredUploadArtifactLabels,
+  getFirstControlRequiringUploadLabel,
+} from "@/lib/artifact-guide";
+import {
+  CheckCircle2,
+  AlertCircle,
+  XCircle,
+  FileText,
+  Monitor,
+  Wand2,
+  X,
+} from "lucide-react";
 
 type EvidenceRequirements = {
   governance: { label: string; handling: string }[];
@@ -19,8 +31,6 @@ type EvidenceRequirements = {
     inherited?: boolean;
     inheritedFrom?: string;
   }[];
-  sprsValue: number | null;
-  satisfactionType: string | null;
 };
 
 type TechEvidenceRow = {
@@ -31,23 +41,21 @@ type TechEvidenceRow = {
   sourceUrl: string | null;
 };
 
-export function ControlCardV2({
+export function ControlAdjudicationModal({
   record,
   nist,
   roles,
-  onRefresh,
   orgUploadedLabels = [],
+  onClose,
+  onSaved,
 }: {
   record: ControlRecord;
   nist: NistControl | undefined;
   roles: Role[];
-  onRefresh: () => void;
-  /** Org-level uploaded artifact labels (for document gating). */
   orgUploadedLabels?: string[];
+  onClose: () => void;
+  onSaved?: () => void;
 }) {
-  const [expanded, setExpanded] = useState(false);
-  const [showNistText, setShowNistText] = useState(false);
-  const [showAdvancedNarrative, setShowAdvancedNarrative] = useState(false);
   const [requirements, setRequirements] = useState<EvidenceRequirements | null>(null);
   const [techEvidence, setTechEvidence] = useState<TechEvidenceRow[]>([]);
   const [uploadedArtifactLabels, setUploadedArtifactLabels] = useState<Set<string>>(new Set());
@@ -63,8 +71,7 @@ export function ControlCardV2({
   const [poamRoleId, setPoamRoleId] = useState("");
   const [augmentingPoam, setAugmentingPoam] = useState(false);
   const [questionAnswers, setQuestionAnswers] = useState<Record<number, "yes" | "no">>({});
-  const [evidencePanelOpen, setEvidencePanelOpen] = useState(true);
-  const [uploadModalLabel, setUploadModalLabel] = useState<string | null>(null);
+  const [showAdvancedNarrative, setShowAdvancedNarrative] = useState(false);
 
   const guideEntry = useMemo(
     () => CONTROL_EVIDENCE_GUIDE[record.controlId],
@@ -72,7 +79,6 @@ export function ControlCardV2({
   );
   const inheritedFromGuide = guideEntry?.inheritedFrom;
   const evidenceExamples = guideEntry?.evidenceExamples ?? [];
-  const hasEvidencePanel = evidenceExamples.length > 0;
 
   const requiredUploadLabels = useMemo(
     () => getRequiredUploadArtifactLabels(record.controlId),
@@ -96,11 +102,10 @@ export function ControlCardV2({
     const keyIndex = 0;
     const keyAnswer = questionAnswers[keyIndex];
     const anyKeyNo = keyAnswer === "no";
-    const allKeyYes = keyAnswer === "yes";
     const nonKeyIndices = adjudicationQuestions.map((_, i) => i).filter((i) => i !== keyIndex);
     const someNonKeyNo = nonKeyIndices.some((i) => questionAnswers[i] === "no");
     if (anyKeyNo) return "not_started";
-    if (allKeyYes && someNonKeyNo) return "in_progress";
+    if (keyAnswer === "yes" && someNonKeyNo) return "in_progress";
     return "implemented";
   }, [allQuestionsAnswered, questionAnswers, adjudicationQuestions.length]);
 
@@ -112,6 +117,10 @@ export function ControlCardV2({
   const isNotStarted = record.implementationStatus === "not_started";
   const showEvidence = isImplemented || isInProgress;
   const showPoam = isInProgress || isNotStarted;
+
+  const refresh = useCallback(() => {
+    onSaved?.();
+  }, [onSaved]);
 
   useEffect(() => {
     fetch(`/api/poam/entries?controlRecordId=${record.id}`)
@@ -135,8 +144,7 @@ export function ControlCardV2({
     ) {
       setStatus(derivedStatus);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- only run when answers/derived change; setStatus stable
-  }, [allQuestionsAnswered, derivedStatus, record.implementationStatus]);
+  }, [allQuestionsAnswered, derivedStatus, record.implementationStatus, savingStatus]);
 
   useEffect(() => {
     fetch(`/api/evidence-requirements?controlId=${record.controlId}`)
@@ -181,7 +189,7 @@ export function ControlCardV2({
         body: JSON.stringify({ implementationStatus: newStatus }),
       });
       if (res.ok) {
-        onRefresh();
+        refresh();
         if ((newStatus === "not_started" || newStatus === "in_progress") && !poamEntryId) {
           const eRes = await fetch("/api/poam/entries", {
             method: "POST",
@@ -191,7 +199,7 @@ export function ControlCardV2({
           const eData = await eRes.json().catch(() => ({}));
           if (eRes.ok && eData?.id) {
             setPoamEntryId(eData.id);
-            onRefresh();
+            refresh();
           }
         }
       }
@@ -209,15 +217,14 @@ export function ControlCardV2({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ governanceNarrative: narrative || null }),
       });
-      if (res.ok) onRefresh();
+      if (res.ok) refresh();
     } finally {
       setSavingNarrative(false);
     }
   }
 
   const is31311 = record.controlId === "3.13.11";
-  const show31311Prompt =
-    is31311 && !isImplemented;
+  const show31311Prompt = is31311 && !isImplemented;
 
   async function setSprs31311Condition(value: "no_crypto" | "non_fips") {
     setSaving31311(true);
@@ -227,7 +234,7 @@ export function ControlCardV2({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sprs31311Condition: value }),
       });
-      if (res.ok) onRefresh();
+      if (res.ok) refresh();
     } finally {
       setSaving31311(false);
     }
@@ -241,7 +248,7 @@ export function ControlCardV2({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ controlRecordId: record.id, artifactLabel }),
       });
-      if (res.ok) onRefresh();
+      if (res.ok) refresh();
     } finally {
       setGeneratingLabel(null);
     }
@@ -265,7 +272,7 @@ export function ControlCardV2({
       const data = await res.json().catch(() => ({}));
       if (res.ok && data?.id) {
         setPoamEntryId(data.id);
-        onRefresh();
+        refresh();
       }
     } finally {
       setAddingPoam(false);
@@ -290,209 +297,124 @@ export function ControlCardV2({
     }
   }
 
-  function statusIcon() {
-    if (record.implementationStatus === "inherited" || record.implementationStatus === "assessed" || record.implementationStatus === "implemented")
-      return <CheckCircle2 className="h-5 w-5 text-green-600" aria-hidden />;
-    if (record.implementationStatus === "in_progress")
-      return <AlertCircle className="h-5 w-5 text-amber-600" aria-hidden />;
-    return <XCircle className="h-5 w-5 text-gray-400" aria-hidden />;
-  }
-
   return (
-    <div className="rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-200">
-      {/* Collapsed row */}
-      <button
-        type="button"
-        onClick={() => setExpanded((e) => !e)}
-        className="flex w-full items-center gap-4 px-6 py-4 text-left hover:bg-gray-50/50"
-        aria-expanded={expanded}
-        aria-label={expanded ? "Collapse control" : "Expand control"}
-      >
-        <span className="shrink-0">{statusIcon()}</span>
-        <span className="font-mono text-sm font-medium text-gray-700">{record.controlId}</span>
-        <span className="min-w-0 flex-1 truncate text-gray-900">
-          {nist?.title ?? record.controlId}
-        </span>
-        <StatusBadge status={record.implementationStatus} />
-        <span className="shrink-0 text-gray-400">
-          {expanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-        </span>
-      </button>
+    <div
+      className="fixed inset-0 z-50 flex flex-col bg-white"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="control-adjudication-title"
+    >
+      <header className="flex shrink-0 items-center justify-between border-b border-gray-200 bg-gray-50 px-6 py-3">
+        <div className="flex items-center gap-4">
+          <span className="font-mono text-sm font-medium text-gray-700">{record.controlId}</span>
+          <StatusBadge status={record.implementationStatus} />
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="rounded-lg p-2 text-gray-500 hover:bg-gray-200 hover:text-gray-900"
+          aria-label="Close"
+        >
+          <X className="h-5 w-5" />
+        </button>
+      </header>
 
-      {/* Expanded content */}
-      {expanded && (
-        <div className="border-t border-gray-200 px-6 py-6 space-y-6">
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-0 lg:grid-cols-[1fr,1fr]">
+        {/* Left column: The "Why" — reference info */}
+        <aside className="flex min-h-0 flex-col overflow-y-auto border-gray-200 bg-gray-50/50 p-6 lg:border-r">
+          <h2 id="control-adjudication-title" className="mb-2 text-lg font-semibold text-gray-900">
+            {nist?.title ?? record.controlId}
+          </h2>
+          <p className="mb-6 text-sm text-gray-700">{plainExplanation}</p>
+          {nist?.nistExactText && (
+            <div className="mb-6 rounded-lg border border-gray-200 bg-white p-4 text-sm text-gray-700">
+              <h3 className="mb-2 text-xs font-semibold uppercase text-gray-500">NIST exact text</h3>
+              <p className="whitespace-pre-wrap">{nist.nistExactText}</p>
+            </div>
+          )}
+          <div>
+            <h3 className="mb-2 text-sm font-semibold text-gray-900">Expected evidence</h3>
+            <ul className="flex flex-wrap gap-2">
+              {evidenceExamples.map((item, idx) => (
+                <li
+                  key={idx}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-800"
+                >
+                  <FileText className="h-4 w-4 shrink-0 text-gray-500" />
+                  <span className="max-w-[240px] truncate">{item}</span>
+                </li>
+              ))}
+              {evidenceExamples.length === 0 && (
+                <li className="text-sm text-gray-500">No specific evidence list for this control.</li>
+              )}
+            </ul>
+          </div>
+        </aside>
+
+        {/* Right column: The "How" — adjudication */}
+        <main className="flex min-h-0 flex-col overflow-y-auto p-6">
           {loadingRequirements && (
             <p className="text-sm text-gray-500">Loading requirements…</p>
           )}
           <div className={`space-y-6 ${loadingRequirements ? "opacity-60" : ""}`}>
-            {/* Section A: What This Means */}
-            <section aria-labelledby={`control-${record.controlId}-meaning`}>
-              <h3 id={`control-${record.controlId}-meaning`} className="text-sm font-semibold text-gray-900">
-                What this means
-              </h3>
-              <p className="mt-1 text-sm text-gray-700">{plainExplanation}</p>
-              <button
-                type="button"
-                onClick={() => setShowNistText((b) => !b)}
-                className="mt-2 text-sm text-blue-600 hover:underline"
-              >
-                {showNistText ? "Hide NIST text" : "Learn more"}
-              </button>
-              {showNistText && nist?.nistExactText && (
-                <div className="mt-2 rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700">
-                  {nist.nistExactText}
-                </div>
-              )}
-            </section>
-
-            {/* Section B: Inherited badge or question-driven adjudication (gated by required documents) */}
-            <section aria-labelledby={`control-${record.controlId}-have`}>
-              <h3 id={`control-${record.controlId}-have`} className="text-sm font-semibold text-gray-900">
-                Do you have a process for this control?
-              </h3>
+            <section>
+              <h3 className="mb-2 text-sm font-semibold text-gray-900">Do you have a process for this control?</h3>
               {inheritedFromGuide ? (
-                <div className="mt-3">
-                  <span className="inline-flex items-center rounded-md bg-indigo-100 px-2.5 py-1 text-sm font-medium text-indigo-800">
-                    Inherited — Satisfied by {inheritedFromGuide}
-                  </span>
-                </div>
+                <span className="inline-flex items-center rounded-md bg-indigo-100 px-2.5 py-1 text-sm font-medium text-indigo-800">
+                  Inherited — Satisfied by {inheritedFromGuide}
+                </span>
               ) : documentGateBlocked ? (
-                <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
+                <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
                   <p className="text-sm text-amber-900">
-                    This control requires{" "}
-                    <strong>{missingRequiredLabels[0]}</strong>. Please upload this document for control{" "}
-                    {getFirstControlRequiringUploadLabel(missingRequiredLabels[0]!) ?? record.controlId} before
-                    proceeding.
+                    This control requires <strong>{missingRequiredLabels[0]}</strong>. Please upload this document
+                    for control {getFirstControlRequiringUploadLabel(missingRequiredLabels[0]!) ?? record.controlId}{" "}
+                    before proceeding.
                   </p>
                 </div>
               ) : (
-                <>
-                  <div className="mt-3 space-y-4">
-                    {adjudicationQuestions.map((q, i) => (
-                      <div key={i} className="rounded-lg border border-gray-200 bg-gray-50/50 p-3">
-                        <p className="mb-2 text-sm font-medium text-gray-900">{q}</p>
-                        <div className="flex gap-2">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setQuestionAnswers((prev) => ({ ...prev, [i]: "yes" }));
-                            }}
-                            aria-pressed={questionAnswers[i] === "yes"}
-                            className={`flex items-center gap-1.5 rounded-lg border-2 px-3 py-2 text-sm font-medium ${
-                              questionAnswers[i] === "yes"
-                                ? "border-green-500 bg-green-50 text-green-800"
-                                : "border-gray-200 bg-white text-gray-700 hover:border-green-300 hover:bg-green-50/50"
-                            }`}
-                          >
-                            <CheckCircle2 className="h-4 w-4" />
-                            Yes
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setQuestionAnswers((prev) => ({ ...prev, [i]: "no" }));
-                            }}
-                            aria-pressed={questionAnswers[i] === "no"}
-                            className={`flex items-center gap-1.5 rounded-lg border-2 px-3 py-2 text-sm font-medium ${
-                              questionAnswers[i] === "no"
-                                ? "border-amber-500 bg-amber-50 text-amber-800"
-                                : "border-gray-200 bg-white text-gray-700 hover:border-amber-300 hover:bg-amber-50/50"
-                            }`}
-                          >
-                            <XCircle className="h-4 w-4" />
-                            No
-                          </button>
-                        </div>
+                <div className="space-y-4">
+                  {adjudicationQuestions.map((q, i) => (
+                    <div key={i} className="rounded-lg border border-gray-200 bg-gray-50/50 p-3">
+                      <p className="mb-2 text-sm font-medium text-gray-900">{q}</p>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setQuestionAnswers((prev) => ({ ...prev, [i]: "yes" }))
+                          }
+                          aria-pressed={questionAnswers[i] === "yes"}
+                          className={`flex items-center gap-1.5 rounded-lg border-2 px-3 py-2 text-sm font-medium ${
+                            questionAnswers[i] === "yes"
+                              ? "border-green-500 bg-green-50 text-green-800"
+                              : "border-gray-200 bg-white text-gray-700 hover:border-green-300 hover:bg-green-50/50"
+                          }`}
+                        >
+                          <CheckCircle2 className="h-4 w-4" /> Yes
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setQuestionAnswers((prev) => ({ ...prev, [i]: "no" }))
+                          }
+                          aria-pressed={questionAnswers[i] === "no"}
+                          className={`flex items-center gap-1.5 rounded-lg border-2 px-3 py-2 text-sm font-medium ${
+                            questionAnswers[i] === "no"
+                              ? "border-amber-500 bg-amber-50 text-amber-800"
+                              : "border-gray-200 bg-white text-gray-700 hover:border-amber-300 hover:bg-amber-50/50"
+                          }`}
+                        >
+                          <XCircle className="h-4 w-4" /> No
+                        </button>
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
                   {savingStatus && allQuestionsAnswered && (
-                    <p className="mt-2 text-xs text-gray-500">Saving assessment…</p>
+                    <p className="text-xs text-gray-500">Saving assessment…</p>
                   )}
-                </>
+                </div>
               )}
             </section>
 
-            {/* Expected Evidence (from unified guide) */}
-            {hasEvidencePanel && (
-              <section aria-labelledby={`control-${record.controlId}-expected-evidence`}>
-                <button
-                  type="button"
-                  onClick={() => setEvidencePanelOpen((o) => !o)}
-                  className="flex w-full items-center justify-between text-left"
-                  aria-expanded={evidencePanelOpen}
-                  aria-controls={`control-${record.controlId}-evidence-list`}
-                >
-                  <h3 id={`control-${record.controlId}-expected-evidence`} className="text-sm font-semibold text-gray-900">
-                    Expected Evidence
-                  </h3>
-                  {evidencePanelOpen ? (
-                    <ChevronUp className="h-5 w-5 text-gray-500" />
-                  ) : (
-                    <ChevronDown className="h-5 w-5 text-gray-500" />
-                  )}
-                </button>
-                {evidencePanelOpen && (
-                  <div id={`control-${record.controlId}-evidence-list`} className="mt-3 flex flex-wrap gap-2">
-                    {evidenceExamples.map((item, idx) => {
-                      const lower = item.toLowerCase();
-                      const isUploadable = lower.endsWith(".pdf") || lower.endsWith(".docx") || lower.endsWith(".xlsx") || lower.endsWith(".zip");
-                      const labelForUpload = isUploadable ? item.replace(/\.[^.]+$/, "").trim() : null;
-                      return (
-                        <span
-                          key={idx}
-                          className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm text-gray-800"
-                        >
-                          <FileText className="h-4 w-4 shrink-0 text-gray-500" aria-hidden />
-                          <span className="min-w-0 truncate max-w-[280px]">{item}</span>
-                          {isUploadable && labelForUpload && (
-                            <button
-                              type="button"
-                              onClick={() => setUploadModalLabel(labelForUpload)}
-                              className="shrink-0 rounded p-0.5 text-gray-500 hover:bg-gray-200 hover:text-gray-800"
-                              aria-label={`Upload ${labelForUpload}`}
-                            >
-                              <Upload className="h-4 w-4" />
-                            </button>
-                          )}
-                        </span>
-                      );
-                    })}
-                  </div>
-                )}
-              </section>
-            )}
-
-            {/* Upload modal (for evidence chip shortcut) */}
-            {uploadModalLabel !== null && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true" aria-labelledby="upload-modal-title">
-                <div className="w-full max-w-md rounded-lg border border-gray-200 bg-white p-6 shadow-lg">
-                  <h2 id="upload-modal-title" className="text-lg font-semibold text-gray-900 mb-3">
-                    Upload: {uploadModalLabel}
-                  </h2>
-                  <FileUploadWidget
-                    controlRecordId={record.id}
-                    artifactLabel={uploadModalLabel}
-                    onUploaded={() => {
-                      onRefresh();
-                      setUploadModalLabel(null);
-                    }}
-                  />
-                  <div className="mt-4">
-                    <button
-                      type="button"
-                      onClick={() => setUploadModalLabel(null)}
-                      className="rounded border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                    >
-                      Close
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* 3.13.11 prompt */}
             {show31311Prompt && (
               <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
                 <p className="text-sm font-medium text-amber-900">
@@ -519,13 +441,10 @@ export function ControlCardV2({
               </div>
             )}
 
-            {/* Section C: Show Your Evidence */}
             {showEvidence && (
-              <section aria-labelledby={`control-${record.controlId}-evidence`}>
-                <h3 id={`control-${record.controlId}-evidence`} className="text-sm font-semibold text-gray-900">
-                  Show your evidence
-                </h3>
-                <div className="mt-3 space-y-4">
+              <section>
+                <h3 className="mb-3 text-sm font-semibold text-gray-900">Show your evidence</h3>
+                <div className="space-y-4">
                   {uploadArtifacts.map((a) => (
                     <div
                       key={a.label}
@@ -542,7 +461,7 @@ export function ControlCardV2({
                             <FileUploadWidget
                               controlRecordId={record.id}
                               artifactLabel={a.label}
-                              onUploaded={onRefresh}
+                              onUploaded={refresh}
                             />
                             <button
                               type="button"
@@ -578,9 +497,12 @@ export function ControlCardV2({
                                 artifactLabel={`Technical: ${req.title}`}
                                 onUploaded={() => {
                                   refetchTechEvidence();
-                                  onRefresh();
+                                  refresh();
                                 }}
-                                technicalEvidencePayload={{ requirementId: req.id, evidenceType: req.type }}
+                                technicalEvidencePayload={{
+                                  requirementId: req.id,
+                                  evidenceType: req.type,
+                                }}
                               />
                             </div>
                           </div>
@@ -588,7 +510,10 @@ export function ControlCardV2({
                       </div>
                     ))}
                   {technicalReqs.filter((r) => r.inherited).map((req) => (
-                    <div key={req.id} className="rounded-lg border border-green-200 bg-green-50/50 p-3">
+                    <div
+                      key={req.id}
+                      className="rounded-lg border border-green-200 bg-green-50/50 p-3"
+                    >
                       <p className="font-medium text-gray-900">{req.title}</p>
                       <p className="mt-1 text-sm text-green-700">
                         Satisfied by {req.inheritedFrom ?? "cloud provider"}
@@ -599,26 +524,22 @@ export function ControlCardV2({
               </section>
             )}
 
-            {/* Section D: POA&M */}
             {showPoam && (
-              <section aria-labelledby={`control-${record.controlId}-poam`}>
-                <h3 id={`control-${record.controlId}-poam`} className="text-sm font-semibold text-gray-900">
-                  Add to your action plan
-                </h3>
-                <p className="mt-1 text-sm text-gray-600">
-                  We&apos;ll track this as something you need to fix. This is normal — most companies have items in their action plan.
+              <section>
+                <h3 className="mb-1 text-sm font-semibold text-gray-900">Add to your action plan</h3>
+                <p className="mb-3 text-sm text-gray-600">
+                  We&apos;ll track this as something you need to fix. This is normal — most companies have items in
+                  their action plan.
                 </p>
                 {poamEntryId ? (
-                  <p className="mt-3">
-                    <a
-                      href={`/dashboard/poam/entry/${poamEntryId}`}
-                      className="text-sm font-medium text-blue-600 hover:underline"
-                    >
-                      View in POA&M
-                    </a>
-                  </p>
+                  <Link
+                    href={`/dashboard/poam/entry/${poamEntryId}`}
+                    className="text-sm font-medium text-blue-600 hover:underline"
+                  >
+                    View in POA&M
+                  </Link>
                 ) : (
-                  <div className="mt-3 space-y-3">
+                  <div className="space-y-3">
                     <div>
                       <label className="block text-xs font-medium text-gray-700">
                         What&apos;s the plan to fix this?
@@ -644,7 +565,9 @@ export function ControlCardV2({
                     </div>
                     <div className="flex flex-wrap gap-4">
                       <div>
-                        <label className="block text-xs font-medium text-gray-700">Target completion date</label>
+                        <label className="block text-xs font-medium text-gray-700">
+                          Target completion date
+                        </label>
                         <input
                           type="date"
                           value={poamDate}
@@ -653,7 +576,9 @@ export function ControlCardV2({
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700">Who is responsible?</label>
+                        <label className="block text-xs font-medium text-gray-700">
+                          Who is responsible?
+                        </label>
                         <select
                           value={poamRoleId}
                           onChange={(e) => setPoamRoleId(e.target.value)}
@@ -661,7 +586,9 @@ export function ControlCardV2({
                         >
                           <option value="">— Select —</option>
                           {roles.map((r) => (
-                            <option key={r.id} value={r.id}>{r.name}</option>
+                            <option key={r.id} value={r.id}>
+                              {r.name}
+                            </option>
                           ))}
                         </select>
                       </div>
@@ -679,7 +606,6 @@ export function ControlCardV2({
               </section>
             )}
 
-            {/* Section E: Advanced SSP narrative */}
             <section>
               <button
                 type="button"
@@ -687,8 +613,7 @@ export function ControlCardV2({
                 className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900"
                 aria-expanded={showAdvancedNarrative}
               >
-                {showAdvancedNarrative ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                Advanced: Write your SSP narrative
+                {showAdvancedNarrative ? "Hide" : "Show"} advanced SSP narrative
               </button>
               {showAdvancedNarrative && (
                 <div className="mt-2">
@@ -706,8 +631,8 @@ export function ControlCardV2({
               )}
             </section>
           </div>
-        </div>
-      )}
+        </main>
+      </div>
     </div>
   );
 }

@@ -17,6 +17,11 @@ import { getInheritedControls } from "@/lib/compliance";
 import { computeAndPersistSprsScore } from "@/lib/sprs";
 
 const requestSchema = z.object({
+  name: z.string().optional(),
+  cageCode: z.string().max(10).optional(),
+  primaryAddress: z.string().optional(),
+  primaryContactName: z.string().max(255).optional(),
+  primaryContactEmail: z.string().max(255).optional(),
   organizationType: z.string().optional(),
   cmmcTargetLevel: z.string().optional(),
   cuiBoundary: z.string().optional(),
@@ -37,13 +42,19 @@ export async function POST(req: Request) {
 
     const body = await requestSchema.parseAsync(await req.json());
 
-    // Persist organization profile from wizard
+    // Persist organization profile (from welcome questionnaire or wizard)
+    const orgUpdates: Record<string, string | null> = {
+      organizationType: body.organizationType ?? null,
+      cmmcTargetLevel: body.cmmcTargetLevel ?? null,
+    };
+    if (body.name !== undefined && body.name.trim()) orgUpdates.name = body.name.trim();
+    if (body.cageCode !== undefined) orgUpdates.cageCode = body.cageCode?.slice(0, 10) ?? null;
+    if (body.primaryAddress !== undefined) orgUpdates.primaryAddress = body.primaryAddress ?? null;
+    if (body.primaryContactName !== undefined) orgUpdates.primaryContactName = body.primaryContactName?.slice(0, 255) ?? null;
+    if (body.primaryContactEmail !== undefined) orgUpdates.primaryContactEmail = body.primaryContactEmail?.slice(0, 255) ?? null;
     await db
       .update(organizations)
-      .set({
-        organizationType: body.organizationType ?? null,
-        cmmcTargetLevel: body.cmmcTargetLevel ?? null,
-      })
+      .set(orgUpdates)
       .where(eq(organizations.id, orgId));
 
     // Ensure all 110 controlRecords exist for the org

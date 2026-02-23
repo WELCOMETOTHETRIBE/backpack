@@ -5,9 +5,9 @@ import { useSearchParams } from "next/navigation";
 import { getSpecForControl, type SatisfactionType } from "@/lib/artifact-guide";
 import { CONTROL_FAMILIES } from "./constants";
 import { WizardIntro } from "./WizardIntro";
-import { WizardGauntlet } from "./WizardGauntlet";
 import { WizardReview } from "./WizardReview";
-import { OnboardingCompleteOverlay } from "@/components/onboarding/OnboardingCompleteOverlay";
+import { ControlMatrix } from "./ControlMatrix";
+import { ControlAdjudicationModal } from "./ControlAdjudicationModal";
 
 export type ControlRecord = {
   id: string;
@@ -29,36 +29,18 @@ export type NistControl = {
 
 export type Role = { id: string; name: string; description: string | null };
 
-type Step = "intro" | "gauntlet" | "review";
+type Step = "intro" | "matrix" | "review";
 
 export function GovernanceWizard() {
   const searchParams = useSearchParams();
-  const familyParam = searchParams.get("family");
   const skipIntro = searchParams.get("skipIntro") === "1";
-  const initialFamily =
-    familyParam && CONTROL_FAMILIES.some((f) => f.code === familyParam) ? familyParam : "AC";
-  const [step, setStep] = useState<Step>(skipIntro ? "gauntlet" : "intro");
+  const [step, setStep] = useState<Step>(skipIntro ? "matrix" : "intro");
   const [records, setRecords] = useState<ControlRecord[]>([]);
   const [nistControls, setNistControls] = useState<NistControl[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploadedLabels, setUploadedLabels] = useState<string[]>([]);
-  const [selectedFamily, setSelectedFamily] = useState<string>(initialFamily);
-  const [showCompleteOverlay, setShowCompleteOverlay] = useState(false);
-  const [completeSprsScore, setCompleteSprsScore] = useState<number | null>(null);
-
-  const handleCompleteSetup = useCallback(async () => {
-    try {
-      const res = await fetch("/api/onboarding/complete", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
-      const data = await res.json().catch(() => ({}));
-      if (res.ok) {
-        setCompleteSprsScore(typeof data.sprsScore === "number" ? data.sprsScore : null);
-        setShowCompleteOverlay(true);
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
+  const [selectedRecord, setSelectedRecord] = useState<ControlRecord | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -97,10 +79,12 @@ export function GovernanceWizard() {
   const totalInProgress = records.filter((r) => r.implementationStatus === "in_progress").length;
   const totalNotStarted = records.filter((r) => r.implementationStatus === "not_started").length;
 
+  const nistByControlId = Object.fromEntries(nistControls.map((n) => [n.controlId, n]));
+
   if (loading && records.length === 0) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <p className="text-gray-600">Loading Governance Wizard…</p>
+        <p className="text-gray-600">Loading…</p>
       </div>
     );
   }
@@ -112,21 +96,27 @@ export function GovernanceWizard() {
           <WizardIntro
             familiesComplete={familiesComplete}
             familyStats={familyStats}
-            onNext={() => setStep("gauntlet")}
+            onNext={() => setStep("matrix")}
           />
         )}
-        {step === "gauntlet" && (
-          <WizardGauntlet
-            records={records}
-            nistControls={nistControls}
-            roles={roles}
-            uploadedLabels={uploadedLabels}
-            selectedFamily={selectedFamily}
-            onSelectFamily={setSelectedFamily}
-            onRefresh={fetchData}
-            onReview={() => setStep("review")}
-            onCompleteSetup={handleCompleteSetup}
-          />
+        {step === "matrix" && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h1 className="text-xl font-bold text-gray-900">Control matrix</h1>
+              <button
+                type="button"
+                onClick={() => setStep("review")}
+                className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Review & finalize
+              </button>
+            </div>
+            <ControlMatrix
+              records={records}
+              nistControls={nistControls}
+              onSelectControl={(record) => setSelectedRecord(record)}
+            />
+          </div>
         )}
         {step === "review" && (
           <WizardReview
@@ -135,14 +125,18 @@ export function GovernanceWizard() {
             totalImplemented={totalImplemented}
             totalInProgress={totalInProgress}
             totalNotStarted={totalNotStarted}
-            onBack={() => setStep("gauntlet")}
+            onBack={() => setStep("matrix")}
           />
         )}
       </div>
-      {showCompleteOverlay && (
-        <OnboardingCompleteOverlay
-          sprsScore={completeSprsScore}
-          onClose={() => setShowCompleteOverlay(false)}
+      {selectedRecord && (
+        <ControlAdjudicationModal
+          record={records.find((r) => r.id === selectedRecord.id) ?? selectedRecord}
+          nist={nistByControlId[selectedRecord.controlId]}
+          roles={roles}
+          orgUploadedLabels={uploadedLabels}
+          onClose={() => setSelectedRecord(null)}
+          onSaved={fetchData}
         />
       )}
     </div>

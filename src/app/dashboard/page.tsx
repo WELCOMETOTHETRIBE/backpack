@@ -144,7 +144,7 @@ export default async function DashboardPage({
     .where(eq(controlRecords.organizationId, orgId))
     .limit(1);
   const onboardingStarted = Boolean(boundaryRow) || total > 0 || controlRecordsCount.length > 0;
-  if (!onboardingStarted && params?.skip_onboarding !== "1") redirect("/dashboard/onboarding");
+  if (!onboardingStarted && params?.skip_onboarding !== "1") redirect("/welcome");
 
   // Org profile and SSP snippets for dashboard summary
   const [orgRow] = await db
@@ -193,10 +193,10 @@ export default async function DashboardPage({
           <p className="mt-2 text-gray-600">Welcome back, {user?.email}</p>
         </div>
         <Link
-          href="/dashboard/onboarding"
+          href="/welcome"
           className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-[#3B82F6] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#2563EB]"
         >
-          {onboardingStarted ? "Continue onboarding" : "Begin onboarding"}
+          {onboardingStarted ? "Edit setup" : "Begin setup"}
         </Link>
       </div>
 
