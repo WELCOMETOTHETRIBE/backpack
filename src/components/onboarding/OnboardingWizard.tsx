@@ -249,6 +249,9 @@ export function OnboardingWizard() {
   async function handleComplete() {
     setSubmitting(true);
     try {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const teamMembers = (data.teamMembers ?? []).filter((s) => s.trim() && emailRegex.test(s.trim()));
+
       const res = await fetch("/api/onboarding/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -257,11 +260,16 @@ export function OnboardingWizard() {
           cmmcTargetLevel: data.cmmcTargetLevel,
           cuiBoundary: data.cuiBoundary,
           systemScope: data.systemScope,
-          teamMembers: data.teamMembers,
-          selectedTechnologies: data.selectedTechnologies,
+          teamMembers,
+          selectedTechnologies: data.selectedTechnologies ?? [],
         }),
       });
-      if (res.ok) router.push("/dashboard/governance-wizard");
+      if (res.ok) {
+        router.push("/dashboard/governance-wizard");
+        return;
+      }
+      const err = await res.json().catch(() => ({}));
+      alert(err.error ?? err.details?.map((d: { message?: string }) => d.message).join(", ") ?? "Complete setup failed. Please try again.");
     } finally {
       setSubmitting(false);
     }

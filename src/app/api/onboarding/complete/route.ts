@@ -19,9 +19,14 @@ const requestSchema = z.object({
   cmmcTargetLevel: z.string().optional(),
   cuiBoundary: z.string().optional(),
   systemScope: z.string().optional(),
-  teamMembers: z.array(z.string().email()).optional(),
+  teamMembers: z.array(z.string()).optional(),
   selectedTechnologies: z.array(z.string()).optional(),
 });
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+function validEmails(emails: string[]): string[] {
+  return emails.filter((e) => e.trim() && EMAIL_REGEX.test(e.trim()));
+}
 
 export async function POST(req: Request) {
   try {
@@ -157,7 +162,9 @@ export async function POST(req: Request) {
       }
     }
 
-    // TODO: Send team member invitations via Resend
+    // Use only valid email addresses for future team-invite feature
+    const _validTeamEmails = validEmails(body.teamMembers ?? []);
+    // TODO: Send team member invitations via Resend using _validTeamEmails
 
     await writeAuditLog({
       organizationId: orgId,
