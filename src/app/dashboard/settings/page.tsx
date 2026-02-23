@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { organizations, users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import SettingsForm from "./SettingsForm";
+import InviteTeamSection from "./InviteTeamSection";
 
 export default async function SettingsPage() {
   const session = await auth();
@@ -37,6 +38,10 @@ export default async function SettingsPage() {
         user={currentUser}
         userRole={user.role}
       />
+
+      {(user.role === "Admin" || user.role === "Compliance") && (
+        <InviteTeamSection />
+      )}
     </div>
   );
 }

@@ -42,6 +42,7 @@ export function GovernanceWizard() {
   const [nistControls, setNistControls] = useState<NistControl[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
+  const [uploadedLabels, setUploadedLabels] = useState<string[]>([]);
   const [selectedFamily, setSelectedFamily] = useState<string>(initialFamily);
   const [showCompleteOverlay, setShowCompleteOverlay] = useState(false);
   const [completeSprsScore, setCompleteSprsScore] = useState<number | null>(null);
@@ -62,14 +63,19 @@ export function GovernanceWizard() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [recRes, nistRes, rolesRes] = await Promise.all([
+      const [recRes, nistRes, rolesRes, labelsRes] = await Promise.all([
         fetch("/api/control-records"),
         fetch("/api/controls/nist"),
         fetch("/api/roles"),
+        fetch("/api/governance-documents/uploaded-labels"),
       ]);
       if (recRes.ok) setRecords(await recRes.json());
       if (nistRes.ok) setNistControls(await nistRes.json());
       if (rolesRes.ok) setRoles(await rolesRes.json());
+      if (labelsRes.ok) {
+        const labelsData = await labelsRes.json().catch(() => ({}));
+        setUploadedLabels(labelsData.uploadedLabels ?? []);
+      }
     } finally {
       setLoading(false);
     }
@@ -114,6 +120,7 @@ export function GovernanceWizard() {
             records={records}
             nistControls={nistControls}
             roles={roles}
+            uploadedLabels={uploadedLabels}
             selectedFamily={selectedFamily}
             onSelectFamily={setSelectedFamily}
             onRefresh={fetchData}

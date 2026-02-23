@@ -11,6 +11,7 @@ export function WizardGauntlet({
   records,
   nistControls,
   roles,
+  uploadedLabels = [],
   selectedFamily,
   onSelectFamily,
   onRefresh,
@@ -20,6 +21,8 @@ export function WizardGauntlet({
   records: ControlRecord[];
   nistControls: NistControl[];
   roles: Role[];
+  /** Org-level uploaded artifact labels (from parent fetch; avoids flash). */
+  uploadedLabels?: string[];
   selectedFamily: string;
   onSelectFamily: (code: string) => void;
   onRefresh: () => void;
@@ -36,13 +39,6 @@ export function WizardGauntlet({
     .filter((r) => r.controlId.startsWith(prefix))
     .sort((a, b) => a.controlId.localeCompare(b.controlId));
   const nistByControlId = Object.fromEntries(nistControls.map((n) => [n.controlId, n]));
-
-  const [uploadedLabels, setUploadedLabels] = useState<string[]>([]);
-  useEffect(() => {
-    fetch("/api/governance-documents/uploaded-labels")
-      .then((r) => (r.ok ? r.json() : { uploadedLabels: [] }))
-      .then((data) => setUploadedLabels(data.uploadedLabels ?? []));
-  }, [selectedFamily, records.length]);
 
   const requiredLabelsForFamily = useMemo(() => {
     const controlIdsInFamily = ALL_CONTROL_IDS.filter((id) => id.startsWith(prefix));
@@ -204,7 +200,7 @@ export function WizardGauntlet({
                 nist={nistByControlId[record.controlId]}
                 roles={roles}
                 onRefresh={onRefresh}
-                uploadedLabels={uploadedLabels}
+                orgUploadedLabels={uploadedLabels}
               />
             </div>
           ))}

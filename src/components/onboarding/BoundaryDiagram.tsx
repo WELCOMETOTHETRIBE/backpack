@@ -62,9 +62,11 @@ export function BoundaryDiagram() {
 
   if (status === "loading") {
     return (
-      <div className="flex min-h-[200px] items-center justify-center rounded-lg border border-gray-200 bg-gray-50">
-        <p className="text-sm text-gray-500">Loading diagram…</p>
-      </div>
+      <div
+        className="min-h-[200px] rounded-lg border border-gray-200 bg-gray-100 animate-pulse"
+        aria-busy="true"
+        aria-label="Loading boundary diagram"
+      />
     );
   }
 

@@ -47,12 +47,20 @@ export default async function HomePage() {
           Go to Dashboard
         </Link>
       ) : (
-        <Link
-          href="/auth/signin"
-          className="rounded-full bg-zinc-900 px-6 py-2 font-medium text-white hover:bg-zinc-800"
-        >
-          Sign in
-        </Link>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <Link
+            href="/auth/signin"
+            className="rounded-full bg-zinc-900 px-6 py-2 font-medium text-white hover:bg-zinc-800"
+          >
+            Sign in
+          </Link>
+          <Link
+            href="/auth/signup"
+            className="rounded-full border border-zinc-300 bg-white px-6 py-2 font-medium text-zinc-900 hover:bg-zinc-50"
+          >
+            Create account
+          </Link>
+        </div>
       )}
     </div>
   );

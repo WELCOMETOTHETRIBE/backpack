@@ -2,8 +2,12 @@
 
 import { signIn } from "next-auth/react";
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 export default function SignInPage() {
+  const searchParams = useSearchParams();
+  const message = searchParams.get("message");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -33,6 +37,11 @@ export default function SignInPage() {
         <p className="mb-4 text-sm text-zinc-500">
           Sign in to your organization.
         </p>
+        {message === "account_created" && (
+          <p className="mb-4 rounded bg-green-50 p-2 text-sm text-green-800">
+            Account created. Sign in below.
+          </p>
+        )}
         <div className="mb-4">
           <label className="mb-1 block text-sm font-medium text-zinc-700">Email</label>
           <input
@@ -60,6 +69,12 @@ export default function SignInPage() {
         >
           Sign in
         </button>
+        <p className="mt-4 text-center text-sm text-zinc-500">
+          No account?{" "}
+          <Link href="/auth/signup" className="font-medium text-zinc-900 underline">
+            Create account
+          </Link>
+        </p>
       </form>
     </div>
   );

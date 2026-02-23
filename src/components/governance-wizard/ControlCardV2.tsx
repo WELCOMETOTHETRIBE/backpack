@@ -35,21 +35,21 @@ export function ControlCardV2({
   nist,
   roles,
   onRefresh,
-  uploadedLabels = [],
+  orgUploadedLabels = [],
 }: {
   record: ControlRecord;
   nist: NistControl | undefined;
   roles: Role[];
   onRefresh: () => void;
   /** Org-level uploaded artifact labels (for document gating). */
-  uploadedLabels?: string[];
+  orgUploadedLabels?: string[];
 }) {
   const [expanded, setExpanded] = useState(false);
   const [showNistText, setShowNistText] = useState(false);
   const [showAdvancedNarrative, setShowAdvancedNarrative] = useState(false);
   const [requirements, setRequirements] = useState<EvidenceRequirements | null>(null);
   const [techEvidence, setTechEvidence] = useState<TechEvidenceRow[]>([]);
-  const [uploadedLabels, setUploadedLabels] = useState<Set<string>>(new Set());
+  const [uploadedArtifactLabels, setUploadedArtifactLabels] = useState<Set<string>>(new Set());
   const [narrative, setNarrative] = useState(record.governanceNarrative ?? "");
   const [savingNarrative, setSavingNarrative] = useState(false);
   const [saving31311, setSaving31311] = useState(false);
@@ -68,8 +68,8 @@ export function ControlCardV2({
     [record.controlId]
   );
   const missingRequiredLabels = useMemo(
-    () => requiredUploadLabels.filter((l) => !uploadedLabels.includes(l)),
-    [requiredUploadLabels, uploadedLabels]
+    () => requiredUploadLabels.filter((l) => !orgUploadedLabels.includes(l)),
+    [requiredUploadLabels, orgUploadedLabels]
   );
   const documentGateBlocked = missingRequiredLabels.length > 0;
 
@@ -147,7 +147,7 @@ export function ControlCardV2({
     fetch(`/api/artifacts?controlRecordId=${record.id}`)
       .then((r) => (r.ok ? r.json() : []))
       .then((list: { artifactLabel: string }[]) =>
-        setUploadedLabels(new Set(list.map((a) => a.artifactLabel)))
+        setUploadedArtifactLabels(new Set(list.map((a) => a.artifactLabel)))
       );
   }, [record.id, record.artifactCount]);
 
@@ -169,7 +169,20 @@ export function ControlCardV2({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ implementationStatus: newStatus }),
       });
-      if (res.ok) onRefresh();
+      if (res.ok) {
+        onRefresh();
+        if ((newStatus === "not_started" || newStatus === "in_progress") && !poamEntryId) {
+          const eRes = await fetch("/api/poam/entries", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ controlRecordId: record.id }),
+          });
+          const eData = await eRes.json().catch(() => ({}));
+          if (eRes.ok && eData?.id) {
+            setPoamEntryId(eData.id);
+            onRefresh();
+          }
+        }
       }
     } finally {
       setSavingStatus(false);
@@ -445,7 +458,7 @@ export function ControlCardV2({
                               {generatingLabel === a.label ? "Generating…" : "Generate with AI"}
                             </button>
                           </div>
-                          {uploadedLabels.has(a.label) && (
+                          {uploadedArtifactLabels.has(a.label) && (
                             <p className="mt-2 text-xs text-green-600">Uploaded</p>
                           )}
                         </div>

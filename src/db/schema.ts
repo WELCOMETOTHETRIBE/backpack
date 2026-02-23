@@ -235,6 +235,17 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+export const userInvitations = pgTable("user_invitations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id").references(() => organizations.id, { onDelete: "cascade" }).notNull(),
+  email: text("email").notNull(),
+  role: userRoleEnum("role").notNull().default("Compliance"),
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  invitedById: uuid("invited_by_id").references(() => users.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 export const auditLogs = pgTable("audit_logs", {
   id: uuid("id").primaryKey().defaultRandom(),
   organizationId: uuid("organization_id").references(() => organizations.id).notNull(),
@@ -557,6 +568,7 @@ export const subcontractorFlowdownResponses = pgTable(
 export const organizationsRelations = relations(organizations, ({ one, many }) => ({
   boundaryProfile: one(boundaryProfiles),
   users: many(users),
+  userInvitations: many(userInvitations),
   roles: many(roles),
   controlRecords: many(controlRecords),
   controlImplementations: many(controlImplementations),
@@ -582,6 +594,7 @@ export const boundaryProfilesRelations = relations(boundaryProfiles, ({ one }) =
 
 export const usersRelations = relations(users, ({ one, many }) => ({
   organization: one(organizations),
+  invitationsSent: many(userInvitations),
   controlRecordsAssessed: many(controlRecords),
   controlImplementationsOwned: many(controlImplementations),
   controlHistory: many(controlHistory),
@@ -591,6 +604,11 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   artifactsUploaded: many(artifacts),
   technicalEvidenceUploaded: many(technicalEvidence),
   attestations: many(attestations),
+}));
+
+export const userInvitationsRelations = relations(userInvitations, ({ one }) => ({
+  organization: one(organizations),
+  invitedBy: one(users),
 }));
 
 export const controlsRelations = relations(controls, ({ one, many }) => ({

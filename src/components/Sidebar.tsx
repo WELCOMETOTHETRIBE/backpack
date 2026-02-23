@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
 import {
   LayoutDashboard,
   Shield,
@@ -12,6 +13,7 @@ import {
   CheckCircle2,
   Activity,
   Settings,
+  LogOut,
 } from "lucide-react";
 
 const navigation = [
@@ -93,12 +95,14 @@ export default function Sidebar() {
         })}
       </nav>
       <div className="border-t border-gray-200 p-4">
-        <Link
-          href="/api/auth/signout"
-          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+        <button
+          type="button"
+          onClick={() => signOut({ callbackUrl: "/" })}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium text-gray-700 hover:bg-gray-100"
         >
+          <LogOut className="h-5 w-5" />
           Sign out
-        </Link>
+        </button>
       </div>
     </div>
   );

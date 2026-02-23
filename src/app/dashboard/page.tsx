@@ -11,6 +11,7 @@ import {
   controlImplementations,
   controls,
   controlFamilies,
+  controlRecords,
   poamItems,
   evidenceMetadata,
   auditLogs,
@@ -23,11 +24,16 @@ import {
 import { eq, and, desc } from "drizzle-orm";
 import { BOUNDARY_TECHNOLOGY_OPTIONS } from "@/lib/compliance/technical_evidence_requirements";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ skip_onboarding?: string }>;
+}) {
   const session = await auth();
   const user = session?.user as { role?: string; email?: string; organizationId?: string } | undefined;
   const orgId = user?.organizationId;
   if (!orgId) redirect("/auth/signin");
+  const params = await searchParams;
 
   // Fetch control implementations with family data
   const implsWithControl = await db
@@ -132,7 +138,13 @@ export default async function DashboardPage() {
     .from(boundaryProfiles)
     .where(eq(boundaryProfiles.organizationId, orgId))
     .limit(1);
-  const onboardingStarted = Boolean(boundaryRow) || total > 0;
+  const controlRecordsCount = await db
+    .select({ id: controlRecords.id })
+    .from(controlRecords)
+    .where(eq(controlRecords.organizationId, orgId))
+    .limit(1);
+  const onboardingStarted = Boolean(boundaryRow) || total > 0 || controlRecordsCount.length > 0;
+  if (!onboardingStarted && params?.skip_onboarding !== "1") redirect("/dashboard/onboarding");
 
   // Org profile and SSP snippets for dashboard summary
   const [orgRow] = await db
