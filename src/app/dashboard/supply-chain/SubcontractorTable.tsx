@@ -57,12 +57,13 @@ export default function SubcontractorTable({ subcontractors }: SubcontractorTabl
     (async () => {
       try {
         const res = await fetch("/api/supply-chain/dashboard");
-        if (!cancelled && res.ok) {
-          const data = await res.json();
-          setDashboard(data.subcontractors ?? []);
+        if (cancelled) return;
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && Array.isArray(data.subcontractors)) {
+          setDashboard(data.subcontractors);
         }
       } catch {
-        // Silently fail
+        // Keep dashboard null; table still shows subcontractors from server props
       }
     })();
     return () => {

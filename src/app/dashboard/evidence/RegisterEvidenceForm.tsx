@@ -1,8 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 export default function RegisterEvidenceForm() {
+  const router = useRouter();
   const [evidenceId, setEvidenceId] = useState("");
   const [runId, setRunId] = useState("");
   const [artifactFilename, setArtifactFilename] = useState("");
@@ -19,9 +22,11 @@ export default function RegisterEvidenceForm() {
 
   useEffect(() => {
     fetch("/api/controls")
-      .then((r) => r.json())
-      .then((list: { id: string; control?: { controlId: string } }[]) => {
-        setControlOptions(list.map((c) => ({ id: c.id, controlId: c.control?.controlId ?? c.id })));
+      .then((r) => (r.ok ? r.json() : null))
+      .then((list: { id: string; control?: { controlId: string } }[] | null) => {
+        if (Array.isArray(list)) {
+          setControlOptions(list.map((c) => ({ id: c.id, controlId: c.control?.controlId ?? c.id })));
+        }
       })
       .catch(() => {});
   }, []);
@@ -49,10 +54,13 @@ export default function RegisterEvidenceForm() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setMessage(data.error ?? "Failed");
+        const errMsg = data.error ?? "Failed to register evidence";
+        setMessage(errMsg);
+        toast.error(errMsg);
         return;
       }
       setMessage("Registered.");
+      toast.success("Evidence registered.");
       setEvidenceId("");
       setRunId("");
       setArtifactFilename("");
@@ -62,6 +70,11 @@ export default function RegisterEvidenceForm() {
       setRetentionUntil("");
       setRegenerationInstructions("");
       setControlImplementationIds([]);
+      router.refresh();
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : "Failed to register evidence";
+      setMessage(errMsg);
+      toast.error(errMsg);
     } finally {
       setSaving(false);
     }

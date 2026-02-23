@@ -1,9 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import { Plus } from "lucide-react";
 
 export default function InviteSubcontractorButton() {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [companyName, setCompanyName] = useState("");
   const [email, setEmail] = useState("");
@@ -22,19 +25,25 @@ export default function InviteSubcontractorButton() {
         body: JSON.stringify({ companyName, email }),
       });
 
+      const data = await res.json().catch(() => ({}));
+
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setMessage(data.error || "Failed to send invitation");
+        const errMsg = data.error || "Failed to send invitation";
+        setMessage(errMsg);
+        toast.error(errMsg);
         return;
       }
 
       setMessage("Invitation sent successfully!");
+      toast.success("Invitation sent successfully.");
       setCompanyName("");
       setEmail("");
       setIsOpen(false);
-      window.location.reload();
+      router.refresh();
     } catch (err) {
-      setMessage("Failed to send invitation");
+      const errMsg = "Failed to send invitation";
+      setMessage(errMsg);
+      toast.error(errMsg);
     } finally {
       setSubmitting(false);
     }

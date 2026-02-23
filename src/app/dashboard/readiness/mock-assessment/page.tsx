@@ -18,15 +18,20 @@ export default function MockAssessmentPage() {
         body: JSON.stringify({ scope }),
       });
 
-      if (!res.ok) throw new Error("Failed to start assessment");
+      const data = await res.json().catch(() => ({}));
 
-      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error ?? "Failed to start assessment");
+        return;
+      }
+
       const id = data.mockAssessmentId;
       if (id) {
+        toast.success("Assessment started.");
         router.push(`/dashboard/readiness/mock-assessment/${id}`);
         return;
       }
-      throw new Error("No assessment ID returned");
+      toast.error("No assessment ID returned");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to start assessment");
     } finally {
