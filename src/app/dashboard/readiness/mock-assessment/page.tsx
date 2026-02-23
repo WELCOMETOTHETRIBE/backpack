@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 export default function MockAssessmentPage() {
   const router = useRouter();
@@ -27,7 +28,7 @@ export default function MockAssessmentPage() {
       }
       throw new Error("No assessment ID returned");
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to start assessment");
+      toast.error(err instanceof Error ? err.message : "Failed to start assessment");
     } finally {
       setGenerating(false);
     }

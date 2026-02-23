@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import NonCuiBanner from "@/components/NonCuiBanner";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
+import { DashboardProviders } from "@/components/DashboardProviders";
 
 export default async function DashboardLayout({
   children,
@@ -14,6 +15,7 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-gray-50">
+      <DashboardProviders user={session.user} />
       <NonCuiBanner />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />

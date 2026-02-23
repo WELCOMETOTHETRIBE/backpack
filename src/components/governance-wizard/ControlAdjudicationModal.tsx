@@ -19,6 +19,7 @@ import {
   Wand2,
   X,
   ChevronDown,
+  ChevronLeft,
   ChevronRight,
 } from "lucide-react";
 
@@ -49,6 +50,9 @@ export function ControlAdjudicationModal({
   orgUploadedLabels = [],
   onClose,
   onSaved,
+  groupRecords = null,
+  currentIndex = 0,
+  onNavigate,
 }: {
   record: ControlRecord;
   nist: NistControl | undefined;
@@ -56,6 +60,9 @@ export function ControlAdjudicationModal({
   orgUploadedLabels?: string[];
   onClose: () => void;
   onSaved?: () => void;
+  groupRecords?: ControlRecord[] | null;
+  currentIndex?: number;
+  onNavigate?: (nextIndex: number) => void;
 }) {
   const [requirements, setRequirements] = useState<EvidenceRequirements | null>(null);
   const [techEvidence, setTechEvidence] = useState<TechEvidenceRow[]>([]);
@@ -303,6 +310,28 @@ export function ControlAdjudicationModal({
     ? `${record.controlId} — ${nist.title}`
     : record.controlId;
 
+  const showNav = groupRecords && groupRecords.length > 1 && onNavigate;
+  const canPrev = showNav && currentIndex > 0;
+  const canNext = showNav && currentIndex < groupRecords.length - 1;
+
+  useEffect(() => {
+    if (!showNav) return;
+    function onKeyDown(e: KeyboardEvent) {
+      const target = e.target as HTMLElement;
+      const isInput = target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable;
+      if (isInput) return;
+      if (e.key === "j") {
+        e.preventDefault();
+        if (canNext) onNavigate(currentIndex + 1);
+      } else if (e.key === "k") {
+        e.preventDefault();
+        if (canPrev) onNavigate(currentIndex - 1);
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [showNav, canPrev, canNext, currentIndex, onNavigate]);
+
   return (
     <div
       className="fixed inset-0 z-50 flex flex-col bg-white"
@@ -310,6 +339,33 @@ export function ControlAdjudicationModal({
       aria-modal="true"
       aria-labelledby="control-adjudication-title"
     >
+      {showNav && (
+        <div className="flex shrink-0 items-center justify-between gap-4 border-b border-slate-100 bg-slate-50/80 px-6 py-2.5">
+          <span className="text-sm text-slate-600">
+            Control {currentIndex + 1} of {groupRecords.length}
+          </span>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => canPrev && onNavigate(currentIndex - 1)}
+              disabled={!canPrev}
+              className="rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-200/80 hover:text-slate-900 disabled:opacity-40 disabled:hover:bg-transparent"
+              aria-label="Previous control"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => canNext && onNavigate(currentIndex + 1)}
+              disabled={!canNext}
+              className="rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-200/80 hover:text-slate-900 disabled:opacity-40 disabled:hover:bg-transparent"
+              aria-label="Next control"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      )}
       <header className="flex shrink-0 items-center justify-between border-b border-slate-200 bg-white px-6 py-4 shadow-sm">
         <h1
           id="control-adjudication-title"

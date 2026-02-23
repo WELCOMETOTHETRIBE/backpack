@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { ChevronDown, Settings, LogOut } from "lucide-react";
+import { ChevronDown, Settings, LogOut, ClipboardCheck } from "lucide-react";
 
 const ROUTE_TITLES: Record<string, string> = {
   "/dashboard": "Overview",
@@ -35,6 +35,7 @@ type SessionUser = {
   name?: string | null;
   email?: string | null;
   image?: string | null;
+  role?: string;
 };
 
 export default function Header({ user }: { user: SessionUser | undefined }) {
@@ -95,6 +96,17 @@ export default function Header({ user }: { user: SessionUser | undefined }) {
             className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
             role="menu"
           >
+            {user?.role === "Assessor" && (
+              <Link
+                href="/assessor"
+                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                role="menuitem"
+                onClick={() => setDropdownOpen(false)}
+              >
+                <ClipboardCheck className="h-4 w-4 text-gray-500" />
+                Switch to Assessor View
+              </Link>
+            )}
             <Link
               href="/dashboard/settings"
               className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"

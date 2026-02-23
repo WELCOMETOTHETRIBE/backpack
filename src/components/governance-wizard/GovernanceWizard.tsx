@@ -42,6 +42,8 @@ export function GovernanceWizard({
   const [loading, setLoading] = useState(true);
   const [uploadedLabels, setUploadedLabels] = useState<string[]>([]);
   const [selectedRecord, setSelectedRecord] = useState<ControlRecord | null>(null);
+  const [groupRecords, setGroupRecords] = useState<ControlRecord[] | null>(null);
+  const [groupIndex, setGroupIndex] = useState(0);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -81,6 +83,27 @@ export function GovernanceWizard({
 
   const nistByControlId = Object.fromEntries(nistControls.map((n) => [n.controlId, n]));
 
+  function normalizeStatus(s: string): "not_started" | "in_progress" | "implemented" | "inherited" {
+    if (s === "inherited") return "inherited";
+    if (s === "in_progress") return "in_progress";
+    if (s === "implemented" || s === "assessed") return "implemented";
+    return "not_started";
+  }
+
+  function openGroup(familyCode: string, status: "not_started" | "in_progress" | "implemented" | "inherited") {
+    const family = CONTROL_FAMILIES.find((f) => f.code === familyCode);
+    if (!family) return;
+    const prefix = family.controlPrefix;
+    const list = records.filter(
+      (r) => r.controlId.startsWith(prefix) && normalizeStatus(r.implementationStatus) === status
+    );
+    if (list.length === 0) return;
+    setGroupRecords(list);
+    setGroupIndex(0);
+    setSelectedRecord(list[0]);
+  }
+
+
   if (loading && records.length === 0) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
@@ -96,7 +119,7 @@ export function GovernanceWizard({
           <div className="space-y-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-[14px] text-slate-600">
-                Click a cell to see controls in that family and status. Click a control to open it and adjudicate.
+                Click a cell to open and adjudicate the controls in that family and status.
               </p>
               {showReviewButton && (
                 <button
@@ -108,11 +131,7 @@ export function GovernanceWizard({
                 </button>
               )}
             </div>
-            <ControlMatrix
-              records={records}
-              nistControls={nistControls}
-              onSelectControl={(record) => setSelectedRecord(record)}
-            />
+            <ControlMatrix records={records} onOpenGroup={openGroup} />
           </div>
         )}
         {view === "review" && showReviewButton && (
@@ -132,8 +151,23 @@ export function GovernanceWizard({
           nist={nistByControlId[selectedRecord.controlId]}
           roles={roles}
           orgUploadedLabels={uploadedLabels}
-          onClose={() => setSelectedRecord(null)}
+          onClose={() => {
+            setSelectedRecord(null);
+            setGroupRecords(null);
+          }}
           onSaved={fetchData}
+          groupRecords={groupRecords}
+          currentIndex={groupRecords ? groupIndex : undefined}
+          onNavigate={
+            groupRecords
+              ? (nextIndex) => {
+                  if (groupRecords && nextIndex >= 0 && nextIndex < groupRecords.length) {
+                    setGroupIndex(nextIndex);
+                    setSelectedRecord(groupRecords[nextIndex]);
+                  }
+                }
+              : undefined
+          }
         />
       )}
     </div>

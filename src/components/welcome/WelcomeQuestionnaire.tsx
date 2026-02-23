@@ -115,6 +115,7 @@ export function WelcomeQuestionnaire() {
   const [teamMembers, setTeamMembers] = useState<string[]>([""]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [openSection, setOpenSection] = useState<1 | 2 | 3>(1);
 
   useEffect(() => {
     fetch("/api/organizations")
@@ -142,6 +143,23 @@ export function WelcomeQuestionnaire() {
     },
     [step2, step3, step5, step6]
   );
+
+  const section1Complete = organizationName.trim() !== "";
+  const section2Complete =
+    step1 !== "" ||
+    step4 !== "" ||
+    step2.length > 0 ||
+    step3.length > 0 ||
+    step5.length > 0 ||
+    step6.length > 0;
+
+  useEffect(() => {
+    if (openSection === 1 && section1Complete) setOpenSection(2);
+  }, [openSection, section1Complete]);
+
+  useEffect(() => {
+    if (openSection === 2 && section2Complete) setOpenSection(3);
+  }, [openSection, section2Complete]);
 
   const addTeamMember = () => setTeamMembers((prev) => [...prev, ""]);
   const removeTeamMember = (i: number) =>
@@ -225,11 +243,22 @@ export function WelcomeQuestionnaire() {
       </div>
 
       {/* Section 1: Your Organization */}
-      <section className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)] sm:p-8">
-        <h2 className="mb-6 text-xs font-semibold uppercase tracking-wider text-slate-500">
-          Your organization
-        </h2>
-        <div className="space-y-5">
+      <details
+        open={openSection === 1}
+        className="group rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.05)]"
+      >
+        <summary
+          className="cursor-pointer list-none px-6 py-4 sm:px-8 sm:py-5"
+          onClick={(e) => {
+            e.preventDefault();
+            setOpenSection(1);
+          }}
+        >
+          <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+            1. Your Organization
+          </span>
+        </summary>
+        <div className="space-y-5 border-t border-slate-100 px-6 pb-6 pt-4 sm:px-8 sm:pb-8 sm:pt-5">
           <div>
             <label className={labelClass}>Company legal name</label>
             <input
@@ -327,17 +356,28 @@ export function WelcomeQuestionnaire() {
             </div>
           </div>
         </div>
-      </section>
+      </details>
 
       {/* Section 2: Your Environment */}
-      <section className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)] sm:p-8">
-        <h2 className="mb-1 text-xs font-semibold uppercase tracking-wider text-slate-500">
-          Your environment
-        </h2>
-        <p className="mb-6 text-[14px] text-slate-600">
+      <details
+        open={openSection === 2}
+        className="group rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.05)]"
+      >
+        <summary
+          className="cursor-pointer list-none px-6 py-4 sm:px-8 sm:py-5"
+          onClick={(e) => {
+            e.preventDefault();
+            setOpenSection(2);
+          }}
+        >
+          <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+            2. Your Environment
+          </span>
+        </summary>
+        <div className="space-y-7 border-t border-slate-100 px-6 pb-6 pt-4 sm:px-8 sm:pb-8 sm:pt-5">
+        <p className="text-[14px] text-slate-600">
           We’ll use this to build your CUI boundary and tailor evidence requirements.
         </p>
-        <div className="space-y-7">
           <div>
             <h3 className="mb-2 text-[13px] font-medium text-slate-800">Where do employees typically work?</h3>
             <ul className="space-y-1.5">
@@ -421,13 +461,25 @@ export function WelcomeQuestionnaire() {
             </ul>
           </div>
         </div>
-      </section>
+      </details>
 
       {/* Section 3: Your Team */}
-      <section className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)] sm:p-8">
-        <h2 className="mb-1 text-xs font-semibold uppercase tracking-wider text-slate-500">
-          Your team
-        </h2>
+      <details
+        open={openSection === 3}
+        className="group rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.05)]"
+      >
+        <summary
+          className="cursor-pointer list-none px-6 py-4 sm:px-8 sm:py-5"
+          onClick={(e) => {
+            e.preventDefault();
+            setOpenSection(3);
+          }}
+        >
+          <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+            3. Your Team
+          </span>
+        </summary>
+        <div className="border-t border-slate-100 px-6 pb-6 pt-4 sm:px-8 sm:pb-8 sm:pt-5">
         <p className="mb-5 text-[14px] text-slate-600">Invite team members by email (optional).</p>
         <div className="space-y-3">
           {teamMembers.map((email, i) => (
@@ -459,7 +511,8 @@ export function WelcomeQuestionnaire() {
             <Plus className="h-4 w-4" /> Add team member
           </button>
         </div>
-      </section>
+        </div>
+      </details>
 
       {error && (
         <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">

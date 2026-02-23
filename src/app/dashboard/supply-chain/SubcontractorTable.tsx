@@ -1,7 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
+import { useState, useEffect, useMemo } from "react";
+import { Users } from "lucide-react";
+import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+import { EmptyState } from "@/components/ui/EmptyState";
+import InviteSubcontractorButton from "./InviteSubcontractorButton";
 
 interface Subcontractor {
   id: string;
@@ -30,6 +33,18 @@ interface DashboardRow {
   lastActivity: string | null;
 }
 
+type TableRow = {
+  id: string;
+  companyName: string;
+  cmmcLevelRequired: string;
+  compliancePct: string;
+  sprsScore: string;
+  openPoams: string;
+  lastActivity: string;
+  status: string;
+  link: string;
+};
+
 interface SubcontractorTableProps {
   subcontractors: Subcontractor[];
 }
@@ -55,94 +70,69 @@ export default function SubcontractorTable({ subcontractors }: SubcontractorTabl
     };
   }, []);
 
-  if (subcontractors.length === 0) {
-    return (
-      <div className="rounded-lg border border-gray-200 bg-white p-12 text-center">
-        <p className="text-gray-600">No subcontractors yet. Invite your first subcontractor to get started.</p>
-      </div>
-    );
-  }
+  const rows: TableRow[] = useMemo(() => {
+    return subcontractors.map((sub) => {
+      const row = dashboard?.find((d) => d.relationshipId === sub.id);
+      const companyName = sub.subOrganization?.name ?? row?.subName ?? sub.inviteEmail ?? "Pending";
+      return {
+        id: sub.id,
+        companyName,
+        cmmcLevelRequired: sub.contract?.cmmcLevelRequired ?? "—",
+        compliancePct: row?.compliancePct !== undefined ? `${row.compliancePct}%` : "—",
+        sprsScore: row?.sprsScore != null ? String(row.sprsScore) : "—",
+        openPoams: row?.openPoams !== undefined ? String(row.openPoams) : "—",
+        lastActivity: row?.lastActivity
+          ? new Date(row.lastActivity).toLocaleDateString()
+          : "—",
+        status: sub.status,
+        link: `/dashboard/supply-chain/${sub.id}`,
+      };
+    });
+  }, [subcontractors, dashboard]);
+
+  const columns: DataTableColumn<TableRow>[] = [
+    { key: "companyName", label: "Company Name", sortable: true },
+    { key: "cmmcLevelRequired", label: "CMMC Level Required", sortable: true },
+    { key: "compliancePct", label: "Compliance %", sortable: true },
+    { key: "sprsScore", label: "SPRS Score", sortable: true },
+    { key: "openPoams", label: "Open POA&Ms", sortable: true },
+    { key: "lastActivity", label: "Last Activity", sortable: true },
+    {
+      key: "status",
+      label: "Status",
+      sortable: true,
+      render: (_, value) => (
+        <span
+          className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
+            value === "Active"
+              ? "bg-[#10B981]/10 text-[#10B981]"
+              : value === "Pending"
+                ? "bg-[#F59E0B]/10 text-[#F59E0B]"
+                : "bg-gray-100 text-gray-600"
+          }`}
+        >
+          {String(value)}
+        </span>
+      ),
+    },
+  ];
+
+  const emptyState = (
+    <EmptyState
+      icon={Users}
+      title="No subcontractors yet"
+      description="Invite your first subcontractor to get started."
+      callToAction={<InviteSubcontractorButton />}
+    />
+  );
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
-      <table className="w-full">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Company Name
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              CMMC Level Required
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Compliance %
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              SPRS Score
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Open POA&Ms
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Last Activity
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Status
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {subcontractors.map((sub) => {
-            const row = dashboard?.find((d) => d.relationshipId === sub.id);
-            const companyName = sub.subOrganization?.name ?? row?.subName ?? sub.inviteEmail ?? "Pending";
-
-            const lastActivityFormatted = row?.lastActivity
-              ? new Date(row.lastActivity).toLocaleDateString()
-              : "—";
-
-            return (
-              <tr key={sub.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <Link
-                    href={`/dashboard/supply-chain/${sub.id}`}
-                    className="text-sm font-medium text-[#3B82F6] hover:text-[#2563EB]"
-                  >
-                    {companyName}
-                  </Link>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {sub.contract?.cmmcLevelRequired ?? "—"}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {row?.compliancePct !== undefined ? `${row.compliancePct}%` : "—"}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {row?.sprsScore != null ? row.sprsScore : "—"}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {row?.openPoams !== undefined ? row.openPoams : "—"}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {lastActivityFormatted}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span
-                    className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
-                      sub.status === "Active"
-                        ? "bg-[#10B981]/10 text-[#10B981]"
-                        : sub.status === "Pending"
-                          ? "bg-[#F59E0B]/10 text-[#F59E0B]"
-                          : "bg-gray-100 text-gray-600"
-                    }`}
-                  >
-                    {sub.status}
-                  </span>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
+    <DataTable
+      columns={columns}
+      data={rows}
+      searchPlaceholder="Search subcontractors…"
+      emptyState={emptyState}
+      getRowHref={(row) => row.link}
+    />
   );
 }

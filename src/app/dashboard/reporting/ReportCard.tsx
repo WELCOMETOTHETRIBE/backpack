@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import toast from "react-hot-toast";
 import { FileText, Download } from "lucide-react";
 
 interface ReportCardProps {
@@ -34,13 +35,16 @@ export default function ReportCard({ title, description, reportType, data }: Rep
         printWindow.document.write(result.html);
         printWindow.document.close();
         printWindow.focus();
+        toast.success("Report generated. Print dialog will open.");
         // Auto-trigger print dialog
         setTimeout(() => {
           printWindow.print();
         }, 250);
+      } else {
+        toast.error("Please allow pop-ups to view the report.");
       }
     } catch (err) {
-      alert("Failed to generate report. Please try again.");
+      toast.error("Failed to generate report. Please try again.");
     } finally {
       setGenerating(false);
     }
