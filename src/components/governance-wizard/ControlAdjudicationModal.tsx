@@ -13,12 +13,13 @@ import {
 } from "@/lib/artifact-guide";
 import {
   CheckCircle2,
-  AlertCircle,
   XCircle,
   FileText,
   Monitor,
   Wand2,
   X,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 
 type EvidenceRequirements = {
@@ -71,6 +72,7 @@ export function ControlAdjudicationModal({
   const [poamRoleId, setPoamRoleId] = useState("");
   const [augmentingPoam, setAugmentingPoam] = useState(false);
   const [questionAnswers, setQuestionAnswers] = useState<Record<number, "yes" | "no">>({});
+  const [showEvidenceSection, setShowEvidenceSection] = useState(false);
   const [showAdvancedNarrative, setShowAdvancedNarrative] = useState(false);
 
   const guideEntry = useMemo(
@@ -297,6 +299,10 @@ export function ControlAdjudicationModal({
     }
   }
 
+  const fullControlTitle = nist?.title
+    ? `${record.controlId} — ${nist.title}`
+    : record.controlId;
+
   return (
     <div
       className="fixed inset-0 z-50 flex flex-col bg-white"
@@ -304,34 +310,36 @@ export function ControlAdjudicationModal({
       aria-modal="true"
       aria-labelledby="control-adjudication-title"
     >
-      <header className="flex shrink-0 items-center justify-between border-b border-slate-200 bg-slate-50/80 px-6 py-3.5">
-        <div className="flex items-center gap-3">
-          <span className="font-mono text-[14px] font-medium text-slate-700">{record.controlId}</span>
-          <StatusBadge status={record.implementationStatus} />
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          className="rounded-lg p-2.5 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-900"
-          aria-label="Close"
+      <header className="flex shrink-0 items-center justify-between border-b border-slate-200 bg-white px-6 py-4 shadow-sm">
+        <h1
+          id="control-adjudication-title"
+          className="min-w-0 flex-1 truncate pr-4 text-lg font-semibold tracking-tight text-[#0F172A]"
         >
-          <X className="h-5 w-5" />
-        </button>
+          {fullControlTitle}
+        </h1>
+        <div className="flex shrink-0 items-center gap-3">
+          <StatusBadge status={record.implementationStatus} />
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg p-2.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
+            aria-label="Close"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
       </header>
 
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-0 lg:grid-cols-[1fr,1fr]">
-        {/* Left column: The "Why" — reference info */}
+        {/* Left column: Reference — "learn" */}
         <aside className="flex min-h-0 flex-col overflow-y-auto border-slate-200 bg-slate-50/50 p-6 lg:border-r">
-          <h2 id="control-adjudication-title" className="mb-2 text-lg font-semibold tracking-tight text-[#0F172A]">
-            {nist?.title ?? record.controlId}
-          </h2>
-          <p className="mb-6 text-[14px] leading-relaxed text-slate-600">{plainExplanation}</p>
-          {nist?.nistExactText && (
-            <div className="mb-6 rounded-xl border border-slate-200 bg-white p-4 text-[14px] text-slate-700 shadow-sm">
-              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">NIST exact text</h3>
-              <p className="whitespace-pre-wrap leading-relaxed">{nist.nistExactText}</p>
-            </div>
-          )}
+          <div className="mb-6 rounded-xl border border-slate-200 bg-white p-4 text-[14px] text-slate-700 shadow-sm">
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">NIST requirement & guidance</h3>
+            <p className="mb-3 leading-relaxed text-slate-600">{plainExplanation}</p>
+            {nist?.nistExactText && (
+              <p className="whitespace-pre-wrap border-t border-slate-100 pt-3 leading-relaxed">{nist.nistExactText}</p>
+            )}
+          </div>
           <div>
             <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">Expected evidence</h3>
             <ul className="flex flex-wrap gap-2">
@@ -358,8 +366,7 @@ export function ControlAdjudicationModal({
           )}
           <div className={`space-y-6 ${loadingRequirements ? "opacity-60" : ""}`}>
             <section>
-              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">Assessment</h3>
-              <p className="mb-3 text-[14px] font-medium text-slate-800">Do you have a process for this control?</p>
+              <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Assessment</h3>
               {inheritedFromGuide ? (
                 <span className="inline-flex items-center rounded-md bg-indigo-100 px-2.5 py-1 text-sm font-medium text-indigo-800">
                   Inherited — Satisfied by {inheritedFromGuide}
@@ -443,9 +450,22 @@ export function ControlAdjudicationModal({
             )}
 
             {showEvidence && (
-              <section>
-                <h3 className="mb-3 text-sm font-semibold text-gray-900">Show your evidence</h3>
-                <div className="space-y-4">
+              <section className="rounded-lg border border-gray-200 bg-gray-50/30">
+                <button
+                  type="button"
+                  onClick={() => setShowEvidenceSection((b) => !b)}
+                  className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-semibold text-gray-900 hover:bg-gray-100/50"
+                  aria-expanded={showEvidenceSection}
+                >
+                  <span>Show your evidence</span>
+                  {showEvidenceSection ? (
+                    <ChevronDown className="h-4 w-4 text-gray-500" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4 text-gray-500" />
+                  )}
+                </button>
+                {showEvidenceSection && (
+                <div className="space-y-4 border-t border-gray-200 px-4 pb-4 pt-2">
                   {uploadArtifacts.map((a) => (
                     <div
                       key={a.label}
@@ -522,6 +542,7 @@ export function ControlAdjudicationModal({
                     </div>
                   ))}
                 </div>
+                )}
               </section>
             )}
 
@@ -607,17 +628,25 @@ export function ControlAdjudicationModal({
               </section>
             )}
 
-            <section>
+            <section className="rounded-lg border border-gray-200 bg-gray-50/30">
               <button
                 type="button"
                 onClick={() => setShowAdvancedNarrative((b) => !b)}
-                className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+                className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-semibold text-gray-900 hover:bg-gray-100/50"
                 aria-expanded={showAdvancedNarrative}
               >
-                {showAdvancedNarrative ? "Hide" : "Show"} advanced SSP narrative
+                <span>Show advanced SSP narrative</span>
+                {showAdvancedNarrative ? (
+                  <ChevronDown className="h-4 w-4 text-gray-500" />
+                ) : (
+                  <ChevronRight className="h-4 w-4 text-gray-500" />
+                )}
               </button>
               {showAdvancedNarrative && (
-                <div className="mt-2">
+                <div className="border-t border-gray-200 px-4 pb-4 pt-3">
+                  <p className="mb-2 text-xs text-gray-600">
+                    Describe how this control is implemented in your system. This narrative can be included in your System Security Plan.
+                  </p>
                   <textarea
                     value={narrative}
                     onChange={(e) => setNarrative(e.target.value)}
@@ -628,6 +657,7 @@ export function ControlAdjudicationModal({
                     disabled={savingNarrative}
                     aria-label="SSP narrative"
                   />
+                  {savingNarrative && <p className="mt-1 text-xs text-gray-500">Saving…</p>}
                 </div>
               )}
             </section>

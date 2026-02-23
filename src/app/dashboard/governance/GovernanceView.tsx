@@ -27,7 +27,7 @@ export function GovernanceView({ documentStats }: { documentStats: DocumentStats
             Governance
           </h1>
           <Link
-            href="/dashboard/governance-wizard"
+            href="/dashboard/controls"
             className="text-[14px] font-medium text-slate-600 transition-colors hover:text-[#0F172A]"
           >
             Full hub
@@ -71,7 +71,7 @@ export function GovernanceView({ documentStats }: { documentStats: DocumentStats
                       {(requiredByLabel[label]?.length ?? 0) > 5 && " …"}
                     </span>
                     <Link
-                      href="/dashboard/governance-wizard"
+                      href="/dashboard/controls"
                       className="ml-auto shrink-0 text-[13px] font-medium text-[#0F172A] hover:underline"
                     >
                       Open control →

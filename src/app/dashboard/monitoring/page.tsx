@@ -35,7 +35,7 @@ export default async function MonitoringPage() {
             {controlsDue.map((c) => (
               <li key={c.id}>
                 <Link
-                  href={`/dashboard/governance-wizard?control=${c.controlId}`}
+                  href={`/dashboard/controls?control=${c.controlId}`}
                   className="flex items-center justify-between rounded border border-zinc-200 bg-white px-3 py-2 hover:border-zinc-300"
                 >
                   <span className="font-mono text-zinc-800">{c.controlId}</span>

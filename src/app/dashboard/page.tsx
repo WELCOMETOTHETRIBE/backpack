@@ -185,180 +185,195 @@ export default async function DashboardPage({
     cuiBoundary ||
     selectedTechLabels.length > 0;
 
+  const cardClass = "rounded-xl border border-slate-200 bg-white p-6 shadow-sm";
+
   return (
     <div className="min-h-screen bg-[#f8fafc]">
-      <div className="mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-[#0F172A] sm:text-3xl">Dashboard</h1>
-          <p className="mt-1.5 text-[15px] text-slate-600">Welcome back, {user?.email}</p>
-        </div>
-        <Link
-          href="/welcome"
-          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-[14px] font-medium text-slate-700 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50"
-        >
-          {onboardingStarted ? "Edit setup" : "Begin setup"}
-        </Link>
-      </div>
-
-      {/* Flow-Down Banner for Subcontractors */}
-      {primeCount > 0 && <FlowDownBanner primeCount={primeCount} />}
-
-      {/* Organization profile from onboarding */}
-      {showProfileCard && (
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)] sm:p-8">
-          <h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-slate-500">Organization profile</h2>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {orgRow?.cageCode && (
-              <div>
-                <p className="text-sm font-medium text-gray-500">CAGE Code</p>
-                <p className="mt-0.5 text-gray-900">{orgRow.cageCode}</p>
-              </div>
-            )}
-            {orgRow?.primaryAddress && (
-              <div>
-                <p className="text-sm font-medium text-gray-500">Primary address</p>
-                <p className="mt-0.5 text-gray-900">{orgRow.primaryAddress}</p>
-              </div>
-            )}
-            {(orgRow?.primaryContactName || orgRow?.primaryContactEmail) && (
-              <div>
-                <p className="text-sm font-medium text-gray-500">Primary point of contact</p>
-                <p className="mt-0.5 text-gray-900">
-                  {[orgRow.primaryContactName, orgRow.primaryContactEmail].filter(Boolean).join(" — ")}
-                </p>
-              </div>
-            )}
-            {orgRow?.organizationType && (
-              <div>
-                <p className="text-sm font-medium text-gray-500">Organization type</p>
-                <p className="mt-0.5 text-gray-900">
-                  {orgRow.organizationType === "prime"
-                    ? "Prime Contractor"
-                    : orgRow.organizationType === "sub"
-                      ? "Subcontractor"
-                      : "Both Prime and Sub"}
-                </p>
-              </div>
-            )}
-            {orgRow?.cmmcTargetLevel && (
-              <div>
-                <p className="text-sm font-medium text-gray-500">CMMC target level</p>
-                <p className="mt-0.5 text-gray-900">
-                  {orgRow.cmmcTargetLevel === "Level1"
-                    ? "Level 1 — Basic"
-                    : orgRow.cmmcTargetLevel === "Level2"
-                      ? "Level 2 — Intermediate"
-                      : orgRow.cmmcTargetLevel === "Level3"
-                        ? "Level 3 — Advanced"
-                        : orgRow.cmmcTargetLevel}
-                </p>
-              </div>
-            )}
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+        {/* Top row: welcome + setup link */}
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-[15px] text-slate-600">Welcome back, {user?.email}</p>
           </div>
-          {selectedTechLabels.length > 0 && (
-            <div className="mt-4">
-              <p className="text-sm font-medium text-gray-500">Technology boundary</p>
-              <div className="mt-1 flex flex-wrap gap-2">
-                {selectedTechLabels.map((label) => (
-                  <span
-                    key={label}
-                    className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700"
-                  >
-                    {label}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-          {(cuiBoundary || systemDescription) && (
-            <div className="mt-4 space-y-3">
-              {cuiBoundary && (
-                <div>
-                  <p className="text-sm font-medium text-gray-500">CUI boundary</p>
-                  <p className="mt-0.5 line-clamp-3 text-sm text-gray-700">{cuiBoundary}</p>
-                </div>
-              )}
-              {systemDescription && (
-                <div>
-                  <p className="text-sm font-medium text-gray-500">System scope</p>
-                  <p className="mt-0.5 line-clamp-3 text-sm text-gray-700">{systemDescription}</p>
-                </div>
-              )}
-            </div>
-          )}
+          <Link
+            href="/welcome"
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-[14px] font-medium text-slate-700 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50"
+          >
+            {onboardingStarted ? "Edit setup" : "Begin setup"}
+          </Link>
         </div>
-      )}
 
-      {/* Compliance Score Gauge */}
-      <div className="flex justify-center rounded-2xl border border-slate-200/80 bg-white p-8 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)]">
-        <ComplianceScoreGauge score={compliancePct} size={240} />
-      </div>
-
-      {/* KPI Cards */}
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)]">
-          <p className="text-[13px] font-medium text-slate-500">Open POA&Ms</p>
-          <p className="mt-2 text-2xl font-semibold text-[#0F172A]">{openPoamCount}</p>
-        </div>
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)]">
-          <p className="text-[13px] font-medium text-slate-500">Controls needing review</p>
-          <p className="mt-2 text-2xl font-semibold text-[#0F172A]">{controlsNeedingReview}</p>
-        </div>
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)]">
-          <p className="text-[13px] font-medium text-slate-500">Evidence expiring in 30 days</p>
-          <p className="mt-2 text-2xl font-semibold text-[#0F172A]">{expiringSoon}</p>
-        </div>
-      </div>
-
-      {/* SPRS Score — prominent with color band and family breakdown */}
-      <div className={`rounded-2xl border border-slate-200/80 p-8 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)] ${sprsBand.bg}`}>
-        <p className="text-sm font-medium text-gray-600">SPRS Score</p>
-        <p className={`mt-2 text-5xl font-bold ${sprsBand.color}`}>{sprsScore}</p>
-        <p className={`mt-1 text-lg font-medium ${sprsBand.color}`}>{sprsBand.label}</p>
-        {sprsBreakdown.length > 0 && (
-          <div className="mt-6">
-            <p className="text-sm font-medium text-gray-700">Points lost by family</p>
-            <ul className="mt-2 space-y-1">
-              {sprsBreakdown.map(({ family, pointsLost }) => (
-                <li key={family} className="flex justify-between text-sm">
-                  <span className="text-gray-700">{family}</span>
-                  <span className="font-medium text-gray-900">−{pointsLost}</span>
-                </li>
-              ))}
-            </ul>
+        {primeCount > 0 && (
+          <div className="mb-6">
+            <FlowDownBanner primeCount={primeCount} />
           </div>
         )}
-      </div>
 
-      {/* Two-column layout: Activity Timeline and Control Family Heat Map */}
-      <div className="grid gap-5 lg:grid-cols-2">
-        <ActivityTimeline
-          activities={recentActivity.map((a) => ({
-            id: a.id,
-            action: a.action,
-            resourceType: a.resourceType,
-            createdAt: a.createdAt,
-            userName: a.userName,
-          }))}
-        />
-        <ControlFamilyHeatMap families={Object.values(familyStats)} />
-      </div>
+        {showProfileCard && (
+          <div className={`mb-6 ${cardClass} sm:p-8`}>
+            <h2 className="mb-4 text-sm font-semibold text-slate-800">Organization profile</h2>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {orgRow?.cageCode && (
+                <div>
+                  <p className="text-sm font-medium text-gray-500">CAGE Code</p>
+                  <p className="mt-0.5 text-gray-900">{orgRow.cageCode}</p>
+                </div>
+              )}
+              {orgRow?.primaryAddress && (
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Primary address</p>
+                  <p className="mt-0.5 text-gray-900">{orgRow.primaryAddress}</p>
+                </div>
+              )}
+              {(orgRow?.primaryContactName || orgRow?.primaryContactEmail) && (
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Primary point of contact</p>
+                  <p className="mt-0.5 text-gray-900">
+                    {[orgRow.primaryContactName, orgRow.primaryContactEmail].filter(Boolean).join(" — ")}
+                  </p>
+                </div>
+              )}
+              {orgRow?.organizationType && (
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Organization type</p>
+                  <p className="mt-0.5 text-gray-900">
+                    {orgRow.organizationType === "prime"
+                      ? "Prime Contractor"
+                      : orgRow.organizationType === "sub"
+                        ? "Subcontractor"
+                        : "Both Prime and Sub"}
+                  </p>
+                </div>
+              )}
+              {orgRow?.cmmcTargetLevel && (
+                <div>
+                  <p className="text-sm font-medium text-gray-500">CMMC target level</p>
+                  <p className="mt-0.5 text-gray-900">
+                    {orgRow.cmmcTargetLevel === "Level1"
+                      ? "Level 1 — Basic"
+                      : orgRow.cmmcTargetLevel === "Level2"
+                        ? "Level 2 — Intermediate"
+                        : orgRow.cmmcTargetLevel === "Level3"
+                          ? "Level 3 — Advanced"
+                          : orgRow.cmmcTargetLevel}
+                  </p>
+                </div>
+              )}
+            </div>
+            {selectedTechLabels.length > 0 && (
+              <div className="mt-4">
+                <p className="text-sm font-medium text-gray-500">Technology boundary</p>
+                <div className="mt-1 flex flex-wrap gap-2">
+                  {selectedTechLabels.map((label) => (
+                    <span
+                      key={label}
+                      className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700"
+                    >
+                      {label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {(cuiBoundary || systemDescription) && (
+              <div className="mt-4 space-y-3">
+                {cuiBoundary && (
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">CUI boundary</p>
+                    <p className="mt-0.5 line-clamp-3 text-sm text-gray-700">{cuiBoundary}</p>
+                  </div>
+                )}
+                {systemDescription && (
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">System scope</p>
+                    <p className="mt-0.5 line-clamp-3 text-sm text-gray-700">{systemDescription}</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
-      {/* Compliance hub CTA */}
-      <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)]">
-        <Link
-          href="/dashboard/governance-wizard"
-          className="inline-flex items-center gap-2 rounded-xl bg-[#0F172A] px-5 py-2.5 text-[14px] font-semibold text-white shadow-sm transition-colors hover:bg-[#1e293b]"
-        >
-          Open compliance hub
-        </Link>
-      </div>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-12">
+          {/* Hero: Compliance Score Gauge — large card */}
+          <div className={`flex flex-col items-center justify-center lg:col-span-5 ${cardClass}`}>
+            <h2 className="mb-4 text-sm font-semibold text-slate-800">Compliance score</h2>
+            <ComplianceScoreGauge score={compliancePct} size={220} />
+          </div>
 
-      {/* Export Section */}
-      <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)]">
-        <ExportButton />
-      </div>
+          {/* KPI row — 3 cards */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:col-span-7">
+            <div className={cardClass}>
+              <h2 className="mb-2 text-sm font-semibold text-slate-800">Open POA&Ms</h2>
+              <p className="text-2xl font-semibold text-[#0F172A]">{openPoamCount}</p>
+            </div>
+            <div className={cardClass}>
+              <h2 className="mb-2 text-sm font-semibold text-slate-800">Controls needing review</h2>
+              <p className="text-2xl font-semibold text-[#0F172A]">{controlsNeedingReview}</p>
+            </div>
+            <div className={cardClass}>
+              <h2 className="mb-2 text-sm font-semibold text-slate-800">Evidence expiring in 30 days</h2>
+              <p className="text-2xl font-semibold text-[#0F172A]">{expiringSoon}</p>
+            </div>
+          </div>
+
+          {/* SPRS Score */}
+          <div className={`lg:col-span-6 ${cardClass} ${sprsBand.bg}`}>
+            <h2 className="mb-3 text-sm font-semibold text-slate-800">SPRS Score</h2>
+            <p className={`text-4xl font-bold ${sprsBand.color}`}>{sprsScore}</p>
+            <p className={`mt-1 text-base font-medium ${sprsBand.color}`}>{sprsBand.label}</p>
+            {sprsBreakdown.length > 0 && (
+              <div className="mt-6">
+                <p className="text-sm font-medium text-gray-700">Points lost by family</p>
+                <ul className="mt-2 space-y-1">
+                  {sprsBreakdown.map(({ family, pointsLost }) => (
+                    <li key={family} className="flex justify-between text-sm">
+                      <span className="text-gray-700">{family}</span>
+                      <span className="font-medium text-gray-900">−{pointsLost}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+
+          {/* Control Family Heat Map */}
+          <div className={`lg:col-span-6 ${cardClass}`}>
+            <h2 className="mb-4 text-sm font-semibold text-slate-800">Control family heat map</h2>
+            <ControlFamilyHeatMap families={Object.values(familyStats)} />
+          </div>
+
+          {/* Activity Timeline — narrower column */}
+          <div className={`lg:col-span-4 ${cardClass}`}>
+            <h2 className="mb-4 text-sm font-semibold text-slate-800">Recent activity</h2>
+            <ActivityTimeline
+              activities={recentActivity.map((a) => ({
+                id: a.id,
+                action: a.action,
+                resourceType: a.resourceType,
+                createdAt: a.createdAt,
+                userName: a.userName,
+              }))}
+            />
+          </div>
+
+          {/* Compliance hub CTA */}
+          <div className={`lg:col-span-4 ${cardClass}`}>
+            <h2 className="mb-4 text-sm font-semibold text-slate-800">Compliance hub</h2>
+            <Link
+              href="/dashboard/controls"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#0F172A] px-5 py-2.5 text-[14px] font-semibold text-white shadow-sm transition-colors hover:bg-[#1e293b]"
+            >
+              Open compliance hub
+            </Link>
+          </div>
+
+          {/* Export */}
+          <div className={`lg:col-span-4 ${cardClass}`}>
+            <h2 className="mb-4 text-sm font-semibold text-slate-800">Export</h2>
+            <ExportButton />
+          </div>
+        </div>
       </div>
     </div>
   );

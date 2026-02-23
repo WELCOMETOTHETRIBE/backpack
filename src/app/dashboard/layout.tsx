@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import NonCuiBanner from "@/components/NonCuiBanner";
 import Sidebar from "@/components/Sidebar";
+import Header from "@/components/Header";
 
 export default async function DashboardLayout({
   children,
@@ -16,7 +17,8 @@ export default async function DashboardLayout({
       <NonCuiBanner />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />
-        <div className="flex flex-1 flex-col overflow-hidden">
+        <div className="flex flex-1 flex-col min-w-0">
+          <Header user={session.user} />
           <main className="flex-1 overflow-y-auto p-8">{children}</main>
         </div>
       </div>
