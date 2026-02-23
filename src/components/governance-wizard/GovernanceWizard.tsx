@@ -31,9 +31,18 @@ export type Role = { id: string; name: string; description: string | null };
 
 type Step = "intro" | "matrix" | "review";
 
-export function GovernanceWizard() {
+export function GovernanceWizard({
+  skipIntroDefault = false,
+  showReviewButton = true,
+}: {
+  /** When true, start on the control matrix instead of the intro screen. */
+  skipIntroDefault?: boolean;
+  /** When false, hide the Review & finalize button and review step. */
+  showReviewButton?: boolean;
+} = {}) {
   const searchParams = useSearchParams();
-  const skipIntro = searchParams.get("skipIntro") === "1";
+  const skipIntroFromUrl = searchParams.get("skipIntro") === "1";
+  const skipIntro = skipIntroDefault || skipIntroFromUrl;
   const [step, setStep] = useState<Step>(skipIntro ? "matrix" : "intro");
   const [records, setRecords] = useState<ControlRecord[]>([]);
   const [nistControls, setNistControls] = useState<NistControl[]>([]);
@@ -103,15 +112,17 @@ export function GovernanceWizard() {
           <div className="space-y-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-[14px] text-slate-600">
-                Click a cell to see controls in that family and status. Click a control to open it.
+                Click a cell to see controls in that family and status. Click a control to open it and adjudicate.
               </p>
-              <button
-                type="button"
-                onClick={() => setStep("review")}
-                className="shrink-0 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-[14px] font-medium text-slate-700 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50"
-              >
-                Review & finalize
-              </button>
+              {showReviewButton && (
+                <button
+                  type="button"
+                  onClick={() => setStep("review")}
+                  className="shrink-0 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-[14px] font-medium text-slate-700 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50"
+                >
+                  Review & finalize
+                </button>
+              )}
             </div>
             <ControlMatrix
               records={records}
@@ -120,7 +131,7 @@ export function GovernanceWizard() {
             />
           </div>
         )}
-        {step === "review" && (
+        {step === "review" && showReviewButton && (
           <WizardReview
             records={records}
             familyStats={familyStats}
