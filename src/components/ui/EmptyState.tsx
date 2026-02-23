@@ -24,7 +24,7 @@ export function EmptyState({
   const iconEl = isComponent(Icon) ? (
     <Icon className="mx-auto h-12 w-12 text-slate-400" aria-hidden />
   ) : (
-    <span className="flex justify-center" aria-hidden>{Icon}</span>
+    <span className="flex justify-center" aria-hidden>{Icon as React.ReactNode}</span>
   );
 
   return (
