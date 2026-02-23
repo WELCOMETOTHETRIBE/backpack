@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { getSpecForControl, type SatisfactionType } from "@/lib/artifact-guide";
 import { CONTROL_FAMILIES } from "./constants";
 import { WizardIntro } from "./WizardIntro";
 import { WizardGauntlet } from "./WizardGauntlet";
 import { WizardReview } from "./WizardReview";
+import { OnboardingCompleteOverlay } from "@/components/onboarding/OnboardingCompleteOverlay";
 
 export type ControlRecord = {
   id: string;
@@ -30,12 +32,32 @@ export type Role = { id: string; name: string; description: string | null };
 type Step = "intro" | "gauntlet" | "review";
 
 export function GovernanceWizard() {
-  const [step, setStep] = useState<Step>("intro");
+  const searchParams = useSearchParams();
+  const familyParam = searchParams.get("family");
+  const skipIntro = searchParams.get("skipIntro") === "1";
+  const initialFamily =
+    familyParam && CONTROL_FAMILIES.some((f) => f.code === familyParam) ? familyParam : "AC";
+  const [step, setStep] = useState<Step>(skipIntro ? "gauntlet" : "intro");
   const [records, setRecords] = useState<ControlRecord[]>([]);
   const [nistControls, setNistControls] = useState<NistControl[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedFamily, setSelectedFamily] = useState<string>("AC");
+  const [selectedFamily, setSelectedFamily] = useState<string>(initialFamily);
+  const [showCompleteOverlay, setShowCompleteOverlay] = useState(false);
+  const [completeSprsScore, setCompleteSprsScore] = useState<number | null>(null);
+
+  const handleCompleteSetup = useCallback(async () => {
+    try {
+      const res = await fetch("/api/onboarding/complete", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setCompleteSprsScore(typeof data.sprsScore === "number" ? data.sprsScore : null);
+        setShowCompleteOverlay(true);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -96,6 +118,7 @@ export function GovernanceWizard() {
             onSelectFamily={setSelectedFamily}
             onRefresh={fetchData}
             onReview={() => setStep("review")}
+            onCompleteSetup={handleCompleteSetup}
           />
         )}
         {step === "review" && (
@@ -109,6 +132,12 @@ export function GovernanceWizard() {
           />
         )}
       </div>
+      {showCompleteOverlay && (
+        <OnboardingCompleteOverlay
+          sprsScore={completeSprsScore}
+          onClose={() => setShowCompleteOverlay(false)}
+        />
+      )}
     </div>
   );
 }

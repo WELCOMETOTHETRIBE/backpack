@@ -10,6 +10,15 @@ import {
 export type BoundaryProfile = { selectedTechnologies: string[] };
 
 /**
+ * Map onboarding tech card value keys to existing technical_evidence_requirements variant keys.
+ * Enables new onboarding keys (e.g. windows_workstation) to show same evidence as existing keys (windows_11).
+ */
+const ONBOARDING_KEY_TO_EVIDENCE_KEY: Record<string, string> = {
+  windows_workstation: "windows_11",
+  // azure_gov, aws_govcloud, windows_server, rhel, macos, entra_id, okta, intune, jamf, defender, crowdstrike, splunk, tenable already exist
+};
+
+/**
  * Returns governance artifacts (from artifact guide) and technical evidence requirements
  * (from technical_evidence_requirements, filtered by profile: selected technologies + "all").
  * Dedupes technical requirements by id.
@@ -29,7 +38,11 @@ export function getEvidenceRequirements(
 
     const keys = new Set<string>(["all"]);
     if (profile?.selectedTechnologies?.length) {
-      profile.selectedTechnologies.forEach((k) => keys.add(k));
+      profile.selectedTechnologies.forEach((k) => {
+        keys.add(k);
+        const mapped = ONBOARDING_KEY_TO_EVIDENCE_KEY[k];
+        if (mapped) keys.add(mapped);
+      });
     }
 
     const seen = new Set<string>();

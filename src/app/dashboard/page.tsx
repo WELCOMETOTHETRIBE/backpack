@@ -17,8 +17,11 @@ import {
   users,
   subcontractorRelationships,
   boundaryProfiles,
+  organizations,
+  sspSections,
 } from "@/db/schema";
 import { eq, and, desc } from "drizzle-orm";
+import { BOUNDARY_TECHNOLOGY_OPTIONS } from "@/lib/compliance/technical_evidence_requirements";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -125,11 +128,50 @@ export default async function DashboardPage() {
 
   // Onboarding: has org started (boundary profile or control records)?
   const [boundaryRow] = await db
-    .select({ id: boundaryProfiles.id })
+    .select({ id: boundaryProfiles.id, selectedTechnologies: boundaryProfiles.selectedTechnologies })
     .from(boundaryProfiles)
     .where(eq(boundaryProfiles.organizationId, orgId))
     .limit(1);
   const onboardingStarted = Boolean(boundaryRow) || total > 0;
+
+  // Org profile and SSP snippets for dashboard summary
+  const [orgRow] = await db
+    .select({
+      name: organizations.name,
+      cageCode: organizations.cageCode,
+      primaryAddress: organizations.primaryAddress,
+      primaryContactName: organizations.primaryContactName,
+      primaryContactEmail: organizations.primaryContactEmail,
+      organizationType: organizations.organizationType,
+      cmmcTargetLevel: organizations.cmmcTargetLevel,
+    })
+    .from(organizations)
+    .where(eq(organizations.id, orgId))
+    .limit(1);
+
+  const sspRows = await db
+    .select({ sectionKey: sspSections.sectionKey, content: sspSections.content })
+    .from(sspSections)
+    .where(eq(sspSections.organizationId, orgId));
+  const systemDescription = sspRows.find((r) => r.sectionKey === "system_description")?.content ?? "";
+  const cuiBoundary = sspRows.find((r) => r.sectionKey === "cui_boundary")?.content ?? "";
+
+  const techLabelsMap: Record<string, string> = {};
+  for (const group of BOUNDARY_TECHNOLOGY_OPTIONS) {
+    for (const opt of group.options) techLabelsMap[opt.value] = opt.label;
+  }
+  const selectedTechLabels = (boundaryRow?.selectedTechnologies ?? []).map((v: string) => techLabelsMap[v] ?? v);
+
+  const showProfileCard =
+    orgRow?.organizationType ||
+    orgRow?.cmmcTargetLevel ||
+    orgRow?.cageCode ||
+    orgRow?.primaryAddress ||
+    orgRow?.primaryContactName ||
+    orgRow?.primaryContactEmail ||
+    systemDescription ||
+    cuiBoundary ||
+    selectedTechLabels.length > 0;
 
   return (
     <div className="space-y-8">
@@ -148,6 +190,92 @@ export default async function DashboardPage() {
 
       {/* Flow-Down Banner for Subcontractors */}
       {primeCount > 0 && <FlowDownBanner primeCount={primeCount} />}
+
+      {/* Organization profile from onboarding */}
+      {showProfileCard && (
+        <div className="rounded-lg border border-gray-200 bg-white p-6">
+          <h2 className="mb-4 text-lg font-semibold text-[#0F172A]">Organization profile</h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {orgRow?.cageCode && (
+              <div>
+                <p className="text-sm font-medium text-gray-500">CAGE Code</p>
+                <p className="mt-0.5 text-gray-900">{orgRow.cageCode}</p>
+              </div>
+            )}
+            {orgRow?.primaryAddress && (
+              <div>
+                <p className="text-sm font-medium text-gray-500">Primary address</p>
+                <p className="mt-0.5 text-gray-900">{orgRow.primaryAddress}</p>
+              </div>
+            )}
+            {(orgRow?.primaryContactName || orgRow?.primaryContactEmail) && (
+              <div>
+                <p className="text-sm font-medium text-gray-500">Primary point of contact</p>
+                <p className="mt-0.5 text-gray-900">
+                  {[orgRow.primaryContactName, orgRow.primaryContactEmail].filter(Boolean).join(" — ")}
+                </p>
+              </div>
+            )}
+            {orgRow?.organizationType && (
+              <div>
+                <p className="text-sm font-medium text-gray-500">Organization type</p>
+                <p className="mt-0.5 text-gray-900">
+                  {orgRow.organizationType === "prime"
+                    ? "Prime Contractor"
+                    : orgRow.organizationType === "sub"
+                      ? "Subcontractor"
+                      : "Both Prime and Sub"}
+                </p>
+              </div>
+            )}
+            {orgRow?.cmmcTargetLevel && (
+              <div>
+                <p className="text-sm font-medium text-gray-500">CMMC target level</p>
+                <p className="mt-0.5 text-gray-900">
+                  {orgRow.cmmcTargetLevel === "Level1"
+                    ? "Level 1 — Basic"
+                    : orgRow.cmmcTargetLevel === "Level2"
+                      ? "Level 2 — Intermediate"
+                      : orgRow.cmmcTargetLevel === "Level3"
+                        ? "Level 3 — Advanced"
+                        : orgRow.cmmcTargetLevel}
+                </p>
+              </div>
+            )}
+          </div>
+          {selectedTechLabels.length > 0 && (
+            <div className="mt-4">
+              <p className="text-sm font-medium text-gray-500">Technology boundary</p>
+              <div className="mt-1 flex flex-wrap gap-2">
+                {selectedTechLabels.map((label) => (
+                  <span
+                    key={label}
+                    className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700"
+                  >
+                    {label}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          {(cuiBoundary || systemDescription) && (
+            <div className="mt-4 space-y-3">
+              {cuiBoundary && (
+                <div>
+                  <p className="text-sm font-medium text-gray-500">CUI boundary</p>
+                  <p className="mt-0.5 line-clamp-3 text-sm text-gray-700">{cuiBoundary}</p>
+                </div>
+              )}
+              {systemDescription && (
+                <div>
+                  <p className="text-sm font-medium text-gray-500">System scope</p>
+                  <p className="mt-0.5 line-clamp-3 text-sm text-gray-700">{systemDescription}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Compliance Score Gauge */}
       <div className="flex justify-center rounded-lg border border-gray-200 bg-white p-8">

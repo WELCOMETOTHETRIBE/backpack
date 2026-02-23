@@ -193,6 +193,18 @@ export const organizations = pgTable("organizations", {
   slug: text("slug").notNull().unique(),
   /** SPRS score (110 to negative). Recomputed on every control status change. */
   sprsScore: integer("sprs_score"),
+  /** From onboarding: prime, sub, both */
+  organizationType: varchar("organization_type", { length: 20 }),
+  /** From onboarding: Level1, Level2, Level3 */
+  cmmcTargetLevel: varchar("cmmc_target_level", { length: 20 }),
+  /** Step 2 onboarding: 5-character government identifier (sam.gov) */
+  cageCode: varchar("cage_code", { length: 10 }),
+  /** Primary business address */
+  primaryAddress: text("primary_address"),
+  /** Primary point of contact name */
+  primaryContactName: varchar("primary_contact_name", { length: 255 }),
+  /** Primary point of contact email */
+  primaryContactEmail: varchar("primary_contact_email", { length: 255 }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 

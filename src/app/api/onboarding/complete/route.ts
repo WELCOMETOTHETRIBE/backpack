@@ -8,11 +8,13 @@ import {
   sspSections,
   controlRecords,
   boundaryProfiles,
+  organizations,
 } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { writeAuditLog } from "@/lib/audit";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { getInheritedControls } from "@/lib/compliance";
+import { computeAndPersistSprsScore } from "@/lib/sprs";
 
 const requestSchema = z.object({
   organizationType: z.string().optional(),
@@ -34,6 +36,15 @@ export async function POST(req: Request) {
     await requireRole(["Admin"]);
 
     const body = await requestSchema.parseAsync(await req.json());
+
+    // Persist organization profile from wizard
+    await db
+      .update(organizations)
+      .set({
+        organizationType: body.organizationType ?? null,
+        cmmcTargetLevel: body.cmmcTargetLevel ?? null,
+      })
+      .where(eq(organizations.id, orgId));
 
     // Ensure all 110 controlRecords exist for the org
     const existingRecords = await db
@@ -162,6 +173,9 @@ export async function POST(req: Request) {
       }
     }
 
+    // Recompute SPRS so dashboard shows score (including inherited controls)
+    const sprsScore = await computeAndPersistSprsScore(orgId);
+
     // Use only valid email addresses for future team-invite feature
     const _validTeamEmails = validEmails(body.teamMembers ?? []);
     // TODO: Send team member invitations via Resend using _validTeamEmails
@@ -174,7 +188,7 @@ export async function POST(req: Request) {
       details: { organizationType: body.organizationType, cmmcTargetLevel: body.cmmcTargetLevel },
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, sprsScore });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "Invalid request", details: error.issues }, { status: 400 });
