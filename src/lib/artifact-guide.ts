@@ -305,3 +305,11 @@ export function getRequiredUploadArtifactLabels(controlId: string): string[] {
     .filter((a) => a.handling === "UPLOAD" || a.handling === "NATIVE")
     .map((a) => a.label);
 }
+
+/** First control ID (in family order) that requires the given upload label. Used for document-gating hints. */
+export function getFirstControlRequiringUploadLabel(label: string): string | undefined {
+  for (const controlId of ALL_CONTROL_IDS) {
+    if (getRequiredUploadArtifactLabels(controlId).includes(label)) return controlId;
+  }
+  return undefined;
+}

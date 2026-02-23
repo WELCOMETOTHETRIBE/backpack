@@ -1,9 +1,11 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useMemo } from "react";
 import type { ControlRecord, NistControl, Role } from "./GovernanceWizard";
 import { CONTROL_FAMILIES } from "./constants";
 import { ControlCardV2 } from "./ControlCardV2";
+import { ALL_CONTROL_IDS, getSpecForControl } from "@/lib/artifact-guide";
+import { CheckCircle2, XCircle } from "lucide-react";
 
 export function WizardGauntlet({
   records,
@@ -34,6 +36,26 @@ export function WizardGauntlet({
     .filter((r) => r.controlId.startsWith(prefix))
     .sort((a, b) => a.controlId.localeCompare(b.controlId));
   const nistByControlId = Object.fromEntries(nistControls.map((n) => [n.controlId, n]));
+
+  const [uploadedLabels, setUploadedLabels] = useState<string[]>([]);
+  useEffect(() => {
+    fetch("/api/governance-documents/uploaded-labels")
+      .then((r) => (r.ok ? r.json() : { uploadedLabels: [] }))
+      .then((data) => setUploadedLabels(data.uploadedLabels ?? []));
+  }, [selectedFamily, records.length]);
+
+  const requiredLabelsForFamily = useMemo(() => {
+    const controlIdsInFamily = ALL_CONTROL_IDS.filter((id) => id.startsWith(prefix));
+    const labels = new Set<string>();
+    for (const controlId of controlIdsInFamily) {
+      const spec = getSpecForControl(controlId);
+      if (!spec) continue;
+      for (const a of spec.artifacts) {
+        if (a.handling === "UPLOAD" || a.handling === "REFERENCE") labels.add(a.label);
+      }
+    }
+    return [...labels].sort();
+  }, [prefix]);
 
   const completedCount = records.filter(
     (r) =>
@@ -151,6 +173,26 @@ export function WizardGauntlet({
           </p>
         </div>
         <h1 className="text-xl font-bold text-[#0F172A]">{family?.plainName ?? family?.name ?? selectedFamily}</h1>
+        {requiredLabelsForFamily.length > 0 && (
+          <div className="rounded-lg border border-gray-200 bg-gray-50/50 px-4 py-3">
+            <h2 className="text-sm font-semibold text-gray-900">Required documents (this family)</h2>
+            <ul className="mt-2 space-y-1.5">
+              {requiredLabelsForFamily.map((label) => {
+                const uploaded = uploadedLabels.includes(label);
+                return (
+                  <li key={label} className="flex items-center gap-2 text-sm">
+                    {uploaded ? (
+                      <CheckCircle2 className="h-4 w-4 shrink-0 text-green-600" aria-hidden />
+                    ) : (
+                      <XCircle className="h-4 w-4 shrink-0 text-red-500" aria-hidden />
+                    )}
+                    <span className={uploaded ? "text-gray-700" : "text-gray-600"}>{label}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
         <div className="space-y-6">
           {familyRecords.map((record, index) => (
             <div
@@ -162,6 +204,7 @@ export function WizardGauntlet({
                 nist={nistByControlId[record.controlId]}
                 roles={roles}
                 onRefresh={onRefresh}
+                uploadedLabels={uploadedLabels}
               />
             </div>
           ))}

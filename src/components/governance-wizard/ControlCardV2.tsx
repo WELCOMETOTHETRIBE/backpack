@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import type { ControlRecord, NistControl, Role } from "./GovernanceWizard";
 import { FileUploadWidget } from "./FileUploadWidget";
 import { StatusBadge } from "./StatusBadge";
+import { getAdjudicationQuestionsForControl } from "@/lib/compliance/control_adjudication_questions";
+import { getRequiredUploadArtifactLabels, getFirstControlRequiringUploadLabel } from "@/lib/artifact-guide";
 import { CheckCircle2, AlertCircle, XCircle, ChevronDown, ChevronUp, Wand2, FileText, Monitor } from "lucide-react";
 
 type EvidenceRequirements = {
@@ -33,11 +35,14 @@ export function ControlCardV2({
   nist,
   roles,
   onRefresh,
+  uploadedLabels = [],
 }: {
   record: ControlRecord;
   nist: NistControl | undefined;
   roles: Role[];
   onRefresh: () => void;
+  /** Org-level uploaded artifact labels (for document gating). */
+  uploadedLabels?: string[];
 }) {
   const [expanded, setExpanded] = useState(false);
   const [showNistText, setShowNistText] = useState(false);
@@ -56,6 +61,37 @@ export function ControlCardV2({
   const [poamDate, setPoamDate] = useState("");
   const [poamRoleId, setPoamRoleId] = useState("");
   const [augmentingPoam, setAugmentingPoam] = useState(false);
+  const [questionAnswers, setQuestionAnswers] = useState<Record<number, "yes" | "no">>({});
+
+  const requiredUploadLabels = useMemo(
+    () => getRequiredUploadArtifactLabels(record.controlId),
+    [record.controlId]
+  );
+  const missingRequiredLabels = useMemo(
+    () => requiredUploadLabels.filter((l) => !uploadedLabels.includes(l)),
+    [requiredUploadLabels, uploadedLabels]
+  );
+  const documentGateBlocked = missingRequiredLabels.length > 0;
+
+  const adjudicationQuestions = useMemo(
+    () => getAdjudicationQuestionsForControl(record.controlId, nist?.title),
+    [record.controlId, nist?.title]
+  );
+  const allQuestionsAnswered =
+    adjudicationQuestions.length > 0 &&
+    adjudicationQuestions.every((_, i) => questionAnswers[i] === "yes" || questionAnswers[i] === "no");
+  const derivedStatus = useMemo((): "not_started" | "in_progress" | "implemented" | null => {
+    if (!allQuestionsAnswered) return null;
+    const keyIndex = 0;
+    const keyAnswer = questionAnswers[keyIndex];
+    const anyKeyNo = keyAnswer === "no";
+    const allKeyYes = keyAnswer === "yes";
+    const nonKeyIndices = adjudicationQuestions.map((_, i) => i).filter((i) => i !== keyIndex);
+    const someNonKeyNo = nonKeyIndices.some((i) => questionAnswers[i] === "no");
+    if (anyKeyNo) return "not_started";
+    if (allKeyYes && someNonKeyNo) return "in_progress";
+    return "implemented";
+  }, [allQuestionsAnswered, questionAnswers, adjudicationQuestions.length]);
 
   const isImplemented =
     record.implementationStatus === "implemented" ||
@@ -75,6 +111,21 @@ export function ControlCardV2({
   useEffect(() => {
     setNarrative(record.governanceNarrative ?? "");
   }, [record.governanceNarrative]);
+
+  useEffect(() => {
+    const canUpdate =
+      record.implementationStatus !== "inherited" && record.implementationStatus !== "assessed";
+    if (
+      allQuestionsAnswered &&
+      derivedStatus !== null &&
+      derivedStatus !== record.implementationStatus &&
+      !savingStatus &&
+      canUpdate
+    ) {
+      setStatus(derivedStatus);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- only run when answers/derived change; setStatus stable
+  }, [allQuestionsAnswered, derivedStatus, record.implementationStatus]);
 
   useEffect(() => {
     fetch(`/api/evidence-requirements?controlId=${record.controlId}`)
@@ -118,20 +169,7 @@ export function ControlCardV2({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ implementationStatus: newStatus }),
       });
-      if (res.ok) {
-        onRefresh();
-        if ((newStatus === "not_started" || newStatus === "in_progress") && !poamEntryId) {
-          const eRes = await fetch("/api/poam/entries", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ controlRecordId: record.id }),
-          });
-          const eData = await eRes.json().catch(() => ({}));
-          if (eRes.ok && eData?.id) {
-            setPoamEntryId(eData.id);
-            onRefresh();
-          }
-        }
+      if (res.ok) onRefresh();
       }
     } finally {
       setSavingStatus(false);
@@ -284,47 +322,66 @@ export function ControlCardV2({
               )}
             </section>
 
-            {/* Section B: Do You Have This? */}
+            {/* Section B: Question-driven adjudication (gated by required documents) */}
             <section aria-labelledby={`control-${record.controlId}-have`}>
               <h3 id={`control-${record.controlId}-have`} className="text-sm font-semibold text-gray-900">
                 Do you have a process for this control?
               </h3>
-              <div className="mt-3 grid gap-3 sm:grid-cols-3">
-                <button
-                  type="button"
-                  onClick={() => setStatus("implemented")}
-                  disabled={savingStatus}
-                  aria-pressed={
-                    record.implementationStatus === "implemented" ||
-                    record.implementationStatus === "assessed" ||
-                    record.implementationStatus === "inherited"
-                  }
-                  className="flex items-center justify-center gap-2 rounded-lg border-2 border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-900 hover:border-green-300 hover:bg-green-50 disabled:opacity-50"
-                >
-                  <CheckCircle2 className="h-5 w-5 text-green-600" />
-                  Yes, fully
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setStatus("in_progress")}
-                  disabled={savingStatus}
-                  aria-pressed={record.implementationStatus === "in_progress"}
-                  className="flex items-center justify-center gap-2 rounded-lg border-2 border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-900 hover:border-amber-300 hover:bg-amber-50 disabled:opacity-50"
-                >
-                  <AlertCircle className="h-5 w-5 text-amber-600" />
-                  Partially
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setStatus("not_started")}
-                  disabled={savingStatus}
-                  aria-pressed={record.implementationStatus === "not_started"}
-                  className="flex items-center justify-center gap-2 rounded-lg border-2 border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-900 hover:border-gray-300 hover:bg-gray-50 disabled:opacity-50"
-                >
-                  <XCircle className="h-5 w-5 text-gray-500" />
-                  Not yet
-                </button>
-              </div>
+              {documentGateBlocked ? (
+                <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
+                  <p className="text-sm text-amber-900">
+                    This control requires{" "}
+                    <strong>{missingRequiredLabels[0]}</strong>. Please upload this document for control{" "}
+                    {getFirstControlRequiringUploadLabel(missingRequiredLabels[0]!) ?? record.controlId} before
+                    proceeding.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className="mt-3 space-y-4">
+                    {adjudicationQuestions.map((q, i) => (
+                      <div key={i} className="rounded-lg border border-gray-200 bg-gray-50/50 p-3">
+                        <p className="mb-2 text-sm font-medium text-gray-900">{q}</p>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setQuestionAnswers((prev) => ({ ...prev, [i]: "yes" }));
+                            }}
+                            aria-pressed={questionAnswers[i] === "yes"}
+                            className={`flex items-center gap-1.5 rounded-lg border-2 px-3 py-2 text-sm font-medium ${
+                              questionAnswers[i] === "yes"
+                                ? "border-green-500 bg-green-50 text-green-800"
+                                : "border-gray-200 bg-white text-gray-700 hover:border-green-300 hover:bg-green-50/50"
+                            }`}
+                          >
+                            <CheckCircle2 className="h-4 w-4" />
+                            Yes
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setQuestionAnswers((prev) => ({ ...prev, [i]: "no" }));
+                            }}
+                            aria-pressed={questionAnswers[i] === "no"}
+                            className={`flex items-center gap-1.5 rounded-lg border-2 px-3 py-2 text-sm font-medium ${
+                              questionAnswers[i] === "no"
+                                ? "border-amber-500 bg-amber-50 text-amber-800"
+                                : "border-gray-200 bg-white text-gray-700 hover:border-amber-300 hover:bg-amber-50/50"
+                            }`}
+                          >
+                            <XCircle className="h-4 w-4" />
+                            No
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {savingStatus && allQuestionsAnswered && (
+                    <p className="mt-2 text-xs text-gray-500">Saving assessment…</p>
+                  )}
+                </>
+              )}
             </section>
 
             {/* 3.13.11 prompt */}

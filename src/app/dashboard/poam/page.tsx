@@ -10,6 +10,7 @@ import {
   controls,
 } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { SyncPoamFromControlsButton } from "./SyncPoamFromControlsButton";
 
 export default async function PoamPage() {
   const session = await auth();
@@ -57,9 +58,10 @@ export default async function PoamPage() {
         Plans of Action and Milestones. Dual sign-off required for closure.
       </p>
 
-      {entries.length > 0 && (
-        <section className="mb-8">
-          <h2 className="mb-3 text-lg font-medium text-zinc-800">From compliance wizard</h2>
+      <section className="mb-8">
+        <h2 className="mb-3 text-lg font-medium text-zinc-800">From compliance wizard</h2>
+        <SyncPoamFromControlsButton />
+        {entries.length > 0 ? (
           <ul className="space-y-2">
             {entries.map((e) => (
               <li key={e.id}>
@@ -84,8 +86,10 @@ export default async function PoamPage() {
               </li>
             ))}
           </ul>
-        </section>
-      )}
+        ) : (
+          <p className="text-sm text-zinc-500">No wizard POA&M entries yet. Use the button above to create entries from controls marked Not started or In progress.</p>
+        )}
+      </section>
 
       {overdue.length > 0 && (
         <div className="mb-6 rounded border border-amber-200 bg-amber-50 p-4">
@@ -130,7 +134,7 @@ export default async function PoamPage() {
         </ul>
       </section>
       {items.length === 0 && entries.length === 0 && (
-        <p className="text-zinc-500">No POA&M items yet. Add one from the Governance Wizard (Add to POA&M).</p>
+        <p className="text-zinc-500">No POA&M items yet. Use &quot;Create POA&M for incomplete controls&quot; above or add from the Governance Wizard.</p>
       )}
     </div>
   );

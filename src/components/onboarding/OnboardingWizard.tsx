@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, ArrowRight, ArrowLeft, Wand2, Check, ChevronDown, ChevronUp, Info } from "lucide-react";
-import { ONBOARDING_TECH_CARDS } from "./techCards";
+import { BoundaryScopingInterview } from "./BoundaryScopingInterview";
+import { BoundaryDiagram } from "./BoundaryDiagram";
 import { CONTROL_FAMILIES } from "@/components/governance-wizard/constants";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 
@@ -11,11 +12,12 @@ const STEP_LABELS: Record<OnboardingStep, string> = {
   welcome: "Welcome",
   org: "Your Organization",
   boundary: "Your CUI Boundary",
+  diagram: "Your Boundary Diagram",
   inherited: "Inherited Controls",
   checklist: "Your Compliance Checklist",
 };
 
-export type OnboardingStep = "welcome" | "org" | "boundary" | "inherited" | "checklist";
+export type OnboardingStep = "welcome" | "org" | "boundary" | "diagram" | "inherited" | "checklist";
 
 interface OnboardingData {
   organizationName: string;
@@ -34,62 +36,7 @@ interface OnboardingData {
   teamMembers: string[];
 }
 
-const STEPS: OnboardingStep[] = ["welcome", "org", "boundary", "inherited", "checklist"];
-
-function TechCardGrid({
-  selectedTechnologies,
-  onChange,
-}: {
-  selectedTechnologies: string[];
-  onChange: (selected: string[]) => void;
-}) {
-  function toggle(value: string) {
-    const set = new Set(selectedTechnologies);
-    if (set.has(value)) set.delete(value);
-    else set.add(value);
-    onChange([...set]);
-  }
-
-  return (
-    <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-      {ONBOARDING_TECH_CARDS.map((group) => (
-        <div key={group.groupHeader} className="contents">
-          {group.options.map((opt) => {
-            const selected = selectedTechnologies.includes(opt.value);
-            const Icon = opt.icon;
-            return (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => toggle(opt.value)}
-                aria-label={`${selected ? "Deselect" : "Select"} ${opt.label}`}
-                className={`relative flex flex-col items-start rounded-xl border-2 p-4 text-left transition-all duration-200 ${
-                  selected
-                    ? "border-blue-500 bg-blue-50/50 shadow-sm"
-                    : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50/50"
-                }`}
-              >
-                {selected && (
-                  <span
-                    className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-blue-500 text-white"
-                    aria-hidden
-                  >
-                    <Check className="h-4 w-4" />
-                  </span>
-                )}
-                <span className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 text-gray-600">
-                  <Icon className="h-5 w-5" />
-                </span>
-                <span className="font-medium text-gray-900">{opt.label}</span>
-                <span className="mt-1 text-xs text-gray-600">{opt.description}</span>
-              </button>
-            );
-          })}
-        </div>
-      ))}
-    </div>
-  );
-}
+const STEPS: OnboardingStep[] = ["welcome", "org", "boundary", "diagram", "inherited", "checklist"];
 
 export function OnboardingWizard() {
   const router = useRouter();
@@ -405,18 +352,27 @@ export function OnboardingWizard() {
             </div>
           )}
 
-          {/* Step 3: CUI Boundary */}
+          {/* Step 3: CUI Boundary — scoping interview */}
           {step === "boundary" && (
             <div className="space-y-6">
               <h2 className="text-xl font-semibold text-gray-900">What&apos;s inside your CUI environment?</h2>
-              <p className="text-sm text-gray-600">
-                Your CUI environment is the collection of computers, servers, and software that your team uses to work with government-related information. Select everything that applies — don&apos;t worry about getting it perfect, you can update this later.
-              </p>
-              <TechCardGrid
-                selectedTechnologies={data.selectedTechnologies}
-                onChange={(selected) => setData((p) => ({ ...p, selectedTechnologies: selected }))}
+              <BoundaryScopingInterview
+                onComplete={(selectedTechnologies) => {
+                  setData((p) => ({ ...p, selectedTechnologies }));
+                  setStep("diagram");
+                }}
               />
-              <div className="space-y-4 pt-4 border-t border-gray-200">
+            </div>
+          )}
+
+          {/* Step 4: Boundary diagram */}
+          {step === "diagram" && (
+            <div className="space-y-6">
+              <h2 className="text-xl font-semibold text-gray-900">
+                Here is what your CUI boundary looks like based on your answers.
+              </h2>
+              <BoundaryDiagram />
+              <div className="space-y-4 border-t border-gray-200 pt-4">
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-700">
                     Describe your CUI boundary — where does government information live?
@@ -425,8 +381,8 @@ export function OnboardingWizard() {
                     <textarea
                       value={data.cuiBoundary}
                       onChange={(e) => setData((p) => ({ ...p, cuiBoundary: e.target.value }))}
-                      rows={3}
-                      placeholder="e.g. Azure Gov, on-prem servers, contractor laptops..."
+                      rows={2}
+                      placeholder="e.g. Azure Gov, on-prem servers..."
                       className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                       aria-label="CUI boundary description"
                     />
@@ -434,9 +390,8 @@ export function OnboardingWizard() {
                       type="button"
                       onClick={() => handleAugment("cuiBoundary")}
                       disabled={!data.cuiBoundary.trim() || augmenting !== null}
-                      className="shrink-0 rounded-lg border border-gray-300 bg-white p-2 text-gray-600 hover:bg-gray-50 hover:text-blue-600 disabled:opacity-50"
+                      className="shrink-0 rounded-lg border border-gray-300 bg-white p-2 text-gray-600 hover:bg-gray-50 disabled:opacity-50"
                       aria-label="Expand with AI"
-                      title="Expand with AI"
                     >
                       <Wand2 className="h-5 w-5" />
                     </button>
@@ -451,7 +406,7 @@ export function OnboardingWizard() {
                     <textarea
                       value={data.systemScope}
                       onChange={(e) => setData((p) => ({ ...p, systemScope: e.target.value }))}
-                      rows={3}
+                      rows={2}
                       placeholder="e.g. all systems processing CUI..."
                       className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                       aria-label="Assessment scope"
@@ -460,9 +415,8 @@ export function OnboardingWizard() {
                       type="button"
                       onClick={() => handleAugment("systemScope")}
                       disabled={!data.systemScope.trim() || augmenting !== null}
-                      className="shrink-0 rounded-lg border border-gray-300 bg-white p-2 text-gray-600 hover:bg-gray-50 hover:text-blue-600 disabled:opacity-50"
+                      className="shrink-0 rounded-lg border border-gray-300 bg-white p-2 text-gray-600 hover:bg-gray-50 disabled:opacity-50"
                       aria-label="Expand with AI"
-                      title="Expand with AI"
                     >
                       <Wand2 className="h-5 w-5" />
                     </button>
@@ -473,7 +427,7 @@ export function OnboardingWizard() {
             </div>
           )}
 
-          {/* Step 4: Inherited Controls */}
+          {/* Step 5: Inherited Controls */}
           {step === "inherited" && (
             <div className="space-y-6">
               {data.inheritedCount > 0 ? (
@@ -590,7 +544,7 @@ export function OnboardingWizard() {
           >
             <ArrowLeft className="h-4 w-4" /> Previous
           </button>
-          {step !== "checklist" ? (
+          {step !== "checklist" && step !== "boundary" ? (
             <button
               type="button"
               onClick={goNext}
