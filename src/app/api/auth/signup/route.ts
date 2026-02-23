@@ -80,7 +80,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true }, { status: 201 });
   } catch (e) {
     if (e instanceof z.ZodError) {
-      const msg = e.errors[0]?.message ?? "Validation failed";
+      const msg = e.issues[0]?.message ?? "Validation failed";
       return NextResponse.json({ error: msg }, { status: 400 });
     }
     const message = e instanceof Error ? e.message : "Sign up failed";

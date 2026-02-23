@@ -2,8 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 
-type MermaidModule = typeof import("mermaid");
-
 export function BoundaryDiagram() {
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -24,7 +22,7 @@ export function BoundaryDiagram() {
         const mermaidSource = data.mermaidSource as string | undefined;
         if (!mermaidSource || cancelled) return;
 
-        const mermaid = (await import("mermaid")) as MermaidModule;
+        const { default: mermaid } = await import("mermaid");
         mermaid.initialize({
           startOnLoad: false,
           theme: "neutral",

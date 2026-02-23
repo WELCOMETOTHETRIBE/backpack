@@ -127,7 +127,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, expiresAt: invitation.expiresAt });
   } catch (e) {
     if (e instanceof z.ZodError) {
-      return NextResponse.json({ error: e.errors[0]?.message ?? "Invalid request" }, { status: 400 });
+      return NextResponse.json({ error: e.issues[0]?.message ?? "Invalid request" }, { status: 400 });
     }
     const message = e instanceof Error ? e.message : "Failed to create invitation";
     const status = message === "Unauthorized" ? 401 : message === "Forbidden" ? 403 : 500;

@@ -59,7 +59,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, email: invitation.email });
   } catch (e) {
     if (e instanceof z.ZodError) {
-      return NextResponse.json({ error: e.errors[0]?.message ?? "Validation failed" }, { status: 400 });
+      return NextResponse.json({ error: e.issues[0]?.message ?? "Validation failed" }, { status: 400 });
     }
     const message = e instanceof Error ? e.message : "Accept failed";
     return NextResponse.json({ error: message }, { status: 400 });
