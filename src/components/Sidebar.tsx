@@ -95,6 +95,12 @@ export default function Sidebar() {
         })}
       </nav>
       <div className="border-t border-gray-200 p-4">
+        <div
+          className="mb-2 truncate px-1 py-0.5 font-mono text-[10px] text-gray-400"
+          title="Current deployment build; hard refresh if this doesn’t match latest deploy"
+        >
+          Build: {process.env.NEXT_PUBLIC_BUILD_ID ?? "—"}
+        </div>
         <button
           type="button"
           onClick={() => signOut({ callbackUrl: "/" })}
