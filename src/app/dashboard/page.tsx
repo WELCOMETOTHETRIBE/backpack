@@ -186,15 +186,16 @@ export default async function DashboardPage({
     selectedTechLabels.length > 0;
 
   return (
-    <div className="space-y-8">
+    <div className="min-h-screen bg-[#f8fafc]">
+      <div className="mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-[#0F172A]">Dashboard</h1>
-          <p className="mt-2 text-gray-600">Welcome back, {user?.email}</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-[#0F172A] sm:text-3xl">Dashboard</h1>
+          <p className="mt-1.5 text-[15px] text-slate-600">Welcome back, {user?.email}</p>
         </div>
         <Link
           href="/welcome"
-          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-[#3B82F6] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#2563EB]"
+          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-[14px] font-medium text-slate-700 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50"
         >
           {onboardingStarted ? "Edit setup" : "Begin setup"}
         </Link>
@@ -205,8 +206,8 @@ export default async function DashboardPage({
 
       {/* Organization profile from onboarding */}
       {showProfileCard && (
-        <div className="rounded-lg border border-gray-200 bg-white p-6">
-          <h2 className="mb-4 text-lg font-semibold text-[#0F172A]">Organization profile</h2>
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)] sm:p-8">
+          <h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-slate-500">Organization profile</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             {orgRow?.cageCode && (
               <div>
@@ -290,28 +291,28 @@ export default async function DashboardPage({
       )}
 
       {/* Compliance Score Gauge */}
-      <div className="flex justify-center rounded-lg border border-gray-200 bg-white p-8">
+      <div className="flex justify-center rounded-2xl border border-slate-200/80 bg-white p-8 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)]">
         <ComplianceScoreGauge score={compliancePct} size={240} />
       </div>
 
       {/* KPI Cards */}
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <p className="text-sm font-medium text-gray-600">Open POA&Ms</p>
-          <p className="mt-2 text-3xl font-bold text-[#0F172A]">{openPoamCount}</p>
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)]">
+          <p className="text-[13px] font-medium text-slate-500">Open POA&Ms</p>
+          <p className="mt-2 text-2xl font-semibold text-[#0F172A]">{openPoamCount}</p>
         </div>
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <p className="text-sm font-medium text-gray-600">Controls Needing Review</p>
-          <p className="mt-2 text-3xl font-bold text-[#0F172A]">{controlsNeedingReview}</p>
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)]">
+          <p className="text-[13px] font-medium text-slate-500">Controls needing review</p>
+          <p className="mt-2 text-2xl font-semibold text-[#0F172A]">{controlsNeedingReview}</p>
         </div>
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <p className="text-sm font-medium text-gray-600">Evidence Expiring in 30 Days</p>
-          <p className="mt-2 text-3xl font-bold text-[#0F172A]">{expiringSoon}</p>
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)]">
+          <p className="text-[13px] font-medium text-slate-500">Evidence expiring in 30 days</p>
+          <p className="mt-2 text-2xl font-semibold text-[#0F172A]">{expiringSoon}</p>
         </div>
       </div>
 
       {/* SPRS Score — prominent with color band and family breakdown */}
-      <div className={`rounded-xl border border-gray-200 p-8 ${sprsBand.bg}`}>
+      <div className={`rounded-2xl border border-slate-200/80 p-8 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)] ${sprsBand.bg}`}>
         <p className="text-sm font-medium text-gray-600">SPRS Score</p>
         <p className={`mt-2 text-5xl font-bold ${sprsBand.color}`}>{sprsScore}</p>
         <p className={`mt-1 text-lg font-medium ${sprsBand.color}`}>{sprsBand.label}</p>
@@ -331,7 +332,7 @@ export default async function DashboardPage({
       </div>
 
       {/* Two-column layout: Activity Timeline and Control Family Heat Map */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-5 lg:grid-cols-2">
         <ActivityTimeline
           activities={recentActivity.map((a) => ({
             id: a.id,
@@ -344,19 +345,20 @@ export default async function DashboardPage({
         <ControlFamilyHeatMap families={Object.values(familyStats)} />
       </div>
 
-      {/* Governance Wizard CTA */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6">
+      {/* Compliance hub CTA */}
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)]">
         <Link
           href="/dashboard/governance-wizard"
-          className="inline-flex items-center gap-2 rounded-md bg-[#0F172A] px-4 py-2 text-sm font-medium text-white hover:bg-[#1e293b]"
+          className="inline-flex items-center gap-2 rounded-xl bg-[#0F172A] px-5 py-2.5 text-[14px] font-semibold text-white shadow-sm transition-colors hover:bg-[#1e293b]"
         >
-          Continue Governance Wizard
+          Open compliance hub
         </Link>
       </div>
 
       {/* Export Section */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6">
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)]">
         <ExportButton />
+      </div>
       </div>
     </div>
   );

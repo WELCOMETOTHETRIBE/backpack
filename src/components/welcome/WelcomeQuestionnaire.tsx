@@ -203,43 +203,51 @@ export function WelcomeQuestionnaire() {
     router,
   ]);
 
+  const inputClass =
+    "w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-[15px] text-slate-900 placeholder:text-slate-400 focus:border-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#0F172A]/10 transition-colors";
+  const labelClass = "mb-1.5 block text-[13px] font-medium text-slate-700";
+
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
         handleSubmit();
       }}
-      className="space-y-12"
+      className="space-y-10"
     >
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900">Welcome</h1>
-        <p className="mt-2 text-gray-600">
-          Complete your organization profile and environment so we can tailor your CMMC compliance journey.
+        <h1 className="text-2xl font-semibold tracking-tight text-[#0F172A] sm:text-3xl">
+          Set up your organization
+        </h1>
+        <p className="mt-3 text-[15px] text-slate-600">
+          One form. A few minutes. We’ll tailor your CMMC compliance journey from here.
         </p>
       </div>
 
       {/* Section 1: Your Organization */}
-      <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-6 text-lg font-semibold text-gray-900">Your Organization</h2>
-        <div className="space-y-4">
+      <section className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)] sm:p-8">
+        <h2 className="mb-6 text-xs font-semibold uppercase tracking-wider text-slate-500">
+          Your organization
+        </h2>
+        <div className="space-y-5">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Company legal name</label>
+            <label className={labelClass}>Company legal name</label>
             <input
               type="text"
               value={organizationName}
               onChange={(e) => setOrganizationName(e.target.value)}
               placeholder="Acme Corp"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className={inputClass}
               aria-label="Company legal name"
             />
           </div>
           <div>
-            <label className="mb-1 flex items-center gap-2 text-sm font-medium text-gray-700">
+            <label className={`${labelClass} flex items-center gap-2`}>
               CAGE Code
               <span className="group relative">
-                <Info className="h-4 w-4 text-gray-400" aria-hidden />
-                <span className="absolute left-0 top-full z-10 mt-1 hidden w-64 rounded bg-gray-800 px-2 py-1.5 text-xs text-white group-hover:block">
-                  Your CAGE Code is a 5-character identifier assigned by the government. Find it on your contract or at sam.gov.
+                <Info className="h-3.5 w-3.5 text-slate-400" aria-hidden />
+                <span className="absolute left-0 top-full z-10 mt-1.5 hidden w-56 rounded-lg bg-slate-800 px-2.5 py-2 text-xs leading-relaxed text-white shadow-lg group-hover:block">
+                  Five-character ID from the government. Find it on your contract or at sam.gov.
                 </span>
               </span>
             </label>
@@ -249,52 +257,52 @@ export function WelcomeQuestionnaire() {
               onChange={(e) => setCageCode(e.target.value.slice(0, 10))}
               placeholder="1AB2C"
               maxLength={10}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className={inputClass}
               aria-label="CAGE Code"
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Primary address</label>
+            <label className={labelClass}>Primary address</label>
             <textarea
               value={primaryAddress}
               onChange={(e) => setPrimaryAddress(e.target.value)}
               placeholder="123 Main St, City, State ZIP"
               rows={2}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className={inputClass}
               aria-label="Primary address"
             />
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-5 sm:grid-cols-2">
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">Primary contact (name)</label>
+              <label className={labelClass}>Primary contact (name)</label>
               <input
                 type="text"
                 value={primaryContactName}
                 onChange={(e) => setPrimaryContactName(e.target.value)}
                 placeholder="Jane Smith"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className={inputClass}
                 aria-label="Primary contact name"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">Primary contact (email)</label>
+              <label className={labelClass}>Primary contact (email)</label>
               <input
                 type="email"
                 value={primaryContactEmail}
                 onChange={(e) => setPrimaryContactEmail(e.target.value)}
                 placeholder="jane@company.com"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className={inputClass}
                 aria-label="Primary contact email"
               />
             </div>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-5 sm:grid-cols-2">
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">Organization type</label>
+              <label className={labelClass}>Organization type</label>
               <select
                 value={organizationType}
                 onChange={(e) => setOrganizationType(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className={inputClass}
                 aria-label="Organization type"
               >
                 <option value="">Select type…</option>
@@ -304,11 +312,11 @@ export function WelcomeQuestionnaire() {
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">CMMC target level</label>
+              <label className={labelClass}>CMMC target level</label>
               <select
                 value={cmmcTargetLevel}
                 onChange={(e) => setCmmcTargetLevel(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className={inputClass}
                 aria-label="CMMC target level"
               >
                 <option value="">Select level…</option>
@@ -322,123 +330,91 @@ export function WelcomeQuestionnaire() {
       </section>
 
       {/* Section 2: Your Environment */}
-      <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-2 text-lg font-semibold text-gray-900">Your Environment</h2>
-        <p className="mb-6 text-sm text-gray-600">
-          Answer a few questions about how your organization works. We&apos;ll use this to build your CUI boundary.
+      <section className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)] sm:p-8">
+        <h2 className="mb-1 text-xs font-semibold uppercase tracking-wider text-slate-500">
+          Your environment
+        </h2>
+        <p className="mb-6 text-[14px] text-slate-600">
+          We’ll use this to build your CUI boundary and tailor evidence requirements.
         </p>
-        <div className="space-y-8">
+        <div className="space-y-7">
           <div>
-            <h3 className="mb-3 text-sm font-semibold text-gray-900">Where do your employees typically work?</h3>
-            <ul className="space-y-2">
+            <h3 className="mb-2 text-[13px] font-medium text-slate-800">Where do employees typically work?</h3>
+            <ul className="space-y-1.5">
               {STEP_1_OPTIONS.map((opt) => (
                 <li key={opt.value}>
-                  <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 p-3 hover:bg-gray-50">
-                    <input
-                      type="radio"
-                      name="step1"
-                      value={opt.value}
-                      checked={step1 === opt.value}
-                      onChange={() => setStep1(opt.value)}
-                      className="h-4 w-4 border-gray-300 text-blue-600"
-                    />
-                    <span className="text-gray-900">{opt.label}</span>
+                  <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 transition-colors hover:border-slate-300 hover:bg-slate-50 has-[:checked]:border-[#0F172A] has-[:checked]:bg-[#0F172A]/5">
+                    <input type="radio" name="step1" value={opt.value} checked={step1 === opt.value} onChange={() => setStep1(opt.value)} className="h-4 w-4 border-slate-300 text-[#0F172A]" />
+                    <span className="text-[14px] text-slate-800">{opt.label}</span>
                   </label>
                 </li>
               ))}
             </ul>
           </div>
           <div>
-            <h3 className="mb-3 text-sm font-semibold text-gray-900">How do you store and share files for work?</h3>
-            <p className="mb-2 text-xs text-gray-500">Select all that apply.</p>
-            <ul className="space-y-2">
+            <h3 className="mb-1.5 text-[13px] font-medium text-slate-800">How do you store and share files?</h3>
+            <p className="mb-2 text-xs text-slate-500">Select all that apply.</p>
+            <ul className="space-y-1.5">
               {STEP_2_OPTIONS.map((opt) => (
                 <li key={opt.value}>
-                  <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 p-3 hover:bg-gray-50">
-                    <input
-                      type="checkbox"
-                      checked={step2.includes(opt.value)}
-                      onChange={() => toggleMulti("step2", opt.value)}
-                      className="h-4 w-4 rounded border-gray-300 text-blue-600"
-                    />
-                    <span className="text-gray-900">{opt.label}</span>
+                  <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 transition-colors hover:border-slate-300 hover:bg-slate-50 has-[:checked]:border-[#0F172A] has-[:checked]:bg-[#0F172A]/5">
+                    <input type="checkbox" checked={step2.includes(opt.value)} onChange={() => toggleMulti("step2", opt.value)} className="h-4 w-4 rounded border-slate-300 text-[#0F172A]" />
+                    <span className="text-[14px] text-slate-800">{opt.label}</span>
                   </label>
                 </li>
               ))}
             </ul>
           </div>
           <div>
-            <h3 className="mb-3 text-sm font-semibold text-gray-900">How do you manage user accounts and passwords?</h3>
-            <p className="mb-2 text-xs text-gray-500">Select all that apply.</p>
-            <ul className="space-y-2">
+            <h3 className="mb-1.5 text-[13px] font-medium text-slate-800">User accounts and passwords?</h3>
+            <p className="mb-2 text-xs text-slate-500">Select all that apply.</p>
+            <ul className="space-y-1.5">
               {STEP_3_OPTIONS.map((opt) => (
                 <li key={opt.value}>
-                  <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 p-3 hover:bg-gray-50">
-                    <input
-                      type="checkbox"
-                      checked={step3.includes(opt.value)}
-                      onChange={() => toggleMulti("step3", opt.value)}
-                      className="h-4 w-4 rounded border-gray-300 text-blue-600"
-                    />
-                    <span className="text-gray-900">{opt.label}</span>
+                  <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 transition-colors hover:border-slate-300 hover:bg-slate-50 has-[:checked]:border-[#0F172A] has-[:checked]:bg-[#0F172A]/5">
+                    <input type="checkbox" checked={step3.includes(opt.value)} onChange={() => toggleMulti("step3", opt.value)} className="h-4 w-4 rounded border-slate-300 text-[#0F172A]" />
+                    <span className="text-[14px] text-slate-800">{opt.label}</span>
                   </label>
                 </li>
               ))}
             </ul>
           </div>
           <div>
-            <h3 className="mb-3 text-sm font-semibold text-gray-900">What kind of computers do employees use?</h3>
-            <ul className="space-y-2">
+            <h3 className="mb-2 text-[13px] font-medium text-slate-800">What kind of computers?</h3>
+            <ul className="space-y-1.5">
               {STEP_4_OPTIONS.map((opt) => (
                 <li key={opt.value}>
-                  <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 p-3 hover:bg-gray-50">
-                    <input
-                      type="radio"
-                      name="step4"
-                      value={opt.value}
-                      checked={step4 === opt.value}
-                      onChange={() => setStep4(opt.value)}
-                      className="h-4 w-4 border-gray-300 text-blue-600"
-                    />
-                    <span className="text-gray-900">{opt.label}</span>
+                  <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 transition-colors hover:border-slate-300 hover:bg-slate-50 has-[:checked]:border-[#0F172A] has-[:checked]:bg-[#0F172A]/5">
+                    <input type="radio" name="step4" value={opt.value} checked={step4 === opt.value} onChange={() => setStep4(opt.value)} className="h-4 w-4 border-slate-300 text-[#0F172A]" />
+                    <span className="text-[14px] text-slate-800">{opt.label}</span>
                   </label>
                 </li>
               ))}
             </ul>
           </div>
           <div>
-            <h3 className="mb-3 text-sm font-semibold text-gray-900">Do you use any of these for security?</h3>
-            <p className="mb-2 text-xs text-gray-500">Select all that apply.</p>
-            <ul className="space-y-2">
+            <h3 className="mb-1.5 text-[13px] font-medium text-slate-800">Security tools?</h3>
+            <p className="mb-2 text-xs text-slate-500">Select all that apply.</p>
+            <ul className="space-y-1.5">
               {STEP_5_OPTIONS.map((opt) => (
                 <li key={opt.value}>
-                  <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 p-3 hover:bg-gray-50">
-                    <input
-                      type="checkbox"
-                      checked={step5.includes(opt.value)}
-                      onChange={() => toggleMulti("step5", opt.value)}
-                      className="h-4 w-4 rounded border-gray-300 text-blue-600"
-                    />
-                    <span className="text-gray-900">{opt.label}</span>
+                  <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 transition-colors hover:border-slate-300 hover:bg-slate-50 has-[:checked]:border-[#0F172A] has-[:checked]:bg-[#0F172A]/5">
+                    <input type="checkbox" checked={step5.includes(opt.value)} onChange={() => toggleMulti("step5", opt.value)} className="h-4 w-4 rounded border-slate-300 text-[#0F172A]" />
+                    <span className="text-[14px] text-slate-800">{opt.label}</span>
                   </label>
                 </li>
               ))}
             </ul>
           </div>
           <div>
-            <h3 className="mb-3 text-sm font-semibold text-gray-900">Do you use a cloud provider for servers or applications?</h3>
-            <p className="mb-2 text-xs text-gray-500">Select all that apply.</p>
-            <ul className="space-y-2">
+            <h3 className="mb-1.5 text-[13px] font-medium text-slate-800">Cloud provider for servers or apps?</h3>
+            <p className="mb-2 text-xs text-slate-500">Select all that apply.</p>
+            <ul className="space-y-1.5">
               {STEP_6_OPTIONS.map((opt) => (
                 <li key={opt.value}>
-                  <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 p-3 hover:bg-gray-50">
-                    <input
-                      type="checkbox"
-                      checked={step6.includes(opt.value)}
-                      onChange={() => toggleMulti("step6", opt.value)}
-                      className="h-4 w-4 rounded border-gray-300 text-blue-600"
-                    />
-                    <span className="text-gray-900">{opt.label}</span>
+                  <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 transition-colors hover:border-slate-300 hover:bg-slate-50 has-[:checked]:border-[#0F172A] has-[:checked]:bg-[#0F172A]/5">
+                    <input type="checkbox" checked={step6.includes(opt.value)} onChange={() => toggleMulti("step6", opt.value)} className="h-4 w-4 rounded border-slate-300 text-[#0F172A]" />
+                    <span className="text-[14px] text-slate-800">{opt.label}</span>
                   </label>
                 </li>
               ))}
@@ -448,9 +424,11 @@ export function WelcomeQuestionnaire() {
       </section>
 
       {/* Section 3: Your Team */}
-      <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-2 text-lg font-semibold text-gray-900">Your Team</h2>
-        <p className="mb-6 text-sm text-gray-600">Invite team members by email (optional).</p>
+      <section className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)] sm:p-8">
+        <h2 className="mb-1 text-xs font-semibold uppercase tracking-wider text-slate-500">
+          Your team
+        </h2>
+        <p className="mb-5 text-[14px] text-slate-600">Invite team members by email (optional).</p>
         <div className="space-y-3">
           {teamMembers.map((email, i) => (
             <div key={i} className="flex gap-2">
@@ -459,24 +437,24 @@ export function WelcomeQuestionnaire() {
                 value={email}
                 onChange={(e) => setTeamMember(i, e.target.value)}
                 placeholder="teammate@company.com"
-                className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className={inputClass}
                 aria-label={`Team member email ${i + 1}`}
               />
               <button
                 type="button"
                 onClick={() => removeTeamMember(i)}
                 disabled={teamMembers.length <= 1}
-                className="rounded-lg border border-gray-300 p-2 text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+                className="shrink-0 rounded-lg border border-slate-200 p-2.5 text-slate-500 transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700 disabled:opacity-40"
                 aria-label="Remove"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4" />
               </button>
             </div>
           ))}
           <button
             type="button"
             onClick={addTeamMember}
-            className="inline-flex items-center gap-2 rounded-lg border border-dashed border-gray-300 px-3 py-2 text-sm font-medium text-gray-600 hover:border-gray-400 hover:bg-gray-50"
+            className="inline-flex items-center gap-2 rounded-lg border border-dashed border-slate-300 px-3.5 py-2.5 text-[14px] font-medium text-slate-600 transition-colors hover:border-slate-400 hover:bg-slate-50"
           >
             <Plus className="h-4 w-4" /> Add team member
           </button>
@@ -484,18 +462,18 @@ export function WelcomeQuestionnaire() {
       </section>
 
       {error && (
-        <p className="text-sm text-red-600" role="alert">
+        <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
           {error}
         </p>
       )}
 
-      <div className="flex justify-center pb-8">
+      <div className="pt-2">
         <button
           type="submit"
           disabled={submitting}
-          className="rounded-lg bg-blue-600 px-8 py-3 text-base font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+          className="w-full rounded-xl bg-[#0F172A] px-6 py-3.5 text-[15px] font-semibold text-white shadow-sm transition-colors hover:bg-[#1e293b] disabled:opacity-50"
         >
-          {submitting ? "Saving…" : "Complete Setup & Go to Dashboard"}
+          {submitting ? "Saving…" : "Complete setup & go to dashboard"}
         </button>
       </div>
     </form>

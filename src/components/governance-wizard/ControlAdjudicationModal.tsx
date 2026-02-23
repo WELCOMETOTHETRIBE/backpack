@@ -304,15 +304,15 @@ export function ControlAdjudicationModal({
       aria-modal="true"
       aria-labelledby="control-adjudication-title"
     >
-      <header className="flex shrink-0 items-center justify-between border-b border-gray-200 bg-gray-50 px-6 py-3">
-        <div className="flex items-center gap-4">
-          <span className="font-mono text-sm font-medium text-gray-700">{record.controlId}</span>
+      <header className="flex shrink-0 items-center justify-between border-b border-slate-200 bg-slate-50/80 px-6 py-3.5">
+        <div className="flex items-center gap-3">
+          <span className="font-mono text-[14px] font-medium text-slate-700">{record.controlId}</span>
           <StatusBadge status={record.implementationStatus} />
         </div>
         <button
           type="button"
           onClick={onClose}
-          className="rounded-lg p-2 text-gray-500 hover:bg-gray-200 hover:text-gray-900"
+          className="rounded-lg p-2.5 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-900"
           aria-label="Close"
         >
           <X className="h-5 w-5" />
@@ -321,44 +321,45 @@ export function ControlAdjudicationModal({
 
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-0 lg:grid-cols-[1fr,1fr]">
         {/* Left column: The "Why" — reference info */}
-        <aside className="flex min-h-0 flex-col overflow-y-auto border-gray-200 bg-gray-50/50 p-6 lg:border-r">
-          <h2 id="control-adjudication-title" className="mb-2 text-lg font-semibold text-gray-900">
+        <aside className="flex min-h-0 flex-col overflow-y-auto border-slate-200 bg-slate-50/50 p-6 lg:border-r">
+          <h2 id="control-adjudication-title" className="mb-2 text-lg font-semibold tracking-tight text-[#0F172A]">
             {nist?.title ?? record.controlId}
           </h2>
-          <p className="mb-6 text-sm text-gray-700">{plainExplanation}</p>
+          <p className="mb-6 text-[14px] leading-relaxed text-slate-600">{plainExplanation}</p>
           {nist?.nistExactText && (
-            <div className="mb-6 rounded-lg border border-gray-200 bg-white p-4 text-sm text-gray-700">
-              <h3 className="mb-2 text-xs font-semibold uppercase text-gray-500">NIST exact text</h3>
-              <p className="whitespace-pre-wrap">{nist.nistExactText}</p>
+            <div className="mb-6 rounded-xl border border-slate-200 bg-white p-4 text-[14px] text-slate-700 shadow-sm">
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">NIST exact text</h3>
+              <p className="whitespace-pre-wrap leading-relaxed">{nist.nistExactText}</p>
             </div>
           )}
           <div>
-            <h3 className="mb-2 text-sm font-semibold text-gray-900">Expected evidence</h3>
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">Expected evidence</h3>
             <ul className="flex flex-wrap gap-2">
               {evidenceExamples.map((item, idx) => (
                 <li
                   key={idx}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-800"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[13px] text-slate-700"
                 >
-                  <FileText className="h-4 w-4 shrink-0 text-gray-500" />
+                  <FileText className="h-3.5 w-3.5 shrink-0 text-slate-400" />
                   <span className="max-w-[240px] truncate">{item}</span>
                 </li>
               ))}
               {evidenceExamples.length === 0 && (
-                <li className="text-sm text-gray-500">No specific evidence list for this control.</li>
+                <li className="text-[14px] text-slate-500">No specific evidence list for this control.</li>
               )}
             </ul>
           </div>
         </aside>
 
         {/* Right column: The "How" — adjudication */}
-        <main className="flex min-h-0 flex-col overflow-y-auto p-6">
+        <main className="flex min-h-0 flex-col overflow-y-auto bg-white p-6">
           {loadingRequirements && (
-            <p className="text-sm text-gray-500">Loading requirements…</p>
+            <p className="text-[14px] text-slate-500">Loading requirements…</p>
           )}
           <div className={`space-y-6 ${loadingRequirements ? "opacity-60" : ""}`}>
             <section>
-              <h3 className="mb-2 text-sm font-semibold text-gray-900">Do you have a process for this control?</h3>
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">Assessment</h3>
+              <p className="mb-3 text-[14px] font-medium text-slate-800">Do you have a process for this control?</p>
               {inheritedFromGuide ? (
                 <span className="inline-flex items-center rounded-md bg-indigo-100 px-2.5 py-1 text-sm font-medium text-indigo-800">
                   Inherited — Satisfied by {inheritedFromGuide}

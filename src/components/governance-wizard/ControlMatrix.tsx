@@ -59,18 +59,27 @@ export function ControlMatrix({
       ? countsByFamilyAndStatus.get(cellFocus.familyCode)![cellFocus.status]
       : [];
 
+  const statusCellClass = (colKey: string, count: number, isFocused: boolean) => {
+    if (isFocused) return "bg-[#0F172A]/10 text-[#0F172A] ring-1 ring-[#0F172A]/30";
+    if (count === 0) return "text-slate-400 cursor-default";
+    const base = "hover:bg-slate-100 text-slate-800 font-medium";
+    if (colKey === "implemented") return `${base} hover:bg-emerald-50`;
+    if (colKey === "in_progress") return `${base} hover:bg-amber-50`;
+    if (colKey === "inherited") return `${base} hover:bg-slate-100`;
+    return base;
+  };
+
   return (
     <div className="space-y-6">
-      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.05)]">
         <table className="w-full min-w-[640px] table-fixed border-collapse text-left text-sm">
           <thead>
-            <tr className="border-b border-gray-200 bg-gray-50">
-              <th className="px-4 py-3 font-semibold text-gray-900">Control family</th>
+            <tr className="border-b border-slate-200 bg-slate-50/80">
+              <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                Control family
+              </th>
               {STATUS_COLUMNS.map((col) => (
-                <th
-                  key={col.key}
-                  className="px-4 py-3 font-semibold text-gray-700"
-                >
+                <th key={col.key} className="px-4 py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-slate-600">
                   {col.label}
                 </th>
               ))}
@@ -80,36 +89,23 @@ export function ControlMatrix({
             {CONTROL_FAMILIES.map((family) => {
               const byStatus = countsByFamilyAndStatus.get(family.code)!;
               return (
-                <tr
-                  key={family.code}
-                  className="border-b border-gray-100 hover:bg-gray-50/50"
-                >
-                  <td className="px-4 py-3 font-medium text-gray-900">
+                <tr key={family.code} className="border-b border-slate-100 transition-colors hover:bg-slate-50/50">
+                  <td className="px-5 py-3 text-[14px] font-medium text-slate-900">
                     {family.code} — {family.plainName}
                   </td>
                   {STATUS_COLUMNS.map((col) => {
                     const list = byStatus[col.key];
                     const count = list.length;
-                    const isFocused =
-                      cellFocus?.familyCode === family.code && cellFocus?.status === col.key;
+                    const isFocused = cellFocus?.familyCode === family.code && cellFocus?.status === col.key;
                     return (
-                      <td key={col.key} className="px-4 py-2">
+                      <td key={col.key} className="px-2 py-2">
                         <button
                           type="button"
                           onClick={() =>
-                            setCellFocus(
-                              count > 0
-                                ? { familyCode: family.code, status: col.key }
-                                : null
-                            )
+                            setCellFocus(count > 0 ? { familyCode: family.code, status: col.key } : null)
                           }
-                          className={`w-full rounded-md px-3 py-2 text-center font-medium transition-colors ${
-                            isFocused
-                              ? "bg-blue-100 text-blue-900 ring-1 ring-blue-300"
-                              : count > 0
-                                ? "hover:bg-gray-100 text-gray-900"
-                                : "text-gray-400"
-                          }`}
+                          disabled={count === 0}
+                          className={`w-full rounded-lg px-3 py-2.5 text-center text-[14px] transition-colors ${statusCellClass(col.key, count, isFocused)}`}
                         >
                           {count}
                         </button>
@@ -124,10 +120,19 @@ export function ControlMatrix({
       </div>
 
       {cellFocus && focusedRecords.length > 0 && (
-        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-          <h3 className="mb-3 text-sm font-semibold text-gray-900">
-            {CONTROL_FAMILIES.find((f) => f.code === cellFocus.familyCode)?.plainName} — {STATUS_COLUMNS.find((c) => c.key === cellFocus.status)?.label}
-          </h3>
+        <div className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)]">
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-slate-900">
+              {CONTROL_FAMILIES.find((f) => f.code === cellFocus.familyCode)?.plainName} — {STATUS_COLUMNS.find((c) => c.key === cellFocus.status)?.label}
+            </h3>
+            <button
+              type="button"
+              onClick={() => setCellFocus(null)}
+              className="text-[13px] font-medium text-slate-500 hover:text-slate-700"
+            >
+              Close
+            </button>
+          </div>
           <ul className="flex flex-wrap gap-2">
             {focusedRecords.map((record) => {
               const nist = nistByControlId[record.controlId];
@@ -139,10 +144,10 @@ export function ControlMatrix({
                       setCellFocus(null);
                       onSelectControl(record);
                     }}
-                    className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-left text-sm font-mono text-gray-800 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-900"
+                    className="rounded-lg border border-slate-200 bg-slate-50/80 px-3.5 py-2.5 text-left text-[14px] transition-colors hover:border-[#0F172A]/30 hover:bg-[#0F172A]/5"
                   >
-                    <span className="font-medium">{record.controlId}</span>
-                    <span className="ml-2 block truncate max-w-[240px] text-gray-600">
+                    <span className="font-mono font-medium text-slate-800">{record.controlId}</span>
+                    <span className="mt-0.5 block max-w-[220px] truncate text-[13px] text-slate-600">
                       {nist?.title ?? record.controlId}
                     </span>
                   </button>
@@ -150,13 +155,6 @@ export function ControlMatrix({
               );
             })}
           </ul>
-          <button
-            type="button"
-            onClick={() => setCellFocus(null)}
-            className="mt-3 text-sm text-gray-500 hover:text-gray-700"
-          >
-            Close list
-          </button>
         </div>
       )}
     </div>

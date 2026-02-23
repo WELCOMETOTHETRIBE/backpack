@@ -3,16 +3,21 @@ import Link from "next/link";
 
 export default function GovernanceWizardPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="border-b border-gray-200 bg-white px-4 py-3">
-        <div className="mx-auto flex max-w-6xl items-center justify-between">
-          <Link href="/dashboard" className="text-sm font-medium text-[#0F172A] hover:underline">
+    <div className="min-h-screen bg-[#f8fafc]">
+      <header className="sticky top-0 z-10 border-b border-slate-200/80 bg-white/95 backdrop-blur-sm">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
+          <Link
+            href="/dashboard"
+            className="text-[14px] font-medium text-slate-600 transition-colors hover:text-[#0F172A]"
+          >
             ← Dashboard
           </Link>
-          <h1 className="text-lg font-semibold text-[#0F172A]">CMMC Governance Wizard</h1>
-          <span />
+          <h1 className="text-base font-semibold tracking-tight text-[#0F172A] sm:text-lg">
+            Compliance hub
+          </h1>
+          <span className="w-16" aria-hidden />
         </div>
-      </div>
+      </header>
       <GovernanceWizard />
     </div>
   );

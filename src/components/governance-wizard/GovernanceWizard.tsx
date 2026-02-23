@@ -84,14 +84,14 @@ export function GovernanceWizard() {
   if (loading && records.length === 0) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <p className="text-gray-600">Loading…</p>
+        <p className="text-[14px] text-slate-600">Loading…</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="mx-auto max-w-6xl px-4 py-8">
+    <div className="min-h-screen bg-[#f8fafc]">
+      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
         {step === "intro" && (
           <WizardIntro
             familiesComplete={familiesComplete}
@@ -101,12 +101,14 @@ export function GovernanceWizard() {
         )}
         {step === "matrix" && (
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h1 className="text-xl font-bold text-gray-900">Control matrix</h1>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-[14px] text-slate-600">
+                Click a cell to see controls in that family and status. Click a control to open it.
+              </p>
               <button
                 type="button"
                 onClick={() => setStep("review")}
-                className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                className="shrink-0 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-[14px] font-medium text-slate-700 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50"
               >
                 Review & finalize
               </button>
