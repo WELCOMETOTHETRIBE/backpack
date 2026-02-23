@@ -8,6 +8,7 @@ const CATEGORIES: { label: string; options: { value: string; label: string }[] }
   {
     label: "Operating systems",
     options: [
+      { value: "windows_11", label: "Windows 11 (client)" },
       { value: "windows_server", label: "Windows Server 2019 / 2022 / 2025" },
       { value: "rhel", label: "Red Hat Enterprise Linux 8/9 (CentOS/Rocky/Alma)" },
       { value: "macos", label: "macOS 13+ (Ventura/Sonoma) managed via MDM" },

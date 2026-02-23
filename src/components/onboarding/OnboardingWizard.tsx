@@ -2,8 +2,186 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, ArrowRight, ArrowLeft } from "lucide-react";
+import { CheckCircle2, ArrowRight, ArrowLeft, Wand2 } from "lucide-react";
 import { BoundaryProfileSelector } from "./BoundaryProfileSelector";
+
+/** Preset options for CUI boundary (what’s inside the perimeter). Label = chip, value = text added. */
+const CUI_BOUNDARY_PRESETS: { label: string; value: string }[] = [
+  { label: "Single on-prem enclave", value: "Single on-premises enclave containing all CUI systems." },
+  { label: "Hybrid (on-prem + cloud)", value: "Hybrid: on-premises servers and cloud (Azure Gov / AWS GovCloud)." },
+  { label: "Cloud-only (FedRAMP)", value: "Cloud-only: CUI processed in FedRAMP-authorized cloud." },
+  { label: "Contractor workstations", value: "Contractor workstations and corporate network segments handling CUI." },
+  { label: "Dev, test, prod", value: "Development, test, and production environments within the boundary." },
+];
+
+/** Preset options for system scope (what is assessed). */
+const SYSTEM_SCOPE_PRESETS: { label: string; value: string }[] = [
+  { label: "All systems with CUI", value: "All information systems that process, store, or transmit CUI." },
+  { label: "Contract-specific", value: "Scoped to contract-specific infrastructure and applications." },
+  { label: "IT and OT in boundary", value: "IT and OT systems within the defined boundary." },
+  { label: "Endpoints & servers", value: "Endpoints, servers, and network devices in scope for CMMC Level 2." },
+];
+
+function CompleteStep({
+  data,
+  setData,
+}: {
+  data: OnboardingData;
+  setData: React.Dispatch<React.SetStateAction<OnboardingData>>;
+}) {
+  const [augmenting, setAugmenting] = useState<"cuiBoundary" | "systemScope" | null>(null);
+
+  async function handleAugment(field: "cuiBoundary" | "systemScope") {
+    const text = field === "cuiBoundary" ? data.cuiBoundary : data.systemScope;
+    if (!text.trim()) return;
+    setAugmenting(field);
+    try {
+      const res = await fetch("/api/onboarding/augment-description", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ field, text }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error ?? "Augment failed");
+      }
+      const { augmented } = await res.json();
+      if (augmented) setData((prev) => ({ ...prev, [field]: augmented }));
+    } catch {
+      // Keep existing text on error
+    } finally {
+      setAugmenting(null);
+    }
+  }
+
+  function addPreset(field: "cuiBoundary" | "systemScope", value: string) {
+    const current = field === "cuiBoundary" ? data.cuiBoundary : data.systemScope;
+    const next = current ? `${current.trim()}\n\n${value}` : value;
+    setData((prev) => ({ ...prev, [field]: next }));
+  }
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-xl font-semibold text-zinc-900">CUI boundary & complete setup</h2>
+
+      <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+        <p className="text-sm font-medium text-blue-900">Scope vs boundary</p>
+        <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-blue-800">
+          <li>
+            <strong>Boundary</strong> — The physical and logical perimeter that contains CUI (networks, systems, locations). What is inside vs. outside.
+          </li>
+          <li>
+            <strong>Scope</strong> — The set of systems and components inside that boundary that are in scope for CMMC assessment (what you are actually assessing).
+          </li>
+        </ul>
+      </div>
+
+      <div>
+        <label className="mb-2 block text-sm font-medium text-zinc-700">
+          CUI boundary description
+        </label>
+        <p className="mb-2 text-xs text-zinc-500">Click a preset or type keywords, then use the wand to expand.</p>
+        <div className="mb-2 flex flex-wrap gap-2">
+          {CUI_BOUNDARY_PRESETS.map((preset) => (
+            <button
+              key={preset.label}
+              type="button"
+              onClick={() => addPreset("cuiBoundary", preset.value)}
+              className="rounded-full border border-zinc-300 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:border-[#3B82F6] hover:bg-[#3B82F6]/5 hover:text-[#2563EB]"
+            >
+              {preset.label}
+            </button>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <textarea
+            value={data.cuiBoundary}
+            onChange={(e) => setData({ ...data, cuiBoundary: e.target.value })}
+            rows={3}
+            className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]"
+            placeholder="e.g. Azure Gov, on-prem servers, contractor laptops..."
+          />
+          <button
+            type="button"
+            onClick={() => handleAugment("cuiBoundary")}
+            disabled={!data.cuiBoundary.trim() || augmenting !== null}
+            title="Expand with AI"
+            className="flex h-10 shrink-0 items-center justify-center rounded-lg border border-zinc-300 bg-white px-3 text-zinc-600 hover:border-[#3B82F6] hover:bg-[#3B82F6]/5 hover:text-[#3B82F6] disabled:opacity-50"
+          >
+            <Wand2 className="h-5 w-5" />
+          </button>
+        </div>
+        {augmenting === "cuiBoundary" && (
+          <p className="mt-1 text-xs text-zinc-500">Expanding…</p>
+        )}
+      </div>
+
+      <div>
+        <label className="mb-2 block text-sm font-medium text-zinc-700">
+          System scope
+        </label>
+        <p className="mb-2 text-xs text-zinc-500">Click a preset or type keywords, then use the wand to expand.</p>
+        <div className="mb-2 flex flex-wrap gap-2">
+          {SYSTEM_SCOPE_PRESETS.map((preset) => (
+            <button
+              key={preset.label}
+              type="button"
+              onClick={() => addPreset("systemScope", preset.value)}
+              className="rounded-full border border-zinc-300 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:border-[#3B82F6] hover:bg-[#3B82F6]/5 hover:text-[#2563EB]"
+            >
+              {preset.label}
+            </button>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <textarea
+            value={data.systemScope}
+            onChange={(e) => setData({ ...data, systemScope: e.target.value })}
+            rows={3}
+            className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]"
+            placeholder="e.g. all systems processing CUI, dev and prod..."
+          />
+          <button
+            type="button"
+            onClick={() => handleAugment("systemScope")}
+            disabled={!data.systemScope.trim() || augmenting !== null}
+            title="Expand with AI"
+            className="flex h-10 shrink-0 items-center justify-center rounded-lg border border-zinc-300 bg-white px-3 text-zinc-600 hover:border-[#3B82F6] hover:bg-[#3B82F6]/5 hover:text-[#3B82F6] disabled:opacity-50"
+          >
+            <Wand2 className="h-5 w-5" />
+          </button>
+        </div>
+        {augmenting === "systemScope" && (
+          <p className="mt-1 text-xs text-zinc-500">Expanding…</p>
+        )}
+      </div>
+
+      <div>
+        <label className="mb-2 block text-sm font-medium text-zinc-700">
+          Team members (optional)
+        </label>
+        <textarea
+          value={data.teamMembers.join("\n")}
+          onChange={(e) =>
+            setData({
+              ...data,
+              teamMembers: e.target.value.split("\n").filter((s) => s.trim()),
+            })
+          }
+          rows={2}
+          className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]"
+          placeholder="One email per line..."
+        />
+      </div>
+
+      <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+        <p className="text-sm text-emerald-800">
+          Click &quot;Complete Setup&quot; to create all 110 control records, mark inherited controls, and open the Compliance Wizard.
+        </p>
+      </div>
+    </div>
+  );
+}
 
 export type OnboardingStep = "welcome" | "profile" | "boundary" | "inherited" | "complete";
 
@@ -222,55 +400,10 @@ export function OnboardingWizard() {
           )}
 
           {step === "complete" && (
-            <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-zinc-900">CUI boundary & complete setup</h2>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-zinc-700">
-                  CUI boundary description
-                </label>
-                <textarea
-                  value={data.cuiBoundary}
-                  onChange={(e) => setData({ ...data, cuiBoundary: e.target.value })}
-                  rows={3}
-                  className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]"
-                  placeholder="Describe the boundary of your CUI environment..."
-                />
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-zinc-700">
-                  System scope
-                </label>
-                <textarea
-                  value={data.systemScope}
-                  onChange={(e) => setData({ ...data, systemScope: e.target.value })}
-                  rows={3}
-                  className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]"
-                  placeholder="Describe the scope of systems covered by CMMC..."
-                />
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-zinc-700">
-                  Team members (optional)
-                </label>
-                <textarea
-                  value={data.teamMembers.join("\n")}
-                  onChange={(e) =>
-                    setData({
-                      ...data,
-                      teamMembers: e.target.value.split("\n").filter((s) => s.trim()),
-                    })
-                  }
-                  rows={2}
-                  className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]"
-                  placeholder="One email per line..."
-                />
-              </div>
-              <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
-                <p className="text-sm text-emerald-800">
-                  Click &quot;Complete Setup&quot; to create all 110 control records, mark inherited controls, and open the Compliance Wizard.
-                </p>
-              </div>
-            </div>
+            <CompleteStep
+              data={data}
+              setData={setData}
+            />
           )}
         </div>
 
