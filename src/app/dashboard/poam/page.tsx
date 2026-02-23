@@ -11,6 +11,7 @@ import {
 } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { SyncPoamFromControlsButton } from "./SyncPoamFromControlsButton";
+import { AddPoamButton } from "./AddPoamButton";
 
 export default async function PoamPage() {
   const session = await auth();
@@ -60,7 +61,10 @@ export default async function PoamPage() {
 
       <section className="mb-8">
         <h2 className="mb-3 text-lg font-medium text-zinc-800">From compliance wizard</h2>
-        <SyncPoamFromControlsButton />
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <SyncPoamFromControlsButton />
+          <AddPoamButton />
+        </div>
         {entries.length > 0 ? (
           <ul className="space-y-2">
             {entries.map((e) => (
