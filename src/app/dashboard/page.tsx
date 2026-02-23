@@ -16,8 +16,9 @@ import {
   auditLogs,
   users,
   subcontractorRelationships,
+  boundaryProfiles,
 } from "@/db/schema";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -122,11 +123,27 @@ export default async function DashboardPage() {
     );
   const primeCount = activeFlowdowns.length;
 
+  // Onboarding: has org started (boundary profile or control records)?
+  const [boundaryRow] = await db
+    .select({ id: boundaryProfiles.id })
+    .from(boundaryProfiles)
+    .where(eq(boundaryProfiles.organizationId, orgId))
+    .limit(1);
+  const onboardingStarted = Boolean(boundaryRow) || total > 0;
+
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-[#0F172A]">Dashboard</h1>
-        <p className="mt-2 text-gray-600">Welcome back, {user?.email}</p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-[#0F172A]">Dashboard</h1>
+          <p className="mt-2 text-gray-600">Welcome back, {user?.email}</p>
+        </div>
+        <Link
+          href="/dashboard/onboarding"
+          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-[#3B82F6] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#2563EB]"
+        >
+          {onboardingStarted ? "Continue onboarding" : "Begin onboarding"}
+        </Link>
       </div>
 
       {/* Flow-Down Banner for Subcontractors */}
