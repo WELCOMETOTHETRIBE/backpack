@@ -142,6 +142,36 @@ export async function POST() {
     }
     const sspMarkdown = sspLines.join("\n");
 
+    // System_Security_Plan.html (dynamically generated)
+    const sspHtmlParts: string[] = [
+      "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>System Security Plan</title>",
+      "<style>body{font-family:system-ui,sans-serif;max-width:800px;margin:2rem auto;padding:0 1rem;}",
+      "h1{border-bottom:2px solid #333;} h2{margin-top:1.5rem;} .status{color:#666;} pre{white-space:pre-wrap;}</style></head><body>",
+      "<h1>System Security Plan</h1>",
+      "<p>Generated from control records. One section per NIST SP 800-171 Rev 2 control.</p>",
+    ];
+    for (const controlId of ALL_CONTROL_IDS) {
+      const r = recordByControlId[controlId];
+      const title = r?.title ?? controlId;
+      const gov = r?.governanceNarrative?.trim() ?? "";
+      const tech = r?.technicalNarrative?.trim() ?? "";
+      const status = r?.implementationStatus ?? "not_started";
+      const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      sspHtmlParts.push(`<h2>${esc(controlId)} — ${esc(title)}</h2>`);
+      sspHtmlParts.push(`<p class="status"><strong>Status:</strong> ${esc(status)}</p>`);
+      if (gov) {
+        sspHtmlParts.push("<h3>Governance narrative</h3>");
+        sspHtmlParts.push(`<pre>${esc(gov)}</pre>`);
+      }
+      if (tech) {
+        sspHtmlParts.push("<h3>Technical narrative</h3>");
+        sspHtmlParts.push(`<pre>${esc(tech)}</pre>`);
+      }
+      if (!gov && !tech) sspHtmlParts.push("<p><em>No narrative yet.</em></p>");
+    }
+    sspHtmlParts.push("</body></html>");
+    const sspHtml = sspHtmlParts.join("\n");
+
     // SCTM: control, status, responsible role, governance artifacts (labels + URLs), technical evidence (URLs)
     const sctmRows = ALL_CONTROL_IDS.map((controlId) => {
       const r = recordByControlId[controlId];
@@ -157,6 +187,23 @@ export async function POST() {
       };
     });
     const sctmCsvUnified = toCSV(sctmRows);
+
+    // Security Control Traceability Matrix (prompt columns: Control ID, Control Name, Implementation Status, Responsible Role, Governance Artifacts, Technical Evidence)
+    const sctmDocumentRows = ALL_CONTROL_IDS.map((controlId) => {
+      const r = recordByControlId[controlId];
+      const recId = r?.id;
+      const artList = recId ? artifactsByRecord.get(recId) ?? [] : [];
+      const techList = recId ? techByRecord.get(recId) ?? [] : [];
+      return {
+        "Control ID": controlId,
+        "Control Name": r?.title ?? controlId,
+        "Implementation Status": r?.implementationStatus ?? "not_started",
+        "Responsible Role": r?.roleName ?? "",
+        "Governance Artifacts": artList.map((a) => a.artifactLabel).join(", "),
+        "Technical Evidence": techList.map((t) => t.requirementId || t.description || "—").join("; "),
+      };
+    });
+    const sctmDocumentCsv = toCSV(sctmDocumentRows);
 
     // Legacy data (keep for backward compat)
     const impls = await db
@@ -258,6 +305,7 @@ export async function POST() {
       archive.on("end", resolve);
       archive.on("error", reject);
 
+      archive.append(sspHtml, { name: "System_Security_Plan.html" });
       archive.append(sspMarkdown, { name: "SSP_Document.md" });
       archive.append("System Security Plan (legacy sections)\n\n", { name: "SSP_Overview.txt" });
       for (const s of sspList) {
@@ -265,6 +313,7 @@ export async function POST() {
           name: `SSP_${s.documentCode}_${s.sectionKey}.txt`,
         });
       }
+      archive.append(sctmDocumentCsv, { name: "Security_Control_Traceability_Matrix.csv" });
       archive.append(sctmCsvUnified, { name: "SCTM.csv" });
       archive.append(sctmCsvLegacy, { name: "SCTM_Legacy.csv" });
       archive.append(poamCsv, { name: "POAM.csv" });
@@ -277,12 +326,12 @@ export async function POST() {
       archive.append("Inheritance: see Control_Status_Report for status Inherited\n", { name: "Inheritance_Matrix.txt" });
       archive.append(poamCsv, { name: "Risk_Register.csv" });
 
-      // Zip of governance artifacts (with storageKey); technical evidence has no storageKey in DB so only artifacts
+      // evidence/ folder: all uploaded governance and technical evidence files
       const zipPromises: Promise<void>[] = [];
       for (const a of allArtifacts) {
         if (!a.storageKey) continue;
         const controlId = recordIdToControlId[a.controlRecordId] ?? "unknown";
-        const zipPath = safeZipName("governance", `${controlId}_${a.artifactLabel.replace(/\s+/g, "_")}_${a.fileName}`);
+        const zipPath = safeZipName("evidence", `${controlId}_${a.artifactLabel.replace(/\s+/g, "_")}_${a.fileName}`);
         zipPromises.push(addFileToZip(a.storageKey, zipPath));
       }
       await Promise.all(zipPromises);

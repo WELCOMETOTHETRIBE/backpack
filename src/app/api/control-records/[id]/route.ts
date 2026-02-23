@@ -33,12 +33,17 @@ export async function PATCH(
       governanceNarrative: string | null;
       responsibleRoleId: string | null;
       sprs31311Condition: string | null;
+      implementationStatus: "not_started" | "in_progress" | "implemented" | "assessed" | "inherited";
     }> = {};
     if (typeof body.governanceNarrative !== "undefined") updates.governanceNarrative = body.governanceNarrative ?? null;
     if (typeof body.responsibleRoleId !== "undefined") updates.responsibleRoleId = body.responsibleRoleId ?? null;
     if (existing.controlId === "3.13.11" && typeof body.sprs31311Condition !== "undefined") {
       const v = body.sprs31311Condition;
       updates.sprs31311Condition = v === "no_crypto" || v === "non_fips" ? v : null;
+    }
+    const validStatuses = ["not_started", "in_progress", "implemented", "assessed", "inherited"] as const;
+    if (typeof body.implementationStatus === "string" && validStatuses.includes(body.implementationStatus as (typeof validStatuses)[number])) {
+      updates.implementationStatus = body.implementationStatus as (typeof validStatuses)[number];
     }
 
     if (Object.keys(updates).length === 0) {
@@ -47,6 +52,7 @@ export async function PATCH(
 
     if (user.id) {
       for (const [fieldName, newVal] of Object.entries(updates)) {
+        if (fieldName === "implementationStatus") continue; // avoid logging status in history if desired, or allow it
         const oldVal = existing[fieldName as keyof typeof existing];
         const oldStr = oldVal != null ? String(oldVal) : null;
         const newStr = newVal != null ? String(newVal) : null;
@@ -67,7 +73,10 @@ export async function PATCH(
       .set({ ...updates, updatedAt: new Date() })
       .where(eq(controlRecords.id, id));
 
-    await calculateControlStatus(id);
+    // Only recalculate status from evidence when not manually overriding
+    if (!("implementationStatus" in updates)) {
+      await calculateControlStatus(id);
+    }
     if ("sprs31311Condition" in updates) {
       await computeAndPersistSprsScore(existing.organizationId);
     }

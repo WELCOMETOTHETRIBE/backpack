@@ -1041,3 +1041,47 @@ export const technicalEvidenceRequirements: ControlEvidenceMap[] = [
     },
   },
 ];
+
+/** Technology stack options for Boundary Profile selector (source of truth for keys + labels). */
+export const BOUNDARY_TECHNOLOGY_OPTIONS: { category: string; options: { value: string; label: string }[] }[] = [
+  {
+    category: "Operating Systems",
+    options: [
+      { value: "windows_server", label: "Windows Server 2019 / 2022 / 2025" },
+      { value: "rhel", label: "Red Hat Enterprise Linux 8/9 (CentOS/Rocky/Alma)" },
+      { value: "macos", label: "macOS 13+ (Ventura/Sonoma) managed via MDM" },
+    ],
+  },
+  {
+    category: "Cloud Providers",
+    options: [
+      { value: "azure_gov", label: "Microsoft Azure Government (FedRAMP High)" },
+      { value: "aws_govcloud", label: "AWS GovCloud (US)" },
+    ],
+  },
+  {
+    category: "Identity",
+    options: [
+      { value: "entra_id", label: "Microsoft Entra ID (Azure AD)" },
+      { value: "okta", label: "Okta Identity Platform" },
+    ],
+  },
+  {
+    category: "Endpoint Management",
+    options: [
+      { value: "intune", label: "Microsoft Intune (Endpoint Manager)" },
+      { value: "jamf", label: "JAMF Pro (macOS/iOS MDM)" },
+    ],
+  },
+  {
+    category: "Security & Monitoring",
+    options: [
+      { value: "defender", label: "Microsoft Defender for Endpoint / Defender for Cloud" },
+      { value: "crowdstrike", label: "CrowdStrike Falcon" },
+      { value: "splunk", label: "Splunk Enterprise / Splunk Cloud" },
+      { value: "tenable", label: "Tenable.io / Tenable.sc (Nessus)" },
+      { value: "palo_alto", label: "Palo Alto NGFW / Prisma" },
+      { value: "cisco_asa", label: "Cisco ASA / Firepower" },
+    ],
+  },
+];

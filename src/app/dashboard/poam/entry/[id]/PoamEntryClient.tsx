@@ -105,11 +105,11 @@ export function PoamEntryClient({
     if (res.ok) refetch();
   }
 
-  async function requestClosure() {
+  async function approveClosure() {
     if (closureLoading || entry.status === "closed") return;
     setClosureLoading(true);
     try {
-      const res = await fetch(`/api/poam/entries/${entryId}/closure`, { method: "POST" });
+      const res = await fetch(`/api/poam/entries/${entryId}/approve`, { method: "POST" });
       if (res.ok) refetch();
     } finally {
       setClosureLoading(false);
@@ -240,30 +240,40 @@ export function PoamEntryClient({
 
       <div className="rounded-lg border border-zinc-200 bg-white p-4">
         <h2 className="mb-3 font-medium text-zinc-800">Closure approvals (dual sign-off)</h2>
-        <ul className="space-y-1 text-sm text-zinc-600">
-          {entry.closureApprovals.length === 0 ? (
-            <li>No sign-offs yet.</li>
-          ) : (
-            entry.closureApprovals.map((a) => (
-              <li key={a.id}>
-                #{a.approvalOrder} {a.approverEmail ?? a.approverId} —{" "}
-                {new Date(a.attestedAt).toLocaleString()}
-              </li>
-            ))
-          )}
-        </ul>
+        <p className="mb-3 text-sm text-zinc-600">Two approvals are required to close this POA&M item.</p>
+        <div className="space-y-2">
+          {[1, 2].map((order) => {
+            const approval = entry.closureApprovals.find((a) => a.approvalOrder === order);
+            return (
+              <div
+                key={order}
+                className="flex items-center justify-between rounded border border-zinc-100 bg-zinc-50/50 px-3 py-2 text-sm"
+              >
+                <span className="font-medium text-zinc-700">Approval {order}</span>
+                {approval ? (
+                  <span className="text-zinc-600">
+                    {approval.approverEmail ?? approval.approverId} —{" "}
+                    {new Date(approval.attestedAt).toLocaleString()}
+                  </span>
+                ) : (
+                  <span className="text-zinc-400">Pending</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
         {canSignOff && (
           <button
             type="button"
-            onClick={requestClosure}
+            onClick={approveClosure}
             disabled={closureLoading}
             className="mt-3 rounded border border-emerald-600 bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
           >
-            {closureLoading ? "Signing…" : "Request closure (sign off)"}
+            {closureLoading ? "Submitting…" : "Approve Closure"}
           </button>
         )}
         {approvedByCurrentUser && entry.status === "open" && (
-          <p className="mt-2 text-xs text-zinc-500">You have signed off. One more approval to close.</p>
+          <p className="mt-2 text-xs text-zinc-500">You have approved. One more approval required to close.</p>
         )}
         {entry.status === "closed" && (
           <p className="mt-2 text-sm font-medium text-green-700">Closed (dual sign-off complete).</p>

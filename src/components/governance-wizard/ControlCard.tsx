@@ -35,6 +35,11 @@ export function ControlCard({
   const [generatingLabel, setGeneratingLabel] = useState<string | null>(null);
   const [poamEntryId, setPoamEntryId] = useState<string | null>(null);
   const [addingPoam, setAddingPoam] = useState(false);
+  const [savingStatus, setSavingStatus] = useState(false);
+
+  const isPoam =
+    record.implementationStatus === "not_started" ||
+    record.implementationStatus === "in_progress";
 
   useEffect(() => {
     fetch(`/api/poam/entries?controlRecordId=${record.id}`)
@@ -152,6 +157,35 @@ export function ControlCard({
       }
     } finally {
       setAddingPoam(false);
+    }
+  }
+
+  async function setStatus(newStatus: "not_started" | "in_progress" | "implemented") {
+    if (savingStatus) return;
+    setSavingStatus(true);
+    try {
+      const res = await fetch(`/api/control-records/${record.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ implementationStatus: newStatus }),
+      });
+      if (res.ok) {
+        onRefresh();
+        if ((newStatus === "not_started" || newStatus === "in_progress") && !poamEntryId) {
+          const eRes = await fetch("/api/poam/entries", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ controlRecordId: record.id }),
+          });
+          const eData = await eRes.json().catch(() => ({}));
+          if (eRes.ok && eData?.id) {
+            setPoamEntryId(eData.id);
+            onRefresh();
+          }
+        }
+      }
+    } finally {
+      setSavingStatus(false);
     }
   }
 
@@ -349,12 +383,31 @@ export function ControlCard({
           </div>
 
           <div>
+            <label className="block text-xs font-medium text-gray-600">Mark status</label>
+            <select
+              value={record.implementationStatus}
+              onChange={(e) => {
+                const v = e.target.value as "not_started" | "in_progress" | "implemented";
+                if (v === "not_started" || v === "in_progress" || v === "implemented") setStatus(v);
+              }}
+              disabled={savingStatus}
+              className="mt-1 rounded border border-gray-300 px-2 py-1.5 text-sm"
+            >
+              <option value="not_started">Not started</option>
+              <option value="in_progress">In progress</option>
+              <option value="implemented">Implemented</option>
+              <option value="assessed">Assessed</option>
+              <option value="inherited">Inherited</option>
+            </select>
+          </div>
+
+          <div>
             {poamEntryId ? (
               <a
                 href={`/dashboard/poam/entry/${poamEntryId}`}
                 className="inline-block rounded border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
               >
-                View POA&M
+                View POA&M Item
               </a>
             ) : (
               <button
