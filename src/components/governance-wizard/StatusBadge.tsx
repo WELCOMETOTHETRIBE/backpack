@@ -6,6 +6,7 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }>
   implemented: { bg: "bg-blue-100", text: "text-blue-800", label: "IMPLEMENTED" },
   assessed: { bg: "bg-green-100", text: "text-green-800", label: "ASSESSED" },
   inherited: { bg: "bg-slate-100", text: "text-slate-800", label: "INHERITED" },
+  not_applicable: { bg: "bg-zinc-100", text: "text-zinc-700", label: "N/A" },
 };
 
 export function StatusBadge({ status }: { status: string }) {

@@ -124,8 +124,9 @@ export function ControlAdjudicationModal({
     record.implementationStatus === "inherited";
   const isInProgress = record.implementationStatus === "in_progress";
   const isNotStarted = record.implementationStatus === "not_started";
+  const isNotApplicable = record.implementationStatus === "not_applicable";
   const showEvidence = isImplemented || isInProgress;
-  const showPoam = isInProgress || isNotStarted;
+  const showPoam = (isInProgress || isNotStarted) && !isNotApplicable;
 
   const refresh = useCallback(() => {
     onSaved?.();
@@ -143,7 +144,9 @@ export function ControlAdjudicationModal({
 
   useEffect(() => {
     const canUpdate =
-      record.implementationStatus !== "inherited" && record.implementationStatus !== "assessed";
+      record.implementationStatus !== "inherited" &&
+      record.implementationStatus !== "assessed" &&
+      record.implementationStatus !== "not_applicable";
     if (
       allQuestionsAnswered &&
       derivedStatus !== null &&
@@ -151,7 +154,7 @@ export function ControlAdjudicationModal({
       !savingStatus &&
       canUpdate
     ) {
-      setStatus(derivedStatus);
+      setStatus(derivedStatus as StatusValue);
     }
   }, [allQuestionsAnswered, derivedStatus, record.implementationStatus, savingStatus]);
 
@@ -188,7 +191,8 @@ export function ControlAdjudicationModal({
     nist?.nistDiscussionGuidance ??
     "This control describes a security requirement. Select your implementation status below.";
 
-  async function setStatus(newStatus: "not_started" | "in_progress" | "implemented") {
+  type StatusValue = "not_started" | "in_progress" | "implemented" | "assessed" | "inherited" | "not_applicable";
+  async function setStatus(newStatus: StatusValue) {
     if (savingStatus) return;
     setSavingStatus(true);
     try {
@@ -374,6 +378,20 @@ export function ControlAdjudicationModal({
           {fullControlTitle}
         </h1>
         <div className="flex shrink-0 items-center gap-3">
+          <select
+            value={record.implementationStatus}
+            onChange={(e) => setStatus(e.target.value as StatusValue)}
+            disabled={savingStatus}
+            className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm font-medium text-slate-800 focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6] disabled:opacity-60"
+            aria-label="Implementation status"
+          >
+            <option value="not_started">Not Started</option>
+            <option value="in_progress">In Progress</option>
+            <option value="implemented">Implemented</option>
+            <option value="assessed">Assessed</option>
+            <option value="inherited">Inherited</option>
+            <option value="not_applicable">N/A</option>
+          </select>
           <StatusBadge status={record.implementationStatus} />
           <button
             type="button"

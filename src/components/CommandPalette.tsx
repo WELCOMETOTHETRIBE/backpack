@@ -25,6 +25,7 @@ type CommandPaletteProps = {
 const NAV_ITEMS = [
   { value: "nav-overview", label: "Overview", href: "/dashboard", icon: LayoutDashboard },
   { value: "nav-controls", label: "Controls", href: "/dashboard/controls", icon: Shield },
+  { value: "nav-adjudication", label: "Adjudication", href: "/dashboard/adjudication", icon: ClipboardCheck },
   { value: "nav-poam", label: "POA&M", href: "/dashboard/poam", icon: ClipboardList },
   { value: "nav-evidence", label: "Evidence", href: "/dashboard/evidence", icon: FileText },
   { value: "nav-supply-chain", label: "Supply Chain", href: "/dashboard/supply-chain", icon: Truck },

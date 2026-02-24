@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { requireOrg, requireRole } from "@/lib/auth";
 
 const ALLOWED_TECHNOLOGIES = new Set([
+  "windows_11",
   "windows_server",
   "rhel",
   "macos",

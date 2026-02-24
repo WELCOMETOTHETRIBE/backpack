@@ -64,6 +64,7 @@ export const implementationStatusEnum = pgEnum("implementation_status", [
   "implemented",
   "assessed",
   "inherited",
+  "not_applicable",
 ]);
 export const evidenceTypeEnum = pgEnum("evidence_type", [
   "screenshot",
@@ -462,6 +463,8 @@ export const attestations = pgTable("attestations", {
   attestedAt: timestamp("attested_at", { withTimezone: true }).defaultNow().notNull(),
   dataHash: text("data_hash"),
   signatureCrypto: text("signature_crypto"),
+  /** Optional comment for control attestations (e.g. "Reviewed Q1 logs"). */
+  comment: text("comment"),
 });
 
 // ============== Module 8: Supply Chain Portal ==============

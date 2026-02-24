@@ -9,7 +9,7 @@ import { getRequiredUploadArtifactLabels } from "./artifact-guide";
 import { getEvidenceRequirements } from "./compliance";
 import { computeAndPersistSprsScore } from "./sprs";
 
-export type ImplementationStatus = "not_started" | "in_progress" | "implemented" | "assessed" | "inherited";
+export type ImplementationStatus = "not_started" | "in_progress" | "implemented" | "assessed" | "inherited" | "not_applicable";
 
 /**
  * Recomputes implementationStatus for the given control record and persists it.
@@ -30,7 +30,11 @@ export async function calculateControlStatus(controlRecordId: string): Promise<I
     throw new Error(`Control record not found: ${controlRecordId}`);
   }
 
-  if (record.implementationStatus === "assessed" || record.implementationStatus === "inherited") {
+  if (
+    record.implementationStatus === "assessed" ||
+    record.implementationStatus === "inherited" ||
+    record.implementationStatus === "not_applicable"
+  ) {
     return record.implementationStatus;
   }
 

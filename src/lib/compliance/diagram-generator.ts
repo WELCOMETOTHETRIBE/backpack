@@ -13,7 +13,10 @@ const TECHNOLOGY_LABELS: Record<string, string> = {
   entra_id: "Entra ID",
   okta: "Okta",
   windows_workstation: "Windows",
-  macos: "Macs",
+  windows_11: "Windows 11",
+  windows_server: "Windows Server",
+  rhel: "RHEL / Linux",
+  macos: "macOS",
   defender: "Microsoft Defender",
   crowdstrike: "CrowdStrike",
   sentinelone: "SentinelOne",
@@ -24,7 +27,10 @@ const TECHNOLOGY_LABELS: Record<string, string> = {
   azure_commercial: "Azure",
   azure_gov: "Azure Government",
   aws: "AWS",
+  aws_govcloud: "AWS GovCloud",
   gcp: "GCP",
+  palo_alto: "Palo Alto",
+  cisco_asa: "Cisco ASA",
 };
 
 function mermaidId(key: string): string {

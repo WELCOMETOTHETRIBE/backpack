@@ -33,7 +33,8 @@ export async function PATCH(
       governanceNarrative: string | null;
       responsibleRoleId: string | null;
       sprs31311Condition: string | null;
-      implementationStatus: "not_started" | "in_progress" | "implemented" | "assessed" | "inherited";
+      lastValidationDate: Date | null;
+      implementationStatus: "not_started" | "in_progress" | "implemented" | "assessed" | "inherited" | "not_applicable";
     }> = {};
     if (typeof body.governanceNarrative !== "undefined") updates.governanceNarrative = body.governanceNarrative ?? null;
     if (typeof body.responsibleRoleId !== "undefined") updates.responsibleRoleId = body.responsibleRoleId ?? null;
@@ -41,7 +42,10 @@ export async function PATCH(
       const v = body.sprs31311Condition;
       updates.sprs31311Condition = v === "no_crypto" || v === "non_fips" ? v : null;
     }
-    const validStatuses = ["not_started", "in_progress", "implemented", "assessed", "inherited"] as const;
+    if (typeof body.lastValidationDate !== "undefined") {
+      updates.lastValidationDate = body.lastValidationDate ? new Date(body.lastValidationDate) : null;
+    }
+    const validStatuses = ["not_started", "in_progress", "implemented", "assessed", "inherited", "not_applicable"] as const;
     if (typeof body.implementationStatus === "string" && validStatuses.includes(body.implementationStatus as (typeof validStatuses)[number])) {
       updates.implementationStatus = body.implementationStatus as (typeof validStatuses)[number];
     }

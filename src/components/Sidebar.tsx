@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Shield,
+  ClipboardCheck,
   FileText,
   FolderOpen,
   Network,
@@ -23,6 +24,11 @@ const navigation = [
     name: "Controls",
     href: "/dashboard/controls",
     icon: Shield,
+  },
+  {
+    name: "Adjudication",
+    href: "/dashboard/adjudication",
+    icon: ClipboardCheck,
   },
   {
     name: "POA&M",

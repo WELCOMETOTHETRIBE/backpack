@@ -53,30 +53,49 @@ export async function POST(req: Request) {
 
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
-    const controlRecordId = formData.get("controlRecordId") as string | null;
+    const controlRecordIdSingle = formData.get("controlRecordId") as string | null;
+    const controlRecordIdsRaw = formData.get("controlRecordIds"); // optional JSON array for multi-mapping
     const artifactLabel = formData.get("artifactLabel") as string | null;
     const version = (formData.get("version") as string) || null;
     const approvalDateRaw = formData.get("approvalDate") as string | null;
 
-    if (!file || !controlRecordId || !artifactLabel) {
+    if (!file || !artifactLabel) {
       return NextResponse.json(
-        { error: "file, controlRecordId, and artifactLabel are required" },
+        { error: "file and artifactLabel are required" },
         { status: 400 }
       );
     }
 
-    const [record] = await db
-      .select()
+    let controlRecordIds: string[];
+    try {
+      if (controlRecordIdsRaw && typeof controlRecordIdsRaw === "string") {
+        const parsed = JSON.parse(controlRecordIdsRaw) as unknown;
+        controlRecordIds = Array.isArray(parsed) ? parsed.filter((id): id is string => typeof id === "string") : [];
+      } else {
+        controlRecordIds = controlRecordIdSingle ? [controlRecordIdSingle] : [];
+      }
+    } catch {
+      controlRecordIds = controlRecordIdSingle ? [controlRecordIdSingle] : [];
+    }
+    if (controlRecordIds.length === 0) {
+      return NextResponse.json(
+        { error: "controlRecordId or controlRecordIds required" },
+        { status: 400 }
+      );
+    }
+
+    const [firstRecord] = await db
+      .select({ controlId: controlRecords.controlId })
       .from(controlRecords)
       .where(
         and(
-          eq(controlRecords.id, controlRecordId),
+          eq(controlRecords.id, controlRecordIds[0]),
           eq(controlRecords.organizationId, orgId)
         )
       )
       .limit(1);
 
-    if (!record) {
+    if (!firstRecord) {
       return NextResponse.json({ error: "Control record not found" }, { status: 404 });
     }
 
@@ -87,33 +106,36 @@ export async function POST(req: Request) {
     const storage = getStorageService();
     const { fileUrl, fileId } = await storage.upload(buffer, {
       organizationId: orgId,
-      controlId: record.controlId,
+      controlId: firstRecord.controlId,
       fileName,
       mimeType,
     });
 
     const approvalDate = approvalDateRaw ? (approvalDateRaw.match(/^\d{4}-\d{2}-\d{2}$/) ? approvalDateRaw : null) : null;
 
-    const [inserted] = await db
-      .insert(artifacts)
-      .values({
-        organizationId: orgId,
-        controlRecordId,
-        artifactLabel,
-        fileName,
-        fileUrl,
-        storageKey: fileId,
-        fileType: mimeType,
-        fileSize: buffer.length,
-        version: version || null,
-        approvalDate: approvalDate ?? null,
-        uploadedBy: user.id,
-      })
-      .returning();
+    const inserted = [];
+    for (const controlRecordId of controlRecordIds) {
+      const [row] = await db
+        .insert(artifacts)
+        .values({
+          organizationId: orgId,
+          controlRecordId,
+          artifactLabel,
+          fileName,
+          fileUrl,
+          storageKey: fileId,
+          fileType: mimeType,
+          fileSize: buffer.length,
+          version: version || null,
+          approvalDate: approvalDate ?? null,
+          uploadedBy: user.id,
+        })
+        .returning();
+      if (row) inserted.push(row);
+      await calculateControlStatus(controlRecordId);
+    }
 
-    await calculateControlStatus(controlRecordId);
-
-    return NextResponse.json(inserted);
+    return NextResponse.json(inserted[0] ?? inserted);
   } catch (e) {
     const message = e instanceof Error ? e.message : "Upload failed";
     return NextResponse.json({ error: message }, { status: 400 });
