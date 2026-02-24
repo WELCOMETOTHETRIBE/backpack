@@ -14,12 +14,12 @@ export default async function DashboardLayout({
   if (!session?.user) redirect("/auth/signin");
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-gray-50">
+    <div className="flex h-screen flex-col overflow-hidden bg-[var(--color-surface-muted)]">
       <DashboardProviders user={session.user} />
       <NonCuiBanner />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />
-        <div className="flex flex-1 flex-col min-w-0">
+        <div className="flex min-w-0 flex-1 flex-col">
           <Header user={session.user} />
           <main className="flex-1 overflow-y-auto p-8">{children}</main>
         </div>

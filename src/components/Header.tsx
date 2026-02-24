@@ -8,7 +8,9 @@ import { ChevronDown, Settings, LogOut, ClipboardCheck } from "lucide-react";
 
 const ROUTE_TITLES: Record<string, string> = {
   "/dashboard": "Overview",
-  "/dashboard/controls": "Controls",
+  "/dashboard/controls": "SCTM",
+  "/dashboard/documents": "Documents",
+  "/dashboard/adjudication": "Adjudication",
   "/dashboard/poam": "POA&M",
   "/dashboard/evidence": "Evidence",
   "/dashboard/supply-chain": "Supply Chain",
@@ -67,14 +69,14 @@ export default function Header({ user }: { user: SessionUser | undefined }) {
       : "U";
 
   return (
-    <header className="flex shrink-0 items-center justify-between border-b border-gray-200 bg-white px-6 py-3">
-      <h1 className="text-lg font-semibold text-[#0F172A]">{title}</h1>
+    <header className="flex shrink-0 items-center justify-between border-b border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-3">
+      <h1 className="text-lg font-semibold text-[var(--color-navy-primary)]">{title}</h1>
 
       <div className="relative" ref={dropdownRef}>
         <button
           type="button"
           onClick={() => setDropdownOpen((o) => !o)}
-          className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
+          className="flex items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm font-medium text-[var(--color-gray-700)] shadow-sm transition-colors hover:bg-[var(--color-gray-50)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2"
           aria-expanded={dropdownOpen}
           aria-haspopup="true"
         >
@@ -93,7 +95,7 @@ export default function Header({ user }: { user: SessionUser | undefined }) {
 
         {dropdownOpen && (
           <div
-            className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
+            className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] py-1 shadow-lg"
             role="menu"
           >
             {user?.role === "Assessor" && (
