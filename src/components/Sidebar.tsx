@@ -12,11 +12,13 @@ import {
   Activity,
   Settings,
   FileStack,
+  BookMarked,
 } from "lucide-react";
 
 const navigation = [
   { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
   { name: "SCTM", href: "/dashboard/controls", icon: Shield },
+  { name: "Governance", href: "/dashboard/governance", icon: BookMarked },
   { name: "Documents", href: "/dashboard/documents", icon: FileStack },
   { name: "POA&M", href: "/dashboard/poam", icon: FileText },
   { name: "Evidence", href: "/dashboard/evidence", icon: FolderOpen },

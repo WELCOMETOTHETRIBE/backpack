@@ -74,6 +74,46 @@ export const evidenceTypeEnum = pgEnum("evidence_type", [
 ]);
 export const poamEntryStatusEnum = pgEnum("poam_entry_status", ["open", "closed"]);
 
+// ============== Governance Portal ==============
+export const governanceControlClassificationEnum = pgEnum("governance_control_classification", [
+  "PURE_GOV",
+  "HYBRID_GOV",
+  "TECHNICAL",
+]);
+export const governanceDocTypeEnum = pgEnum("governance_doc_type", [
+  "POLICY",
+  "SOP",
+  "PLAN",
+  "STANDARD",
+  "CHARTER",
+  "PROCEDURE",
+  "TEMPLATE",
+]);
+export const governanceDocStatusEnum = pgEnum("governance_doc_status", [
+  "DRAFT",
+  "SUBMITTED",
+  "APPROVED",
+  "REJECTED",
+  "RETIRED",
+]);
+export const governanceEvidenceTypeEnum = pgEnum("governance_evidence_type", [
+  "screenshot",
+  "export_file",
+  "log_snippet",
+  "config_baseline",
+  "policy_export",
+  "ticket",
+  "training_record",
+  "incident_report",
+  "risk_report",
+  "other",
+]);
+export const governanceControlLinkTypeEnum = pgEnum("governance_control_link_type", [
+  "document",
+  "register_entry",
+  "evidence",
+]);
+
 export const roles = pgTable("roles", {
   id: uuid("id").primaryKey().defaultRandom(),
   organizationId: uuid("organization_id").references(() => organizations.id).notNull(),
@@ -567,6 +607,154 @@ export const subcontractorFlowdownResponses = pgTable(
   }
 );
 
+// ============== Governance Portal Tables ==============
+export const projects = pgTable("projects", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id")
+    .references(() => organizations.id, { onDelete: "cascade" })
+    .notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  slug: varchar("slug", { length: 100 }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const governanceControlMetadata = pgTable(
+  "governance_control_metadata",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    controlId: varchar("control_id", { length: 20 }).notNull().unique(),
+    classification: governanceControlClassificationEnum("classification").notNull(),
+    controlStatement: text("control_statement"),
+    requiredArtifactTypes: jsonb("required_artifact_types").$type<string[]>().default([]),
+    requiredDocuments: jsonb("required_documents").$type<string[]>().default([]),
+    requiredRegisters: jsonb("required_registers").$type<string[]>().default([]),
+    requiredHybridEvidenceTypes: jsonb("required_hybrid_evidence_types").$type<string[]>().default([]),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  }
+);
+
+export const governanceDocuments = pgTable("governance_documents", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id")
+    .references(() => organizations.id, { onDelete: "cascade" })
+    .notNull(),
+  projectId: uuid("project_id").references(() => projects.id, { onDelete: "set null" }),
+  docId: varchar("doc_id", { length: 100 }).notNull(),
+  title: text("title").notNull(),
+  type: governanceDocTypeEnum("type").notNull(),
+  domain: varchar("domain", { length: 10 }),
+  version: varchar("version", { length: 50 }).default("1"),
+  status: governanceDocStatusEnum("status").notNull().default("DRAFT"),
+  ownerId: uuid("owner_id").references(() => users.id),
+  approverId: uuid("approver_id").references(() => users.id),
+  approvalDate: date("approval_date"),
+  nextReviewDate: date("next_review_date"),
+  reviewCadenceDays: integer("review_cadence_days"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const governanceDocumentVersions = pgTable("governance_document_versions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  documentId: uuid("document_id")
+    .references(() => governanceDocuments.id, { onDelete: "cascade" })
+    .notNull(),
+  versionNumber: integer("version_number").notNull(),
+  fileUrl: text("file_url").notNull(),
+  storageKey: text("storage_key"),
+  sha256Hash: varchar("sha256_hash", { length: 64 }),
+  fileSize: integer("file_size"),
+  mimeType: varchar("mime_type", { length: 100 }),
+  originalFilename: varchar("original_filename", { length: 255 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdById: uuid("created_by_id").references(() => users.id),
+});
+
+export const governanceRegisters = pgTable("governance_registers", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id").references(() => organizations.id, { onDelete: "cascade" }),
+  projectId: uuid("project_id").references(() => projects.id, { onDelete: "set null" }),
+  registerKey: varchar("register_key", { length: 80 }).notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  requiredColumns: jsonb("required_columns").$type<{ key: string; label: string; type: string }[]>().default([]),
+  retainForDays: integer("retain_for_days"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const governanceRegisterEntries = pgTable("governance_register_entries", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  registerId: uuid("register_id")
+    .references(() => governanceRegisters.id, { onDelete: "cascade" })
+    .notNull(),
+  entryData: jsonb("entry_data").$type<Record<string, unknown>>().notNull(),
+  createdById: uuid("created_by_id").references(() => users.id),
+  hold: integer("hold").default(0).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const governanceRegisterEntryFiles = pgTable("governance_register_entry_files", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  registerEntryId: uuid("register_entry_id")
+    .references(() => governanceRegisterEntries.id, { onDelete: "cascade" })
+    .notNull(),
+  fileUrl: text("file_url").notNull(),
+  storageKey: text("storage_key"),
+  sha256Hash: varchar("sha256_hash", { length: 64 }),
+  fileSize: integer("file_size"),
+  originalFilename: varchar("original_filename", { length: 255 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const governanceEvidenceItems = pgTable("governance_evidence_items", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id")
+    .references(() => organizations.id, { onDelete: "cascade" })
+    .notNull(),
+  projectId: uuid("project_id").references(() => projects.id, { onDelete: "set null" }),
+  title: text("title").notNull(),
+  evidenceType: governanceEvidenceTypeEnum("evidence_type").notNull(),
+  sourceSystem: varchar("source_system", { length: 255 }),
+  collectedById: uuid("collected_by_id").references(() => users.id),
+  collectedAt: timestamp("collected_at", { withTimezone: true }).defaultNow().notNull(),
+  validityPeriodDays: integer("validity_period_days"),
+  sha256Hash: varchar("sha256_hash", { length: 64 }),
+  implementationStatement: text("implementation_statement"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const governanceEvidenceFiles = pgTable("governance_evidence_files", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  evidenceItemId: uuid("evidence_item_id")
+    .references(() => governanceEvidenceItems.id, { onDelete: "cascade" })
+    .notNull(),
+  fileUrl: text("file_url").notNull(),
+  storageKey: text("storage_key"),
+  sha256Hash: varchar("sha256_hash", { length: 64 }),
+  fileSize: integer("file_size"),
+  mimeType: varchar("mime_type", { length: 100 }),
+  originalFilename: varchar("original_filename", { length: 255 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const governanceControlLinks = pgTable(
+  "governance_control_links",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    controlRecordId: uuid("control_record_id")
+      .references(() => controlRecords.id, { onDelete: "cascade" })
+      .notNull(),
+    linkType: governanceControlLinkTypeEnum("link_type").notNull(),
+    linkId: uuid("link_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  }
+);
+
 // ============== Relations ==============
 export const organizationsRelations = relations(organizations, ({ one, many }) => ({
   boundaryProfile: one(boundaryProfiles),
@@ -589,6 +777,10 @@ export const organizationsRelations = relations(organizations, ({ one, many }) =
   primeContracts: many(contracts, { relationName: "primeContracts" }),
   subContracts: many(contracts, { relationName: "subContracts" }),
   mockAssessments: many(mockAssessments),
+  projects: many(projects),
+  governanceDocuments: many(governanceDocuments),
+  governanceRegisters: many(governanceRegisters),
+  governanceEvidenceItems: many(governanceEvidenceItems),
 }));
 
 export const boundaryProfilesRelations = relations(boundaryProfiles, ({ one }) => ({
@@ -720,6 +912,60 @@ export const controlRecordsRelations = relations(controlRecords, ({ one, many })
   technicalEvidence: many(technicalEvidence),
   poamEntries: many(poamEntries),
   history: many(controlRecordHistory),
+  governanceControlLinks: many(governanceControlLinks),
+}));
+
+export const projectsRelations = relations(projects, ({ one, many }) => ({
+  organization: one(organizations),
+  governanceDocuments: many(governanceDocuments),
+  governanceRegisters: many(governanceRegisters),
+  governanceEvidenceItems: many(governanceEvidenceItems),
+}));
+
+export const governanceControlMetadataRelations = relations(governanceControlMetadata, () => ({}));
+
+export const governanceDocumentsRelations = relations(governanceDocuments, ({ one, many }) => ({
+  organization: one(organizations),
+  project: one(projects),
+  owner: one(users, { fields: [governanceDocuments.ownerId], references: [users.id] }),
+  approver: one(users, { fields: [governanceDocuments.approverId], references: [users.id] }),
+  versions: many(governanceDocumentVersions),
+}));
+
+export const governanceDocumentVersionsRelations = relations(governanceDocumentVersions, ({ one }) => ({
+  document: one(governanceDocuments),
+  createdBy: one(users),
+}));
+
+export const governanceRegistersRelations = relations(governanceRegisters, ({ one, many }) => ({
+  organization: one(organizations),
+  project: one(projects),
+  entries: many(governanceRegisterEntries),
+}));
+
+export const governanceRegisterEntriesRelations = relations(governanceRegisterEntries, ({ one, many }) => ({
+  register: one(governanceRegisters),
+  createdBy: one(users),
+  files: many(governanceRegisterEntryFiles),
+}));
+
+export const governanceRegisterEntryFilesRelations = relations(governanceRegisterEntryFiles, ({ one }) => ({
+  registerEntry: one(governanceRegisterEntries),
+}));
+
+export const governanceEvidenceItemsRelations = relations(governanceEvidenceItems, ({ one, many }) => ({
+  organization: one(organizations),
+  project: one(projects),
+  collectedBy: one(users),
+  files: many(governanceEvidenceFiles),
+}));
+
+export const governanceEvidenceFilesRelations = relations(governanceEvidenceFiles, ({ one }) => ({
+  evidenceItem: one(governanceEvidenceItems),
+}));
+
+export const governanceControlLinksRelations = relations(governanceControlLinks, ({ one }) => ({
+  controlRecord: one(controlRecords),
 }));
 
 export const artifactsRelations = relations(artifacts, ({ one }) => ({

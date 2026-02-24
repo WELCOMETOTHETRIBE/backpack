@@ -9,6 +9,12 @@ import { ChevronDown, Settings, LogOut, ClipboardCheck } from "lucide-react";
 const ROUTE_TITLES: Record<string, string> = {
   "/dashboard": "Overview",
   "/dashboard/controls": "SCTM",
+  "/dashboard/governance": "Governance",
+  "/dashboard/governance/controls": "Governance Controls",
+  "/dashboard/governance/documents": "Document Control",
+  "/dashboard/governance/registers": "Registers",
+  "/dashboard/governance/evidence": "Evidence Library",
+  "/dashboard/governance/export": "Assessor Package Export",
   "/dashboard/documents": "Documents",
   "/dashboard/adjudication": "Adjudication",
   "/dashboard/poam": "POA&M",
