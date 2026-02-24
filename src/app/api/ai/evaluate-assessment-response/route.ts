@@ -5,9 +5,24 @@ import { db } from "@/db";
 import { controls } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
+function isOpenAIKeyError(message: string): boolean {
+  const lower = message.toLowerCase();
+  return (
+    lower.includes("api key") ||
+    lower.includes("incorrect api key") ||
+    lower.includes("invalid api key") ||
+    lower.includes("authentication") ||
+    /401|403/.test(message)
+  );
+}
+
 async function getOpenAI() {
   const { OpenAI } = await import("openai");
-  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey?.trim()) {
+    throw new Error("OPENAI_API_KEY is not configured. Add it in your deployment environment (e.g. Railway variables).");
+  }
+  return new OpenAI({ apiKey });
 }
 
 const requestSchema = z.object({
@@ -87,8 +102,11 @@ Respond with a single JSON object with keys "score" (one of "Met", "Partially Me
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "Invalid request", details: error.issues }, { status: 400 });
     }
-    const message = error instanceof Error ? error.message : "Internal server error";
-    const status = message.includes("Unauthorized") ? 401 : 500;
-    return NextResponse.json({ error: message }, { status: 500 });
+    const rawMessage = error instanceof Error ? error.message : "Internal server error";
+    const message = isOpenAIKeyError(rawMessage)
+      ? "AI evaluation is unavailable. Please set OPENAI_API_KEY in your deployment environment (e.g. Railway → Variables) and use a valid key from https://platform.openai.com/account/api-keys."
+      : rawMessage;
+    const status = rawMessage.includes("Unauthorized") && !isOpenAIKeyError(rawMessage) ? 401 : 500;
+    return NextResponse.json({ error: message }, { status });
   }
 }

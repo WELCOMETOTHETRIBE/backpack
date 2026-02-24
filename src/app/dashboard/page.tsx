@@ -7,6 +7,7 @@ import ComplianceScoreGauge from "@/components/ComplianceScoreGauge";
 import ControlFamilyHeatMap from "@/components/ControlFamilyHeatMap";
 import ActivityTimeline from "@/components/ActivityTimeline";
 import FlowDownBanner from "@/components/FlowDownBanner";
+import { DashboardSetupWidget } from "./DashboardSetupWidget";
 import {
   controlImplementations,
   controls,
@@ -24,16 +25,11 @@ import {
 import { eq, and, desc } from "drizzle-orm";
 import { BOUNDARY_TECHNOLOGY_OPTIONS } from "@/lib/compliance/technical_evidence_requirements";
 
-export default async function DashboardPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ skip_onboarding?: string }>;
-}) {
+export default async function DashboardPage() {
   const session = await auth();
   const user = session?.user as { role?: string; email?: string; organizationId?: string } | undefined;
   const orgId = user?.organizationId;
   if (!orgId) redirect("/auth/signin");
-  const params = await searchParams;
 
   // Fetch control implementations with family data
   const implsWithControl = await db
@@ -144,7 +140,6 @@ export default async function DashboardPage({
     .where(eq(controlRecords.organizationId, orgId))
     .limit(1);
   const onboardingStarted = Boolean(boundaryRow) || total > 0 || controlRecordsCount.length > 0;
-  if (!onboardingStarted && params?.skip_onboarding !== "1") redirect("/welcome");
 
   // Org profile and SSP snippets for dashboard summary
   const [orgRow] = await db
@@ -190,18 +185,7 @@ export default async function DashboardPage({
   return (
     <div className="min-h-screen bg-[#f8fafc]">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-        {/* Top row: welcome + setup link */}
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-[15px] text-slate-600">Welcome back, {user?.email}</p>
-          </div>
-          <Link
-            href="/welcome"
-            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-[14px] font-medium text-slate-700 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50"
-          >
-            {onboardingStarted ? "Edit setup" : "Begin setup"}
-          </Link>
-        </div>
+        <DashboardSetupWidget onboardingStarted={onboardingStarted} />
 
         {primeCount > 0 && (
           <div className="mb-6">

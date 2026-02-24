@@ -97,7 +97,12 @@ function mapInterviewToKeys(answers: {
   return [...new Set(keys)];
 }
 
-export function WelcomeQuestionnaire() {
+export function WelcomeQuestionnaire({
+  onSuccess,
+}: {
+  /** When provided, called after successful submit instead of navigating to dashboard (e.g. when used in a modal). */
+  onSuccess?: () => void;
+} = {}) {
   const router = useRouter();
   const [organizationName, setOrganizationName] = useState("");
   const [cageCode, setCageCode] = useState("");
@@ -199,7 +204,11 @@ export function WelcomeQuestionnaire() {
         setError(data.error ?? "Something went wrong. Please try again.");
         return;
       }
-      router.push("/dashboard");
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        router.push("/dashboard");
+      }
     } finally {
       setSubmitting(false);
     }
@@ -219,6 +228,7 @@ export function WelcomeQuestionnaire() {
     step6,
     teamMembers,
     router,
+    onSuccess,
   ]);
 
   const inputClass =

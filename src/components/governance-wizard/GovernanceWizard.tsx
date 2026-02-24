@@ -6,6 +6,7 @@ import { CONTROL_FAMILIES } from "./constants";
 import { WizardReview } from "./WizardReview";
 import { ControlMatrix } from "./ControlMatrix";
 import { ControlAdjudicationModal } from "./ControlAdjudicationModal";
+import { ControlsTally } from "./ControlsTally";
 
 export type ControlRecord = {
   id: string;
@@ -117,6 +118,7 @@ export function GovernanceWizard({
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
         {view === "matrix" && (
           <div className="space-y-6">
+            <ControlsTally records={records} />
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-[14px] text-slate-600">
                 Click a cell to open and adjudicate the controls in that family and status.
