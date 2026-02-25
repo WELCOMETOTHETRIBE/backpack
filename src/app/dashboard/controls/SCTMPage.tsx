@@ -2,13 +2,22 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { getSpecForControl } from "@/lib/artifact-guide";
+import { getSpecForControl, ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { CONTROL_FAMILIES } from "@/components/governance-wizard/constants";
 import { StatusBadge } from "@/components/governance-wizard/StatusBadge";
 import { type SCTMRecord } from "./SCTMFilters";
 import { SCTMControlDetail, type NistRow } from "./SCTMControlDetail";
 
 const ADJUDICATED = ["implemented", "assessed", "inherited", "not_applicable"];
+
+/** Canonical control count per family (NIST SP 800-171 Rev 2: 110 total). */
+const FAMILY_CONTROL_COUNTS: Record<string, number> = (() => {
+  const counts: Record<string, number> = {};
+  for (const f of CONTROL_FAMILIES) {
+    counts[f.code] = ALL_CONTROL_IDS.filter((id) => id.startsWith(f.controlPrefix)).length;
+  }
+  return counts;
+})();
 
 export function SCTMPage() {
   const router = useRouter();
@@ -61,7 +70,11 @@ export function SCTMPage() {
         return spec.satisfactionType === "Technical-Centric" || spec.satisfactionType === "Hybrid";
       });
     }
-    return list.sort((a, b) => a.controlId.localeCompare(b.controlId));
+    const byControlId = new Map<string, SCTMRecord>();
+    for (const r of list) {
+      if (!byControlId.has(r.controlId)) byControlId.set(r.controlId, r);
+    }
+    return Array.from(byControlId.values()).sort((a, b) => a.controlId.localeCompare(b.controlId));
   }, [records, family, type]);
 
   const selectedRecord = useMemo(
@@ -71,15 +84,23 @@ export function SCTMPage() {
   const selectedNist = selectedRecord ? nistByControlId[selectedRecord.controlId] : undefined;
 
   const familyStats = useMemo(() => {
+    const adjudicatedControlIds = new Set(
+      records.filter((r) => ADJUDICATED.includes(r.implementationStatus)).map((r) => r.controlId)
+    );
     return CONTROL_FAMILIES.map((f) => {
-      const inFamily = records.filter((r) => r.controlId.startsWith(f.controlPrefix));
-      const adj = inFamily.filter((r) => ADJUDICATED.includes(r.implementationStatus)).length;
-      return { code: f.code, plainName: f.plainName, name: f.name, total: inFamily.length, adjudicated: adj };
+      const total = FAMILY_CONTROL_COUNTS[f.code] ?? 0;
+      const inFamilyIds = ALL_CONTROL_IDS.filter((id) => id.startsWith(f.controlPrefix));
+      const adj = inFamilyIds.filter((id) => adjudicatedControlIds.has(id)).length;
+      return { code: f.code, plainName: f.plainName, name: f.name, total, adjudicated: adj };
     });
   }, [records]);
 
-  const adjudicatedCount = records.filter((r) => ADJUDICATED.includes(r.implementationStatus)).length;
-  const outstandingCount = records.length - adjudicatedCount;
+  const adjudicatedControlIds = useMemo(
+    () => new Set(records.filter((r) => ADJUDICATED.includes(r.implementationStatus)).map((r) => r.controlId)),
+    [records]
+  );
+  const adjudicatedCount = adjudicatedControlIds.size;
+  const outstandingCount = 110 - adjudicatedCount;
 
   function setFamily(code: string | null) {
     const u = new URLSearchParams(searchParams.toString());
@@ -160,25 +181,38 @@ export function SCTMPage() {
             <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)]">Controls</h2>
             <p className="mt-0.5 text-sm text-[var(--color-gray-600)]">{filteredRecords.length} shown</p>
           </div>
-          <ul className="flex-1 overflow-y-auto p-2 space-y-0.5" role="list">
+          <ul className="flex-1 overflow-y-auto p-3 space-y-2" role="list">
             {filteredRecords.map((r) => {
               const nist = nistByControlId[r.controlId];
               const title = nist?.title ?? r.controlId;
+              const description = nist?.nistExactText?.replace(/\s+/g, " ").trim().slice(0, 120);
               const isSelected = r.controlId === controlId;
               return (
-                <li key={r.id}>
+                <li key={r.controlId}>
                   <button
                     type="button"
                     onClick={() => setControl(isSelected ? null : r.controlId)}
-                    className={`w-full rounded-lg px-3 py-2.5 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-1 ${
-                      isSelected ? "bg-white shadow-sm text-[var(--color-gray-900)]" : "text-[var(--color-gray-700)] hover:bg-white/70"
+                    className={`w-full text-left rounded-xl border transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2 ${
+                      isSelected
+                        ? "bg-white border-[var(--color-primary)] shadow-md ring-1 ring-[var(--color-primary)]/20"
+                        : "bg-white/70 border-[var(--color-border)]/80 hover:border-[var(--color-gray-300)] hover:bg-white hover:shadow-sm"
                     }`}
                   >
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs font-semibold text-[var(--color-navy-primary)]">{r.controlId}</span>
-                      <StatusBadge status={r.implementationStatus} />
+                    <div className="px-4 py-3">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-mono text-sm font-semibold text-[var(--color-navy-primary)] tracking-tight">{r.controlId}</span>
+                        <StatusBadge status={r.implementationStatus} />
+                      </div>
+                      <p className="mt-2 text-[13px] font-medium text-[var(--color-gray-900)] leading-snug line-clamp-2">
+                        {title}
+                      </p>
+                      {description && (
+                        <p className="mt-1 text-xs text-[var(--color-gray-500)] leading-relaxed line-clamp-2">
+                          {description}
+                          {description.length >= 120 ? "…" : ""}
+                        </p>
+                      )}
                     </div>
-                    <p className="mt-1 text-xs text-[var(--color-gray-600)] line-clamp-2 leading-snug">{title}</p>
                   </button>
                 </li>
               );
