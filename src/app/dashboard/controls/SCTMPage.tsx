@@ -217,6 +217,7 @@ export function SCTMPage() {
           )}
         </div>
       </div>
+      </div>
     </div>
   );
 }

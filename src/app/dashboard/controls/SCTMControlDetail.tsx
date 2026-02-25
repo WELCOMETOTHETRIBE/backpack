@@ -256,7 +256,7 @@ export function SCTMControlDetail({
                   onUploaded={() => {
                     refresh();
                     fetch(`/api/artifacts?controlRecordId=${record.id}`)
-                      .then((r) => (r.ok ? r.json() : [])
+                      .then((r) => (r.ok ? r.json() : []))
                       .then(setArtifacts);
                   }}
                 />
