@@ -996,3 +996,6 @@ export const poamEntriesRelations = relations(poamEntries, ({ one, many }) => ({
   milestones: many(poamEntryMilestones),
   closureApprovals: many(poamEntryClosureApprovals),
 }));
+
+// ============== Evidence runs (metadata-only) ==============
+export * from "../../drizzle/schema.evidence";
