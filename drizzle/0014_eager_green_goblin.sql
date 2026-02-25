@@ -4,7 +4,7 @@ DO $$ BEGIN CREATE TYPE "public"."governance_doc_status" AS ENUM('DRAFT', 'SUBMI
 DO $$ BEGIN CREATE TYPE "public"."governance_doc_type" AS ENUM('POLICY', 'SOP', 'PLAN', 'STANDARD', 'CHARTER', 'PROCEDURE', 'TEMPLATE'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
 DO $$ BEGIN CREATE TYPE "public"."governance_evidence_type" AS ENUM('screenshot', 'export_file', 'log_snippet', 'config_baseline', 'policy_export', 'ticket', 'training_record', 'incident_report', 'risk_report', 'other'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
 DO $$ BEGIN ALTER TYPE "public"."implementation_status" ADD VALUE 'not_applicable'; EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "governance_control_links" (
+CREATE TABLE "governance_control_links" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"control_record_id" uuid NOT NULL,
 	"link_type" "governance_control_link_type" NOT NULL,
@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS "governance_control_links" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "governance_control_metadata" (
+CREATE TABLE "governance_control_metadata" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"control_id" varchar(20) NOT NULL,
 	"classification" "governance_control_classification" NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS "governance_control_metadata" (
 	CONSTRAINT "governance_control_metadata_control_id_unique" UNIQUE("control_id")
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "governance_document_versions" (
+CREATE TABLE "governance_document_versions" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"document_id" uuid NOT NULL,
 	"version_number" integer NOT NULL,
@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS "governance_document_versions" (
 	"created_by_id" uuid
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "governance_documents" (
+CREATE TABLE "governance_documents" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"organization_id" uuid NOT NULL,
 	"project_id" uuid,
@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS "governance_documents" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "governance_evidence_files" (
+CREATE TABLE "governance_evidence_files" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"evidence_item_id" uuid NOT NULL,
 	"file_url" text NOT NULL,
@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS "governance_evidence_files" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "governance_evidence_items" (
+CREATE TABLE "governance_evidence_items" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"organization_id" uuid NOT NULL,
 	"project_id" uuid,
@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS "governance_evidence_items" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "governance_register_entries" (
+CREATE TABLE "governance_register_entries" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"register_id" uuid NOT NULL,
 	"entry_data" jsonb NOT NULL,
@@ -97,7 +97,7 @@ CREATE TABLE IF NOT EXISTS "governance_register_entries" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "governance_register_entry_files" (
+CREATE TABLE "governance_register_entry_files" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"register_entry_id" uuid NOT NULL,
 	"file_url" text NOT NULL,
@@ -108,7 +108,7 @@ CREATE TABLE IF NOT EXISTS "governance_register_entry_files" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "governance_registers" (
+CREATE TABLE "governance_registers" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"organization_id" uuid,
 	"project_id" uuid,
@@ -121,7 +121,7 @@ CREATE TABLE IF NOT EXISTS "governance_registers" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "projects" (
+CREATE TABLE "projects" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"organization_id" uuid NOT NULL,
 	"name" varchar(255) NOT NULL,
@@ -130,7 +130,7 @@ CREATE TABLE IF NOT EXISTS "projects" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "user_invitations" (
+CREATE TABLE "user_invitations" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"organization_id" uuid NOT NULL,
 	"email" text NOT NULL,
@@ -142,27 +142,27 @@ CREATE TABLE IF NOT EXISTS "user_invitations" (
 	CONSTRAINT "user_invitations_token_unique" UNIQUE("token")
 );
 --> statement-breakpoint
-DO $$ BEGIN ALTER TABLE "attestations" ADD COLUMN "comment" text; EXCEPTION WHEN duplicate_column THEN NULL; END $$;--> statement-breakpoint
-DO $$ BEGIN ALTER TABLE "organizations" ADD COLUMN "cage_code" varchar(10); EXCEPTION WHEN duplicate_column THEN NULL; END $$;--> statement-breakpoint
-DO $$ BEGIN ALTER TABLE "organizations" ADD COLUMN "primary_address" text; EXCEPTION WHEN duplicate_column THEN NULL; END $$;--> statement-breakpoint
-DO $$ BEGIN ALTER TABLE "organizations" ADD COLUMN "primary_contact_name" varchar(255); EXCEPTION WHEN duplicate_column THEN NULL; END $$;--> statement-breakpoint
-DO $$ BEGIN ALTER TABLE "organizations" ADD COLUMN "primary_contact_email" varchar(255); EXCEPTION WHEN duplicate_column THEN NULL; END $$;--> statement-breakpoint
-DO $$ BEGIN ALTER TABLE "governance_control_links" ADD CONSTRAINT "governance_control_links_control_record_id_control_records_id_fk" FOREIGN KEY ("control_record_id") REFERENCES "public"."control_records"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
-DO $$ BEGIN ALTER TABLE "governance_document_versions" ADD CONSTRAINT "governance_document_versions_document_id_governance_documents_id_fk" FOREIGN KEY ("document_id") REFERENCES "public"."governance_documents"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
-DO $$ BEGIN ALTER TABLE "governance_document_versions" ADD CONSTRAINT "governance_document_versions_created_by_id_users_id_fk" FOREIGN KEY ("created_by_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
-DO $$ BEGIN ALTER TABLE "governance_documents" ADD CONSTRAINT "governance_documents_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
-DO $$ BEGIN ALTER TABLE "governance_documents" ADD CONSTRAINT "governance_documents_project_id_projects_id_fk" FOREIGN KEY ("project_id") REFERENCES "public"."projects"("id") ON DELETE set null ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
-DO $$ BEGIN ALTER TABLE "governance_documents" ADD CONSTRAINT "governance_documents_owner_id_users_id_fk" FOREIGN KEY ("owner_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
-DO $$ BEGIN ALTER TABLE "governance_documents" ADD CONSTRAINT "governance_documents_approver_id_users_id_fk" FOREIGN KEY ("approver_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
-DO $$ BEGIN ALTER TABLE "governance_evidence_files" ADD CONSTRAINT "governance_evidence_files_evidence_item_id_governance_evidence_items_id_fk" FOREIGN KEY ("evidence_item_id") REFERENCES "public"."governance_evidence_items"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
-DO $$ BEGIN ALTER TABLE "governance_evidence_items" ADD CONSTRAINT "governance_evidence_items_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
-DO $$ BEGIN ALTER TABLE "governance_evidence_items" ADD CONSTRAINT "governance_evidence_items_project_id_projects_id_fk" FOREIGN KEY ("project_id") REFERENCES "public"."projects"("id") ON DELETE set null ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
-DO $$ BEGIN ALTER TABLE "governance_evidence_items" ADD CONSTRAINT "governance_evidence_items_collected_by_id_users_id_fk" FOREIGN KEY ("collected_by_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
-DO $$ BEGIN ALTER TABLE "governance_register_entries" ADD CONSTRAINT "governance_register_entries_register_id_governance_registers_id_fk" FOREIGN KEY ("register_id") REFERENCES "public"."governance_registers"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
-DO $$ BEGIN ALTER TABLE "governance_register_entries" ADD CONSTRAINT "governance_register_entries_created_by_id_users_id_fk" FOREIGN KEY ("created_by_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
-DO $$ BEGIN ALTER TABLE "governance_register_entry_files" ADD CONSTRAINT "governance_register_entry_files_register_entry_id_governance_register_entries_id_fk" FOREIGN KEY ("register_entry_id") REFERENCES "public"."governance_register_entries"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
-DO $$ BEGIN ALTER TABLE "governance_registers" ADD CONSTRAINT "governance_registers_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
-DO $$ BEGIN ALTER TABLE "governance_registers" ADD CONSTRAINT "governance_registers_project_id_projects_id_fk" FOREIGN KEY ("project_id") REFERENCES "public"."projects"("id") ON DELETE set null ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
-DO $$ BEGIN ALTER TABLE "projects" ADD CONSTRAINT "projects_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
-DO $$ BEGIN ALTER TABLE "user_invitations" ADD CONSTRAINT "user_invitations_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
-DO $$ BEGIN ALTER TABLE "user_invitations" ADD CONSTRAINT "user_invitations_invited_by_id_users_id_fk" FOREIGN KEY ("invited_by_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+ALTER TABLE "attestations" ADD COLUMN "comment" text;--> statement-breakpoint
+ALTER TABLE "organizations" ADD COLUMN "cage_code" varchar(10);--> statement-breakpoint
+ALTER TABLE "organizations" ADD COLUMN "primary_address" text;--> statement-breakpoint
+ALTER TABLE "organizations" ADD COLUMN "primary_contact_name" varchar(255);--> statement-breakpoint
+ALTER TABLE "organizations" ADD COLUMN "primary_contact_email" varchar(255);--> statement-breakpoint
+ALTER TABLE "governance_control_links" ADD CONSTRAINT "governance_control_links_control_record_id_control_records_id_fk" FOREIGN KEY ("control_record_id") REFERENCES "public"."control_records"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "governance_document_versions" ADD CONSTRAINT "governance_document_versions_document_id_governance_documents_id_fk" FOREIGN KEY ("document_id") REFERENCES "public"."governance_documents"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "governance_document_versions" ADD CONSTRAINT "governance_document_versions_created_by_id_users_id_fk" FOREIGN KEY ("created_by_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "governance_documents" ADD CONSTRAINT "governance_documents_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "governance_documents" ADD CONSTRAINT "governance_documents_project_id_projects_id_fk" FOREIGN KEY ("project_id") REFERENCES "public"."projects"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "governance_documents" ADD CONSTRAINT "governance_documents_owner_id_users_id_fk" FOREIGN KEY ("owner_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "governance_documents" ADD CONSTRAINT "governance_documents_approver_id_users_id_fk" FOREIGN KEY ("approver_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "governance_evidence_files" ADD CONSTRAINT "governance_evidence_files_evidence_item_id_governance_evidence_items_id_fk" FOREIGN KEY ("evidence_item_id") REFERENCES "public"."governance_evidence_items"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "governance_evidence_items" ADD CONSTRAINT "governance_evidence_items_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "governance_evidence_items" ADD CONSTRAINT "governance_evidence_items_project_id_projects_id_fk" FOREIGN KEY ("project_id") REFERENCES "public"."projects"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "governance_evidence_items" ADD CONSTRAINT "governance_evidence_items_collected_by_id_users_id_fk" FOREIGN KEY ("collected_by_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "governance_register_entries" ADD CONSTRAINT "governance_register_entries_register_id_governance_registers_id_fk" FOREIGN KEY ("register_id") REFERENCES "public"."governance_registers"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "governance_register_entries" ADD CONSTRAINT "governance_register_entries_created_by_id_users_id_fk" FOREIGN KEY ("created_by_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "governance_register_entry_files" ADD CONSTRAINT "governance_register_entry_files_register_entry_id_governance_register_entries_id_fk" FOREIGN KEY ("register_entry_id") REFERENCES "public"."governance_register_entries"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "governance_registers" ADD CONSTRAINT "governance_registers_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "governance_registers" ADD CONSTRAINT "governance_registers_project_id_projects_id_fk" FOREIGN KEY ("project_id") REFERENCES "public"."projects"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "projects" ADD CONSTRAINT "projects_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "user_invitations" ADD CONSTRAINT "user_invitations_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "user_invitations" ADD CONSTRAINT "user_invitations_invited_by_id_users_id_fk" FOREIGN KEY ("invited_by_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;
