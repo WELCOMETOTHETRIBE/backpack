@@ -90,11 +90,10 @@ export function SCTMPage() {
   const nistByControlId = useMemo(() => Object.fromEntries(nistList.map((n) => [n.controlId, n])), [nistList]);
 
   const filteredRecords = useMemo(() => {
+    if (!family) return [];
     let list = records;
-    if (family) {
-      const fam = CONTROL_FAMILIES.find((f) => f.code === family);
-      if (fam) list = list.filter((r) => getControlFamilyPrefix(r.controlId) === fam.controlPrefix);
-    }
+    const fam = CONTROL_FAMILIES.find((f) => f.code === family);
+    if (fam) list = list.filter((r) => getControlFamilyPrefix(r.controlId) === fam.controlPrefix);
     if (type !== "all") {
       list = list.filter((r) => {
         const spec = getSpecForControl(r.controlId);
@@ -286,8 +285,13 @@ export function SCTMPage() {
           </div>
           <div className="px-2 py-1 border-b border-white/30 flex items-baseline justify-between gap-1">
             <h2 className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-gray-500)]">Controls</h2>
-            <span className="text-[10px] text-[var(--color-gray-500)] tabular-nums">{filteredRecords.length}</span>
+            <span className="text-[10px] text-[var(--color-gray-500)] tabular-nums">{family ? filteredRecords.length : "—"}</span>
           </div>
+          {!family ? (
+            <div className="flex-1 flex items-center justify-center px-3 py-6 text-center">
+              <p className="text-xs text-[var(--color-gray-500)] leading-snug">Select a control family above to view controls.</p>
+            </div>
+          ) : (
           <ul
             className={`flex-1 overflow-y-auto overscroll-contain px-1.5 py-1 ${viewMode === "grid" ? "grid grid-cols-1 gap-1" : "space-y-1"}`}
             role="list"
@@ -323,6 +327,7 @@ export function SCTMPage() {
               );
             })}
           </ul>
+          )}
         </aside>
 
         {/* Detail — wide content area, minimal outer margin */}
