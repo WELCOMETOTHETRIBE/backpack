@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 
 type Record = {
@@ -36,6 +36,22 @@ export default function ControlDetailClient({ controlId }: { controlId: string }
   const [status, setStatus] = useState("");
   const [narrative, setNarrative] = useState("");
   const [saving, setSaving] = useState(false);
+  const [linkModal, setLinkModal] = useState<"document" | "evidence" | null>(null);
+  const [linkOptions, setLinkOptions] = useState<{ id: string; title: string }[]>([]);
+  const [linkOptionsLoading, setLinkOptionsLoading] = useState(false);
+  const [linkError, setLinkError] = useState<string | null>(null);
+  const [unlinkingId, setUnlinkingId] = useState<string | null>(null);
+
+  const refetch = useCallback(() => {
+    fetch(`/api/governance/controls/${encodeURIComponent(controlId)}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("Not found"))))
+      .then((d) => {
+        setData(d);
+        setStatus(d.record?.implementationStatus ?? "");
+        setNarrative(d.record?.governanceNarrative ?? "");
+      })
+      .catch((e) => setError(e.message));
+  }, [controlId]);
 
   useEffect(() => {
     fetch(`/api/governance/controls/${encodeURIComponent(controlId)}`)
@@ -65,6 +81,47 @@ export default function ControlDetailClient({ controlId }: { controlId: string }
         setError(e.message);
         setSaving(false);
       });
+  };
+
+  const openLinkModal = (type: "document" | "evidence") => {
+    setLinkModal(type);
+    setLinkError(null);
+    setLinkOptions([]);
+    setLinkOptionsLoading(true);
+    const url = type === "document" ? "/api/governance/documents?limit=100" : "/api/governance/evidence?limit=100";
+    fetch(url)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("Failed to load"))))
+      .then((res) => setLinkOptions((res.items ?? []).map((i: { id: string; title: string }) => ({ id: i.id, title: i.title || i.id }))))
+      .catch(() => setLinkError("Failed to load list"))
+      .finally(() => setLinkOptionsLoading(false));
+  };
+
+  const handleLinkSubmit = (linkType: "document" | "evidence", linkId: string) => {
+    setLinkError(null);
+    fetch(`/api/governance/controls/${encodeURIComponent(controlId)}/links`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ linkType, linkId }),
+    })
+      .then((r) => r.json())
+      .then((res) => {
+        if (res.error) throw new Error(res.error);
+        setLinkModal(null);
+        refetch();
+      })
+      .catch((e) => setLinkError(e.message ?? "Failed to link"));
+  };
+
+  const handleUnlink = (linkRowId: string) => {
+    setUnlinkingId(linkRowId);
+    fetch(`/api/governance/controls/${encodeURIComponent(controlId)}/links`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ linkId: linkRowId }),
+    })
+      .then((r) => (r.ok ? Promise.resolve() : r.json().then((e) => Promise.reject(new Error(e?.error ?? "Failed")))))
+      .then(() => refetch())
+      .finally(() => setUnlinkingId(null));
   };
 
   if (error) {
@@ -160,27 +217,121 @@ export default function ControlDetailClient({ controlId }: { controlId: string }
         <p className="mt-2 text-sm text-[var(--color-gray-500)]">
           Linked: {docLinks.length} document(s), {registerLinks.length} register entry(ies), {evidenceLinks.length} evidence item(s).
         </p>
-        <div className="mt-3 flex gap-2">
-          <Link
-            href="/dashboard/governance/documents"
+        {(docLinks.length > 0 || registerLinks.length > 0 || evidenceLinks.length > 0) && (
+          <ul className="mt-2 space-y-1 text-sm">
+            {docLinks.map((l) => (
+              <li key={l.id} className="flex items-center gap-2">
+                <Link href={`/dashboard/governance/documents/${l.linkId}`} className="font-medium text-[var(--color-blue-accent)] hover:underline">
+                  Document
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => handleUnlink(l.id)}
+                  disabled={unlinkingId === l.id}
+                  className="text-[var(--color-gray-500)] hover:text-[var(--color-status-red)] disabled:opacity-50"
+                  aria-label="Unlink"
+                >
+                  Unlink
+                </button>
+              </li>
+            ))}
+            {evidenceLinks.map((l) => (
+              <li key={l.id} className="flex items-center gap-2">
+                <Link href={`/dashboard/governance/evidence/${l.linkId}`} className="font-medium text-[var(--color-blue-accent)] hover:underline">
+                  Evidence
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => handleUnlink(l.id)}
+                  disabled={unlinkingId === l.id}
+                  className="text-[var(--color-gray-500)] hover:text-[var(--color-status-red)] disabled:opacity-50"
+                  aria-label="Unlink"
+                >
+                  Unlink
+                </button>
+              </li>
+            ))}
+            {registerLinks.map((l) => (
+              <li key={l.id} className="flex items-center gap-2">
+                <Link href="/dashboard/governance/registers" className="font-medium text-[var(--color-blue-accent)] hover:underline">
+                  Register entry
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => handleUnlink(l.id)}
+                  disabled={unlinkingId === l.id}
+                  className="text-[var(--color-gray-500)] hover:text-[var(--color-status-red)] disabled:opacity-50"
+                  aria-label="Unlink"
+                >
+                  Unlink
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => openLinkModal("document")}
             className="text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
           >
             Link document →
-          </Link>
+          </button>
           <Link
-            href="/dashboard/governance/registers"
+            href={`/dashboard/governance/registers?linkToControl=${encodeURIComponent(controlId)}`}
             className="text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
           >
             Link register entry →
           </Link>
-          <Link
-            href="/dashboard/governance/evidence"
+          <button
+            type="button"
+            onClick={() => openLinkModal("evidence")}
             className="text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
           >
             Link evidence →
-          </Link>
+          </button>
         </div>
       </div>
+
+      {linkModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" role="dialog" aria-modal="true" aria-labelledby="link-modal-title">
+          <div className="max-h-[80vh] w-full max-w-md rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-lg">
+            <h3 id="link-modal-title" className="text-sm font-semibold text-[var(--color-navy-primary)]">
+              Link {linkModal === "document" ? "document" : "evidence"} to this control
+            </h3>
+            {linkError && <p className="mt-2 text-sm text-[var(--color-status-red)]">{linkError}</p>}
+            {linkOptionsLoading ? (
+              <p className="mt-3 text-sm text-[var(--color-gray-500)]">Loading…</p>
+            ) : linkOptions.length === 0 ? (
+              <p className="mt-3 text-sm text-[var(--color-gray-500)]">No {linkModal === "document" ? "documents" : "evidence items"} found. Create one first from the Governance section.</p>
+            ) : (
+              <ul className="mt-3 max-h-64 overflow-y-auto space-y-1 border border-[var(--color-border)] rounded-[var(--radius-md)] p-2">
+                {linkOptions.map((opt) => (
+                  <li key={opt.id} className="flex items-center justify-between gap-2 text-sm">
+                    <span className="truncate text-[var(--color-gray-900)]" title={opt.title}>{opt.title}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleLinkSubmit(linkModal, opt.id)}
+                      className="shrink-0 rounded-[var(--radius-md)] bg-[var(--color-blue-accent)] px-2 py-1 text-xs font-medium text-white hover:opacity-90"
+                    >
+                      Link
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="mt-4 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setLinkModal(null)}
+                className="rounded-[var(--radius-md)] border border-[var(--color-border)] px-3 py-1.5 text-sm font-medium text-[var(--color-gray-700)] hover:bg-[var(--color-gray-50)]"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {auditTrail.length > 0 && (
         <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm">
