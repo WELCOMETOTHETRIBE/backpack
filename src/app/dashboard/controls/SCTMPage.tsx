@@ -186,13 +186,13 @@ export function SCTMPage() {
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      {/* Header: row 1 = families (spread, bigger); row 2 = tally + filters + view */}
-      <header className="border-b border-[var(--color-border)]/50 bg-white px-6 py-5">
-        <div className="flex flex-col gap-5">
+    <div className="flex min-h-0 flex-1 flex-col bg-gradient-to-b from-[var(--color-gray-50)]/30 to-transparent">
+      {/* Header: glass, row 1 = families (full names, large pills); row 2 = tally + filters */}
+      <header className="sticky top-0 z-10 border-b border-white/20 bg-white/60 backdrop-blur-xl px-4 py-3">
+        <div className="flex flex-col gap-3">
           <div>
-            <p className="text-xs font-medium uppercase tracking-widest text-[var(--color-gray-400)] mb-3">Control families</p>
-            <div className="flex flex-wrap gap-3">
+            <p className="text-[10px] font-medium uppercase tracking-widest text-[var(--color-gray-400)] mb-2">Control families</p>
+            <div className="flex flex-wrap gap-2">
               {familyStats.map((f) => {
                 const isActive = family === f.code;
                 const pct = f.total ? Math.round((f.adjudicated / f.total) * 100) : 0;
@@ -202,41 +202,41 @@ export function SCTMPage() {
                     type="button"
                     onClick={() => setFamily(isActive ? null : f.code)}
                     title={`${f.name}: ${f.adjudicated}/${f.total}`}
-                    className={`inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium transition-all duration-150 ${
+                    className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-xs font-medium transition-all duration-200 border ${
                       isActive
-                        ? "bg-[var(--color-primary)] text-white shadow-sm"
-                        : "bg-[var(--color-gray-100)] text-[var(--color-gray-700)] hover:bg-[var(--color-gray-200)]"
+                        ? "bg-[var(--color-primary)]/90 text-white border-white/30 shadow-lg shadow-[var(--color-primary)]/10 backdrop-blur-sm"
+                        : "bg-white/50 text-[var(--color-gray-700)] border-white/40 hover:bg-white/70 hover:border-white/50 backdrop-blur-sm"
                     }`}
                   >
-                    <span className="font-mono font-semibold tabular-nums">{f.code}</span>
-                    <span className={`hidden sm:inline truncate max-w-[8rem] ${isActive ? "text-white/90" : "text-[var(--color-gray-600)]"}`} title={f.name}>
+                    <span className="font-mono font-semibold tabular-nums shrink-0">{f.code}</span>
+                    <span className={`whitespace-nowrap ${isActive ? "text-white/95" : "text-[var(--color-gray-600)]"}`}>
                       {f.name}
                     </span>
-                    <span className={`tabular-nums ${isActive ? "text-white/80" : "text-[var(--color-gray-500)]"}`}>
+                    <span className={`tabular-nums shrink-0 ${isActive ? "text-white/80" : "text-[var(--color-gray-500)]"}`}>
                       {f.adjudicated}/{f.total}
                     </span>
                     {pct > 0 && (
-                      <span className={`w-2 h-2 rounded-full shrink-0 ${isActive ? "bg-white/60" : "bg-[var(--color-primary)]/60"}`} aria-hidden />
+                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isActive ? "bg-white/60" : "bg-[var(--color-primary)]/50"}`} aria-hidden />
                     )}
                   </button>
                 );
               })}
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-4">
-            <span className="text-sm text-[var(--color-gray-500)]">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-xs text-[var(--color-gray-500)]">
               <strong className="text-[var(--color-gray-800)]">{adjudicatedCount}</strong> adjudicated
-              <span className="mx-2 text-[var(--color-gray-300)]">·</span>
+              <span className="mx-1.5 text-[var(--color-gray-300)]">·</span>
               <strong className="text-[var(--color-gray-800)]">{outstandingCount}</strong> outstanding
             </span>
-            <div className="h-4 w-px bg-[var(--color-border)]" aria-hidden />
-            <div className="flex items-center gap-1.5">
+            <div className="h-3 w-px bg-[var(--color-border)]/60" aria-hidden />
+            <div className="flex items-center gap-1">
               {(["all", "configuration", "governance"] as const).map((t) => (
                 <button
                   key={t}
                   type="button"
                   onClick={() => setType(t)}
-                  className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+                  className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
                     type === t ? "bg-[var(--color-gray-900)] text-white" : "text-[var(--color-gray-600)] hover:bg-[var(--color-gray-100)]"
                   }`}
                 >
@@ -244,24 +244,24 @@ export function SCTMPage() {
                 </button>
               ))}
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5">
               <button
                 type="button"
                 onClick={() => setViewMode("list")}
-                className={`rounded-full p-2 transition-colors ${viewMode === "list" ? "bg-[var(--color-gray-900)] text-white" : "text-[var(--color-gray-500)] hover:bg-[var(--color-gray-100)]"}`}
+                className={`rounded-full p-1.5 transition-colors ${viewMode === "list" ? "bg-[var(--color-gray-900)] text-white" : "text-[var(--color-gray-500)] hover:bg-[var(--color-gray-100)]"}`}
                 title="List view"
                 aria-pressed={viewMode === "list"}
               >
-                <LayoutList className="h-4 w-4" />
+                <LayoutList className="h-3.5 w-3.5" />
               </button>
               <button
                 type="button"
                 onClick={() => setViewMode("grid")}
-                className={`rounded-full p-2 transition-colors ${viewMode === "grid" ? "bg-[var(--color-gray-900)] text-white" : "text-[var(--color-gray-500)] hover:bg-[var(--color-gray-100)]"}`}
+                className={`rounded-full p-1.5 transition-colors ${viewMode === "grid" ? "bg-[var(--color-gray-900)] text-white" : "text-[var(--color-gray-500)] hover:bg-[var(--color-gray-100)]"}`}
                 title="Grid view"
                 aria-pressed={viewMode === "grid"}
               >
-                <LayoutGrid className="h-4 w-4" />
+                <LayoutGrid className="h-3.5 w-3.5" />
               </button>
             </div>
           </div>
@@ -269,9 +269,9 @@ export function SCTMPage() {
       </header>
 
       <div className="flex min-h-0 flex-1 min-w-0">
-        {/* Left: search + control list */}
-        <aside className="w-64 shrink-0 flex flex-col border-r border-[var(--color-border)]/60 bg-[var(--color-gray-50)]/50">
-          <div className="p-3 border-b border-[var(--color-border)]/60">
+        {/* Left: search + control list — glass */}
+        <aside className="w-64 shrink-0 flex flex-col border-r border-white/20 bg-white/40 backdrop-blur-md">
+          <div className="p-2 border-b border-white/30">
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--color-gray-400)]" aria-hidden />
               <input
@@ -279,17 +279,17 @@ export function SCTMPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search controls…"
-                className="w-full rounded-lg border border-[var(--color-border)] bg-white py-2 pl-8 pr-3 text-sm text-[var(--color-gray-900)] placeholder:text-[var(--color-gray-400)] focus:border-[var(--color-blue-accent)] focus:outline-none focus:ring-2 focus:ring-[var(--color-blue-accent)]/20"
+                className="w-full rounded-xl border border-white/50 bg-white/60 py-1.5 pl-8 pr-2.5 text-sm text-[var(--color-gray-900)] placeholder:text-[var(--color-gray-400)] focus:border-[var(--color-blue-accent)] focus:outline-none focus:ring-2 focus:ring-[var(--color-blue-accent)]/20 backdrop-blur-sm"
                 aria-label="Search controls by title, description, or objectives"
               />
             </div>
           </div>
-          <div className="px-4 py-3 border-b border-[var(--color-border)]/60">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)]">Controls</h2>
-            <p className="mt-0.5 text-sm text-[var(--color-gray-600)]">{filteredRecords.length} shown</p>
+          <div className="px-3 py-2 border-b border-white/30">
+            <h2 className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-gray-500)]">Controls</h2>
+            <p className="mt-0.5 text-xs text-[var(--color-gray-600)]">{filteredRecords.length} shown</p>
           </div>
           <ul
-            className={`flex-1 overflow-y-auto p-3 ${viewMode === "grid" ? "grid grid-cols-2 gap-2" : "space-y-2"}`}
+            className={`flex-1 overflow-y-auto p-2 ${viewMode === "grid" ? "grid grid-cols-2 gap-1.5" : "space-y-1.5"}`}
             role="list"
           >
             {filteredRecords.map((r) => {
@@ -305,15 +305,15 @@ export function SCTMPage() {
                     onClick={() => setControl(isSelected ? null : r.controlId)}
                     className={`w-full text-left rounded-xl border transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2 ${
                       viewMode === "grid"
-                        ? "p-2.5"
+                        ? "p-2"
                         : ""
                     } ${
                       isSelected
-                        ? "bg-white border-[var(--color-primary)] shadow-md ring-1 ring-[var(--color-primary)]/20"
-                        : "bg-white/70 border-[var(--color-border)]/80 hover:border-[var(--color-gray-300)] hover:bg-white hover:shadow-sm"
+                        ? "bg-white/90 border-white/50 shadow-lg shadow-[var(--color-primary)]/10 ring-1 ring-[var(--color-primary)]/30 backdrop-blur-sm"
+                        : "bg-white/50 border-white/40 hover:bg-white/70 hover:border-white/50 backdrop-blur-sm"
                     }`}
                   >
-                    <div className={viewMode === "list" ? "px-4 py-3" : ""}>
+                    <div className={viewMode === "list" ? "px-3 py-2.5" : ""}>
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-mono text-sm font-semibold text-[var(--color-navy-primary)] tracking-tight">{r.controlId}</span>
                         <StatusBadge status={r.implementationStatus} />
@@ -340,7 +340,7 @@ export function SCTMPage() {
         </aside>
 
         {/* Detail — full width, scrollable */}
-        <main className="min-w-0 flex-1 overflow-y-auto bg-[var(--color-gray-50)]/30">
+        <main className="min-w-0 flex-1 overflow-y-auto">
           {selectedRecord ? (
             <SCTMControlDetail
               record={selectedRecord}
@@ -350,8 +350,8 @@ export function SCTMPage() {
               onSaved={fetchData}
             />
           ) : (
-            <div className="flex flex-col items-center justify-center min-h-[360px] text-center px-6">
-              <p className="text-[15px] text-[var(--color-gray-500)]">Select a control to view the requirement, assessment guide, evidence, and adjudication.</p>
+            <div className="flex flex-col items-center justify-center min-h-[280px] text-center px-4">
+              <p className="text-sm text-[var(--color-gray-500)]">Select a control to view the requirement, assessment guide, evidence, and adjudication.</p>
             </div>
           )}
         </main>
