@@ -4,7 +4,7 @@ DO $$ BEGIN CREATE TYPE "public"."governance_doc_status" AS ENUM('DRAFT', 'SUBMI
 DO $$ BEGIN CREATE TYPE "public"."governance_doc_type" AS ENUM('POLICY', 'SOP', 'PLAN', 'STANDARD', 'CHARTER', 'PROCEDURE', 'TEMPLATE'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
 DO $$ BEGIN CREATE TYPE "public"."governance_evidence_type" AS ENUM('screenshot', 'export_file', 'log_snippet', 'config_baseline', 'policy_export', 'ticket', 'training_record', 'incident_report', 'risk_report', 'other'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
 DO $$ BEGIN ALTER TYPE "public"."implementation_status" ADD VALUE 'not_applicable'; EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
-CREATE TABLE "governance_control_links" (
+CREATE TABLE IF NOT EXISTS "governance_control_links" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"control_record_id" uuid NOT NULL,
 	"link_type" "governance_control_link_type" NOT NULL,
@@ -12,7 +12,7 @@ CREATE TABLE "governance_control_links" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "governance_control_metadata" (
+CREATE TABLE IF NOT EXISTS "governance_control_metadata" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"control_id" varchar(20) NOT NULL,
 	"classification" "governance_control_classification" NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE "governance_control_metadata" (
 	CONSTRAINT "governance_control_metadata_control_id_unique" UNIQUE("control_id")
 );
 --> statement-breakpoint
-CREATE TABLE "governance_document_versions" (
+CREATE TABLE IF NOT EXISTS "governance_document_versions" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"document_id" uuid NOT NULL,
 	"version_number" integer NOT NULL,
@@ -40,7 +40,7 @@ CREATE TABLE "governance_document_versions" (
 	"created_by_id" uuid
 );
 --> statement-breakpoint
-CREATE TABLE "governance_documents" (
+CREATE TABLE IF NOT EXISTS "governance_documents" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"organization_id" uuid NOT NULL,
 	"project_id" uuid,
@@ -59,7 +59,7 @@ CREATE TABLE "governance_documents" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "governance_evidence_files" (
+CREATE TABLE IF NOT EXISTS "governance_evidence_files" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"evidence_item_id" uuid NOT NULL,
 	"file_url" text NOT NULL,
@@ -71,7 +71,7 @@ CREATE TABLE "governance_evidence_files" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "governance_evidence_items" (
+CREATE TABLE IF NOT EXISTS "governance_evidence_items" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"organization_id" uuid NOT NULL,
 	"project_id" uuid,
@@ -87,7 +87,7 @@ CREATE TABLE "governance_evidence_items" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "governance_register_entries" (
+CREATE TABLE IF NOT EXISTS "governance_register_entries" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"register_id" uuid NOT NULL,
 	"entry_data" jsonb NOT NULL,
@@ -97,7 +97,7 @@ CREATE TABLE "governance_register_entries" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "governance_register_entry_files" (
+CREATE TABLE IF NOT EXISTS "governance_register_entry_files" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"register_entry_id" uuid NOT NULL,
 	"file_url" text NOT NULL,
@@ -108,7 +108,7 @@ CREATE TABLE "governance_register_entry_files" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "governance_registers" (
+CREATE TABLE IF NOT EXISTS "governance_registers" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"organization_id" uuid,
 	"project_id" uuid,
@@ -121,7 +121,7 @@ CREATE TABLE "governance_registers" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "projects" (
+CREATE TABLE IF NOT EXISTS "projects" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"organization_id" uuid NOT NULL,
 	"name" varchar(255) NOT NULL,
@@ -130,7 +130,7 @@ CREATE TABLE "projects" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "user_invitations" (
+CREATE TABLE IF NOT EXISTS "user_invitations" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"organization_id" uuid NOT NULL,
 	"email" text NOT NULL,

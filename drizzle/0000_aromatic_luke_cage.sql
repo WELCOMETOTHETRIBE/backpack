@@ -12,7 +12,7 @@ DO $$ BEGIN CREATE TYPE "public"."review_frequency" AS ENUM('Monthly', 'Quarterl
 DO $$ BEGIN CREATE TYPE "public"."risk_severity" AS ENUM('Low', 'Medium', 'High', 'Critical'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
 DO $$ BEGIN CREATE TYPE "public"."subcontractor_relationship_status" AS ENUM('Pending', 'Active', 'Suspended'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
 DO $$ BEGIN CREATE TYPE "public"."user_role" AS ENUM('Admin', 'Compliance', 'Assessor'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
-CREATE TABLE "artifacts" (
+CREATE TABLE IF NOT EXISTS "artifacts" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"organization_id" uuid NOT NULL,
 	"control_record_id" uuid NOT NULL,
@@ -29,7 +29,7 @@ CREATE TABLE "artifacts" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "assets" (
+CREATE TABLE IF NOT EXISTS "assets" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"organization_id" uuid NOT NULL,
 	"name" text NOT NULL,
@@ -38,7 +38,7 @@ CREATE TABLE "assets" (
 	"location_reference" text
 );
 --> statement-breakpoint
-CREATE TABLE "attestations" (
+CREATE TABLE IF NOT EXISTS "attestations" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"organization_id" uuid NOT NULL,
 	"attestation_type" "attestation_type" NOT NULL,
@@ -50,7 +50,7 @@ CREATE TABLE "attestations" (
 	"signature_crypto" text
 );
 --> statement-breakpoint
-CREATE TABLE "audit_logs" (
+CREATE TABLE IF NOT EXISTS "audit_logs" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"organization_id" uuid NOT NULL,
 	"user_id" uuid,
@@ -62,7 +62,7 @@ CREATE TABLE "audit_logs" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "contracts" (
+CREATE TABLE IF NOT EXISTS "contracts" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"prime_organization_id" uuid NOT NULL,
 	"sub_organization_id" uuid NOT NULL,
@@ -74,7 +74,7 @@ CREATE TABLE "contracts" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "control_families" (
+CREATE TABLE IF NOT EXISTS "control_families" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"code" text NOT NULL,
 	"name" text NOT NULL,
@@ -82,7 +82,7 @@ CREATE TABLE "control_families" (
 	CONSTRAINT "control_families_code_unique" UNIQUE("code")
 );
 --> statement-breakpoint
-CREATE TABLE "control_history" (
+CREATE TABLE IF NOT EXISTS "control_history" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"control_implementation_id" uuid NOT NULL,
 	"changed_by_id" uuid NOT NULL,
@@ -92,7 +92,7 @@ CREATE TABLE "control_history" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "control_implementations" (
+CREATE TABLE IF NOT EXISTS "control_implementations" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"organization_id" uuid NOT NULL,
 	"control_id" uuid NOT NULL,
@@ -109,7 +109,7 @@ CREATE TABLE "control_implementations" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "control_records" (
+CREATE TABLE IF NOT EXISTS "control_records" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"organization_id" uuid NOT NULL,
 	"control_id" varchar(20) NOT NULL,
@@ -125,7 +125,7 @@ CREATE TABLE "control_records" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "controls" (
+CREATE TABLE IF NOT EXISTS "controls" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"control_family_id" uuid NOT NULL,
 	"control_id" text NOT NULL,
@@ -137,7 +137,7 @@ CREATE TABLE "controls" (
 	CONSTRAINT "controls_control_id_unique" UNIQUE("control_id")
 );
 --> statement-breakpoint
-CREATE TABLE "data_flows" (
+CREATE TABLE IF NOT EXISTS "data_flows" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"organization_id" uuid NOT NULL,
 	"name" text NOT NULL,
@@ -145,7 +145,7 @@ CREATE TABLE "data_flows" (
 	"diagram_reference" text
 );
 --> statement-breakpoint
-CREATE TABLE "document_versions" (
+CREATE TABLE IF NOT EXISTS "document_versions" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"organization_id" uuid NOT NULL,
 	"document_type" "document_type" NOT NULL,
@@ -156,13 +156,13 @@ CREATE TABLE "document_versions" (
 	"created_by_id" uuid
 );
 --> statement-breakpoint
-CREATE TABLE "evidence_control_links" (
+CREATE TABLE IF NOT EXISTS "evidence_control_links" (
 	"evidence_metadata_id" uuid NOT NULL,
 	"control_implementation_id" uuid NOT NULL,
 	CONSTRAINT "evidence_control_links_evidence_metadata_id_control_implementation_id_pk" PRIMARY KEY("evidence_metadata_id","control_implementation_id")
 );
 --> statement-breakpoint
-CREATE TABLE "evidence_metadata" (
+CREATE TABLE IF NOT EXISTS "evidence_metadata" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"organization_id" uuid NOT NULL,
 	"evidence_id" text NOT NULL,
@@ -179,7 +179,7 @@ CREATE TABLE "evidence_metadata" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "flowdown_requirements" (
+CREATE TABLE IF NOT EXISTS "flowdown_requirements" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"contract_id" uuid NOT NULL,
 	"control_id" uuid NOT NULL,
@@ -187,7 +187,7 @@ CREATE TABLE "flowdown_requirements" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "organizations" (
+CREATE TABLE IF NOT EXISTS "organizations" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"name" text NOT NULL,
 	"slug" text NOT NULL,
@@ -195,7 +195,7 @@ CREATE TABLE "organizations" (
 	CONSTRAINT "organizations_slug_unique" UNIQUE("slug")
 );
 --> statement-breakpoint
-CREATE TABLE "poam_closure_approvals" (
+CREATE TABLE IF NOT EXISTS "poam_closure_approvals" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"poam_item_id" uuid NOT NULL,
 	"approver_id" uuid NOT NULL,
@@ -204,7 +204,7 @@ CREATE TABLE "poam_closure_approvals" (
 	"signature_hash" text
 );
 --> statement-breakpoint
-CREATE TABLE "poam_entries" (
+CREATE TABLE IF NOT EXISTS "poam_entries" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"organization_id" uuid NOT NULL,
 	"control_record_id" uuid NOT NULL,
@@ -217,7 +217,7 @@ CREATE TABLE "poam_entries" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "poam_items" (
+CREATE TABLE IF NOT EXISTS "poam_items" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"organization_id" uuid NOT NULL,
 	"control_implementation_id" uuid NOT NULL,
@@ -235,7 +235,7 @@ CREATE TABLE "poam_items" (
 	"closed_at" timestamp with time zone
 );
 --> statement-breakpoint
-CREATE TABLE "poam_milestones" (
+CREATE TABLE IF NOT EXISTS "poam_milestones" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"poam_item_id" uuid NOT NULL,
 	"title" text NOT NULL,
@@ -244,7 +244,7 @@ CREATE TABLE "poam_milestones" (
 	"order_index" integer DEFAULT 0 NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "poam_risk_assessments" (
+CREATE TABLE IF NOT EXISTS "poam_risk_assessments" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"poam_item_id" uuid NOT NULL,
 	"assessed_by_id" uuid NOT NULL,
@@ -253,7 +253,7 @@ CREATE TABLE "poam_risk_assessments" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "policies" (
+CREATE TABLE IF NOT EXISTS "policies" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"organization_id" uuid NOT NULL,
 	"code" text NOT NULL,
@@ -263,7 +263,7 @@ CREATE TABLE "policies" (
 	"effective_date" timestamp with time zone
 );
 --> statement-breakpoint
-CREATE TABLE "roles" (
+CREATE TABLE IF NOT EXISTS "roles" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"organization_id" uuid NOT NULL,
 	"name" varchar(255) NOT NULL,
@@ -271,7 +271,7 @@ CREATE TABLE "roles" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "ssp_sections" (
+CREATE TABLE IF NOT EXISTS "ssp_sections" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"organization_id" uuid NOT NULL,
 	"document_code" text NOT NULL,
@@ -282,7 +282,7 @@ CREATE TABLE "ssp_sections" (
 	"version" integer DEFAULT 1 NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "subcontractor_relationships" (
+CREATE TABLE IF NOT EXISTS "subcontractor_relationships" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"prime_organization_id" uuid NOT NULL,
 	"sub_organization_id" uuid,
@@ -292,7 +292,7 @@ CREATE TABLE "subcontractor_relationships" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "technical_evidence" (
+CREATE TABLE IF NOT EXISTS "technical_evidence" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"organization_id" uuid NOT NULL,
 	"control_record_id" uuid NOT NULL,
@@ -305,7 +305,7 @@ CREATE TABLE "technical_evidence" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "users" (
+CREATE TABLE IF NOT EXISTS "users" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"organization_id" uuid NOT NULL,
 	"email" text NOT NULL,

@@ -1,7 +1,7 @@
 DO $$ BEGIN CREATE TYPE "public"."flowdown_response_type" AS ENUM('linked_workspace', 'manual_attestation'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
 DO $$ BEGIN CREATE TYPE "public"."mock_assessment_score" AS ENUM('Met', 'Partially Met', 'Not Met'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
 DO $$ BEGIN CREATE TYPE "public"."mock_assessment_status" AS ENUM('in_progress', 'completed'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
-CREATE TABLE "mock_assessment_responses" (
+CREATE TABLE IF NOT EXISTS "mock_assessment_responses" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"mock_assessment_id" uuid NOT NULL,
 	"control_id" varchar(20) NOT NULL,
@@ -12,7 +12,7 @@ CREATE TABLE "mock_assessment_responses" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "mock_assessments" (
+CREATE TABLE IF NOT EXISTS "mock_assessments" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"organization_id" uuid NOT NULL,
 	"status" "mock_assessment_status" DEFAULT 'in_progress' NOT NULL,
@@ -21,7 +21,7 @@ CREATE TABLE "mock_assessments" (
 	"completed_at" timestamp with time zone
 );
 --> statement-breakpoint
-CREATE TABLE "subcontractor_flowdown_responses" (
+CREATE TABLE IF NOT EXISTS "subcontractor_flowdown_responses" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"subcontractor_relationship_id" uuid NOT NULL,
 	"token" varchar(64) NOT NULL,
