@@ -20,12 +20,15 @@ export function SCTMFilters({
   type,
   onFamilyChange,
   onTypeChange,
+  hideFamilyList = false,
 }: {
   records: SCTMRecord[];
   family: string | null;
   type: "all" | "configuration" | "governance";
   onFamilyChange: (code: string | null) => void;
   onTypeChange: (t: "all" | "configuration" | "governance") => void;
+  /** When true, family filter is shown in the top bar instead of sidebar. */
+  hideFamilyList?: boolean;
 }) {
   const adjudicated = records.filter((r) => ADJUDICATED.includes(r.implementationStatus)).length;
   const outstanding = records.length - adjudicated;
@@ -72,28 +75,30 @@ export function SCTMFilters({
         </p>
       </div>
 
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">
-          Family
-        </p>
-        <ul className="mt-2 space-y-0.5" role="list">
-          {familyStats.map((f) => (
-            <li key={f.code}>
-              <button
-                type="button"
-                onClick={() => onFamilyChange(family === f.code ? null : f.code)}
-                className={`w-full rounded-[var(--radius-md)] px-3 py-2 text-left text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2 ${
-                  family === f.code
-                    ? "bg-[var(--color-primary)] font-medium text-white"
-                    : "text-[var(--color-gray-700)] hover:bg-[var(--color-gray-100)]"
-                }`}
-              >
-                {f.code} — {f.name} ({f.adjudicated}/{f.total})
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
+      {!hideFamilyList && (
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">
+            Family
+          </p>
+          <ul className="mt-2 space-y-0.5" role="list">
+            {familyStats.map((f) => (
+              <li key={f.code}>
+                <button
+                  type="button"
+                  onClick={() => onFamilyChange(family === f.code ? null : f.code)}
+                  className={`w-full rounded-[var(--radius-md)] px-3 py-2 text-left text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2 ${
+                    family === f.code
+                      ? "bg-[var(--color-primary)] font-medium text-white"
+                      : "text-[var(--color-gray-700)] hover:bg-[var(--color-gray-100)]"
+                  }`}
+                >
+                  {f.code} — {f.name} ({f.adjudicated}/{f.total})
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,0 +1,92 @@
+[
+  {
+    "controlId": "3.1.1",
+    "title": "Limit system access to authorized users, processes acting on behalf of authorized users, and",
+    "nistExactText": "Limit system access to authorized users, processes acting on behalf of authorized users, and\ndevices (including other systems).",
+    "nistDiscussionGuidance": "Access control policies (e.g., identity- or role-based policies, control matrices, and cryptography)\ncontrol access between active entities or subjects (i.e., users or processes acting on behalf of users)\nand passive entities or objects (e.g., devices, files, records, and domains) in systems. Access\nenforcement mechanisms can be employed at the application and service level to provide\nincreased information security. Other systems include systems internal and external to the\norganization. This requirement focuses on account management for systems and applications. The\ndefinition of and enforcement of access authorizations, other than those determined by account\ntype (e.g., privileged verses non-privileged) are addressed in requirement 3.1.2."
+  },
+  {
+    "controlId": "3.1.2",
+    "title": "Limit system access to the types of transactions and functions that authorized users are",
+    "nistExactText": "Limit system access to the types of transactions and functions that authorized users are\npermitted to execute.\n\n\fSP 800-171, REVISION 2\nPROTECTING CONTROLLED UNCLASSIFIED INFORMATION\n_________________________________________________________________________________________________",
+    "nistDiscussionGuidance": "Organizations may choose to define access privileges or other attributes by account, by type of\naccount, or a combination of both. System account types include individual, shared, group, system,\nanonymous, guest, emergency, developer, manufacturer, vendor, and temporary. Other attributes\nrequired for authorizing access include restrictions on time-of-day, day-of-week, and point-oforigin. In defining other account attributes, organizations consider system-related requirements\n(e.g., system upgrades scheduled maintenance,) and mission or business requirements, (e.g., time\nzone differences, customer requirements, remote access to support travel requirements).\n\nDerived Security Requirements"
+  },
+  {
+    "controlId": "3.1.3",
+    "title": "Control the flow of CUI in accordance with approved authorizations.",
+    "nistExactText": "Control the flow of CUI in accordance with approved authorizations.\n\nThis publication is available free of charge from: https://doi.org/10.6028/NIST.SP.800-171r2",
+    "nistDiscussionGuidance": "Information flow control regulates where information can travel within a system and between\nsystems (versus who can access the information) and without explicit regard to subsequent\naccesses to that information. Flow control restrictions include the following: keeping exportcontrolled information from being transmitted in the clear to the Internet; blocking outside traffic\nthat claims to be from within the organization; restricting requests to the Internet that are not\nfrom the internal web proxy server; and limiting information transfers between organizations\nbased on data structures and content.\nOrganizations commonly use information flow control policies and enforcement mechanisms to\ncontrol the flow of information between designated sources and destinations (e.g., networks,\nindividuals, and devices) within systems and between interconnected systems. Flow control is\nbased on characteristics of the information or the information path. Enforcement occurs in\nboundary protection devices (e.g., gateways, routers, guards, encrypted tunnels, firewalls) that\nemploy rule sets or establish configuration settings that restrict system services, provide a packetfiltering capability based on header information, or message-filtering capability based on message\ncontent (e.g., implementing key word searches or using document characteristics). Organizations\nalso consider the trustworthiness of filtering and inspection mechanisms (i.e., hardware, firmware,\nand software components) that are critical to information flow enforcement.\nTransferring information between systems representing different security domains with different\nsecurity policies introduces risk that such transfers violate one or more domain security policies.\nIn such situations, information owners or stewards provide guidance at designated policy\nenforcement points between interconnected systems. Organizations consider mandating specific\narchitectural solutions when required to enforce specific security policies. Enforcement includes:\nprohibiting information transfers between interconnected systems (i.e., allowing access only);\nemploying hardware mechanisms to enforce one-way information flows; and implementing\ntrustworthy regrading mechanisms to reassign security attributes and security labels."
+  },
+  {
+    "controlId": "3.1.4",
+    "title": "Separate the duties of individuals to reduce the risk of malevolent activity without collusion.",
+    "nistExactText": "Separate the duties of individuals to reduce the risk of malevolent activity without collusion.",
+    "nistDiscussionGuidance": "Separation of duties addresses the potential for abuse of authorized privileges and helps to reduce\nthe risk of malevolent activity without collusion. Separation of duties includes dividing mission\nfunctions and system support functions among different individuals or roles; conducting system\nsupport functions with different individuals (e.g., configuration management, quality assurance\nand testing, system management, programming, and network security); and ensuring that security\npersonnel administering access control functions do not also administer audit functions. Because\nseparation of duty violations can span systems and application domains, organizations consider\nthe entirety of organizational systems and system components when developing policy on\nseparation of duties.\n\nSP 800-171, REVISION 2\nPROTECTING CONTROLLED UNCLASSIFIED INFORMATION\n_________________________________________________________________________________________________"
+  },
+  {
+    "controlId": "3.1.5",
+    "title": "Employ the principle of least privilege, including for specific security functions and privileged",
+    "nistExactText": "Employ the principle of least privilege, including for specific security functions and privileged\naccounts.",
+    "nistDiscussionGuidance": "Organizations employ the principle of least privilege for specific duties and authorized accesses for\nusers and processes. The principle of least privilege is applied with the goal of authorized privileges\nno higher than necessary to accomplish required organizational missions or business functions.\nOrganizations consider the creation of additional processes, roles, and system accounts as\nnecessary, to achieve least privilege. Organizations also apply least privilege to the development,\nimplementation, and operation of organizational systems. Security functions include establishing\nsystem accounts, setting events to be logged, setting intrusion detection parameters, and\nconfiguring access authorizations (i.e., permissions, privileges).\n\nPrivileged accounts, including super user accounts, are typically described as system administrator\nfor various types of commercial off-the-shelf operating systems. Restricting privileged accounts to\nspecific personnel or roles prevents day-to-day users from having access to privileged information\nor functions. Organizations may differentiate in the application of this requirement between\nallowed privileges for local accounts and for domain accounts provided organizations retain the\nability to control system configurations for key security parameters and as otherwise necessary to\nsufficiently mitigate risk."
+  },
+  {
+    "controlId": "3.1.6",
+    "title": "Use non-privileged accounts or roles when accessing nonsecurity functions.",
+    "nistExactText": "Use non-privileged accounts or roles when accessing nonsecurity functions.",
+    "nistDiscussionGuidance": "This requirement limits exposure when operating from within privileged accounts or roles. The\ninclusion of roles addresses situations where organizations implement access control policies such\nas role-based access control and where a change of role provides the same degree of assurance in\nthe change of access authorizations for the user and all processes acting on behalf of the user as\nwould be provided by a change between a privileged and non-privileged account."
+  },
+  {
+    "controlId": "3.1.7",
+    "title": "Prevent non-privileged users from executing privileged functions and capture the execution of",
+    "nistExactText": "Prevent non-privileged users from executing privileged functions and capture the execution of\nsuch functions in audit logs.",
+    "nistDiscussionGuidance": "Privileged functions include establishing system accounts, performing system integrity checks,\nconducting patching operations, or administering cryptographic key management activities. Nonprivileged users are individuals that do not possess appropriate authorizations. Circumventing\nintrusion detection and prevention mechanisms or malicious code protection mechanisms are\nexamples of privileged functions that require protection from non-privileged users. Note that this\nrequirement represents a condition to be achieved by the definition of authorized privileges in\n3.1.2.\nMisuse of privileged functions, either intentionally or unintentionally by authorized users, or by\nunauthorized external entities that have compromised system accounts, is a serious and ongoing\nconcern and can have significant adverse impacts on organizations. Logging the use of privileged\nfunctions is one way to detect such misuse, and in doing so, help mitigate the risk from insider\nthreats and the advanced persistent threat."
+  },
+  {
+    "controlId": "3.1.8",
+    "title": "Limit unsuccessful logon attempts.",
+    "nistExactText": "Limit unsuccessful logon attempts.",
+    "nistDiscussionGuidance": "This requirement applies regardless of whether the logon occurs via a local or network connection.\nDue to the potential for denial of service, automatic lockouts initiated by systems are, in most\ncases, temporary and automatically release after a predetermined period established by the\n\nSP 800-171, REVISION 2\nPROTECTING CONTROLLED UNCLASSIFIED INFORMATION\n_________________________________________________________________________________________________\n\norganization (i.e., a delay algorithm). If a delay algorithm is selected, organizations may employ\ndifferent algorithms for different system components based on the capabilities of the respective\ncomponents. Responses to unsuccessful logon attempts may be implemented at the operating\nsystem and application levels."
+  },
+  {
+    "controlId": "3.1.9",
+    "title": "Provide privacy and security notices consistent with applicable CUI rules.",
+    "nistExactText": "Provide privacy and security notices consistent with applicable CUI rules.\n\nThis publication is available free of charge from: https://doi.org/10.6028/NIST.SP.800-171r2",
+    "nistDiscussionGuidance": "System use notifications can be implemented using messages or warning banners displayed before\nindividuals log in to organizational systems. System use notifications are used only for access via\nlogon interfaces with human users and are not required when such human interfaces do not exist.\nBased on a risk assessment, organizations consider whether a secondary system use notification is\nneeded to access applications or other system resources after the initial network logon. Where\nnecessary, posters or other printed materials may be used in lieu of an automated system banner.\nOrganizations consult with the Office of General Counsel for legal review and approval of warning\nbanner content."
+  },
+  {
+    "controlId": "3.1.10",
+    "title": "Use session lock with pattern-hiding displays to prevent access and viewing of data after a",
+    "nistExactText": "Use session lock with pattern-hiding displays to prevent access and viewing of data after a\nperiod of inactivity.",
+    "nistDiscussionGuidance": "Session locks are temporary actions taken when users stop work and move away from the\nimmediate vicinity of the system but do not want to log out because of the temporary nature of\ntheir absences. Session locks are implemented where session activities can be determined,\ntypically at the operating system level (but can also be at the application level). Session locks are\nnot an acceptable substitute for logging out of the system, for example, if organizations require\nusers to log out at the end of the workday.\nPattern-hiding displays can include static or dynamic images, for example, patterns used with\nscreen savers, photographic images, solid colors, clock, battery life indicator, or a blank screen,\nwith the additional caveat that none of the images convey controlled unclassified information."
+  },
+  {
+    "controlId": "3.1.11",
+    "title": "Terminate (automatically) a user session after a defined condition.",
+    "nistExactText": "Terminate (automatically) a user session after a defined condition.",
+    "nistDiscussionGuidance": "This requirement addresses the termination of user-initiated logical sessions in contrast to the\ntermination of network connections that are associated with communications sessions (i.e.,\ndisconnecting from the network). A logical session (for local, network, and remote access) is\ninitiated whenever a user (or process acting on behalf of a user) accesses an organizational system.\nSuch user sessions can be terminated (and thus terminate user access) without terminating\nnetwork sessions. Session termination terminates all processes associated with a user’s logical\nsession except those processes that are specifically created by the user (i.e., session owner) to\ncontinue after the session is terminated. Conditions or trigger events requiring automatic session\ntermination can include organization-defined periods of user inactivity, targeted responses to\ncertain types of incidents, and time-of-day restrictions on system use."
+  },
+  {
+    "controlId": "3.1.12",
+    "title": "Monitor and control remote access sessions.",
+    "nistExactText": "Monitor and control remote access sessions.",
+    "nistDiscussionGuidance": "Remote access is access to organizational systems by users (or processes acting on behalf of users)\ncommunicating through external networks (e.g., the Internet). Remote access methods include\ndial-up, broadband, and wireless. Organizations often employ encrypted virtual private networks\n(VPNs) to enhance confidentiality over remote connections. The use of encrypted VPNs does not\nmake the access non-remote; however, the use of VPNs, when adequately provisioned with\n\nSP 800-171, REVISION 2\nPROTECTING CONTROLLED UNCLASSIFIED INFORMATION\n_________________________________________________________________________________________________\n\nappropriate control (e.g., employing encryption techniques for confidentiality protection), may\nprovide sufficient assurance to the organization that it can effectively treat such connections as\ninternal networks. VPNs with encrypted tunnels can affect the capability to adequately monitor\nnetwork communications traffic for malicious code.\nAutomated monitoring and control of remote access sessions allows organizations to detect cyberattacks and help to ensure ongoing compliance with remote access policies by auditing connection\nactivities of remote users on a variety of system components (e.g., servers, workstations, notebook\ncomputers, smart phones, and tablets).\n[SP 800-46], [SP 800-77], and [SP 800-113] provide guidance on secure remote access and virtual\nprivate networks."
+  },
+  {
+    "controlId": "3.1.13",
+    "title": "Employ cryptographic mechanisms to protect the confidentiality of remote access sessions.",
+    "nistExactText": "Employ cryptographic mechanisms to protect the confidentiality of remote access sessions.",
+    "nistDiscussionGuidance": "Cryptographic standards include FIPS-validated cryptography and NSA-approved cryptography.\nSee [NIST CRYPTO]; [NIST CAVP]; [NIST CMVP]; National Security Agency Cryptographic Standards."
+  },
+  {
+    "controlId": "3.1.14",
+    "title": "Route remote access via managed access control points.",
+    "nistExactText": "Route remote access via managed access control points.",
+    "nistDiscussionGuidance": "Routing remote access through managed access control points enhances explicit, organizational\ncontrol over such connections, reducing the susceptibility to unauthorized access to organizational\nsystems resulting in the unauthorized disclosure of CUI."
+  },
+  {
+    "controlId": "3.1.15",
+    "title": "Authorize remote execution of privileged commands and remote access to security-relevant",
+    "nistExactText": "Authorize remote execution of privileged commands and remote access to security-relevant\ninformation.",
+    "nistDiscussionGuidance": "A privileged command is a human-initiated (interactively or via a process operating on behalf of\nthe human) command executed on a system involving the control, monitoring, or administration\nof the system including security functions and associated security-relevant information. Securityrelevant information is any information within the system that can potentially impact the\noperation of security functions or the provision of security services in a manner that could result\nin failure to enforce the system security policy or maintain isolation of code and data. Privileged\ncommands give individuals the ability to execute sensitive, security-critical, or security-relevant\nsystem functions. Controlling such access from remote locations helps to ensure that unauthorized\nindividuals are not able to execute such commands freely with the potential to do serious or\ncatastrophic damage to organizational systems. Note that the ability to affect the integrity of the\n(Content truncated due to size limit. Use line ranges to read remaining content)"
+  }
+]
