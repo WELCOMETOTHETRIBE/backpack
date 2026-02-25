@@ -130,7 +130,7 @@ function CollapsibleSection({ section, defaultOpen = false }: { section: GuideSe
   const [open, setOpen] = useState(defaultOpen);
   const Icon = SECTION_ICONS[section.label] ?? FileText;
   return (
-    <div className="rounded-xl border border-white/30 bg-white/70 backdrop-blur-sm overflow-hidden">
+    <div className="rounded-lg border border-white/30 bg-white/70 backdrop-blur-sm overflow-hidden">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -236,9 +236,9 @@ export function SCTMControlDetail({
   const familyCode = familyCodeFromControlId(record.controlId);
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-4">
+    <div className="mx-auto max-w-5xl w-full px-0 py-0">
       {/* One-line header */}
-      <div className="flex flex-wrap items-center gap-2 mb-5">
+      <div className="flex flex-wrap items-center gap-2 mb-4">
         <span className="font-mono text-lg font-semibold text-[var(--color-navy-primary)]">{record.controlId}</span>
         <StatusBadge status={record.implementationStatus} />
         {familyCode && (
@@ -253,8 +253,8 @@ export function SCTMControlDetail({
       </div>
 
       {/* Requirement — the main “field we were working on” */}
-      <section className="mb-5">
-        <div className="flex items-center gap-2 mb-1.5">
+      <section className="mb-4">
+        <div className="flex items-center gap-2 mb-1">
           <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)]">Requirement</h2>
           {sctmOptimized?.scoring && (
             <span className="rounded-full bg-white/60 px-2 py-0.5 text-xs font-medium text-[var(--color-gray-700)] backdrop-blur-sm border border-white/40">
@@ -262,10 +262,10 @@ export function SCTMControlDetail({
             </span>
           )}
         </div>
-        {displayTitle && <p className="text-[17px] font-medium text-[var(--color-gray-900)] mb-1.5">{displayTitle}</p>}
-        <div className="rounded-xl border border-white/30 bg-white/70 backdrop-blur-sm px-4 py-3">
+        {displayTitle && <p className="text-base font-medium text-[var(--color-gray-900)] mb-1">{displayTitle}</p>}
+        <div className="rounded-lg border border-white/30 bg-white/70 backdrop-blur-sm px-4 py-3">
           {requirementText ? (
-            <p className="text-[15px] leading-relaxed text-[var(--color-gray-800)] whitespace-pre-wrap">{requirementText}</p>
+            <p className="text-[15px] leading-[1.6] text-[var(--color-gray-800)] whitespace-pre-wrap max-w-none">{requirementText}</p>
           ) : (
             <p className="text-[15px] text-[var(--color-gray-400)] italic">Requirement text will appear here once loaded.</p>
           )}
@@ -273,9 +273,9 @@ export function SCTMControlDetail({
       </section>
 
       {(sctmOptimized?.objectives?.length ?? 0) > 0 && (
-        <section className="mb-5">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-2">Assessment objectives</h2>
-          <div className="rounded-xl border border-white/30 bg-white/70 backdrop-blur-sm px-4 py-3">
+        <section className="mb-4">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">Assessment objectives</h2>
+          <div className="rounded-lg border border-white/30 bg-white/70 backdrop-blur-sm px-4 py-3">
             <ul className="space-y-2" role="list">
               {(sctmOptimized?.objectives ?? []).map((obj) => (
                 <li key={obj.id} className="flex gap-2 text-[15px] leading-relaxed text-[var(--color-gray-800)]">
@@ -289,27 +289,27 @@ export function SCTMControlDetail({
       )}
 
       {sctmOptimized?.nist_guidance && (
-        <section className="mb-5">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">NIST guidance</h2>
-          <div className="rounded-xl border border-white/30 bg-white/70 backdrop-blur-sm px-4 py-3">
+        <section className="mb-4">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1">NIST guidance</h2>
+          <div className="rounded-lg border border-white/30 bg-white/70 backdrop-blur-sm px-4 py-3">
             <p className="text-[15px] leading-relaxed text-[var(--color-gray-700)] whitespace-pre-wrap">{sctmOptimized.nist_guidance}</p>
           </div>
         </section>
       )}
 
       {sctmOptimized?.onboarding_tips && (
-        <section className="mb-5">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">Onboarding tips</h2>
-          <div className="rounded-xl border border-white/30 bg-white/70 backdrop-blur-sm px-4 py-3">
+        <section className="mb-4">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1">Onboarding tips</h2>
+          <div className="rounded-lg border border-white/30 bg-white/70 backdrop-blur-sm px-4 py-3">
             <p className="text-[15px] leading-relaxed text-[var(--color-gray-700)] whitespace-pre-wrap">{sctmOptimized.onboarding_tips}</p>
           </div>
         </section>
       )}
 
       {sctmOptimized?.assessor_interrogation && (sctmOptimized.assessor_interrogation.assessor_questions || sctmOptimized.assessor_interrogation.examine_criteria || sctmOptimized.assessor_interrogation.test_procedures) && (
-        <section className="mb-5">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-2">What assessors do</h2>
-          <div className="rounded-xl border border-white/30 bg-white/70 backdrop-blur-sm overflow-hidden">
+        <section className="mb-4">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">What assessors do</h2>
+          <div className="rounded-lg border border-white/30 bg-white/70 backdrop-blur-sm overflow-hidden">
             {sctmOptimized.assessor_interrogation.assessor_questions && (
               <div className="px-4 py-3 border-b border-white/30">
                 <h3 className="text-sm font-semibold text-[var(--color-gray-800)] mb-1.5">Interview</h3>
@@ -339,9 +339,9 @@ export function SCTMControlDetail({
       )}
 
       {guideSections.length > 0 && (
-        <section className="mb-5">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-2">Assessment guide</h2>
-          <div className="space-y-1.5">
+        <section className="mb-4">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">Assessment guide</h2>
+          <div className="space-y-1">
             {guideSections.map((section, i) => (
               <CollapsibleSection key={`${section.label}-${i}`} section={section} defaultOpen={i < 2} />
             ))}
@@ -351,9 +351,9 @@ export function SCTMControlDetail({
 
       {/* Fallback when no sections parsed */}
       {(!nist?.nistDiscussionGuidance || guideSections.length === 0) && nist?.nistDiscussionGuidance && (
-        <section className="mb-5">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">Discussion & guidance</h2>
-          <div className="rounded-xl border border-white/30 bg-white/70 backdrop-blur-sm px-4 py-3">
+        <section className="mb-4">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1">Discussion & guidance</h2>
+          <div className="rounded-lg border border-white/30 bg-white/70 backdrop-blur-sm px-4 py-3">
             <p className="text-[15px] leading-relaxed text-[var(--color-gray-700)] whitespace-pre-wrap">
               {cleanDisplayText(nist.nistDiscussionGuidance)}
             </p>
@@ -362,11 +362,11 @@ export function SCTMControlDetail({
       )}
 
       {/* Your response — one card: status, narrative, evidence */}
-      <section className="rounded-xl border border-white/30 bg-white/70 backdrop-blur-sm overflow-hidden">
-        <div className="px-4 py-3 border-b border-white/30">
+      <section className="rounded-lg border border-white/30 bg-white/70 backdrop-blur-sm overflow-hidden">
+        <div className="px-4 py-2.5 border-b border-white/30">
           <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)]">Your response</h2>
         </div>
-        <div className="px-4 py-4 space-y-4">
+        <div className="px-4 py-3 space-y-3">
           <div>
             <label htmlFor="sctm-status" className="block text-sm font-medium text-[var(--color-gray-700)] mb-1.5">Implementation status</label>
             <select

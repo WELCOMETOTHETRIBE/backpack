@@ -187,12 +187,12 @@ export function SCTMPage() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-gradient-to-b from-[var(--color-gray-50)]/30 to-transparent">
-      {/* Header: glass, row 1 = families (full names, large pills); row 2 = tally + filters */}
-      <header className="sticky top-0 z-10 border-b border-white/20 bg-white/60 backdrop-blur-xl px-4 py-3">
-        <div className="flex flex-col gap-3">
+      {/* Header: fixed at top of page (no sticky), compact */}
+      <header className="border-b border-white/20 bg-white/60 backdrop-blur-xl px-3 py-2.5">
+        <div className="flex flex-col gap-2">
           <div>
-            <p className="text-[10px] font-medium uppercase tracking-widest text-[var(--color-gray-400)] mb-2">Control families</p>
-            <div className="flex flex-wrap gap-2">
+            <p className="text-[10px] font-medium uppercase tracking-widest text-[var(--color-gray-400)] mb-1.5">Control families</p>
+            <div className="flex flex-wrap gap-1.5">
               {familyStats.map((f) => {
                 const isActive = family === f.code;
                 const pct = f.total ? Math.round((f.adjudicated / f.total) * 100) : 0;
@@ -269,27 +269,27 @@ export function SCTMPage() {
       </header>
 
       <div className="flex min-h-0 flex-1 min-w-0">
-        {/* Left: search + control list — glass */}
-        <aside className="w-64 shrink-0 flex flex-col border-r border-white/20 bg-white/40 backdrop-blur-md">
-          <div className="p-2 border-b border-white/30">
+        {/* Left: narrow control list — minimal width, compact cards */}
+        <aside className="w-[13rem] shrink-0 flex flex-col border-r border-white/20 bg-white/40 backdrop-blur-md">
+          <div className="px-2 py-1.5 border-b border-white/30">
             <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--color-gray-400)]" aria-hidden />
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-[var(--color-gray-400)]" aria-hidden />
               <input
                 type="search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search controls…"
-                className="w-full rounded-xl border border-white/50 bg-white/60 py-1.5 pl-8 pr-2.5 text-sm text-[var(--color-gray-900)] placeholder:text-[var(--color-gray-400)] focus:border-[var(--color-blue-accent)] focus:outline-none focus:ring-2 focus:ring-[var(--color-blue-accent)]/20 backdrop-blur-sm"
-                aria-label="Search controls by title, description, or objectives"
+                placeholder="Search…"
+                className="w-full rounded-lg border border-white/50 bg-white/60 py-1 pl-7 pr-2 text-xs text-[var(--color-gray-900)] placeholder:text-[var(--color-gray-400)] focus:border-[var(--color-blue-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--color-blue-accent)]/20 backdrop-blur-sm"
+                aria-label="Search controls"
               />
             </div>
           </div>
-          <div className="px-3 py-2 border-b border-white/30">
+          <div className="px-2 py-1 border-b border-white/30 flex items-baseline justify-between gap-1">
             <h2 className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-gray-500)]">Controls</h2>
-            <p className="mt-0.5 text-xs text-[var(--color-gray-600)]">{filteredRecords.length} shown</p>
+            <span className="text-[10px] text-[var(--color-gray-500)] tabular-nums">{filteredRecords.length}</span>
           </div>
           <ul
-            className={`flex-1 overflow-y-auto p-2 ${viewMode === "grid" ? "grid grid-cols-2 gap-1.5" : "space-y-1.5"}`}
+            className={`flex-1 overflow-y-auto overscroll-contain px-1.5 py-1 ${viewMode === "grid" ? "grid grid-cols-1 gap-1" : "space-y-1"}`}
             role="list"
           >
             {filteredRecords.map((r) => {
@@ -303,35 +303,21 @@ export function SCTMPage() {
                   <button
                     type="button"
                     onClick={() => setControl(isSelected ? null : r.controlId)}
-                    className={`w-full text-left rounded-xl border transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2 ${
-                      viewMode === "grid"
-                        ? "p-2"
-                        : ""
+                    className={`w-full text-left rounded-lg border transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-1 ${
+                      viewMode === "grid" ? "p-1.5" : "px-2 py-1.5"
                     } ${
                       isSelected
-                        ? "bg-white/90 border-white/50 shadow-lg shadow-[var(--color-primary)]/10 ring-1 ring-[var(--color-primary)]/30 backdrop-blur-sm"
-                        : "bg-white/50 border-white/40 hover:bg-white/70 hover:border-white/50 backdrop-blur-sm"
+                        ? "bg-white/90 border-[var(--color-primary)]/40 shadow ring-1 ring-[var(--color-primary)]/20 backdrop-blur-sm"
+                        : "bg-white/50 border-white/40 hover:bg-white/70 backdrop-blur-sm"
                     }`}
                   >
-                    <div className={viewMode === "list" ? "px-3 py-2.5" : ""}>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-mono text-sm font-semibold text-[var(--color-navy-primary)] tracking-tight">{r.controlId}</span>
-                        <StatusBadge status={r.implementationStatus} />
-                        {opt?.compliance_meta?.satisfaction_type && viewMode === "list" && (
-                          <span className="rounded bg-[var(--color-gray-100)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--color-gray-600)]">
-                            {opt.compliance_meta.satisfaction_type.replace(/-/g, " ")}
-                          </span>
-                        )}
-                      </div>
-                      <p className={`font-medium text-[var(--color-gray-900)] leading-snug line-clamp-2 ${viewMode === "list" ? "mt-2 text-[13px]" : "mt-1 text-xs"}`}>
-                        {title}
-                      </p>
-                      {description && viewMode === "list" && (
-                        <p className="mt-1 text-xs text-[var(--color-gray-500)] leading-relaxed line-clamp-2">
-                          {description}
-                        </p>
-                      )}
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="font-mono text-xs font-semibold text-[var(--color-navy-primary)] shrink-0">{r.controlId}</span>
+                      <StatusBadge status={r.implementationStatus} />
                     </div>
+                    <p className="mt-0.5 font-medium text-[var(--color-gray-900)] leading-tight line-clamp-2 text-xs min-w-0">
+                      {title}
+                    </p>
                   </button>
                 </li>
               );
@@ -339,8 +325,8 @@ export function SCTMPage() {
           </ul>
         </aside>
 
-        {/* Detail — full width, scrollable */}
-        <main className="min-w-0 flex-1 overflow-y-auto">
+        {/* Detail — wide content area, minimal outer margin */}
+        <main className="min-w-0 flex-1 overflow-y-auto px-3 py-3">
           {selectedRecord ? (
             <SCTMControlDetail
               record={selectedRecord}
@@ -350,7 +336,7 @@ export function SCTMPage() {
               onSaved={fetchData}
             />
           ) : (
-            <div className="flex flex-col items-center justify-center min-h-[280px] text-center px-4">
+            <div className="flex flex-col items-center justify-center min-h-[200px] text-center">
               <p className="text-sm text-[var(--color-gray-500)]">Select a control to view the requirement, assessment guide, evidence, and adjudication.</p>
             </div>
           )}
