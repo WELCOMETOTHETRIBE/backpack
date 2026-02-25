@@ -3,11 +3,15 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { FileText, Calculator } from "lucide-react";
 import { db } from "@/db";
-import { getSprsScore } from "@/lib/sprs";
+import { getSprsScore, sprsScoringData } from "@/lib/sprs";
 import { controlImplementations } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
 const cardClass = "rounded-xl border border-slate-200 bg-white p-6 shadow-sm";
+
+const sprs5 = sprsScoringData.filter((c) => c.value === 5).length;
+const sprs3 = sprsScoringData.filter((c) => c.value === 3).length;
+const sprs1 = sprsScoringData.filter((c) => c.value === 1).length;
 
 export default async function ReadinessPage() {
   const session = await auth();
@@ -26,6 +30,8 @@ export default async function ReadinessPage() {
   const implemented = impls.filter((i) => i.status === "Implemented").length;
   const compliancePct = total > 0 ? Math.round((implemented / total) * 100) : 0;
 
+  const sprsPct = Math.round((sprsScore / 110) * 100);
+
   return (
     <div>
       <div className="mb-8">
@@ -35,32 +41,38 @@ export default async function ReadinessPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <div className={`lg:col-span-6 ${cardClass}`}>
-          <h2 className="mb-4 text-sm font-semibold text-slate-800">SPRS Score</h2>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">
-                Your current Supplier Performance Risk System score based on NIST SP 800-171 DoD Assessment Methodology.
-              </p>
-            </div>
-            <div className="text-right">
-              <div className="text-5xl font-bold text-[#3B82F6]">{sprsScore}</div>
-              <div className="text-sm text-gray-600">out of 110</div>
-            </div>
+      {/* SPRS scoring: progress bar + score + priority distribution */}
+      <div className={`mb-6 ${cardClass}`}>
+        <h2 className="mb-4 text-sm font-semibold text-slate-800">SPRS Score</h2>
+        <p className="mb-4 text-sm text-gray-600">
+          Supplier Performance Risk System score from NIST SP 800-171 DoD Assessment Methodology. Each unimplemented control deducts its point value (1, 3, or 5).
+        </p>
+        <div className="mb-4">
+          <div className="h-3 w-full overflow-hidden rounded-full bg-gray-100">
+            <div
+              className="h-full rounded-full bg-[#3B82F6] transition-all duration-500"
+              style={{ width: `${sprsPct}%` }}
+            />
           </div>
-          <div className="mt-4">
-            <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
-              <div
-                className="h-full bg-[#3B82F6] transition-all"
-                style={{ width: `${(sprsScore / 110) * 100}%` }}
-              />
-            </div>
-            <p className="mt-2 text-xs text-gray-500">
-              Maximum score is 110. Each unimplemented control deducts its point value.
-            </p>
+          <div className="mt-2 flex justify-between text-sm">
+            <span className="font-semibold text-[#0F172A]">{sprsPct}% SPRS-weighted</span>
+            <span className="text-gray-600">{sprsScore} of 110</span>
           </div>
         </div>
+        <div className="flex flex-wrap gap-3">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-3 py-1.5 text-sm font-medium text-red-800">
+            <span className="tabular-nums font-bold">{sprs5}</span> High (5)
+          </span>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1.5 text-sm font-medium text-amber-800">
+            <span className="tabular-nums font-bold">{sprs3}</span> Medium (3)
+          </span>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-3 py-1.5 text-sm font-medium text-blue-800">
+            <span className="tabular-nums font-bold">{sprs1}</span> Basic (1)
+          </span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
 
         <div className={`lg:col-span-6 ${cardClass}`}>
           <h2 className="mb-4 text-sm font-semibold text-slate-800">Readiness Summary</h2>
