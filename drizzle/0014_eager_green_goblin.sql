@@ -142,11 +142,11 @@ CREATE TABLE IF NOT EXISTS "user_invitations" (
 	CONSTRAINT "user_invitations_token_unique" UNIQUE("token")
 );
 --> statement-breakpoint
-ALTER TABLE "attestations" ADD COLUMN "comment" text;--> statement-breakpoint
-ALTER TABLE "organizations" ADD COLUMN "cage_code" varchar(10);--> statement-breakpoint
-ALTER TABLE "organizations" ADD COLUMN "primary_address" text;--> statement-breakpoint
-ALTER TABLE "organizations" ADD COLUMN "primary_contact_name" varchar(255);--> statement-breakpoint
-ALTER TABLE "organizations" ADD COLUMN "primary_contact_email" varchar(255);--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "attestations" ADD COLUMN "comment" text; EXCEPTION WHEN duplicate_column THEN NULL; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "organizations" ADD COLUMN "cage_code" varchar(10); EXCEPTION WHEN duplicate_column THEN NULL; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "organizations" ADD COLUMN "primary_address" text; EXCEPTION WHEN duplicate_column THEN NULL; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "organizations" ADD COLUMN "primary_contact_name" varchar(255); EXCEPTION WHEN duplicate_column THEN NULL; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "organizations" ADD COLUMN "primary_contact_email" varchar(255); EXCEPTION WHEN duplicate_column THEN NULL; END $$;--> statement-breakpoint
 DO $$ BEGIN ALTER TABLE "governance_control_links" ADD CONSTRAINT "governance_control_links_control_record_id_control_records_id_fk" FOREIGN KEY ("control_record_id") REFERENCES "public"."control_records"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
 DO $$ BEGIN ALTER TABLE "governance_document_versions" ADD CONSTRAINT "governance_document_versions_document_id_governance_documents_id_fk" FOREIGN KEY ("document_id") REFERENCES "public"."governance_documents"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
 DO $$ BEGIN ALTER TABLE "governance_document_versions" ADD CONSTRAINT "governance_document_versions_created_by_id_users_id_fk" FOREIGN KEY ("created_by_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
