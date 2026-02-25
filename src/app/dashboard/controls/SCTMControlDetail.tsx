@@ -71,6 +71,61 @@ const SECTION_ICONS: Record<string, React.ComponentType<{ className?: string }>>
   "More": FileText,
 };
 
+/** Renders guide/JSON body with [SELECT FROM: a; b; c] as a readable list; rest as paragraphs. Use bold to support **bold** in text. */
+function FormattedGuideBody({ text, bold = false }: { text: string; bold?: boolean }) {
+  const parts: React.ReactNode[] = [];
+  const selectFromRegex = /\[SELECT FROM:\s*([^\]]+)\]/gi;
+  let lastEnd = 0;
+  let match;
+  let key = 0;
+  while ((match = selectFromRegex.exec(text)) !== null) {
+    if (match.index > lastEnd) {
+      const paragraph = text.slice(lastEnd, match.index).trim();
+      if (paragraph) {
+        parts.push(
+          <p key={key++} className="mb-3 text-[15px] leading-[1.65] text-[var(--color-gray-700)] whitespace-pre-wrap last:mb-0">
+            {bold ? <TextWithBold text={paragraph} /> : paragraph}
+          </p>
+        );
+      }
+    }
+    const optionsText = match[1].trim();
+    const options = optionsText.split(/\s*;\s*/).map((s) => s.trim()).filter(Boolean);
+    parts.push(
+      <div key={key++} className="my-3 rounded-lg bg-[var(--color-gray-50)]/80 border border-[var(--color-border)]/40 px-4 py-3">
+        <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-2">Select from</p>
+        <ul className="list-none space-y-1.5 text-[14px] leading-relaxed text-[var(--color-gray-700)]">
+          {options.map((opt, i) => (
+            <li key={i} className="flex gap-2">
+              <span className="text-[var(--color-gray-400)] shrink-0">·</span>
+              <span>{opt}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+    lastEnd = match.index + match[0].length;
+  }
+  if (lastEnd < text.length) {
+    const paragraph = text.slice(lastEnd).trim();
+    if (paragraph) {
+      parts.push(
+        <p key={key++} className="mb-3 text-[15px] leading-[1.65] text-[var(--color-gray-700)] whitespace-pre-wrap last:mb-0">
+          {bold ? <TextWithBold text={paragraph} /> : paragraph}
+        </p>
+      );
+    }
+  }
+  if (parts.length === 0 && text.trim()) {
+    return (
+      <div className="pt-3 text-[15px] leading-[1.65] text-[var(--color-gray-700)] whitespace-pre-wrap">
+        {bold ? <TextWithBold text={text} /> : text}
+      </div>
+    );
+  }
+  return <div className="pt-3 space-y-0">{parts}</div>;
+}
+
 function CollapsibleSection({ section, defaultOpen = false }: { section: GuideSection; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen);
   const Icon = SECTION_ICONS[section.label] ?? FileText;
@@ -89,9 +144,7 @@ function CollapsibleSection({ section, defaultOpen = false }: { section: GuideSe
       </button>
       {open && (
         <div className="px-4 pb-4 pt-0 border-t border-[var(--color-border)]/50">
-          <div className="pt-3 text-[15px] leading-relaxed text-[var(--color-gray-700)] whitespace-pre-wrap">
-            {section.body}
-          </div>
+          <FormattedGuideBody text={section.body} />
         </div>
       )}
     </div>
@@ -260,19 +313,25 @@ export function SCTMControlDetail({
             {sctmOptimized.assessor_interrogation.assessor_questions && (
               <div className="px-5 py-4 border-b border-[var(--color-border)]/50">
                 <h3 className="text-sm font-semibold text-[var(--color-gray-800)] mb-2">Interview</h3>
-                <p className="text-[15px] leading-relaxed text-[var(--color-gray-700)]"><TextWithBold text={sctmOptimized.assessor_interrogation.assessor_questions} /></p>
+                <div className="text-[15px] leading-[1.65] text-[var(--color-gray-700)]">
+                  <FormattedGuideBody text={sctmOptimized.assessor_interrogation.assessor_questions} bold />
+                </div>
               </div>
             )}
             {sctmOptimized.assessor_interrogation.examine_criteria && (
               <div className="px-5 py-4 border-b border-[var(--color-border)]/50">
                 <h3 className="text-sm font-semibold text-[var(--color-gray-800)] mb-2">Examine</h3>
-                <p className="text-[15px] leading-relaxed text-[var(--color-gray-700)]"><TextWithBold text={sctmOptimized.assessor_interrogation.examine_criteria} /></p>
+                <div className="text-[15px] leading-[1.65] text-[var(--color-gray-700)]">
+                  <FormattedGuideBody text={sctmOptimized.assessor_interrogation.examine_criteria} bold />
+                </div>
               </div>
             )}
             {sctmOptimized.assessor_interrogation.test_procedures && (
               <div className="px-5 py-4">
                 <h3 className="text-sm font-semibold text-[var(--color-gray-800)] mb-2">Test</h3>
-                <p className="text-[15px] leading-relaxed text-[var(--color-gray-700)] whitespace-pre-wrap"><TextWithBold text={sctmOptimized.assessor_interrogation.test_procedures} /></p>
+                <div className="text-[15px] leading-[1.65] text-[var(--color-gray-700)]">
+                  <FormattedGuideBody text={sctmOptimized.assessor_interrogation.test_procedures} bold />
+                </div>
               </div>
             )}
           </div>

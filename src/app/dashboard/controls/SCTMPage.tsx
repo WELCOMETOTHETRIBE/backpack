@@ -187,12 +187,12 @@ export function SCTMPage() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      {/* Header: families (sleek row) + filters + view */}
-      <header className="border-b border-[var(--color-border)]/50 bg-white px-6 py-4">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="min-w-0">
-            <p className="text-xs font-medium uppercase tracking-widest text-[var(--color-gray-400)] mb-2.5">Control families</p>
-            <div className="flex flex-wrap gap-1.5">
+      {/* Header: row 1 = families (spread, bigger); row 2 = tally + filters + view */}
+      <header className="border-b border-[var(--color-border)]/50 bg-white px-6 py-5">
+        <div className="flex flex-col gap-5">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-widest text-[var(--color-gray-400)] mb-3">Control families</p>
+            <div className="flex flex-wrap gap-3">
               {familyStats.map((f) => {
                 const isActive = family === f.code;
                 const pct = f.total ? Math.round((f.adjudicated / f.total) * 100) : 0;
@@ -202,41 +202,41 @@ export function SCTMPage() {
                     type="button"
                     onClick={() => setFamily(isActive ? null : f.code)}
                     title={`${f.name}: ${f.adjudicated}/${f.total}`}
-                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-150 ${
+                    className={`inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium transition-all duration-150 ${
                       isActive
                         ? "bg-[var(--color-primary)] text-white shadow-sm"
                         : "bg-[var(--color-gray-100)] text-[var(--color-gray-700)] hover:bg-[var(--color-gray-200)]"
                     }`}
                   >
                     <span className="font-mono font-semibold tabular-nums">{f.code}</span>
-                    <span className={`hidden sm:inline truncate max-w-[6.5rem] ${isActive ? "text-white/90" : "text-[var(--color-gray-600)]"}`} title={f.name}>
+                    <span className={`hidden sm:inline truncate max-w-[8rem] ${isActive ? "text-white/90" : "text-[var(--color-gray-600)]"}`} title={f.name}>
                       {f.name}
                     </span>
                     <span className={`tabular-nums ${isActive ? "text-white/80" : "text-[var(--color-gray-500)]"}`}>
                       {f.adjudicated}/{f.total}
                     </span>
                     {pct > 0 && (
-                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isActive ? "bg-white/60" : "bg-[var(--color-primary)]/60"}`} aria-hidden />
+                      <span className={`w-2 h-2 rounded-full shrink-0 ${isActive ? "bg-white/60" : "bg-[var(--color-primary)]/60"}`} aria-hidden />
                     )}
                   </button>
                 );
               })}
             </div>
           </div>
-          <div className="flex items-center gap-3 shrink-0">
-            <span className="text-xs text-[var(--color-gray-500)]">
+          <div className="flex flex-wrap items-center gap-4">
+            <span className="text-sm text-[var(--color-gray-500)]">
               <strong className="text-[var(--color-gray-800)]">{adjudicatedCount}</strong> adjudicated
-              <span className="mx-1.5 text-[var(--color-gray-300)]">·</span>
+              <span className="mx-2 text-[var(--color-gray-300)]">·</span>
               <strong className="text-[var(--color-gray-800)]">{outstandingCount}</strong> outstanding
             </span>
             <div className="h-4 w-px bg-[var(--color-border)]" aria-hidden />
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               {(["all", "configuration", "governance"] as const).map((t) => (
                 <button
                   key={t}
                   type="button"
                   onClick={() => setType(t)}
-                  className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
+                  className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
                     type === t ? "bg-[var(--color-gray-900)] text-white" : "text-[var(--color-gray-600)] hover:bg-[var(--color-gray-100)]"
                   }`}
                 >
@@ -244,11 +244,11 @@ export function SCTMPage() {
                 </button>
               ))}
             </div>
-            <div className="flex items-center gap-0.5">
+            <div className="flex items-center gap-1">
               <button
                 type="button"
                 onClick={() => setViewMode("list")}
-                className={`rounded-full p-1.5 transition-colors ${viewMode === "list" ? "bg-[var(--color-gray-900)] text-white" : "text-[var(--color-gray-500)] hover:bg-[var(--color-gray-100)]"}`}
+                className={`rounded-full p-2 transition-colors ${viewMode === "list" ? "bg-[var(--color-gray-900)] text-white" : "text-[var(--color-gray-500)] hover:bg-[var(--color-gray-100)]"}`}
                 title="List view"
                 aria-pressed={viewMode === "list"}
               >
@@ -257,7 +257,7 @@ export function SCTMPage() {
               <button
                 type="button"
                 onClick={() => setViewMode("grid")}
-                className={`rounded-full p-1.5 transition-colors ${viewMode === "grid" ? "bg-[var(--color-gray-900)] text-white" : "text-[var(--color-gray-500)] hover:bg-[var(--color-gray-100)]"}`}
+                className={`rounded-full p-2 transition-colors ${viewMode === "grid" ? "bg-[var(--color-gray-900)] text-white" : "text-[var(--color-gray-500)] hover:bg-[var(--color-gray-100)]"}`}
                 title="Grid view"
                 aria-pressed={viewMode === "grid"}
               >
