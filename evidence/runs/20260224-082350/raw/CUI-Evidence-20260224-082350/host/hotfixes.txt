@@ -1,0 +1,10 @@
+﻿
+HotFixID  Description     InstalledOn           InstalledBy        
+--------  -----------     -----------           -----------        
+KB5075898 Security Update 2/11/2026 12:00:00 AM NT AUTHORITY\SYSTEM
+KB5075899 Security Update 2/11/2026 12:00:00 AM NT AUTHORITY\SYSTEM
+KB5066131 Update          1/11/2026 12:00:00 AM                    
+
+
+
+

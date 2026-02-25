@@ -1,0 +1,24 @@
+{
+  "control_id": "CM.L2-3.4.8",
+  "run_id": "20260213-004723",
+  "evidence_dir": "\\Users\\patrick\\cui-pilot\\evidence\\runs\\20260213-004723\\raw\\CUI-Evidence-20260213-004723",
+  "artifact_files": [
+    {
+      "name": "installed-roles-features.txt",
+      "path": "\\Users\\patrick\\cui-pilot\\evidence\\runs\\20260213-004723\\raw\\CUI-Evidence-20260213-004723\\installed-roles-features.txt"
+    },
+    {
+      "name": "installed-software.txt",
+      "path": "\\Users\\patrick\\cui-pilot\\evidence\\runs\\20260213-004723\\raw\\CUI-Evidence-20260213-004723\\installed-software.txt"
+    },
+    {
+      "name": "manifest.txt",
+      "path": "\\Users\\patrick\\cui-pilot\\evidence\\runs\\20260213-004723\\raw\\CUI-Evidence-20260213-004723\\manifest.txt"
+    },
+    {
+      "name": "hashes.sha256.txt",
+      "path": "\\Users\\patrick\\cui-pilot\\evidence\\runs\\20260213-004723\\raw\\CUI-Evidence-20260213-004723\\hashes.sha256.txt"
+    }
+  ],
+  "generated_utc": "2026-02-13T03:38:08+00:00"
+}

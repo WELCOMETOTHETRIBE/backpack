@@ -1,0 +1,10 @@
+﻿
+
+EnableSecuritySignature  : False
+RequireSecuritySignature : True
+EncryptData              : False
+
+
+
+
+

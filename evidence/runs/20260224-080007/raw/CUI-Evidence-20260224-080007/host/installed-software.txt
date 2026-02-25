@@ -1,0 +1,11 @@
+﻿
+DisplayName                                                    DisplayVersion Publisher             InstallDate
+-----------                                                    -------------- ---------             -----------
+Microsoft Visual C++ 2022 X64 Additional Runtime - 14.38.33130 14.38.33130    Microsoft Corporation 20260212   
+Microsoft Visual C++ 2022 X64 Minimum Runtime - 14.38.33130    14.38.33130    Microsoft Corporation 20260212   
+Node.js                                                        24.13.0        Node.js Foundation    20260208   
+Pandoc 3.8.3                                                   3.8.3          John MacFarlane       20260209   
+
+
+
+

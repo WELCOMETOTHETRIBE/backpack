@@ -1,0 +1,10 @@
+﻿
+FileSystemRights AccessControlType IdentityReference      IsInherited InheritanceFlags PropagationFlags
+---------------- ----------------- -----------------      ----------- ---------------- ----------------
+     FullControl             Allow NT SERVICE\EventLog           True             None             None
+     FullControl             Allow NT AUTHORITY\SYSTEM           True             None             None
+     FullControl             Allow BUILTIN\Administrators        True             None             None
+
+
+
+

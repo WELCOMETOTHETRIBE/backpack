@@ -1,0 +1,844 @@
+﻿{
+    "bundle_root":  "C:\\\\evidence\\CUI-Evidence-20260224-082350",
+    "computer_name":  "cui-win-pilot-0",
+    "run_id":  "CUI-Evidence-20260224-082350",
+    "warnings":  [
+
+                 ],
+    "user":  "WORKGROUP\\admin_patrick",
+    "files":  [
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "apps\\applocker-policy.txt",
+                      "sha256":  "880907ce0f7a02cfa383e18f360e835ccc08b1c1f7b5b2c541c8528e90643b8c",
+                      "size_bytes":  502
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "audit\\auditpol-subcategories.txt",
+                      "sha256":  "0ed84d56004ccaf1cddd256b16fe4af77b5494b1305c7203796e47c8a9c66dab",
+                      "size_bytes":  4174
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "audit\\auditpol.txt",
+                      "sha256":  "80065e993c9039f2c09a5af8da49a3d6b49020b3450c2d2a5686e52f224ce304",
+                      "size_bytes":  4031
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "audit\\eventlog-4625-failed-logons.txt",
+                      "sha256":  "46e1a61705ec9d08bcc45d8ee916832fcfeac7ecea8ee020c6c3ec6140702ac3",
+                      "size_bytes":  2790
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "audit\\eventlog-application.txt",
+                      "sha256":  "f6eb1a2e981c63c6382ab909d22d9bb4e1f8d2d23d5d8560359cd74492b8ed5e",
+                      "size_bytes":  546
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "audit\\eventlog-security-sample.txt",
+                      "sha256":  "7c24109c621f6fd9d2f4e46581fdedb3776426b3753f765a4a112e9fae2e1378",
+                      "size_bytes":  63801
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "audit\\eventlog-security.txt",
+                      "sha256":  "d31fc571d1879876756e3b26861655eb9b97fb2647ba6a6e0d37f332b49cb3f6",
+                      "size_bytes":  331
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "audit\\eventlog-system-sample.txt",
+                      "sha256":  "e701cd4d5c9ef04b087f0ef97ede1dbc621c0a030e7e73e7951e34527eeaed73",
+                      "size_bytes":  12145
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "audit\\eventlog-system.txt",
+                      "sha256":  "26838714d05e58e2be5317dff1ceb5341b4cbb91c701ff4e17f4d2ba5503b736",
+                      "size_bytes":  415
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "audit\\security-evtx-acl.txt",
+                      "sha256":  "c0cb36376f7ce847900cc239294d70be6ecbe6c626f986c1ab14d4c0b8d0bf78",
+                      "size_bytes":  538
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "azure\\azure-artifacts-source.txt",
+                      "sha256":  "67e43f5d4eb0f800d2400acc8aeaf00359437052f26f1112f17151a7fcf9d27a",
+                      "size_bytes":  132
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "azure\\azure-inheritance.json",
+                      "sha256":  "deaac95e5db91b3033a59443edf64d6b68287d39838a76d0fe4d057f443e1426",
+                      "size_bytes":  416
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "crypto\\fips.txt",
+                      "sha256":  "00c14af4d1c03c800e114ad117a0e9db96a156bfe2370d6bfd78d3d336ab435b",
+                      "size_bytes":  396
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "crypto\\schannel-protocols.txt",
+                      "sha256":  "bbb1a47dd31296638cd644f9801ac1a2f32dde6aa48151629236f34d833f86d7",
+                      "size_bytes":  7051
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "crypto\\tls-ciphersuites.txt",
+                      "sha256":  "5bea246d866da752806a67c5ef8a9c04efeeb7d98f53ea22667fb87e67f5fee9",
+                      "size_bytes":  31
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "defender\\defender-preferences.txt",
+                      "sha256":  "5feff8a3910b12003a9f0e814bd962963030223f3b81d7637dd3faf5f2d3efdf",
+                      "size_bytes":  8558
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "defender\\defender-scan-ages.txt",
+                      "sha256":  "691cec3ba16656e6aed9654953488d3f67f80fc2b32968f5ab2847111431ce1d",
+                      "size_bytes":  99
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "defender\\defender-status.txt",
+                      "sha256":  "4664235dcf3e337c84cff69bbfcf44a81e0346ee33e5a0c7760f01b8873956c3",
+                      "size_bytes":  2672
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "defender\\defender-threat-detections.txt",
+                      "sha256":  "60116575bb1b6772ed22ba93bfa53bef0a772667da1812c1c3fc0a46cd93bc3e",
+                      "size_bytes":  7
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "host\\computerinfo.txt",
+                      "sha256":  "5aec882eee78cdbb878875292fc7f4155527fe02d99952a0786e5dd4bf6685fb",
+                      "size_bytes":  12899
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "host\\deviceguard.txt",
+                      "sha256":  "f4d06de639382333aeebc3c5a56b578634adfab9a1c4b43386e81d4c7cec9163",
+                      "size_bytes":  1202
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "host\\domain-status.txt",
+                      "sha256":  "8badf67037fb6bc6c943486e048f32a92b2f371a007a52c82f09637d6b5a3dba",
+                      "size_bytes":  135
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "host\\hotfixes.txt",
+                      "sha256":  "2f907e4a5b77f225652197cbd82e3d87eae7bd1adf429e8aae0e324d945a7632",
+                      "size_bytes":  358
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "host\\installed-roles-features.txt",
+                      "sha256":  "5089ab9cbe9700227523625d24ad9ccbe8053d276f17950134a2e09579924d7c",
+                      "size_bytes":  1021
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "host\\installed-software.txt",
+                      "sha256":  "1c37af6c47c432390e12ba40fe85dc3712f29201b90e206a013a5e401155f707",
+                      "size_bytes":  691
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "host\\secureboot.txt",
+                      "sha256":  "f5ba3b01a0efc4afcfd43792905a6f2ac05f9cd24b42c930417d17517aa7a874",
+                      "size_bytes":  11
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "host\\services-remote.txt",
+                      "sha256":  "fe2aaa8787996a89343683942f6a8b11fe835f70adc555f0a1d0cfce0b5d82bb",
+                      "size_bytes":  309
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "host\\services-security-relevant.txt",
+                      "sha256":  "938d6ba9197b013dad8786d720302a9554093c5fde2c95c90737eea18113e66a",
+                      "size_bytes":  11182
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "host\\systeminfo.txt",
+                      "sha256":  "b97c41db5b19016f6749d99b69fae90a1a0d3def550eb55cf9a84f536a205c59",
+                      "size_bytes":  2716
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "host\\time-sync.txt",
+                      "sha256":  "6d5fa112e584e069ce4bf1018885a695195f7f83572b1c5247a36fbc5ac452a8",
+                      "size_bytes":  1656
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "host\\tpm.txt",
+                      "sha256":  "ea8a2e06d9388ddb9b2c981262927462129d83cae01699226b870dee02c47a0b",
+                      "size_bytes":  771
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "host\\whoami-all.txt",
+                      "sha256":  "300d91d2cb8b62ddda8be3dbd856d6cc7953976a38f598c248b58fe532a4b1ab",
+                      "size_bytes":  5328
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "host\\windows-update-policy.txt",
+                      "sha256":  "3cd40abf73cdc49973712ecf66a0c587174c8ba52dd37cb5b4df0047b88b4142",
+                      "size_bytes":  633
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "host\\windows-update-services.txt",
+                      "sha256":  "8cf5fc5ff3768d2f83817f972f8b0ec00a410a46ca14062da5a6a2d5ace6f975",
+                      "size_bytes":  205
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "meta\\collector-transcript.txt",
+                      "sha256":  "a510f4ff243ad1e518bc9d964872fdc5ee01859c5472c1d2bdfcd86e10e45b5e",
+                      "size_bytes":  858
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "meta\\collector.json",
+                      "sha256":  "7d626a65f9acb00e4c968ed7c7651af4c999c26c459acbe9e56f31172d4d7085",
+                      "size_bytes":  480
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "meta\\control-mapping.stub.json",
+                      "sha256":  "5783ca3a2d38cff2289bc7f0bbf6caf233c4c05c3901b960e154d706d0628156",
+                      "size_bytes":  1467
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "network\\firewall-rules-summary.txt",
+                      "sha256":  "6497baf1269b1da14ebaaffedb845c4d1b382927aff403384593eec586beac81",
+                      "size_bytes":  39338
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "network\\firewall.txt",
+                      "sha256":  "d9d8b44a004cf6878c44a3ed3e22bd09d62cc5016db7397f2e4e1aad9cd068cf",
+                      "size_bytes":  498
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "network\\listening-ports.txt",
+                      "sha256":  "b688943426224d28039edc4d5378d9f67eea733ba37d0a5dc98c79a07bd2561e",
+                      "size_bytes":  963
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "network\\listening-processes.txt",
+                      "sha256":  "9f19bdb73a6ed93bb116c3521d9857d70fdaae04461e3c3a169812ee1b0427d7",
+                      "size_bytes":  1562
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "network\\name-resolution-policy.txt",
+                      "sha256":  "083a203fc781a8f64f135c32f021b5b2e31e52e23532e61d3c7e4c090505878e",
+                      "size_bytes":  2041
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "network\\rdp-policy.txt",
+                      "sha256":  "2a2023df330bb8dce701201a96eefa299f2c03fa6f38d995ce09e6fe88bbc555",
+                      "size_bytes":  1342
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "network\\rdp-tcp.txt",
+                      "sha256":  "83a123a15312481ee7bf89716b8f9a608cab1a61abd74d280ff5a0d0491def48",
+                      "size_bytes":  3563
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "network\\smb-client-config.txt",
+                      "sha256":  "104541ebb07f1586f24e66d03a93a739176c1c7b6713f3005a9c9b4595457bce",
+                      "size_bytes":  2122
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "network\\smb-server-config.txt",
+                      "sha256":  "f16c165c6924b981f1020627c4958206efd80b95deb2a89fa693cc5acc7271f8",
+                      "size_bytes":  2812
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "network\\smb-shares.txt",
+                      "sha256":  "92bc097f4a27103df9d4d8d647934be3633aeec767d4f162e2bd61fa3afbc614",
+                      "size_bytes":  331
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "network\\smb-signing.txt",
+                      "sha256":  "68f9e5834a59e574dc9597fbc6d0a8782fd6e507a2cef83fcf9a27763fb8d60b",
+                      "size_bytes":  118
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "network\\smb1-feature.txt",
+                      "sha256":  "7b3a7c4ade2eedf98133d76a38e4be2de5a15ced083ca5ec390e934c8548ec04",
+                      "size_bytes":  795
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "policy\\account-policy.txt",
+                      "sha256":  "e555ba7ee55c2b824df526c7139a7fa43c352ddd14a233988e0e4ac86284f6e7",
+                      "size_bytes":  571
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "policy\\auth-ux-policy.txt",
+                      "sha256":  "bd2d0c4046b8647f527fbe59ce079925bc1b86626a08df18d0e0d6b0ad5d1af0",
+                      "size_bytes":  942
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "policy\\gpresult-computer.txt",
+                      "sha256":  "c3f733daf658016694dcd1589cabbd9eed4394319a9dd12b14dc211d5842e26c",
+                      "size_bytes":  1330
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "policy\\gpresult-html-export.txt",
+                      "sha256":  "6d26d17b6b3779618070b74d98db9c30b4a9fd2ce442823fe372d3a8e5a6bef5",
+                      "size_bytes":  28
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "policy\\gpresult-user.txt",
+                      "sha256":  "05171d3c270920a9b1d7fea093ce16e75a9d1b4f5726214cacf40d61a6115a39",
+                      "size_bytes":  1728
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "policy\\gpresult-xml-export.txt",
+                      "sha256":  "6d26d17b6b3779618070b74d98db9c30b4a9fd2ce442823fe372d3a8e5a6bef5",
+                      "size_bytes":  28
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "policy\\gpresult.html",
+                      "sha256":  "e53eaacbfd79fa00d9259d6eb8e649428657ff9e30a9eb1bfa9c2d50bd175d73",
+                      "size_bytes":  202790
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "policy\\interactive-logon-notice.txt",
+                      "sha256":  "58fc16cd08f757b943ace43ca50a709e3bfd075b8053d4702e98b2f9e1527335",
+                      "size_bytes":  302
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "policy\\local-accounts.txt",
+                      "sha256":  "bdd8724c144c509fd3ab9c5bf076d979f422c66abe02e2d8bc6ade665e5b202c",
+                      "size_bytes":  307
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "policy\\local-admins.txt",
+                      "sha256":  "ec6a223783819a495ea73e5d74bfd5d5b532bebdcbb8c5994a4d628eac8682f6",
+                      "size_bytes":  423
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "policy\\local-groups.txt",
+                      "sha256":  "baba87c5ac0d8297ebeb3c0db95958543218952526d42db2a79418dd2e7d1daa",
+                      "size_bytes":  3522
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "policy\\local-remote-desktop-users.txt",
+                      "sha256":  "60116575bb1b6772ed22ba93bfa53bef0a772667da1812c1c3fc0a46cd93bc3e",
+                      "size_bytes":  7
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "policy\\lsa.txt",
+                      "sha256":  "2b52f48372b907c92d38b39f89fcd477c04a977a51d618a3e1c0d869ae751002",
+                      "size_bytes":  1135
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "policy\\machine-inactivity-limit.txt",
+                      "sha256":  "8a49005ed878d5a79d7474798d632cc5ef75f4f92b1f8452ac901fd8bb2e773c",
+                      "size_bytes":  46
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "policy\\ntlm-policy.txt",
+                      "sha256":  "74d37b2d890c7132257ac441d398c671863fa0f0cf0ae0aeb378183c2f06b9f5",
+                      "size_bytes":  1719
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "policy\\rsop.xml",
+                      "sha256":  "f6dc6328a22967fd26e311e148858aea41590e456c93570bc53e65bb7a34dfa5",
+                      "size_bytes":  52930
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "policy\\screensaver-policy.txt",
+                      "sha256":  "67442dea3b02c0dfaeeccc342d2d16f53bb76469089524318665b3eb0f225f42",
+                      "size_bytes":  98
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "policy\\secedit-export.txt",
+                      "sha256":  "e4d415a712216ba6ca18d2f61143eed4e8c0610b7475252fd4ecdf1ad8496ee0",
+                      "size_bytes":  203
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "policy\\secpol.cfg",
+                      "sha256":  "43f6a34966622ad123bc69ab2a8b07c9f67083f0dc3f2380d33a3d937d1697d2",
+                      "size_bytes":  15940
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "policy\\uac-policy.txt",
+                      "sha256":  "bd2d0c4046b8647f527fbe59ce079925bc1b86626a08df18d0e0d6b0ad5d1af0",
+                      "size_bytes":  942
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "policy\\user-rights-assignments.txt",
+                      "sha256":  "60116575bb1b6772ed22ba93bfa53bef0a772667da1812c1c3fc0a46cd93bc3e",
+                      "size_bytes":  7
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "storage\\bitlocker-status.txt",
+                      "sha256":  "39db7cb21e3643aee8e3fbdcc779886ebe5c1432ec6fb4bba02ecc1d7e4a0a97",
+                      "size_bytes":  341
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "storage\\removable-storage-policies.txt",
+                      "sha256":  "520ed5d2c57973ab9a04247e32bfd52d42669e2e685ee68ea66955d7659d4c5e",
+                      "size_bytes":  953
+                  },
+                  {
+                      "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+                      "path":  "storage\\usbstor.txt",
+                      "sha256":  "a5763444c0d7fcae496bc3ebc0631b43921507a88f0f383ae37ce331ba01cb8d",
+                      "size_bytes":  576
+                  }
+              ],
+    "command_results":  [
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "systeminfo",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\host\\systeminfo.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "computerinfo",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\host\\computerinfo.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "whoami_all",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\host\\whoami-all.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "domain_join_status",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\host\\domain-status.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "secureboot",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\host\\secureboot.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "tpm",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\host\\tpm.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "deviceguard",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\host\\deviceguard.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "timesync_w32tm",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\host\\time-sync.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "net_accounts",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\policy\\account-policy.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "local_accounts",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\policy\\local-accounts.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "local_groups",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\policy\\local-groups.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "local_admins",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\policy\\local-admins.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "remote_desktop_users",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\policy\\local-remote-desktop-users.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  "",
+                                "name":  "secedit_export",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\policy\\secedit-export.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "user_rights_assignments",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\policy\\user-rights-assignments.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "uac_policy",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\policy\\uac-policy.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "lsa",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\policy\\lsa.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "ntlm_policy",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\policy\\ntlm-policy.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "interactive_logon_notice",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\policy\\interactive-logon-notice.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "machine_inactivity_limit",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\policy\\machine-inactivity-limit.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "screensaver_policy",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\policy\\screensaver-policy.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "auth_ux_policy",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\policy\\auth-ux-policy.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "rdp_policy",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\network\\rdp-policy.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "rdp_tcp",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\network\\rdp-tcp.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  "",
+                                "name":  "gpresult_computer",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\policy\\gpresult-computer.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  "",
+                                "name":  "gpresult_user",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\policy\\gpresult-user.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  "",
+                                "name":  "gpresult_html",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\policy\\gpresult-html-export.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  "",
+                                "name":  "gpresult_xml",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\policy\\gpresult-xml-export.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "auditpol",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\audit\\auditpol.txt"
+                            },
+                            {
+                                "ok":  false,
+                                "error":  "Error 0x00000057 occurred:\r\r\nThe parameter is incorrect.\r\r\n\r\r\n",
+                                "name":  "auditpol_subcategories",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\audit\\auditpol-subcategories.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "eventlog_security_config",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\audit\\eventlog-security.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "eventlog_system_config",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\audit\\eventlog-system.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "eventlog_application_config",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\audit\\eventlog-application.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "security_evtx_acl",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\audit\\security-evtx-acl.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "eventlog_security_sample",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\audit\\eventlog-security-sample.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "eventlog_system_sample",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\audit\\eventlog-system-sample.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "failed_logons_4625_sample",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\audit\\eventlog-4625-failed-logons.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "firewall_profiles",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\network\\firewall.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "firewall_rules_summary",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\network\\firewall-rules-summary.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "listening_ports",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\network\\listening-ports.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "listening_processes",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\network\\listening-processes.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "name_resolution_policy",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\network\\name-resolution-policy.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "smb_server_config",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\network\\smb-server-config.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "smb_client_config",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\network\\smb-client-config.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "smb_signing",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\network\\smb-signing.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "smb_shares",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\network\\smb-shares.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "smb1_feature",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\network\\smb1-feature.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "fips",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\crypto\\fips.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "tls_ciphersuites",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\crypto\\tls-ciphersuites.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "schannel_protocols",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\crypto\\schannel-protocols.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "defender_status",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\defender\\defender-status.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "defender_preferences",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\defender\\defender-preferences.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "defender_threat_detections",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\defender\\defender-threat-detections.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "defender_scan_ages",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\defender\\defender-scan-ages.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "bitlocker_status",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\storage\\bitlocker-status.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "removable_storage_policies",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\storage\\removable-storage-policies.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "usbstor",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\storage\\usbstor.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "applocker_policy",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\apps\\applocker-policy.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "hotfixes",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\host\\hotfixes.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "installed_roles_features",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\host\\installed-roles-features.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "installed_software",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\host\\installed-software.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "services_security_relevant",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\host\\services-security-relevant.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "services_remote",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\host\\services-remote.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "windows_update_policy",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\host\\windows-update-policy.txt"
+                            },
+                            {
+                                "ok":  true,
+                                "error":  null,
+                                "name":  "windows_update_services",
+                                "file":  "C:\\\\evidence\\CUI-Evidence-20260224-082350\\host\\windows-update-services.txt"
+                            }
+                        ],
+    "is_admin":  true,
+    "schema":  "cui-evidence.manifest.v2",
+    "collected_at":  "2026-02-24T08:23:54.7176623+00:00"
+}

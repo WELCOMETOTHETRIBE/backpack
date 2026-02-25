@@ -1,0 +1,25 @@
+﻿
+
+AvailableSecurityProperties                  : {1, 2, 3, 5...}
+CodeIntegrityPolicyEnforcementStatus         : 2
+InstanceIdentifier                           : 4ff40742-2649-41b8-bdd1-e80fad1cce80
+RequiredSecurityProperties                   : {0}
+SecurityFeaturesEnabled                      : {0}
+SecurityServicesConfigured                   : {0}
+SecurityServicesRunning                      : {0}
+SmmIsolationLevel                            : 0
+UsermodeCodeIntegrityPolicyEnforcementStatus : 0
+Version                                      : 1.0
+VirtualizationBasedSecurityStatus            : 0
+VirtualMachineIsolation                      : False
+VirtualMachineIsolationProperties            : {0}
+PSComputerName                               : 
+CimClass                                     : root/Microsoft/Windows/DeviceGuard:Win32_DeviceGuard
+CimInstanceProperties                        : {AvailableSecurityProperties, CodeIntegrityPolicyEnforcementStatus, 
+                                               InstanceIdentifier, RequiredSecurityProperties...}
+CimSystemProperties                          : Microsoft.Management.Infrastructure.CimSystemProperties
+
+
+
+
+

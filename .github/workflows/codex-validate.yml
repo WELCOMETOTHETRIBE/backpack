@@ -1,0 +1,58 @@
+# C3PAO-ready evidence pipeline: schema validation, drift prevention, canonical index regeneration.
+# Run on push/PR to main (and optionally on schedule for evidence-period releases).
+
+name: Codex Validate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'TRUST_CODEX/tables/evidence-index.json'
+      - 'TRUST_CODEX/tables/SCTM_FULL_STATUS_LIST.csv'
+      - 'TRUST_CODEX/manual_app/manual-data.json'
+      - 'TRUST_CODEX/schemas/evidence-index.schema.yml'
+      - '.github/workflows/codex-validate.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'TRUST_CODEX/**'
+
+jobs:
+  validate-and-regenerate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install schema deps
+        run: pip install -r TRUST_CODEX/tools/requirements.txt
+
+      - name: Validate evidence index + SCTM + manual-data (no drift)
+        run: |
+          python TRUST_CODEX/tools/validate_codex_data.py
+        env:
+          # Optional: run from repo root so TRUST_CODEX paths resolve
+          TRUST_CODEX_DIR: ${{ github.workspace }}/TRUST_CODEX
+
+      - name: Regenerate EVIDENCE_INDEX.md from canonical index
+        run: |
+          python TRUST_CODEX/tools/build_evidence_index_md.py --trust-codex-dir TRUST_CODEX
+
+      - name: Regenerate control-implementation-map.json (SRM/export/packager)
+        run: |
+          python TRUST_CODEX/tools/build_control_implementation_map.py
+
+      - name: Regenerate CONTROL_CLOSEOUT_FROM_SCTM.md (single closeout view)
+        run: |
+          python TRUST_CODEX/tools/generate_closeout_from_sctm.py
+
+      - name: Fail if EVIDENCE_INDEX.md is out of date (drift)
+        run: |
+          git diff --exit-code TRUST_CODEX/tables/EVIDENCE_INDEX.md || (
+            echo "::error::EVIDENCE_INDEX.md is out of date. Regenerate with: python TRUST_CODEX/tools/build_evidence_index_md.py"
+            exit 1
+          )

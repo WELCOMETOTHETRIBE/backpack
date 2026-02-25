@@ -1,0 +1,17 @@
+{
+  "audit": "C3PAO-style interrogation of Auditor Manual (110 controls)",
+  "total_controls": 110,
+  "findings_count": 1,
+  "findings": [
+    {
+      "control_id": "(summary)",
+      "severity": "LOW",
+      "finding": "Many controls share the same status basis text (expected for bulk system-enforced; assessor may still demand per-control evidence artifact).",
+      "count_shared_basis_groups": 4
+    }
+  ],
+  "summary": {
+    "controls_with_all_required_fields": 110,
+    "controls_missing_anything": 0
+  }
+}

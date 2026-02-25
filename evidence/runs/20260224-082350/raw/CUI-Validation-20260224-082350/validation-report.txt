@@ -1,0 +1,50 @@
+﻿CUI Pilot Validation Report (read-only)
+Generated (UTC): 2026-02-24T08:24:58.9553895Z
+Computer: cui-win-pilot-0
+User: admin_patrick
+Evidence bundle: C:\evidence\CUI-Evidence-20260224-082350
+Evidence selection: Mode=explicit Provided=C:\\evidence\CUI-Evidence-20260224-082350 Exists=True
+Evidence selection note: Using explicitly provided -EvidenceDir.
+PASS: 40  FAIL: 0  TOTAL: 40
+
+Checks:
+[PASS] Evidence bundle selection (CM.L2-3.4.1) - EVIDENCE-BUNDLE | Observed: Mode=explicit; Provided=C:\\evidence\CUI-Evidence-20260224-082350; Exists=True; Resolved=C:\evidence\CUI-Evidence-20260224-082350 | Expected: Resolved evidence_dir present (for file-based requirements) | Evidence: C:\\evidence\\CUI-Evidence-<RunId>\\*
+[PASS] OS identified (CM.L2-3.4.1) - PLAT-OS | Observed: Microsoft Windows Server 2025 Datacenter | Expected: Windows Server 2025 Datacenter (pilot) | Evidence: systeminfo.txt (if collected)
+[PASS] FIPS mode enabled (SC.L2-3.13.11) - CRYPTO-FIPS | Observed: Enabled=1 | Expected: Enabled=1 | Evidence: reg query ...\\FipsAlgorithmPolicy (fips.txt)
+[PASS] TLS baseline (1.0/1.1 disabled; 1.2 enabled) (SC.L2-3.13.8) - CRYPTO-TLS | Observed: TLS10 C/S=0/0; TLS11 C/S=0/0; TLS12 C/S=1/1 | Expected: TLS 1.0/1.1 Enabled=0; TLS 1.2 Enabled=1 | Evidence: schannel-protocols.txt (if collected)
+[PASS] Windows firewall baseline (block inbound, allow outbound) (SC.L2-3.13.6) - NET-FW | Observed: Domain: Enabled=True In=Block Out=Allow LogBlocked=True LogAllowed=True; Private: Enabled=True In=Block Out=Allow LogBlocked=True LogAllowed=True; Public: Enabled=True In=Block Out=Allow LogBlocked=True LogAllowed=True | Expected: Enabled=True; In=Block; Out=Allow | Evidence: firewall.txt
+[PASS] WinRM disabled (pilot posture) (AC.L2-3.1.12) - RM-WINRM | Observed: Status=Stopped; StartType=Disabled | Expected: Not Running; Disabled | Evidence: services-remote.txt (if collected)
+[PASS] Account lockout threshold set (not 'Never') (AC.L2-3.1.8) - LOCKOUT | Observed: Lockout threshold: 5 | Expected: A finite threshold is configured | Evidence: net-accounts.txt / account-policy.txt
+[PASS] UAC prompts enabled for administrators (ConsentPromptBehaviorAdmin=2; PromptOnSecureDesktop=1) (AC.L2-3.1.5) - UAC-PROMPT | Observed: ConsentPromptBehaviorAdmin=2; PromptOnSecureDesktop=1 | Expected: 2 and 1 | Evidence: uac-policy.txt
+[PASS] Interactive logon notice configured (caption + text present) (AC.L2-3.1.9) - LEGALNOTICE | Observed: CaptionLen=19; TextLen=176 | Expected: Both non-empty | Evidence: interactive-logon-notice.txt
+[PASS] Azure inheritance/shared responsibility artifact present (boundary statement recorded) (AC.L2-3.1.1) - AZ-INHERITANCE | Observed: azure-inheritance.json present | Expected: azure-inheritance.json present with boundary_statement | Evidence: azure-inheritance.json (copied into evidence bundle)
+[PASS] Machine inactivity limit configured (InactivityTimeoutSecs > 0) (AC.L2-3.1.11) - INACTIVITY | Observed: InactivityTimeoutSecs=900 | Expected: > 0 | Evidence: machine-inactivity-limit.txt
+[PASS] Session lock configured (secure screen saver enabled with timeout) (AC.L2-3.1.10) - SESSION-LOCK | Observed: Active=1; Secure=1; Timeout=900 | Expected: Active=1; Secure=1; Timeout>0 | Evidence: screensaver-policy.txt
+[PASS] RDP redirection disabled (clipboard + drive) and NLA enabled (AC.L2-3.1.3) - RDP-REDIR | Observed: fDisableClip=1 (1=disable,0=allow); fDisableCdm=1 (1=disable,0=allow); NLA(UserAuthentication)=1 (1=enabled) | Expected: fDisableClip=1; fDisableCdm=1; NLA=1 | Evidence: rdp-policy.txt + rdp-tcp.txt
+[PASS] RDP session limits set (idle/disconnect/connection time; session ended after disconnect) (AC.L2-3.1.11) - RDP-SESSION-LIMITS | Observed: MaxIdleTime=900000ms; MaxDisconnectionTime=300000ms; MaxConnectionTime=28800000ms | Expected: All > 0 (session terminated after disconnect -> re-auth on reconnect) | Evidence: rdp-tcp.txt
+[PASS] Security audit log enabled (baseline) (AU.L2-3.3.1) - AU-SECLOG | Observed: enabled: true | Expected: enabled: true | Evidence: eventlog-security.txt + auditpol.txt
+[PASS] Audit policy queryable (auditpol output present) (AU.L2-3.3.1) - AU-AUDITPOL | Observed: Length=4026 | Expected: Non-empty auditpol output | Evidence: auditpol.txt
+[PASS] Audit policy subcategories enabled (Success and Failure) for key areas (AU.L2-3.3.1) - AU-SUBCATS | Observed: All required subcategories set to Success and Failure. | Expected: Key subcategories set to Success and Failure | Evidence: auditpol-subcategories.txt
+[PASS] Event log max sizes meet pilot baseline (Security>=256MB; System/App>=64MB) (AU.L2-3.3.1) - AU-LOGSIZE | Observed: Security=268435456; System=67108864; Application=67108864 | Expected: Security>=268435456; System>=67108864; Application>=67108864 | Evidence: eventlog-security.txt + eventlog-system.txt + eventlog-application.txt
+[PASS] Time synchronization configured (W32Time running; source not Local CMOS Clock) (AU.L2-3.3.7) - TIME-SYNC | Observed: W32Time=Running; Source=VM IC Time Synchronization Provider | Expected: W32Time=Running; Source != Local CMOS Clock | Evidence: time-sync.txt
+[PASS] Local security policy export present in evidence bundle (secpol.cfg) (CM.L2-3.4.2) - SECPOL-EXPORTED | Observed: secpol.cfg present | Expected: secpol.cfg present | Evidence: secpol.cfg (in evidence bundle)
+[PASS] Local security policy export parseable (System Access + Privilege Rights sections present) (CM.L2-3.4.2) - SECPOL-PARSED | Observed: SystemAccess=True; PrivilegeRights=True | Expected: Both sections present | Evidence: secpol.cfg
+[PASS] Guest account disabled (baseline identity hygiene) (IA.L2-3.5.1) - GUEST-DISABLED | Observed: Guest Disabled=True | Expected: Guest Disabled=True | Evidence: local-accounts.txt / secpol.cfg
+[PASS] Automatic logon disabled (AutoAdminLogon not enabled) (IA.L2-3.5.1) - NO-AUTOLOGON | Observed: AutoAdminLogon=0 | Expected: AutoAdminLogon != 1 | Evidence: registry Winlogon AutoAdminLogon
+[PASS] Network boundary enforced (firewall baseline in effect) (SC.L2-3.13.1) - SC-COMMS | Observed: See NET-FW check | Expected: Firewall baseline PASS | Evidence: firewall.txt + firewall-rules-summary.txt
+[PASS] SMB signing required (server + workstation RequireSecuritySignature=1) (SC.L2-3.13.1) - SMB-SIGN | Observed: ServerRequire=1; WorkstationRequire=1 | Expected: ServerRequire=1; WorkstationRequire=1 | Evidence: smb-signing.txt
+[PASS] Update services enabled (wuauserv/bits not disabled) (SI.L2-3.14.1) - WU-SERVICES | Observed: wuauserv=Running/Manual; bits=Stopped/Manual | Expected: StartType != Disabled | Evidence: windows-update-services.txt + windows-update-policy.txt
+[PASS] Malicious code protection enabled (Defender real-time protection) (SI.L2-3.14.2) - DEFENDER-ON | Observed: RealTimeProtectionEnabled=True | Expected: RealTimeProtectionEnabled=True | Evidence: defender-status.txt
+[PASS] Malicious code protection updated (Defender signature age <= 7 days) (SI.L2-3.14.4) - DEFENDER-UPDATES | Observed: AntivirusSignatureAge=0 | Expected: <= 7 | Evidence: defender-status.txt
+[PASS] Obscure authentication feedback (Don't display last username) (IA.L2-3.5.11) - AUTH-UX | Observed: DontDisplayLastUserName=1 | Expected: DontDisplayLastUserName=1 | Evidence: auth-ux-policy.txt
+[PASS] NTLMv2-only posture (LmCompatibilityLevel=5; NoLmHash=1) (IA.L2-3.5.10) - NTLMV2 | Observed: LmCompatibilityLevel=5; NoLmHash=1 | Expected: LmCompatibilityLevel=5; NoLmHash=1 | Evidence: ntlm-policy.txt
+[PASS] LSA protection enabled (RunAsPPL) (SI.L2-3.14.6) - LSA-PPL | Observed: RunAsPPL=1 | Expected: RunAsPPL=1 | Evidence: lsa.txt
+[PASS] USB mass storage disabled (USBSTOR Start=4) (MP.L2-3.8.7) - USBSTOR | Observed: USBSTOR Start=4 | Expected: USBSTOR Start=4 | Evidence: usbstor.txt
+[PASS] Portable storage limited (USB mass storage disabled) (AC.L2-3.1.21) - PORTABLE-STORAGE | Observed: USBSTOR Start=4; RemovableStoragePolicyKey=False | Expected: USBSTOR Start=4 | Evidence: usbstor.txt + removable-storage-policies.txt
+[PASS] SMB1 disabled (server + client) (SC.L2-3.13.8) - SMB1 | Observed: SMB1Protocol=DisabledWithPayloadRemoved | Expected: SMB1Protocol feature Disabled | Evidence: DISM / Get-WindowsOptionalFeature output (not currently collected)
+[PASS] Local Administrators group does not include broad principals (Everyone/Users) (CM.L2-3.4.5) - LOCAL-ADMINS | Observed: No broad principals detected. | Expected: No Everyone/Users in Administrators | Evidence: local-admins.txt
+[PASS] Application Identity service enabled (AppIDSvc not Disabled) (CM.L2-3.4.8) - APPIDSVC | Observed: Status=Running; StartType=Automatic | Expected: StartType != Disabled | Evidence: services-security-relevant.txt
+[PASS] AppLocker effective policy present (rules exported) (CM.L2-3.4.8) - APPLOCKER | Observed: XML=True; Rules=True; EnforcementModeEnabled=False | Expected: AppLockerPolicy XML with RuleCollection(s) | Evidence: applocker-policy.txt
+[PASS] BitLocker enabled for OS volume (C: fully encrypted; protection on) (MP.L2-3.8.1) - BITLOCKER-OS | Observed: C: Fully Encrypted; Protection On | Expected: C: Fully Encrypted and Protection On | Evidence: bitlocker-status.txt
+[PASS] Local account policy captured (informational) (IA.L2-3.5.7) - ACCT-POLICY | Observed: Captured net accounts output | Expected: Policy visible for review | Evidence: net-accounts.txt
+[PASS] Password reuse prohibited (password history >= 24) (IA.L2-3.5.8) - PW-HISTORY | Observed: History=24 | Expected: History >= 24 | Evidence: net-accounts.txt

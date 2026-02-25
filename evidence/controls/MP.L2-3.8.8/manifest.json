@@ -1,0 +1,16 @@
+{
+  "control_id": "MP.L2-3.8.8",
+  "run_id": "20260213-004723",
+  "evidence_dir": "\\Users\\patrick\\cui-pilot\\evidence\\runs\\20260213-004723\\raw\\CUI-Evidence-20260213-004723",
+  "artifact_files": [
+    {
+      "name": "usbstor.txt",
+      "path": "\\Users\\patrick\\cui-pilot\\evidence\\runs\\20260213-004723\\raw\\CUI-Evidence-20260213-004723\\usbstor.txt"
+    },
+    {
+      "name": "bitlocker-status.txt",
+      "path": "\\Users\\patrick\\cui-pilot\\evidence\\runs\\20260213-004723\\raw\\CUI-Evidence-20260213-004723\\bitlocker-status.txt"
+    }
+  ],
+  "generated_utc": "2026-02-13T03:38:08+00:00"
+}

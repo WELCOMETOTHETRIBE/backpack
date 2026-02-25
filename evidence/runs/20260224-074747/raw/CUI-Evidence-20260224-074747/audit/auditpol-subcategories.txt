@@ -1,0 +1,6 @@
+﻿ERROR running auditpol_subcategories: Error 0x00000057 occurred:
+at <ScriptBlock>, C:\hardening\codex-scripts\Collect-Cui-Evidence-v2.ps1: line 294
+at Run-And-Capture, C:\hardening\codex-scripts\Collect-Cui-Evidence-v2.ps1: line 56
+at <ScriptBlock>, C:\hardening\codex-scripts\Collect-Cui-Evidence-v2.ps1: line 294
+at <ScriptBlock>, C:\hardening\codex-scripts\Run-CuiBulkEvidenceAndValidate-RunId.ps1: line 31
+

@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SW + Cache Reset</title>
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 24px; line-height: 1.4; }
+      pre { background: #111827; color: #e5e7eb; padding: 12px; border-radius: 8px; overflow: auto; }
+      a { color: #2563eb; }
+    </style>
+  </head>
+  <body>
+    <h2>Reset local Service Worker + Cache</h2>
+    <p id="status">Running…</p>
+    <pre id="log"></pre>
+    <p>
+      After this finishes, open
+      <a href="/manual_app/index.html?v=20260208-29">`/manual_app/index.html?v=20260208-29`</a>.
+    </p>
+
+    <script>
+      (function () {
+        var statusEl = document.getElementById('status');
+        var logEl = document.getElementById('log');
+        function log(msg) {
+          try { logEl.textContent += String(msg) + "\n"; } catch (e) {}
+        }
+
+        function done(ok, msg) {
+          statusEl.textContent = msg;
+          if (ok) {
+            statusEl.style.color = '#065f46';
+          } else {
+            statusEl.style.color = '#991b1b';
+          }
+        }
+
+        try {
+          var hasSW = !!(navigator && navigator.serviceWorker && navigator.serviceWorker.getRegistrations);
+          var hasCaches = !!(window && window.caches && window.caches.keys);
+          log("serviceWorker supported: " + hasSW);
+          log("cache storage supported: " + hasCaches);
+
+          if (!hasSW && !hasCaches) {
+            done(false, "Nothing to clear in this browser.");
+            return;
+          }
+
+          var p = Promise.resolve();
+          if (hasSW) {
+            p = p.then(function () {
+              return navigator.serviceWorker.getRegistrations().then(function (regs) {
+                log("registrations: " + (regs ? regs.length : 0));
+                var ops = [];
+                for (var i = 0; i < (regs || []).length; i++) {
+                  ops.push(regs[i].unregister());
+                }
+                return Promise.all(ops).then(function () {
+                  log("unregistered all service workers");
+                });
+              });
+            });
+          }
+          if (hasCaches) {
+            p = p.then(function () {
+              return caches.keys().then(function (keys) {
+                log("cache keys: " + (keys ? keys.length : 0));
+                var dels = [];
+                for (var i = 0; i < (keys || []).length; i++) {
+                  dels.push(caches.delete(keys[i]));
+                }
+                return Promise.all(dels).then(function () {
+                  log("deleted all caches");
+                });
+              });
+            });
+          }
+
+          p.then(function () {
+            done(true, "Cleared. Now open the manual link above (or reload your manual tab).");
+          }).catch(function (e) {
+            done(false, "Failed: " + (e && e.message ? e.message : e));
+            log(String(e && e.stack ? e.stack : e));
+          });
+        } catch (e) {
+          done(false, "Failed: " + (e && e.message ? e.message : e));
+        }
+      })();
+    </script>
+  </body>
+</html>
+

@@ -1,0 +1,892 @@
+{
+  "audit": "C3PAO Snuff Test \u2014 examine every control for assessor defensibility",
+  "generated_utc": "2026-02-12T09:43:50.779352+00:00",
+  "total_controls": 110,
+  "summary": {
+    "PASS": 110,
+    "WARN": 0,
+    "FAIL": 0
+  },
+  "results": [
+    {
+      "control_id": "AC.L2-3.1.1",
+      "title": "Limit system access to authorized users, processes, devices",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "AC.L2-3.1.10",
+      "title": "Session lock",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "AC.L2-3.1.11",
+      "title": "Automatic session termination",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "AC.L2-3.1.12",
+      "title": "Monitor remote access",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "AC.L2-3.1.13",
+      "title": "Cryptographic remote access",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "AC.L2-3.1.14",
+      "title": "Managed access control points",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "AC.L2-3.1.15",
+      "title": "Authorize remote privileged commands",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "AC.L2-3.1.16",
+      "title": "Authorize wireless access",
+      "classification": "Not Applicable",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "AC.L2-3.1.17",
+      "title": "Protect wireless access",
+      "classification": "Not Applicable",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "AC.L2-3.1.18",
+      "title": "Control mobile devices",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "AC.L2-3.1.19",
+      "title": "Encrypt CUI on mobile devices",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "AC.L2-3.1.2",
+      "title": "Limit access to transactions/functions",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "AC.L2-3.1.20",
+      "title": "Verify external systems",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "AC.L2-3.1.21",
+      "title": "Limit portable storage",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "AC.L2-3.1.22",
+      "title": "Control CUI on public systems",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "AC.L2-3.1.3",
+      "title": "Control flow of CUI",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "AC.L2-3.1.4",
+      "title": "Separate duties",
+      "classification": "Governance / Policy (Class B)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "AC.L2-3.1.5",
+      "title": "Least privilege",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "AC.L2-3.1.6",
+      "title": "Non-privileged accounts",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "AC.L2-3.1.7",
+      "title": "Prevent privileged function execution",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "AC.L2-3.1.8",
+      "title": "Limit unsuccessful logon attempts",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "AC.L2-3.1.9",
+      "title": "Privacy/security notices",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "AT.L2-3.2.1",
+      "title": "Security awareness",
+      "classification": "Governance / Policy (Class B)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "AT.L2-3.2.2",
+      "title": "Security training",
+      "classification": "Governance / Policy (Class B)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "AT.L2-3.2.3",
+      "title": "Insider threat awareness",
+      "classification": "Governance / Policy (Class B)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "AU.L2-3.3.1",
+      "title": "Create and retain audit logs",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "AU.L2-3.3.2",
+      "title": "Unique user traceability",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "AU.L2-3.3.3",
+      "title": "Review and update logged events",
+      "classification": "Governance / Policy (Class B)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "AU.L2-3.3.4",
+      "title": "Alert on audit logging failure",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "AU.L2-3.3.5",
+      "title": "Correlate audit records",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "AU.L2-3.3.6",
+      "title": "Audit record reduction/reporting",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "AU.L2-3.3.7",
+      "title": "System clock synchronization",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "AU.L2-3.3.8",
+      "title": "Protect audit information",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "AU.L2-3.3.9",
+      "title": "Limit audit logging management",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "CA.L2-3.12.1",
+      "title": "Periodically assess security controls",
+      "classification": "Governance / Policy (Class B)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "CA.L2-3.12.2",
+      "title": "Develop and implement POA&M",
+      "classification": "Governance / Policy (Class B)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "CA.L2-3.12.3",
+      "title": "Monitor security controls",
+      "classification": "Governance / Policy (Class B)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "CA.L2-3.12.4",
+      "title": "Develop/update SSP",
+      "classification": "Governance / Policy (Class B)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "CM.L2-3.4.1",
+      "title": "Baseline configurations",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "CM.L2-3.4.2",
+      "title": "Security configuration settings",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "CM.L2-3.4.3",
+      "title": "Change control",
+      "classification": "Governance / Policy (Class B)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "CM.L2-3.4.4",
+      "title": "Security impact analysis",
+      "classification": "Governance / Policy (Class B)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "CM.L2-3.4.5",
+      "title": "Change access restrictions",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "CM.L2-3.4.6",
+      "title": "Least functionality",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "CM.L2-3.4.7",
+      "title": "Restrict nonessential programs",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "CM.L2-3.4.8",
+      "title": "Software restriction policy",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "CM.L2-3.4.9",
+      "title": "Control user-installed software",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "IA.L2-3.5.1",
+      "title": "Identify users",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "IA.L2-3.5.10",
+      "title": "Cryptographically-protected passwords",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "IA.L2-3.5.11",
+      "title": "Obscure authentication feedback",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "IA.L2-3.5.2",
+      "title": "Authenticate users",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "IA.L2-3.5.3",
+      "title": "MFA for privileged accounts",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "IA.L2-3.5.4",
+      "title": "Replay-resistant authentication",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "IA.L2-3.5.5",
+      "title": "Prevent identifier reuse",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "IA.L2-3.5.6",
+      "title": "Disable identifiers after inactivity",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "IA.L2-3.5.7",
+      "title": "Password complexity",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "IA.L2-3.5.8",
+      "title": "Prohibit password reuse",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "IA.L2-3.5.9",
+      "title": "Temporary passwords",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "IR.L2-3.6.1",
+      "title": "Operational incident-handling capability",
+      "classification": "Governance / Policy (Class B)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "IR.L2-3.6.2",
+      "title": "Track, document, and report incidents",
+      "classification": "Governance / Policy (Class B)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "IR.L2-3.6.3",
+      "title": "Test incident response capability",
+      "classification": "Governance / Policy (Class B)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "MA.L2-3.7.1",
+      "title": "Perform maintenance",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "MA.L2-3.7.2",
+      "title": "Controls on maintenance tools",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "MA.L2-3.7.3",
+      "title": "Sanitize equipment for off-site maintenance",
+      "classification": "Not Applicable",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "MA.L2-3.7.4",
+      "title": "Check maintenance media",
+      "classification": "Not Applicable",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "MA.L2-3.7.5",
+      "title": "MFA for nonlocal maintenance",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "MA.L2-3.7.6",
+      "title": "Supervise maintenance personnel",
+      "classification": "Governance / Policy (Class B)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "MP.L2-3.8.1",
+      "title": "Protect system media",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "MP.L2-3.8.2",
+      "title": "Limit access to CUI on media",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "MP.L2-3.8.3",
+      "title": "Sanitize/destroy media",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "MP.L2-3.8.4",
+      "title": "Mark media with CUI markings",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "MP.L2-3.8.5",
+      "title": "Control access during transport",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "MP.L2-3.8.6",
+      "title": "Cryptographic protection on digital media",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "MP.L2-3.8.7",
+      "title": "Control removable media",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "MP.L2-3.8.8",
+      "title": "Prohibit portable storage without owner",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "MP.L2-3.8.9",
+      "title": "Protect backup CUI",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "PE.L2-3.10.1",
+      "title": "Limit physical access",
+      "classification": "Inherited",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "PE.L2-3.10.2",
+      "title": "Protect and monitor facility",
+      "classification": "Inherited",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "PE.L2-3.10.3",
+      "title": "Escort and monitor visitors",
+      "classification": "Inherited",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "PE.L2-3.10.4",
+      "title": "Physical access audit logs",
+      "classification": "Inherited",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "PE.L2-3.10.5",
+      "title": "Control physical access devices",
+      "classification": "Inherited",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "PE.L2-3.10.6",
+      "title": "Safeguarding at alternate work sites",
+      "classification": "Not Applicable",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "PS.L2-3.9.1",
+      "title": "Screen individuals prior to access",
+      "classification": "Governance / Policy (Class B)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "PS.L2-3.9.2",
+      "title": "Protect systems during/after personnel actions",
+      "classification": "Governance / Policy (Class B)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "RA.L2-3.11.1",
+      "title": "Periodically assess risk",
+      "classification": "Governance / Policy (Class B)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "RA.L2-3.11.2",
+      "title": "Scan for vulnerabilities",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "RA.L2-3.11.3",
+      "title": "Remediate vulnerabilities",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "SC.L2-3.13.1",
+      "title": "Monitor/control/protect communications",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "SC.L2-3.13.10",
+      "title": "Cryptographic key management",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "SC.L2-3.13.11",
+      "title": "FIPS-validated cryptography",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "SC.L2-3.13.12",
+      "title": "Collaborative computing devices",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "SC.L2-3.13.13",
+      "title": "Control mobile code",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "SC.L2-3.13.14",
+      "title": "Control VoIP",
+      "classification": "Not Applicable",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "SC.L2-3.13.15",
+      "title": "Protect authenticity of communications",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "SC.L2-3.13.16",
+      "title": "Protect CUI at rest",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "SC.L2-3.13.2",
+      "title": "Architectural designs",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "SC.L2-3.13.3",
+      "title": "Separate user/system management",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "SC.L2-3.13.4",
+      "title": "Prevent unauthorized information transfer",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "SC.L2-3.13.5",
+      "title": "Implement subnetworks",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "SC.L2-3.13.6",
+      "title": "Deny-by-default network communications",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "SC.L2-3.13.7",
+      "title": "Prevent remote device dual connections",
+      "classification": "Not Applicable",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "SC.L2-3.13.8",
+      "title": "Cryptographic mechanisms for CUI in transit",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "SC.L2-3.13.9",
+      "title": "Terminate network connections",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "SI.L2-3.14.1",
+      "title": "Identify/report/correct flaws",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "SI.L2-3.14.2",
+      "title": "Malicious code protection",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "SI.L2-3.14.3",
+      "title": "Monitor security alerts",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "SI.L2-3.14.4",
+      "title": "Update malicious code protection",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "SI.L2-3.14.5",
+      "title": "Periodic/real-time scans",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "SI.L2-3.14.6",
+      "title": "Monitor systems and communications",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    },
+    {
+      "control_id": "SI.L2-3.14.7",
+      "title": "Identify unauthorized use",
+      "classification": "System-Enforced (Class A)",
+      "result": "PASS",
+      "reasons": [],
+      "remediation": ""
+    }
+  ]
+}

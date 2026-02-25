@@ -1,0 +1,996 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>Trust Codex Manual — Control Adjudication</title>
+    <link rel="stylesheet" href="styles.css?v=20260211-20" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-title">Trust Codex Manual</div>
+          <div class="brand-subtitle">Step-by-step control adjudication workflow</div>
+        </div>
+        <div class="topbar-actions">
+          <div class="tabs" role="tablist" aria-label="Manual navigation">
+            <button class="tab active" id="tabDashboard" role="tab" aria-selected="true">Onboarding</button>
+            <button class="tab" id="tabControls" role="tab" aria-selected="false">Auditor Manual</button>
+            <button class="tab" id="tabGovernance" role="tab" aria-selected="false">Governance</button>
+            <button class="tab" id="tabPoam" role="tab" aria-selected="false">POA&amp;M</button>
+            <button class="tab" id="tabConMon" role="tab" aria-selected="false">ConMon</button>
+            <button class="tab" id="tabAudit" role="tab" aria-selected="false">Audit logs</button>
+            <button class="tab" id="tabAv" role="tab" aria-selected="false">Antivirus</button>
+            <button class="tab" id="tabSsp" role="tab" aria-selected="false">SSP</button>
+            <button class="tab" id="tabExports" role="tab" aria-selected="false">Exports</button>
+          </div>
+          <button id="btnDocs" class="btn btn-secondary" title="Open quick documentation and definitions">Docs</button>
+
+          <details class="toolsMenu" id="toolsMenu">
+            <summary class="btn btn-secondary" title="Export / Import / Reset local progress">Tools</summary>
+            <div class="toolsPanel">
+              <button id="btnExport" class="btn" title="Download your current manual progress as JSON">Export progress</button>
+              <label class="btn btn-secondary" title="Import a previously exported progress JSON into this browser">
+                Import progress
+                <input id="fileImport" type="file" accept="application/json" hidden />
+              </label>
+              <a
+                class="btn btn-secondary"
+                href="/manual_app/sw-kill.html"
+                title="Clear service worker + cache if you are stuck on an old build"
+              >
+                Reset cache
+              </a>
+              <button id="btnReset" class="btn btn-danger" title="Clear this browser's saved progress (localStorage)">Reset local progress</button>
+            </div>
+          </details>
+        </div>
+      </header>
+
+      <div class="layout">
+        <aside class="sidebar" id="sidebar">
+          <div class="panel">
+            <div class="panel-title">Find controls</div>
+            <input id="q" class="input" placeholder="Search (control_id, title, keywords)" />
+
+            <div class="filters">
+              <div class="field">
+                <label class="label" for="filterFamily">Family</label>
+                <select id="filterFamily" class="select"></select>
+              </div>
+              <div class="field">
+                <label class="label" for="filterClass">Classification</label>
+                <select id="filterClass" class="select"></select>
+              </div>
+              <div class="field">
+                <label class="label" for="filterAdjudicated">Adjudicated</label>
+                <select id="filterAdjudicated" class="select">
+                  <option value="all">All</option>
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="actionRow" style="margin-top:10px">
+              <span class="label" style="margin:0">Quick view</span>
+              <button id="btnQuickAll" class="pillBtn" title="Show all controls (adjudicated + outstanding)">All</button>
+              <button id="btnQuickOutstanding" class="pillBtn" title="Show only outstanding (not yet adjudicated)">Outstanding</button>
+              <button id="btnQuickAdjudicated" class="pillBtn" title="Show only adjudicated controls">Adjudicated</button>
+            </div>
+
+            <div class="stats" id="stats"></div>
+            <div class="hint">
+              Tip: use <span class="kbd">↑</span>/<span class="kbd">↓</span> to move selection,
+              <span class="kbd">Enter</span> to open.
+            </div>
+          </div>
+
+          <div class="list" id="list"></div>
+        </aside>
+
+        <main class="main">
+          <div class="main-inner">
+            <div class="main-actions" id="mainActions">
+              <button id="btnPrev" class="btn btn-secondary">Previous</button>
+              <button id="btnNext" class="btn btn-secondary">Next</button>
+              <button id="btnOpenEvidenceIndex" class="btn btn-secondary">Evidence Index</button>
+              <button id="btnOpenSctm" class="btn btn-secondary">SCTM GUI</button>
+              <button id="btnOpenCodexViewer" class="btn btn-secondary">Codex Viewer</button>
+            </div>
+
+            <!-- Onboarding (replaces Dashboard) -->
+            <section class="card" id="viewDashboard">
+              <div class="hero">
+                <div>
+                  <div class="hero-title">CMMC Accelerator onboarding</div>
+                  <div class="callout subtle onbHeroBanner" id="onbBanner"> </div>
+                  <div class="hero-sub">
+                    Complete the steps below to adjudicate all 110 NIST 800-171 Rev.2 requirements with auditor-defensible evidence.
+                  </div>
+                </div>
+                <div class="hero-actions">
+                  <button id="btnOnboardingGoNext" class="btn">Next step</button>
+                </div>
+              </div>
+
+              <div class="onb-wideIntro" id="onbWideIntro"></div>
+
+              <div class="onb">
+                <div class="onb-nav">
+                  <div class="onb-steps-title">Onboarding steps</div>
+                  <button class="onb-step active" data-onb-step="identify">
+                    <div class="t">1) Identify (Attestee)</div>
+                    <div class="s">Who is signing / owning compliance</div>
+                  </button>
+                  <button class="onb-step" data-onb-step="srm">
+                    <div class="t">2) SRM (Inherited + N/A)</div>
+                    <div class="s">Verify boundary; retain provider/customer evidence</div>
+                  </button>
+                  <button class="onb-step" data-onb-step="verify">
+                    <div class="t">3) Verify hardening + auditing</div>
+                    <div class="s">Run collectors; see what’s outstanding</div>
+                  </button>
+                  <button class="onb-step" data-onb-step="review">
+                    <div class="t">4) Review Policies & SOPs</div>
+                    <div class="s">Document-by-document sign-off</div>
+                  </button>
+                  <button class="onb-step" data-onb-step="ingest_finalize">
+                    <div class="t">5) Ingest & finalize</div>
+                    <div class="s">Link evidence to controls; export package</div>
+                  </button>
+                </div>
+
+                <div class="onb-body">
+                  <div id="onbContent"></div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Family overview -->
+            <section class="card hidden" id="viewFamily">
+              <div class="hero">
+                <div>
+                  <div class="hero-title" id="familyTitle">Family</div>
+                  <div class="hero-sub" id="familySubtitle">—</div>
+                </div>
+                <div class="hero-actions">
+                  <button id="btnFamilyBack" class="btn btn-secondary">Back to families</button>
+                  <button id="btnFamilyWorkOutstanding" class="btn">Work outstanding in family</button>
+                </div>
+              </div>
+
+              <div class="subcard">
+                <div class="subcard-title">System validation coverage</div>
+                <div class="callout subtle">
+                  These are the controls in this family covered by bulk collectors (evidence is produced in C:\\evidence and referenced in SCTM/Evidence Index).
+                </div>
+                <div id="familySystemList"></div>
+              </div>
+
+              <div class="subcard" style="margin-top:12px">
+                <div class="subcard-title">Governance adjudication (read + sign)</div>
+                <div class="callout subtle">
+                  Governance controls are closed out by reviewing policies/SOPs and attaching operational records, then signing annual/change-control attestations.
+                </div>
+                <div id="familyGovList"></div>
+                <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
+                  <button id="btnFamilyOpenGovModules" class="btn btn-secondary">Open governance modules</button>
+                  <button id="btnFamilySignAttestation" class="btn">Sign attestation for this family</button>
+                </div>
+              </div>
+            </section>
+
+            <!-- Auditor Manual (Controls): single source for assessor -->
+            <section class="card hidden" id="welcome">
+              <h2>Auditor Manual</h2>
+              <div class="callout">
+                <strong>Single source for the assessor.</strong> This tab is the one place to validate everything you need for every control (110 NIST 800-171 Rev.2 requirements). Select a control in the sidebar to see: status (SCTM), evidence type and artifact (Evidence Index), vault location, where to view on the VM, regeneration method, NIST exact text, and closeout guidance. Use <b>Quick view</b> to filter; search by control ID or keyword.
+              </div>
+            </section>
+
+            <section class="card hidden" id="controlCard">
+              <div class="callout subtle" style="margin-bottom:16px">
+                <strong>Auditor manual — single source for this control.</strong> Everything below is what you need to validate this requirement: status, evidence, where to view on VM, regeneration, NIST text, and closeout.
+              </div>
+              <div class="control-header">
+                <div>
+                  <div class="control-id" id="controlId">—</div>
+                  <div class="control-title" id="controlTitle">—</div>
+                </div>
+                <div class="pills">
+                  <span class="pill" id="pillFamily">—</span>
+                  <span class="pill pill-muted" id="pillClass">—</span>
+                  <span class="pill pill-muted" id="pillDomain">—</span>
+                  <span class="pill pill-muted" id="pillResp">—</span>
+                  <span class="pill pill-status" id="pillStatus">—</span>
+                  <span class="pill pill-muted" id="pillLive">live:—</span>
+                </div>
+              </div>
+
+              <div class="grid">
+                <div class="subcard">
+                  <div class="subcard-title">Status basis (from SCTM)</div>
+                  <div id="statusBasis" class="prose mono"></div>
+                </div>
+                <div class="subcard" id="liveControlCard">
+                  <div class="subcard-title">Live implementation status (web app)</div>
+                  <div class="callout subtle" style="margin-top:0">
+                    Pulls the current implementation verification from the running web app (SCTM audit engine). This reflects the live state of
+                    code + evidence files on the VM hosting the app (not the static dataset bundle).
+                  </div>
+                  <div class="actionRow" style="margin-top:10px">
+                    <label class="check" style="margin:0">
+                      <input type="checkbox" id="chkUseLiveState" />
+                      Use live state in this view
+                    </label>
+                    <button id="btnLiveRefreshControl" class="btn">Refresh this control</button>
+                    <button id="btnLiveRefreshAll" class="btn btn-secondary" title="Runs a full audit (all controls). May take a bit.">Refresh all controls</button>
+                    <button id="btnPullAllEvidence" class="btn btn-secondary" title="Regenerates current evidence artifacts from VM system state, then refreshes live audits and updates Evidence Card locations.">Pull ALL live evidence</button>
+                    <button id="btnRunEvidenceValidationAdmin" class="btn" title="Generates a new CUI-Evidence-* and CUI-Validation-* run under C:\\evidence (requires UAC).">Run evidence + validation (Admin)</button>
+                    <button id="btnIngestLatestRun" class="btn btn-secondary" title="Reads C:\\evidence and links the newest CUI-Evidence/Validation run into the Auditor Manual Evidence cards.">Ingest latest run</button>
+                  </div>
+                  <div class="kv" style="margin-top:10px">
+                    <div class="kv-row"><div class="k">Verified status</div><div class="v" id="liveVerifiedStatus">—</div></div>
+                    <div class="kv-row"><div class="k">Verification</div><div class="v" id="liveVerificationStatus">—</div></div>
+                    <div class="kv-row"><div class="k">Compliance score</div><div class="v" id="liveComplianceScore">—</div></div>
+                    <div class="kv-row"><div class="k">Generated at</div><div class="v" id="liveGeneratedAt">—</div></div>
+                    <div class="kv-row"><div class="k">Evidence location (live)</div><div class="v" id="liveEvidenceLocation">—</div></div>
+                  </div>
+                  <details style="margin-top:10px">
+                    <summary class="muted" style="cursor:pointer">Show live issues (if any)</summary>
+                    <div id="liveIssues" class="prose mono" style="margin-top:10px"></div>
+                  </details>
+                  <div class="muted" id="liveControlStatus" style="margin-top:10px"> </div>
+                </div>
+                <div class="subcard" id="liveValidationCard">
+                  <div class="subcard-title">Live validation command (terminal)</div>
+                  <div class="callout subtle" style="margin-top:0">
+                    Copy/paste the command below into the VM terminal (PowerShell unless otherwise noted) to produce assessor-ready live validation output.
+                    Commands are intended to be read-only.
+                  </div>
+                  <div class="actionRow" style="margin-top:10px">
+                    <span class="pill pill-muted" id="liveValidationShell">—</span>
+                    <button id="btnCopyLiveValidation" class="btn btn-secondary" title="Copy command to clipboard">Copy</button>
+                  </div>
+                  <div id="liveValidationCommand" class="prose mono" style="margin-top:10px; white-space:pre-wrap"></div>
+                  <div class="muted" id="liveValidationExpected" style="margin-top:8px"></div>
+                  <div class="muted" id="liveValidationCopyStatus" style="margin-top:8px"> </div>
+                </div>
+                <div class="subcard">
+                  <div class="subcard-title">NIST requirement (exact text)</div>
+                  <div id="nistExactText" class="prose"></div>
+                  <details style="margin-top:10px">
+                    <summary class="muted" style="cursor:pointer">Show NIST discussion / guidance</summary>
+                    <div id="nistGuidance" class="prose" style="margin-top:10px"></div>
+                  </details>
+                </div>
+                <div class="subcard">
+                  <div class="subcard-title">Evidence (auditor — everything for this control)</div>
+                  <div class="kv">
+                    <div class="kv-row"><div class="k">Evidence type</div><div class="v" id="evType"></div></div>
+                    <div class="kv-row"><div class="k">Artifact name</div><div class="v" id="evArtifact"></div></div>
+                    <div class="kv-row"><div class="k">Owner</div><div class="v" id="evOwner"></div></div>
+                    <div class="kv-row"><div class="k">Location (vault)</div><div class="v" id="evLocation"></div></div>
+                    <div class="kv-row"><div class="k">Where to view on VM</div><div class="v" id="evVmPath"></div></div>
+                    <div class="kv-row"><div class="k">Linked run</div><div class="v" id="evLinked"></div></div>
+                    <div class="kv-row"><div class="k">Artifacts (this control)</div><div class="v" id="evControlArtifacts"></div></div>
+                    <div class="kv-row"><div class="k">Cadence</div><div class="v" id="evCadence"></div></div>
+                    <div class="kv-row"><div class="k">Retention</div><div class="v" id="evRetention"></div></div>
+                    <div class="kv-row"><div class="k">Regeneration</div><div class="v" id="evRegen"></div></div>
+                  </div>
+                  <div class="actions" id="evidenceActions"></div>
+                </div>
+                <div class="subcard">
+                  <div class="subcard-title">Intent & demonstration (how this is satisfied)</div>
+                  <div id="intentDemo" class="prose"></div>
+                </div>
+              </div>
+
+              <div class="subcard">
+                <div class="subcard-title">Closeout guidance (what “done” looks like)</div>
+                <div class="callout subtle">
+                  The goal is to produce assessor-ready artifacts and governance records. This guidance adapts to the control’s classification/status.
+                </div>
+                <div id="closeoutSteps" class="steps"></div>
+              </div>
+
+              <div class="subcard">
+                <div class="subcard-title">Adjudication checklist</div>
+                <div class="checklist" id="checklist">
+                  <label class="check"><input type="checkbox" data-field="evidence_collected" /> Evidence collected (or confirmed exists)</label>
+                  <label class="check"><input type="checkbox" data-field="evidence_hashed" /> Evidence hashed / integrity protected</label>
+                  <label class="check"><input type="checkbox" data-field="evidence_stored" /> Evidence stored at stated location</label>
+                  <label class="check"><input type="checkbox" data-field="review_dates_set" /> Review dates scheduled (if applicable)</label>
+                  <label class="check strong"><input type="checkbox" data-field="adjudicated" /> Mark this control adjudicated</label>
+                </div>
+                <div class="field">
+                  <label class="label" for="evidenceRefs">Evidence refs (vault paths / records)</label>
+                  <textarea
+                    id="evidenceRefs"
+                    class="textarea mono"
+                    rows="3"
+                    placeholder="Required for governance/operational closeout. Example: C:\evidence\CUI-Operational-Records\AC.L2-3.1.4\record-2026-02-08.md"
+                  ></textarea>
+                </div>
+                <div class="field">
+                  <label class="label" for="notes">Assessor notes</label>
+                  <textarea id="notes" class="textarea" rows="6" placeholder="What did you verify? Where is the evidence? What was the pass/fail outcome? Any exceptions?"></textarea>
+                </div>
+              </div>
+
+              <div class="subcard">
+                <div class="subcard-title">References</div>
+                <div class="links">
+                  <a id="lnkEvidenceIndex" href="#">Evidence Index</a>
+                  <a id="lnkMapping" href="#">Control Mapping (800-171)</a>
+                  <a id="lnkNarrative10" href="#">System-Enforced narrative</a>
+                  <a id="lnkNarrative11" href="#">Governance/Inherited/N-A narrative</a>
+                </div>
+              </div>
+            </section>
+
+            <!-- Governance -->
+            <section class="card hidden" id="viewGovernance">
+              <h2>Governance</h2>
+              <div class="callout">
+                Governance closeout is <b>document-specific</b>: review the required Policies/SOPs, sign each one on cadence, and produce an evidence artifact under <span class="mono">C:\\evidence</span>.
+              </div>
+
+              <div class="subcard" style="margin-top:12px">
+                <div class="subcard-title">Document review & sign-off (Policies / SOPs)</div>
+                <div class="callout subtle">
+                  Review one document at a time, then <b>sign + date</b>. The manual advances to the next document until completion.
+                  When required documents are signed, Governance controls can be adjudicated with an auditor-defensible record.
+                </div>
+                <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+                  <button id="btnGovWizardPolicies" class="btn">Start Policies</button>
+                  <button id="btnGovWizardSops" class="btn">Start SOPs</button>
+                  <button
+                    id="btnGovWizardSupporting"
+                    class="btn btn-secondary"
+                    title="Plans/forms/supporting program templates (optional unless your org policy requires sign-off)"
+                  >
+                    Start Supporting docs
+                  </button>
+                  <button id="btnGovWizardContinue" class="btn btn-secondary">Continue</button>
+                  <button id="btnGovBulkSignPolicies" class="btn btn-secondary">Bulk sign all Policies</button>
+                  <button id="btnGovBulkSignSops" class="btn btn-secondary">Bulk sign all SOPs</button>
+                  <button
+                    id="btnGovBulkSignSupporting"
+                    class="btn btn-secondary"
+                    title="Bulk sign all non-Policy/SOP supporting docs (plans/forms/etc.)"
+                  >
+                    Bulk sign Supporting docs
+                  </button>
+                  <button id="btnGovWriteEvidenceArtifact" class="btn btn-secondary">Write governance artifact (C:\\evidence)</button>
+                  <button id="btnGovRecomputeCloseout" class="btn btn-secondary">Recompute governance closeout</button>
+                </div>
+
+                <div class="govWizard hidden" id="govWizard" style="margin-top:12px">
+                  <nav class="govWizard-nav">
+                    <div class="nav-section">
+                      <div class="nav-title" id="govWizardNavTitle">Documents</div>
+                      <div id="govWizardList"></div>
+                    </div>
+                  </nav>
+                  <div class="govWizard-content">
+                    <div class="hero" style="padding:0; background:transparent; border:none">
+                      <div>
+                        <div class="hero-title" id="govWizardDocTitle">—</div>
+                        <div class="hero-sub" id="govWizardDocMeta">—</div>
+                      </div>
+                      <div class="hero-actions">
+                        <button id="btnGovWizardPrev" class="btn btn-secondary">Previous</button>
+                        <button id="btnGovWizardNext" class="btn btn-secondary">Next</button>
+                        <button id="btnGovWizardOpenNewTab" class="btn btn-secondary">Open in new tab</button>
+                      </div>
+                    </div>
+
+                    <article class="markdown" id="govWizardDocBody"></article>
+
+                    <div class="subcard" style="margin-top:12px">
+                      <div class="subcard-title">Sign-off for this document</div>
+                      <div class="callout subtle">Use the signer identity below, then sign this document.</div>
+                      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                        <span class="pill pill-muted" id="govWizardSignedStatus">—</span>
+                        <button id="btnGovWizardSign" class="btn">Sign + advance</button>
+                      </div>
+                      <div class="prose mono" id="govWizardSignatureDetails" style="margin-top:10px; white-space:pre-wrap"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="subcard" style="margin-top:12px">
+                <div class="subcard-title">Signer identity (Attestee)</div>
+                <div class="callout subtle" style="margin-top:0">
+                  These fields pre-fill from your Attestee profile and are used for document sign-offs and governance artifacts.
+                </div>
+                <div class="gridForm">
+                  <div class="field">
+                    <label class="label" for="attName">Name</label>
+                    <input id="attName" class="input" placeholder="Jane Doe" />
+                  </div>
+                  <div class="field">
+                    <label class="label" for="attTitle">Title / role</label>
+                    <input id="attTitle" class="input" placeholder="System Owner / Compliance Officer" />
+                  </div>
+                  <div class="field">
+                    <label class="label" for="attOrg">Organization</label>
+                    <input id="attOrg" class="input" placeholder="Customer Org" />
+                  </div>
+                  <div class="field">
+                    <label class="label" for="attReviewDate">Review date</label>
+                    <input id="attReviewDate" class="input" placeholder="YYYY-MM-DD" />
+                  </div>
+                </div>
+              </div>
+
+              <details class="subcard subcardDetails" style="margin-top:12px">
+                <summary class="subcard-title">Advanced: attestations, guidance modules, and history (expand)</summary>
+                <div class="subcardBody">
+                  <div class="gridDash">
+                    <div class="tile">
+                      <div class="tile-k">Guidance modules</div>
+                      <div class="tile-sub">Reference guidance (opens in Docs drawer).</div>
+                      <div class="tile-actions">
+                        <button id="btnGovAnnual" class="btn">Annual review</button>
+                        <button id="btnGovPolicies" class="btn btn-secondary">Policies & SOPs</button>
+                        <button id="btnGovSrm" class="btn btn-secondary">SRM</button>
+                      </div>
+                    </div>
+                    <div class="tile">
+                      <div class="tile-k">Manual attestation record</div>
+                      <div class="tile-sub">Optional: create a timestamped attestation record (included in export JSON).</div>
+                      <div class="tile-actions">
+                        <button id="btnGovNewAttestation" class="btn">New attestation</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="subcard" style="margin-top:12px">
+                    <div class="subcard-title">Attestation form (optional)</div>
+                    <div class="gridForm">
+                      <div class="field">
+                        <label class="label" for="attScope">Scope</label>
+                        <input id="attScope" class="input" placeholder="onboarding / annual / change-control / family:AC" />
+                      </div>
+                      <div class="field" style="grid-column:1/-1">
+                        <label class="label" for="attNotes">Notes (optional)</label>
+                        <textarea id="attNotes" class="textarea" rows="4" placeholder="What did you review? Any exceptions?"></textarea>
+                      </div>
+                    </div>
+                    <div class="checklist" style="margin-top:12px">
+                      <label class="check"><input type="checkbox" id="attReviewedPolicies" /> Reviewed required Policies</label>
+                      <label class="check"><input type="checkbox" id="attReviewedSops" /> Reviewed required SOPs</label>
+                      <label class="check"><input type="checkbox" id="attReviewedSupporting" /> Reviewed supporting docs (plans/forms/other)</label>
+                      <label class="check"><input type="checkbox" id="attAnnualScheduled" /> Annual governance review scheduled</label>
+                      <label class="check"><input type="checkbox" id="attSrmReviewed" /> Shared Responsibility Matrix reviewed (if applicable)</label>
+                      <label class="check"><input type="checkbox" id="attBannerAck" /> Acknowledged monitoring / authorized use notice</label>
+                    </div>
+                    <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
+                      <button id="btnAttestFull" class="btn btn-secondary" title="Auto-fill the checklist for a complete governance attestation (recommended).">Full attestation (auto-fill)</button>
+                      <button id="btnAttestSign" class="btn">Sign attestation</button>
+                      <button id="btnAttestClear" class="btn btn-secondary">Clear</button>
+                    </div>
+                  </div>
+
+                  <div class="subcard" style="margin-top:12px">
+                    <div class="subcard-title">Recent attestations</div>
+                    <div id="attestationList"></div>
+                  </div>
+                </div>
+              </details>
+            </section>
+
+            <!-- POA&M -->
+            <section class="card hidden" id="viewPoam">
+              <h2>POA&amp;M</h2>
+              <div class="callout">
+                Track remediation for controls that are failing enforcement checks or missing required artifacts (latest ingest run).
+              </div>
+              <div class="subcard" style="margin-top:12px">
+                <div class="subcard-title">Latest-run POA&amp;M items</div>
+                <div class="muted" id="poamSummary"> </div>
+                <div class="actionRow" style="margin-top:10px">
+                  <span class="label" style="margin:0">Filters</span>
+                  <select id="poamFilterStatus" class="select" style="max-width:220px">
+                    <option value="all">All statuses</option>
+                    <option value="open">Open</option>
+                    <option value="in_progress">In progress</option>
+                    <option value="blocked">Blocked</option>
+                    <option value="complete">Complete</option>
+                  </select>
+                  <select id="poamFilterSeverity" class="select" style="max-width:220px">
+                    <option value="all">All severities</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                  </select>
+                  <button id="btnPoamWriteArtifact" class="btn btn-secondary">Write POA&amp;M artifact (C:\\evidence)</button>
+                </div>
+                <div id="poamList" style="margin-top:12px"></div>
+              </div>
+              <div class="muted" id="poamStatus" style="margin-top:10px"> </div>
+            </section>
+
+            <!-- Continuous Monitoring -->
+            <section class="card hidden" id="viewConMon">
+              <h2>Continuous Monitoring (ConMon)</h2>
+              <div class="callout">
+                Satisfy recurring requirements on cadence by recording completion evidence for each control (weekly/monthly/quarterly/annual/per change).
+              </div>
+
+              <details class="subcard" style="margin-top:12px">
+                <summary class="subcard-title">BOE collection (optional)</summary>
+                <div class="callout subtle" style="margin-top:0">
+                  Run assessor-ready BOE pulls from the web app via <span class="mono">/api/admin/conmon/run</span> (Bearer token).
+                  Artifacts are stored in <span class="mono">/admin/files</span>.
+                </div>
+                <div class="actionRow" style="margin-top:10px">
+                  <span class="label" style="margin:0">Web app origin</span>
+                  <input id="conmonLiveOrigin" class="input mono" style="max-width:320px" placeholder="http://127.0.0.1:3000" />
+                  <span class="label" style="margin:0">Service token</span>
+                  <input id="conmonServiceToken" class="input mono" style="max-width:320px" placeholder="Bearer token (CODEX_MANUAL_SERVICE_TOKEN)" />
+                  <button id="btnConmonGenToken" class="btn btn-secondary" title="Generates a new service token and installs it on this VM (updates the live-state server token file).">Generate new token</button>
+                </div>
+                <div class="gridDash" id="conmonBoeTiles" style="margin-top:10px"></div>
+                <div id="conmonBoeList" style="margin-top:10px"></div>
+                <div class="muted" id="conmonBoeStatus" style="margin-top:10px"> </div>
+              </details>
+
+              <div class="gridDash" style="margin-top:12px" id="conmonTiles"></div>
+              <div class="subcard" style="margin-top:12px">
+                <div class="subcard-title">Cadence tasks (per control)</div>
+                <div class="actionRow" style="margin-top:10px">
+                  <span class="label" style="margin:0">Filters</span>
+                  <select id="conmonFilterCadence" class="select" style="max-width:240px">
+                    <option value="all">All cadences</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="quarterly">Quarterly</option>
+                    <option value="annual">Annual</option>
+                    <option value="per_change">Per change</option>
+                  </select>
+                  <select id="conmonFilterDue" class="select" style="max-width:240px">
+                    <option value="all">All due states</option>
+                    <option value="due_now">Due now</option>
+                    <option value="due_soon">Due soon</option>
+                    <option value="overdue">Overdue</option>
+                    <option value="ok">OK</option>
+                  </select>
+                  <button id="btnConmonWriteArtifact" class="btn btn-secondary">Write ConMon snapshot (C:\\evidence)</button>
+                </div>
+                <div id="conmonList" style="margin-top:12px"></div>
+              </div>
+              <div class="muted" id="conmonStatus" style="margin-top:10px"> </div>
+            </section>
+
+            <!-- Audit logs -->
+            <section class="card hidden" id="viewAudit">
+              <h2>Audit logs (Windows Event Logs)</h2>
+              <div class="callout">
+                Query Windows Event Logs directly from this VM (no external agent) with assessor-friendly filters and parsed fields.
+              </div>
+
+              <div class="subcard" style="margin-top:12px">
+                <div class="subcard-title">Event log query</div>
+                <div class="callout subtle" style="margin-top:0">
+                  <strong>Quick queries (common CMMC audit events)</strong>
+                  <div class="muted" style="margin-top:6px; line-height:1.45">
+                    One click will fill the filter fields (and fetch immediately). These are common “show me” samples for AU/AC monitoring (e.g., 4624/4625, 1102, 4740, 4663).
+                  </div>
+                  <div class="actionRow" style="margin-top:10px; flex-wrap:wrap">
+                    <button class="btn btn-secondary" data-audit-preset="success_logons" title="Security 4624">Successful logons (4624)</button>
+                    <button class="btn btn-secondary" data-audit-preset="failed_logons" title="Security 4625">Failed logons (4625)</button>
+                    <button class="btn btn-secondary" data-audit-preset="rdp_logons" title="Security 4624/4625 LogonType 10">RDP logons (4624/4625)</button>
+                    <button class="btn btn-secondary" data-audit-preset="privileged_logons" title="Security 4672">Privileged logons (4672)</button>
+                    <button class="btn btn-secondary" data-audit-preset="account_lockouts" title="Security 4740">Account lockouts (4740)</button>
+                    <button class="btn btn-secondary" data-audit-preset="audit_log_cleared" title="Security 1102">Audit log cleared (1102)</button>
+                    <button class="btn btn-secondary" data-audit-preset="policy_changes" title="Security 4719">Audit policy changes (4719)</button>
+                    <button class="btn btn-secondary" data-audit-preset="account_changes" title="Security user/group management events">Account/group changes</button>
+                    <button class="btn btn-secondary" data-audit-preset="object_access" title="Security 4663">File/object access (4663)</button>
+                    <button class="btn btn-secondary" data-audit-preset="share_access" title="Security 5140/5145">SMB share access (5140/5145)</button>
+                    <button class="btn btn-secondary" data-audit-preset="share_access_denied" title="Security 5145 contains Access Denied">Share access denied</button>
+                  </div>
+                </div>
+                <div class="actionRow" style="margin-top:10px; flex-wrap:wrap">
+                  <span class="label" style="margin:0">Log</span>
+                  <select id="winAuditLog" class="select" style="max-width:380px">
+                    <option value="Security">Security</option>
+                    <option value="System">System</option>
+                    <option value="Application">Application</option>
+                    <option value="Microsoft-Windows-Windows Defender/Operational">Defender/Operational</option>
+                  </select>
+                  <span class="label" style="margin:0">Event IDs</span>
+                  <input id="winAuditIds" class="input mono" style="max-width:240px" placeholder="4624,4625" />
+                  <span class="label" style="margin:0">User</span>
+                  <input id="winAuditUser" class="input mono" style="max-width:220px" placeholder="admin_patrick" />
+                  <span class="label" style="margin:0">Time window</span>
+                  <select id="winAuditSince" class="select" style="max-width:220px">
+                    <option value="60">Last 1 hour</option>
+                    <option value="360">Last 6 hours</option>
+                    <option value="1440" selected>Last 24 hours</option>
+                    <option value="10080">Last 7 days</option>
+                  </select>
+                  <span class="label" style="margin:0">Max</span>
+                  <select id="winAuditMax" class="select" style="max-width:140px">
+                    <option value="100">100</option>
+                    <option value="200" selected>200</option>
+                    <option value="500">500</option>
+                  </select>
+                </div>
+                <div class="actionRow" style="margin-top:10px; flex-wrap:wrap">
+                  <span class="label" style="margin:0">Contains</span>
+                  <input id="winAuditContains" class="input mono" style="max-width:520px" placeholder="Optional substring filter (message)" />
+                  <button id="btnWinAuditPresetRdp" class="btn btn-secondary" title="Security logon successes/failures (RDP/interactive).">
+                    Preset: RDP logons
+                  </button>
+                  <button id="btnWinAuditFetch" class="btn">Fetch events</button>
+                  <button id="btnWinAuditWriteSnapshot" class="btn btn-secondary">Write audit snapshot (C:\\evidence)</button>
+                </div>
+                <div class="muted" id="winAuditStatus" style="margin-top:10px"> </div>
+                <div id="winAuditResults" style="margin-top:10px"></div>
+              </div>
+            </section>
+
+            <!-- Antivirus -->
+            <section class="card hidden" id="viewAv">
+              <h2>Antivirus (Windows Defender)</h2>
+              <div class="callout">
+                Belt-and-suspenders AV posture: show real-time protection + signature freshness, show schedule history, run updates/scans on demand, and retain evidence under <span class="mono">C:\\evidence</span>.
+              </div>
+
+              <div class="av-shell" id="avShell">
+                <div class="av-hero good" id="avHero">
+                  <div class="av-hero-left">
+                    <div class="av-hero-k">Protection status</div>
+                    <div class="av-hero-title">
+                      <span id="avOverallTitle">Protected</span>
+                      <span id="avOverallPill"></span>
+                    </div>
+                    <div class="av-hero-sub" id="avOverallSub">Loading Defender status…</div>
+                    <div class="av-mini-grid">
+                      <div class="av-mini">
+                        <div class="k">Real-time protection</div>
+                        <div class="v" id="avRtpPill">—</div>
+                      </div>
+                      <div class="av-mini">
+                        <div class="k">Antivirus</div>
+                        <div class="v" id="avAvPill">—</div>
+                      </div>
+                      <div class="av-mini">
+                        <div class="k">Signatures</div>
+                        <div class="v" id="avSigAgePill">—</div>
+                      </div>
+                      <div class="av-mini">
+                        <div class="k">Last signature update (UTC)</div>
+                        <div class="v mono" id="avSigLastUtc">—</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="av-hero-actions">
+                    <button id="btnDefenderRunRecommended" class="btn av-primary" title="Runs signature update + quick scan and writes evidence to C:\\evidence.">
+                      Run Smart Scan (recommended evidence)
+                    </button>
+                    <div class="av-hero-actions-row">
+                      <button id="btnDefenderRefresh" class="btn btn-secondary">Refresh</button>
+                      <button id="btnDefenderOpenLatestEvidence" class="btn btn-secondary" title="Open the most recent Defender evidence run directory, if present.">
+                        Open latest evidence
+                      </button>
+                      <button id="btnDefenderOpenEvidence" class="btn btn-secondary" title="Browse C:\\evidence in the evidence viewer.">Browse evidence</button>
+                    </div>
+                    <div class="av-toast" id="avActionStatus"> </div>
+                  </div>
+                </div>
+
+                <div class="av-grid">
+                  <div class="av-card">
+                    <div class="av-card-title">Updates</div>
+                    <div class="av-card-sub">Keep signatures fresh (assessor “show me” evidence lives in <span class="mono">C:\evidence</span>).</div>
+                    <div class="av-metrics">
+                      <div class="av-metric">
+                        <div class="k">Signature version</div>
+                        <div class="v mono" id="avSigVersion">—</div>
+                      </div>
+                      <div class="av-metric">
+                        <div class="k">Engine / product</div>
+                        <div class="v mono" id="avEngineProduct">—</div>
+                      </div>
+                    </div>
+                    <div class="av-actions">
+                      <button id="btnDefenderInstallTasks" class="btn btn-secondary" title="Installs/refreshes Defender maintenance scheduled tasks (weekly defs update + scans). Runs as SYSTEM.">
+                        Enable scheduled maintenance (weekly)
+                      </button>
+                      <button id="btnDefenderRunSigUpdate" class="btn" title="Run signature update now and write evidence to C:\\evidence.">
+                        Update signatures now (evidence)
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="av-card">
+                    <div class="av-card-title">Scans</div>
+                    <div class="av-card-sub">Quick scan is fast; full scan is thorough (and slower). Both write evidence.</div>
+                    <div class="av-metrics">
+                      <div class="av-metric">
+                        <div class="k">Quick scan age</div>
+                        <div class="v" id="avQuickAgePill">—</div>
+                      </div>
+                      <div class="av-metric">
+                        <div class="k">Full scan age</div>
+                        <div class="v" id="avFullAgePill">—</div>
+                      </div>
+                    </div>
+                    <div class="av-metrics" style="margin-top:10px">
+                      <div class="av-metric">
+                        <div class="k">Last quick scan result</div>
+                        <div class="v" id="avLastQuickResult">—</div>
+                        <div class="faint mono" id="avLastQuickMeta" style="margin-top:6px"></div>
+                        <div class="av-actions" style="margin-top:10px">
+                          <button id="btnAvOpenLastQuickEvidence" class="btn btn-secondary" disabled>Open quick scan evidence</button>
+                        </div>
+                      </div>
+                      <div class="av-metric">
+                        <div class="k">Last full scan result</div>
+                        <div class="v" id="avLastFullResult">—</div>
+                        <div class="faint mono" id="avLastFullMeta" style="margin-top:6px"></div>
+                        <div class="av-actions" style="margin-top:10px">
+                          <button id="btnAvOpenLastFullEvidence" class="btn btn-secondary" disabled>Open full scan evidence</button>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="av-actions">
+                      <button id="btnDefenderRunQuickScan" class="btn" title="Run a quick scan now and write evidence to C:\\evidence.">
+                        Run quick scan (evidence)
+                      </button>
+                      <button id="btnDefenderRunFullScan" class="btn btn-secondary" title="Run a full scan now and write evidence to C:\\evidence (may take time).">
+                        Run full scan (evidence)
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="av-card">
+                    <div class="av-card-title">Schedule (maintenance tasks)</div>
+                    <div class="av-card-sub">
+                      After install, <strong>(never run yet)</strong> + <strong>lastResult=267011</strong> is normal until the first scheduled run.
+                    </div>
+                    <div id="defenderTasks" class="av-taskList">(loading…)</div>
+                  </div>
+
+                  <div class="av-card">
+                    <div class="av-card-title">Evidence &amp; recent activity</div>
+                    <div class="av-card-sub">Each run creates a timestamped folder under <span class="mono">C:\evidence\CUI-Defender-Maintenance-*</span>.</div>
+                    <div id="defenderHistory" class="av-evList" style="margin-top:10px"></div>
+                    <div class="av-actions" style="margin-top:10px">
+                      <button id="btnDefenderArchiveOldEvidence" class="btn">Archive older evidence</button>
+                      <button id="btnDefenderViewEvidenceArchive" class="btn btn-secondary">View archive</button>
+                    </div>
+                    <div id="defenderHistoryArchive" class="av-evList hidden" style="margin-top:10px"></div>
+                  </div>
+                </div>
+
+                <details class="av-troubleshoot" style="margin-top:12px">
+                  <summary>Troubleshooting output (for debugging)</summary>
+                  <div class="av-troubleshoot-body">
+                    <div class="muted">
+                      This is the exact output returned by the VM’s local endpoints. If a run fails, copy/paste this into the audit record.
+                    </div>
+                    <pre class="mono" id="avDebugOutput"></pre>
+                  </div>
+                </details>
+              </div>
+            </section>
+
+            <!-- SSP Deliverable -->
+            <section class="card hidden" id="viewSsp">
+              <h2>SSP (Deliverable)</h2>
+              <div class="callout">
+                Build an export-ready System Security Plan deliverable for an assessment date, including an assessor appendix that prints:
+                (a) a live SCTM audit snapshot and (b) evidence run metadata.
+              </div>
+
+              <div class="subcard" style="margin-top:12px">
+                <div class="subcard-title">Inputs</div>
+                <div class="actionRow" style="margin-top:10px">
+                  <button id="btnSspUseIdentify" class="btn btn-secondary" title="Overwrite SSP inputs using the Identify (Attestee) step values.">Use Identify defaults</button>
+                  <span class="label" style="margin:0">Assessment date</span>
+                  <input id="sspAssessmentDate" class="input mono" style="max-width:220px" placeholder="YYYY-MM-DD" />
+                  <span class="label" style="margin:0">Repo path (on VM)</span>
+                  <input id="sspRepoPath" class="input mono" style="max-width:420px" placeholder="C:\Users\admin_patrick\mactech" />
+                </div>
+                <div class="actionRow" style="margin-top:10px; flex-wrap:wrap">
+                  <span class="label" style="margin:0">Attestee (from Identify)</span>
+                  <input id="sspAttName" class="input mono" style="max-width:260px" placeholder="Name" />
+                  <input id="sspAttTitle" class="input mono" style="max-width:260px" placeholder="Title" />
+                  <input id="sspAttOrg" class="input mono" style="max-width:260px" placeholder="Org" />
+                </div>
+                <div class="actionRow" style="margin-top:10px; flex-wrap:wrap">
+                  <span class="label" style="margin:0">Web app origin</span>
+                  <input id="sspLiveOrigin" class="input mono" style="max-width:320px" placeholder="http://127.0.0.1:3000" />
+                  <span class="label" style="margin:0">Service token</span>
+                  <input id="sspServiceToken" class="input mono" style="max-width:320px" placeholder="Bearer token (CODEX_MANUAL_SERVICE_TOKEN)" />
+                </div>
+                <div class="callout subtle" style="margin-top:10px">
+                  SSP workflow is self-contained: it uses the origin/token fields above (not the ConMon tab).
+                </div>
+              </div>
+
+              <div class="subcard" style="margin-top:12px">
+                <div class="subcard-title">Workflow</div>
+                <div class="actionRow" style="margin-top:10px; flex-wrap:wrap">
+                  <button id="btnSspCaptureSnapshot" class="btn">1) Capture snapshot (write JSON to C:\evidence)</button>
+                  <button id="btnSspBuildLauncher" class="btn btn-secondary">2) Download build launcher (.cmd)</button>
+                  <button id="btnSspOpenOutput" class="btn btn-secondary">Open output folder</button>
+                  <button id="btnSspGenToken" class="btn btn-secondary" title="Generate a fresh token and install it on this VM so snapshot + build workflows can authenticate.">Generate &amp; install token</button>
+                  <button id="btnSspLoadToken" class="btn btn-secondary" title="Reads the VM token file and overwrites the SSP token field (useful if you ran the installer .cmd).">Load token from VM</button>
+                  <button id="btnSspTestToken" class="btn btn-secondary" title="Calls the live audit endpoint with the current SSP origin+token to verify auth.">Test token</button>
+                </div>
+                <div class="callout subtle" id="sspStatus" style="margin-top:10px"> </div>
+                <div class="muted mono" id="sspBuild" style="margin-top:10px">Build: —</div>
+                <details style="margin-top:10px">
+                  <summary class="muted" style="cursor:pointer">Show expected output paths</summary>
+                  <pre class="mono" id="sspPaths" style="margin-top:10px">(paths will appear here)</pre>
+                </details>
+              </div>
+            </section>
+
+            <!-- Exports -->
+            <section class="card hidden" id="viewExports">
+              <h2>Exports</h2>
+              <div class="callout">
+                Export progress (controls + notes + closeout + attestations) as a JSON assessment artifact.
+              </div>
+              <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button id="btnExportHere" class="btn">Export progress JSON</button>
+                <button id="btnExportAttestationsMd" class="btn btn-secondary">Export attestations (Markdown)</button>
+                <button id="btnAuditAdjudications" class="btn btn-secondary">Audit adjudications (write report to C:\\evidence)</button>
+              </div>
+              <div class="muted" id="auditStatus" style="margin-top:10px"></div>
+              <div class="subcard" style="margin-top:12px">
+                <div class="subcard-title">Preview</div>
+                <pre class="mono" id="exportPreview">(export preview will appear here)</pre>
+              </div>
+            </section>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Doc modal / drawer -->
+    <div class="modal hidden" id="docModal" role="dialog" aria-modal="true" aria-label="Documentation">
+      <div class="backdrop" id="docBackdrop"></div>
+      <div class="drawer">
+        <div class="drawer-header">
+          <div>
+            <div class="drawer-title" id="docTitle">Docs</div>
+            <div class="drawer-subtitle" id="docSubtitle">Rendered Markdown</div>
+          </div>
+          <div class="drawer-actions">
+            <button class="btn btn-secondary" id="btnDocReaderMode" title="Toggle reader mode (hide sidebar, widen content).">Reader mode</button>
+            <button class="btn btn-secondary" id="btnDocOpenNewTab">Open in new tab</button>
+            <button class="btn" id="btnDocClose">Close</button>
+          </div>
+        </div>
+        <div class="drawer-body">
+          <nav class="drawer-nav">
+            <div class="nav-section">
+              <div class="nav-title">Start here</div>
+              <a href="#" class="nav-item" data-doc="docs/00_Start_Here.md">Intro: How this manual works</a>
+            </div>
+            <div class="nav-section">
+              <div class="nav-title">Workflows</div>
+              <a href="#" class="nav-item" data-doc="docs/01_Evidence_Closeout_Workflow.md">Evidence closeout workflow</a>
+              <a href="#" class="nav-item" data-doc="docs/02_Governance_Annual_Review.md">Governance annual review & sign-off</a>
+              <a href="#" class="nav-item" data-doc="docs/03_Shared_Responsibility_Matrix.md">Shared Responsibility Matrix (SRM)</a>
+              <a href="#" class="nav-item" data-doc="docs/04_Policies_and_SOP_Review.md">Policies & SOP review checklist</a>
+              <a href="#" class="nav-item" data-doc="../governance/GOVERNANCE_BUNDLE_INDEX.md">Governance bundle index (templates)</a>
+            </div>
+            <div class="nav-section">
+              <div class="nav-title">Codex references</div>
+              <a href="#" class="nav-item" data-doc="../tables/EVIDENCE_INDEX.md">Evidence Index</a>
+              <a href="#" class="nav-item" data-doc="../tables/CONTROL_MAPPING_800-171R2.md">Control Mapping (800-171)</a>
+              <a href="#" class="nav-item" data-doc="../chapters/10_System_Enforced_Controls_by_Family.md">System-Enforced narrative</a>
+              <a href="#" class="nav-item" data-doc="../chapters/11_Governance_Inherited_and_NA_Controls.md">Governance/Inherited/N-A narrative</a>
+            </div>
+          </nav>
+          <div class="drawer-content">
+            <div class="doc-toolbar">
+              <input id="docSearch" class="input" placeholder="Search within this doc" />
+              <button id="btnDocTop" class="btn btn-secondary">Top</button>
+            </div>
+            <article class="markdown" id="docBody"></article>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Evidence file viewer modal -->
+    <div class="modal hidden" id="fileModal" role="dialog" aria-modal="true" aria-label="Evidence file viewer">
+      <div class="backdrop" id="fileBackdrop"></div>
+      <div class="drawer">
+        <div class="drawer-header">
+          <div>
+            <div class="drawer-title" id="fileTitle">Evidence Viewer</div>
+            <div class="drawer-subtitle" id="fileSubtitle">C:\\evidence</div>
+          </div>
+          <div class="drawer-actions">
+            <button class="btn btn-secondary" id="btnFileOpenExplorer">Open in Explorer</button>
+            <button class="btn" id="btnFileClose">Close</button>
+          </div>
+        </div>
+        <div class="drawer-body">
+          <nav class="drawer-nav">
+            <div class="nav-section">
+              <div class="nav-title">Directory</div>
+              <div id="fileDirList"></div>
+            </div>
+          </nav>
+          <div class="drawer-content">
+            <div class="doc-toolbar">
+              <input id="fileSearch" class="input" placeholder="Search within file preview" />
+              <button id="btnFileTop" class="btn btn-secondary">Top</button>
+            </div>
+            <pre class="mono" id="fileBody"></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SRM / Inherited / N-A acknowledgement modal -->
+    <div class="modal hidden" id="srmModal" role="dialog" aria-modal="true" aria-label="SRM and Inherited/N-A acknowledgement">
+      <div class="backdrop" id="srmBackdrop"></div>
+      <div class="drawer">
+        <div class="drawer-header">
+          <div>
+            <div class="drawer-title" id="srmTitle">SRM module</div>
+            <div class="drawer-subtitle" id="srmSubtitle">Provider–recipient agreement, acknowledgements (CUI boundary, User Access Form), inherited + N/A</div>
+          </div>
+          <div class="drawer-actions">
+            <button class="btn btn-secondary" id="btnSrmWriteArtifact" title="Write SRM acknowledgement record to C:\evidence">Write SRM artifact</button>
+            <button class="btn" id="btnSrmClose">Close</button>
+          </div>
+        </div>
+        <div class="drawer-body">
+          <nav class="drawer-nav">
+            <div class="nav-section">
+              <div class="nav-title">SRM workflow</div>
+              <button class="nav-item" id="btnSrmLoadAzure">Load latest Azure inheritance report</button>
+              <button class="nav-item" id="btnSrmJumpInherited">Inherited controls (verify)</button>
+              <button class="nav-item" id="btnSrmJumpNa">N/A controls (attest)</button>
+            </div>
+            <div class="nav-section">
+              <div class="nav-title">Reference</div>
+              <a href="#" class="nav-item" id="btnSrmOpenDoc">Open SRM guidance doc</a>
+              <a href="#" class="nav-item" id="btnSrmOpenNarrative">Open Governance/Inherited/N-A narrative</a>
+            </div>
+          </nav>
+          <div class="drawer-content">
+            <div class="doc-toolbar">
+              <input id="srmSearch" class="input" placeholder="Search within SRM module" />
+              <select id="srmShow" class="select" style="max-width:220px">
+                <option value="missing">Outstanding only</option>
+                <option value="all">All</option>
+              </select>
+              <button id="btnSrmNextMissing" class="btn btn-secondary" title="Jump to the next outstanding item (inherited first, then N/A).">
+                Next missing
+              </button>
+              <button id="btnSrmTop" class="btn btn-secondary">Top</button>
+            </div>
+            <div id="srmBody" class="srmBody"></div>
+            <div class="muted" id="srmStatus" style="margin-top:10px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cache-buster so refresh reliably picks up latest JS -->
+    <script src="boot.js?v=20260211-20"></script>
+    <script src="app.js?v=20260211-20"></script>
+  </body>
+</html>
+

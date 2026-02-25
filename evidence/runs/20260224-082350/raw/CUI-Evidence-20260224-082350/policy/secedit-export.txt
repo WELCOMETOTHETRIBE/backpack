@@ -1,0 +1,6 @@
+﻿                                                                           
+The task has completed successfully.
+See log %windir%\security\logs\scesrv.log for detail info.
+
+--- ExitCode: 0 ---
+

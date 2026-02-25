@@ -1,0 +1,9 @@
+﻿
+Name   Path       Description   EncryptData FolderEnumerationMode
+----   ----       -----------   ----------- ---------------------
+ADMIN$ C:\Windows Remote Admin        False          Unrestricted
+C$     C:\        Default share       False          Unrestricted
+D$     D:\        Default share       False          Unrestricted
+IPC$              Remote IPC          False          Unrestricted
+
+

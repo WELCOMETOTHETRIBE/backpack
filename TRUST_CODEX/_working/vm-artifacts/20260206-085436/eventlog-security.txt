@@ -1,0 +1,13 @@
+﻿name: Security
+enabled: true
+type: Admin
+owningPublisher: 
+isolation: Custom
+channelAccess: O:BAG:SYD:(A;;0xf0005;;;SY)(A;;0x5;;;BA)(A;;0x1;;;S-1-5-32-573)
+logging:
+  logFileName: %SystemRoot%\System32\Winevt\Logs\Security.evtx
+  retention: false
+  autoBackup: false
+  maxSize: 1073741824
+publishing:
+  fileMax: 1

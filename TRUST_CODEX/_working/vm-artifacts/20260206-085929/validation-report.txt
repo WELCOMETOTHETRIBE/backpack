@@ -1,0 +1,19 @@
+﻿CUI Pilot Validation Report (read-only)
+Generated (UTC): 2026-02-06T08:59:29.2579098Z
+Computer: cui-win-pilot-0
+User: admin_patrick
+PASS: 10  FAIL: 2  TOTAL: 12
+
+Checks:
+[PASS] OS identified (CM.L2-3.4.1) - PLAT-OS | Observed: Microsoft Windows Server 2025 Datacenter | Expected: Windows Server 2025 Datacenter (pilot) | Evidence: systeminfo.txt (if collected)
+[PASS] FIPS mode enabled (SC.L2-3.13.11) - CRYPTO-FIPS | Observed: Enabled=1 | Expected: Enabled=1 | Evidence: reg query ...\\FipsAlgorithmPolicy (fips.txt)
+[PASS] TLS baseline (1.0/1.1 disabled; 1.2 enabled) (SC.L2-3.13.8) - CRYPTO-TLS | Observed: TLS10 C/S=0/0; TLS11 C/S=0/0; TLS12 C/S=1/1 | Expected: TLS 1.0/1.1 Enabled=0; TLS 1.2 Enabled=1 | Evidence: schannel-protocols.txt (if collected)
+[PASS] Windows firewall baseline (block inbound, allow outbound) (SC.L2-3.13.6) - NET-FW | Observed: Domain: Enabled=True In=Block Out=Allow LogBlocked=True LogAllowed=True; Private: Enabled=True In=Block Out=Allow LogBlocked=True LogAllowed=True; Public: Enabled=True In=Block Out=Allow LogBlocked=True LogAllowed=True | Expected: Enabled=True; In=Block; Out=Allow | Evidence: firewall.txt
+[PASS] WinRM disabled (pilot posture) (AC.L2-3.1.12) - RM-WINRM | Observed: Status=Stopped; StartType=Disabled | Expected: Not Running; Disabled | Evidence: services-remote.txt (if collected)
+[PASS] Account lockout threshold set (not 'Never') (AC.L2-3.1.8) - LOCKOUT | Observed: Lockout threshold: 5 | Expected: A finite threshold is configured | Evidence: net-accounts.txt / account-policy.txt
+[FAIL] Machine inactivity limit configured (InactivityTimeoutSecs > 0) (AC.L2-3.1.11) - INACTIVITY | Observed: InactivityTimeoutSecs= | Expected: > 0 | Evidence: machine-inactivity-limit.txt
+[FAIL] RDP redirection disabled (clipboard + drive) and NLA enabled (AC.L2-3.1.3) - RDP-REDIR | Observed: Clip=0; Cdm=0; NLA(UserAuthentication)=1 | Expected: Clip=1; Cdm=1; NLA=1 | Evidence: rdp-policy.txt + rdp-tcp.txt
+[PASS] LSA protection enabled (RunAsPPL) (SI.L2-3.14.6) - LSA-PPL | Observed: RunAsPPL=1 | Expected: RunAsPPL=1 | Evidence: lsa.txt
+[PASS] USB mass storage disabled (USBSTOR Start=4) (MP.L2-3.8.7) - USBSTOR | Observed: USBSTOR Start=4 | Expected: USBSTOR Start=4 | Evidence: usbstor.txt
+[PASS] SMB1 disabled (server + client) (SC.L2-3.13.8) - SMB1 | Observed: SMB1Protocol=DisabledWithPayloadRemoved | Expected: SMB1Protocol feature Disabled | Evidence: DISM / Get-WindowsOptionalFeature output (not currently collected)
+[PASS] Local account policy captured (informational) (IA.L2-3.5.7) - ACCT-POLICY | Observed: Captured net accounts output | Expected: Policy visible for review | Evidence: net-accounts.txt

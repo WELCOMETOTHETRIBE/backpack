@@ -1,0 +1,10 @@
+{
+  "run_id": "20260224-080217",
+  "vm_run_id": "20260224-080217",
+  "generated_utc": "2026-02-24T08:03:36Z",
+  "evidence_runbook": "TRUST_CODEX/docs/EVIDENCE_RUNBOOK.md",
+  "raw_paths": {
+    "CUI-Evidence": "raw/CUI-Evidence-20260224-080217",
+    "CUI-Validation": "raw/CUI-Validation-20260224-080217"
+  }
+}

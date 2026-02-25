@@ -1,0 +1,15 @@
+﻿
+Name       Status StartType
+----       ------ ---------
+AppIDSvc  Running Automatic
+bits      Stopped    Manual
+cryptsvc  Running Automatic
+EventLog  Running Automatic
+MpsSvc    Running Automatic
+Sense     Stopped    Manual
+W32Time   Running Automatic
+WdNisSvc  Running    Manual
+WinDefend Running Automatic
+wuauserv  Running    Manual
+
+

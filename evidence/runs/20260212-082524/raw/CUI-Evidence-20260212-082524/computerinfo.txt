@@ -1,0 +1,13 @@
+﻿
+
+CsName                     : cui-win-pilot-0
+WindowsProductName         : Windows Server 2025 Datacenter
+WindowsVersion             : 2009
+OsBuildNumber              : 26100
+TimeZone                   : (UTC) Coordinated Universal Time
+OsHardwareAbstractionLayer : 10.0.26100.1
+HyperVisorPresent          : True
+WindowsInstallationType    : Server
+
+
+

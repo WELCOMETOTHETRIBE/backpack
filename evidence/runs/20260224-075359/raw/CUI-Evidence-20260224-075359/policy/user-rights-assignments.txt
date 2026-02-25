@@ -1,0 +1,2 @@
+﻿secpol.cfg not found; secedit may have failed or requires elevation.
+

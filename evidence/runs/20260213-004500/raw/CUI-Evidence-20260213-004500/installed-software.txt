@@ -1,0 +1,12 @@
+﻿
+DisplayName                                                        DisplayVersion Publisher             InstallDate
+-----------                                                        -------------- ---------             -----------
+Microsoft Edge                                                     144.0.3719.115 Microsoft Corporation 20260207   
+Microsoft Edge WebView2 Runtime                                    144.0.3719.115 Microsoft Corporation 20260207   
+Microsoft Visual C++ 2015-2022 Redistributable (x64) - 14.38.33130 14.38.33130.0  Microsoft Corporation            
+Microsoft Visual C++ 2022 X64 Additional Runtime - 14.38.33130     14.38.33130    Microsoft Corporation 20260212   
+Microsoft Visual C++ 2022 X64 Minimum Runtime - 14.38.33130        14.38.33130    Microsoft Corporation 20260212   
+Node.js                                                            24.13.0        Node.js Foundation    20260208   
+Pandoc 3.8.3                                                       3.8.3          John MacFarlane       20260209   
+
+

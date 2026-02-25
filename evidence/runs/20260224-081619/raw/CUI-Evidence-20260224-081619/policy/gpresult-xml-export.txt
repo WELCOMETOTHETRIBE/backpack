@@ -1,0 +1,7 @@
+﻿
+--- STDERR ---
+ERROR: The path specified is not accessible.
+Type "GPRESULT /?" for usage.
+
+--- ExitCode: 1 ---
+

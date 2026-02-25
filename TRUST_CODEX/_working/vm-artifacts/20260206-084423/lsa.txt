@@ -1,0 +1,44 @@
+﻿
+HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Lsa
+    auditbasedirectories    REG_DWORD    0x0
+    auditbaseobjects    REG_DWORD    0x0
+    Authentication Packages    REG_MULTI_SZ    msv1_0
+    Bounds    REG_BINARY    0030000000200000
+    crashonauditfail    REG_DWORD    0x0
+    fullprivilegeauditing    REG_BINARY    00
+    LimitBlankPasswordUse    REG_DWORD    0x1
+    NoLmHash    REG_DWORD    0x1
+    Notification Packages    REG_MULTI_SZ    scecli
+    Security Packages    REG_MULTI_SZ    ""
+    LsaPid    REG_DWORD    0x348
+    LsaCfgFlagsDefault    REG_DWORD    0x0
+    SecureBoot    REG_DWORD    0x1
+    ProductType    REG_DWORD    0x8
+    disabledomaincreds    REG_DWORD    0x0
+    everyoneincludesanonymous    REG_DWORD    0x0
+    forceguest    REG_DWORD    0x0
+    restrictanonymous    REG_DWORD    0x1
+    restrictanonymoussam    REG_DWORD    0x1
+    FipsAlgorithmPolicy    REG_DWORD    0x1
+    RunAsPPL    REG_DWORD    0x1
+    RunAsPPLBoot    REG_DWORD    0x1
+
+HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Lsa\AccessProviders
+HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Lsa\Audit
+HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Lsa\CentralizedAccessPolicies
+HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Lsa\ComponentUpdates
+HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Lsa\Credssp
+HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Lsa\Data
+HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Lsa\DPL
+HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Lsa\FipsAlgorithmPolicy
+HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Lsa\GBG
+HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Lsa\JD
+HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Lsa\Kerberos
+HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Lsa\MSV1_0
+HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Lsa\OfflineLSA
+HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Lsa\OfflineSAM
+HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Lsa\OSConfig
+HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Lsa\Skew1
+HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Lsa\SSO
+HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Lsa\SspiCache
+HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Lsa\Tracing

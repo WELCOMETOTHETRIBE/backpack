@@ -1,0 +1,15 @@
+CUI Pilot — Azure/Entra 7-Controls Validation Report (read-only)
+Generated (UTC): 2026-02-14T21:15:05.068164+00:00
+Computer: Patricks-MacBook-Pro.local
+User: patrick
+Azure/Entra artifact dir: /Users/patrick/cui-pilot/evidence/runs/20260214-211311/raw/azure
+PASS: 4  FAIL: 3  TOTAL: 7
+
+Checks:
+[FAIL] MFA for privileged accounts (Entra evidence) (IA.L2-3.5.3) - ENTRA-MFA | Observed: Sign-in artifact=False; MFA/Conditional Access policy=False | Expected: entra-signin.json and/or Conditional Access/MFA policy export present | Evidence: entra-signin.json; Conditional Access export (portal) in artifact folder
+[FAIL] MFA for nonlocal maintenance (Entra evidence) (MA.L2-3.7.5) - ENTRA-MFA-MA | Observed: Sign-in artifact=False; MFA policy=False | Expected: Entra sign-in logs and/or MFA policy (same as IA.L2-3.5.3) | Evidence: entra-signin.json; MFA policy export
+[PASS] Replay-resistant authentication (Entra evidence) (IA.L2-3.5.4) - ENTRA-REPLAY | Observed: Entra/sign-in or role evidence present=True | Expected: Entra sign-in or role evidence for tenant auth posture | Evidence: entra-signin.json; role-assignments-all.json
+[PASS] Prevent identifier reuse (Entra evidence) (IA.L2-3.5.5) - ENTRA-NO-REUSE | Observed: Entra/sign-in or role evidence present=True | Expected: Tenant identity evidence (Entra enforces no reuse) | Evidence: entra-signin.json; role-assignments-all.json
+[PASS] Disable identifiers after inactivity (Entra evidence) (IA.L2-3.5.6) - ENTRA-INACTIVITY | Observed: Entra/sign-in or role evidence present=True | Expected: Tenant identity/lifecycle evidence | Evidence: entra-signin.json; role-assignments-all.json
+[FAIL] Cryptographic key management (Azure Key Vault evidence) (SC.L2-3.13.10) - AZ-KEYVAULT | Observed: keyvault-list.json present and non-empty=False | Expected: Azure Key Vault list or key management artifact | Evidence: keyvault-list.json; or document key management approach
+[PASS] Implement subnetworks (NSG evidence) (SC.L2-3.13.5) - AZ-NSG | Observed: NSG list present=True; RDP open to 0.0.0.0/0=False | Expected: NSG list/rules present; RDP (3389) not allowed from 0.0.0.0/0 | Evidence: nsg-list.json; nsg-rules-*.json

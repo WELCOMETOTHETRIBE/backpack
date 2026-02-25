@@ -1,0 +1,64 @@
+﻿
+
+TimeCreated : 2/24/2026 7:03:03 AM
+Id          : 4625
+Message     : An account failed to log on.
+              
+              Subject:
+              	Security ID:		S-1-5-18
+              	Account Name:		cui-win-pilot-0$
+              	Account Domain:		WORKGROUP
+              	Logon ID:		0x3E7
+              
+              Logon Type:			7
+              
+              Account For Which Logon Failed:
+              	Security ID:		S-1-0-0
+              	Account Name:		admin_patrick
+              	Account Domain:		cui-win-pilot-0
+              
+              Failure Information:
+              	Failure Reason:		Unknown user name or bad password.
+              	Status:			0xC000006D
+              	Sub Status:		0xC000006A
+              
+              Process Information:
+              	Caller Process ID:	0xb9c
+              	Caller Process Name:	C:\Windows\System32\svchost.exe
+              
+              Network Information:
+              	Workstation Name:	cui-win-pilot-0
+              	Source Network Address:	104.174.231.1
+              	Source Port:		0
+              
+              Detailed Authentication Information:
+              	Logon Process:		User32 
+              	Authentication Package:	Negotiate
+              	Transited Services:	-
+              	Package Name (NTLM only):	-
+              	Key Length:		0
+              
+              This event is generated when a logon request fails. It is generated on the computer where access was 
+              attempted.
+              
+              The Subject fields indicate the account on the local system which requested the logon. This is most 
+              commonly a service such as the Server service, or a local process such as Winlogon.exe or Services.exe.
+              
+              The Logon Type field indicates the kind of logon that was requested. The most common types are 2 
+              (interactive) and 3 (network).
+              
+              The Process Information fields indicate which account and process on the system requested the logon.
+              
+              The Network Information fields indicate where a remote logon request originated. Workstation name is not 
+              always available and may be left blank in some cases.
+              
+              The authentication information fields provide detailed information about this specific logon request.
+              	- Transited services indicate which intermediate services have participated in this logon request.
+              	- Package name indicates which sub-protocol was used among the NTLM protocols.
+              	- Key length indicates the length of the generated session key. This will be 0 if no session key was 
+              requested.
+
+
+
+
+

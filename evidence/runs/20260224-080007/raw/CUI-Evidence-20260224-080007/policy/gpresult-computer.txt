@@ -1,0 +1,5 @@
+﻿ERROR running gpresult_computer: The property 'ArgumentList' cannot be found on this object. Verify that the property exists.
+at Run-Exe-And-Capture, C:\hardening\codex-scripts\Collect-Cui-Evidence-v2.ps1: line 80
+at <ScriptBlock>, C:\hardening\codex-scripts\Collect-Cui-Evidence-v2.ps1: line 292
+at <ScriptBlock>, C:\hardening\codex-scripts\Run-CuiBulkEvidenceAndValidate-RunId.ps1: line 31
+

@@ -1,0 +1,9 @@
+﻿
+Source          Description     HotFixID  InstalledBy         InstalledOn          
+------          -----------     --------  -----------         -----------          
+cui-win-pilot-0 Security Update KB5075898 NT AUTHORITY\SYSTEM 2/11/2026 12:00:00 AM
+cui-win-pilot-0 Security Update KB5075899 NT AUTHORITY\SYSTEM 2/11/2026 12:00:00 AM
+cui-win-pilot-0 Update          KB5066131                     1/11/2026 12:00:00 AM
+cui-win-pilot-0 Security Update KB5072725                     1/11/2026 12:00:00 AM
+
+

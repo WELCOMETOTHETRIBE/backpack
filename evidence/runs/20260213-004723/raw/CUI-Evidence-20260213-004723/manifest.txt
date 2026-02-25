@@ -1,0 +1,63 @@
+﻿
+Name                           Length LastWriteTime        
+----                           ------ -------------        
+account-policy.txt                569 2/13/2026 12:47:50 AM
+applocker-policy.txt              498 2/13/2026 12:47:59 AM
+auditpol.txt                     4029 2/13/2026 12:47:56 AM
+auditpol-subcategories.txt         38 2/13/2026 12:47:56 AM
+auth-ux-policy.txt                134 2/13/2026 12:47:50 AM
+azure-artifacts-source.txt         82 2/13/2026 12:48:00 AM
+azure-inheritance.json          86418 2/7/2026 11:13:13 PM 
+azure-inheritance.md             4320 2/7/2026 11:13:14 PM 
+azure-inheritance-source.txt       94 2/13/2026 12:48:00 AM
+bitlocker-status.txt             1161 2/13/2026 12:47:59 AM
+computerinfo.txt                  369 2/13/2026 12:47:40 AM
+defender-preferences.txt         9143 2/13/2026 12:47:58 AM
+defender-status.txt              2955 2/13/2026 12:47:58 AM
+eventlog-application.txt          544 2/13/2026 12:47:56 AM
+eventlog-security.txt             329 2/13/2026 12:47:56 AM
+eventlog-security-sample.txt    25927 2/13/2026 12:47:57 AM
+eventlog-system.txt               413 2/13/2026 12:47:56 AM
+eventlog-system-sample.txt       8498 2/13/2026 12:47:57 AM
+fips.txt                          117 2/13/2026 12:47:49 AM
+firewall.txt                     2150 2/13/2026 12:47:46 AM
+firewall-rules-summary.txt       1197 2/13/2026 12:47:49 AM
+gpresult-computer.txt            1309 2/13/2026 12:47:44 AM
+gpresult-user.txt                1707 2/13/2026 12:47:45 AM
+hardening.log                   36192 2/8/2026 12:34:29 AM 
+hotfixes.txt                      519 2/13/2026 12:47:36 AM
+installed-roles-features.txt     1197 2/13/2026 12:47:42 AM
+installed-software.txt           1062 2/13/2026 12:47:42 AM
+interactive-logon-notice.txt      437 2/13/2026 12:47:51 AM
+local-accounts.txt                231 2/13/2026 12:47:49 AM
+local-admins.txt                  419 2/13/2026 12:47:50 AM
+local-groups.txt                 3518 2/13/2026 12:47:50 AM
+local-remote-desktop-users.txt      0 2/13/2026 12:47:50 AM
+lsa.txt                          2385 2/13/2026 12:47:51 AM
+machine-inactivity-limit.txt      134 2/13/2026 12:47:50 AM
+name-resolution-policy.txt        117 2/13/2026 12:47:51 AM
+ntlm-policy.txt                   205 2/13/2026 12:47:50 AM
+rdp-policy.txt                    206 2/13/2026 12:47:56 AM
+rdp-tcp.txt                      3711 2/13/2026 12:47:56 AM
+removable-storage-policies.txt     85 2/13/2026 12:47:59 AM
+schannel-protocols.txt           2249 2/13/2026 12:47:49 AM
+screensaver-policy.txt            202 2/13/2026 12:47:50 AM
+secpol.cfg                      15940 2/13/2026 12:47:59 AM
+services-remote.txt               164 2/13/2026 12:47:58 AM
+services-security-relevant.txt    357 2/13/2026 12:47:58 AM
+smb1-feature.txt                  561 2/13/2026 12:47:55 AM
+smb-client-config.txt            2545 2/13/2026 12:47:52 AM
+smb-server-config.txt            3217 2/13/2026 12:47:52 AM
+smb-shares.txt                    411 2/13/2026 12:47:56 AM
+smb-signing.txt                   539 2/13/2026 12:47:56 AM
+systeminfo.txt                   2776 2/13/2026 12:47:33 AM
+time-sync.txt                    1648 2/13/2026 12:47:36 AM
+tls-ciphersuites.txt              126 2/13/2026 12:47:49 AM
+uac-policy.txt                    397 2/13/2026 12:47:51 AM
+usbstor.txt                       422 2/13/2026 12:47:58 AM
+user-rights-assignments.txt        72 2/13/2026 12:47:59 AM
+whoami-all.txt                   5326 2/13/2026 12:47:45 AM
+windows-update-policy.txt         485 2/13/2026 12:47:58 AM
+windows-update-services.txt       149 2/13/2026 12:47:58 AM
+
+

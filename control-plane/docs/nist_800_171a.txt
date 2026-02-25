@@ -1,0 +1,427 @@
+information security are employed.
+
+PAGE 53
+
+NIST SP 800-171A
+
+ASSESSING SECURITY REQUIREMENTS FOR CONTROLLED UNCLASSIFIED INFORMATION
+
+________________________________________________________________________________________________
+3.13.2[f]
+
+identified systems engineering principles that promote effective information
+security are employed.
+
+This publication is available free of charge from: https://doi.org/10.6028/NIST.SP.800-171A
+
+POTENTIAL ASSESSMENT METHODS AND OBJECTS
+Examine: [SELECT FROM: Security planning policy; procedures addressing system security plan
+development and implementation; procedures addressing system security plan reviews
+and updates; enterprise architecture documentation; system security plan; records of
+system security plan reviews and updates; system and communications protection policy;
+procedures addressing security engineering principles used in the specification, design,
+development, implementation, and modification of the system; security architecture
+documentation; security requirements and specifications for the system; system design
+documentation; system configuration settings and associated documentation; other
+relevant documents or records].
+Interview: [SELECT FROM: Personnel with responsibility for determining information system
+security requirements; personnel with information system design, development,
+implementation, and modification responsibilities; personnel with security planning and
+system security plan implementation responsibilities; personnel with information
+security responsibilities].
+Test: [SELECT FROM: Organizational processes for system security plan development, review,
+update, and approval; mechanisms supporting the system security plan; processes for
+applying security engineering principles in system specification, design, development,
+implementation, and modification; automated mechanisms supporting the application of
+security engineering principles in information system specification, design, development,
+implementation, and modification].
+
+3.13.3
+
+SECURITY REQUIREMENT
+
+Separate user functionality from system management functionality.
+ASSESSMENT OBJECTIVE
+
+Determine if:
+3.13.3[a]
+
+user functionality is identified.
+
+3.13.3[b]
+
+system management functionality is identified.
+
+3.13.3[c]
+
+user functionality is separated from system management functionality.
+
+POTENTIAL ASSESSMENT METHODS AND OBJECTS
+Examine: [SELECT FROM: System and communications protection policy; procedures addressing
+application partitioning; system design documentation; system configuration settings and
+associated documentation; system security plan; system audit logs and records; other
+relevant documents or records].
+Interview: [SELECT FROM: System or network administrators; personnel with information security
+responsibilities; system developer].
+Test: [SELECT FROM: Separation of user functionality from system management functionality].
+
+3.13.4
+
+SECURITY REQUIREMENT
+
+Prevent unauthorized and unintended information transfer via shared system resources.
+ASSESSMENT OBJECTIVE
+
+Determine if unauthorized and unintended information transfer via shared system
+resources is prevented.
+POTENTIAL ASSESSMENT METHODS AND OBJECTS
+Examine: [SELECT FROM: System and communications protection policy; procedures addressing
+application partitioning; system security plan; system design documentation; system
+
+CHAPTER THREE
+
+PAGE 54
+
+NIST SP 800-171A
+
+ASSESSING SECURITY REQUIREMENTS FOR CONTROLLED UNCLASSIFIED INFORMATION
+
+________________________________________________________________________________________________
+configuration settings and associated documentation; system audit logs and records;
+other relevant documents or records].
+Interview: [SELECT FROM: System or network administrators; personnel with information security
+responsibilities; system developer].
+Test: [SELECT FROM: Separation of user functionality from system management functionality].
+
+3.13.5
+
+SECURITY REQUIREMENT
+
+Implement subnetworks for publicly accessible system components that are physically or
+logically separated from internal networks.
+ASSESSMENT OBJECTIVE
+This publication is available free of charge from: https://doi.org/10.6028/NIST.SP.800-171A
+
+Determine if:
+3.13.5[a]
+
+publicly accessible system components are identified.
+
+3.13.5[b]
+
+subnetworks for publicly accessible system components are physically or
+logically separated from internal networks.
+
+POTENTIAL ASSESSMENT METHODS AND OBJECTS
+Examine: [SELECT FROM: System and communications protection policy; procedures addressing
+boundary protection; system security plan; list of key internal boundaries of the system;
+system design documentation; boundary protection hardware and software; system
+configuration settings and associated documentation; enterprise security architecture
+documentation; system audit logs and records; other relevant documents or records].
+Interview: [SELECT FROM: System or network administrators; personnel with information security
+responsibilities; system developer; personnel with boundary protection responsibilities].
+Test: [SELECT FROM: Mechanisms implementing boundary protection capability].
+
+3.13.6
+
+SECURITY REQUIREMENT
+
+Deny network communications traffic by default and allow network communications
+traffic by exception (i.e., deny all, permit by exception).
+ASSESSMENT OBJECTIVE
+
+Determine if:
+3.13.6[a]
+
+network communications traffic is denied by default.
+
+3.13.6[b]
+
+network communications traffic is allowed by exception.
+
+POTENTIAL ASSESSMENT METHODS AND OBJECTS
+Examine: [SELECT FROM: System and communications protection policy; procedures addressing
+boundary protection; system security plan; system design documentation; system
+configuration settings and associated documentation; system audit logs and records;
+other relevant documents or records].
+Interview: [SELECT FROM: System or network administrators; personnel with information security
+responsibilities; system developer; personnel with boundary protection responsibilities].
+Test: [SELECT FROM: Mechanisms implementing traffic management at managed interfaces].
+
+CHAPTER THREE
+
+PAGE 55
+
+NIST SP 800-171A
+
+ASSESSING SECURITY REQUIREMENTS FOR CONTROLLED UNCLASSIFIED INFORMATION
+
+________________________________________________________________________________________________
+
+3.13.7
+
+SECURITY REQUIREMENT
+
+Prevent remote devices from simultaneously establishing non-remote connections with
+organizational systems and communicating via some other connection to resources in
+external networks (i.e., split tunneling).
+ASSESSMENT OBJECTIVE
+
+Determine if remote devices are prevented from simultaneously establishing non-remote
+connections with the system and communicating via some other connection to resources
+in external networks (i.e., split tunneling).
+
+This publication is available free of charge from: https://doi.org/10.6028/NIST.SP.800-171A
+
+POTENTIAL ASSESSMENT METHODS AND OBJECTS
+Examine: [SELECT FROM: System and communications protection policy; procedures addressing
+boundary protection; system security plan; system design documentation; system
+hardware and software; system architecture; system configuration settings and
+associated documentation; system audit logs and records; other relevant documents or
+records].
+Interview: [SELECT FROM: System or network administrators; personnel with information security
+responsibilities; system developer; personnel with boundary protection responsibilities].
+Test: [SELECT FROM: Mechanisms implementing boundary protection capability; mechanisms
+supporting or restricting non-remote connections].
+
+3.13.8
+
+SECURITY REQUIREMENT
+
+Implement cryptographic mechanisms to prevent unauthorized disclosure of CUI during
+transmission unless otherwise protected by alternative physical safeguards.
+ASSESSMENT OBJECTIVE
+
+Determine if:
+3.13.8[a]
+
+cryptographic mechanisms intended to prevent unauthorized disclosure of CUI
+are identified.
+
+3.13.8[b]
+
+alternative physical safeguards intended to prevent unauthorized disclosure of
+CUI are identified.
+
+3.13.8[c]
+
+either cryptographic mechanisms or alternative physical safeguards are
+implemented to prevent unauthorized disclosure of CUI during transmission.
+
+POTENTIAL ASSESSMENT METHODS AND OBJECTS
+Examine: [SELECT FROM: System and communications protection policy; procedures addressing
+transmission confidentiality and integrity; system security plan; system design
+documentation; system configuration settings and associated documentation; system
+audit logs and records; other relevant documents or records].
+Interview: [SELECT FROM: System or network administrators; personnel with information security
+responsibilities; system developer].
+Test: [SELECT FROM: Cryptographic mechanisms or mechanisms supporting or implementing
+transmission confidentiality; organizational processes for defining and implementing
+alternative physical safeguards].
+
+CHAPTER THREE
+
+PAGE 56
+
+NIST SP 800-171A
+
+ASSESSING SECURITY REQUIREMENTS FOR CONTROLLED UNCLASSIFIED INFORMATION
+
+________________________________________________________________________________________________
+
+3.13.9
+
+SECURITY REQUIREMENT
+
+Terminate network connections associated with communications sessions at the end of
+the sessions or after a defined period of inactivity.
+ASSESSMENT OBJECTIVE
+
+Determine if:
+
+This publication is available free of charge from: https://doi.org/10.6028/NIST.SP.800-171A
+
+3.13.9[a]
+
+a period of inactivity to terminate network connections associated with
+communications sessions is defined.
+
+3.13.9[b]
+
+network connections associated with communications sessions are terminated
+at the end of the sessions.
+
+3.13.9[c]
+
+network connections associated with communications sessions are terminated
+after the defined period of inactivity.
+
+POTENTIAL ASSESSMENT METHODS AND OBJECTS
+Examine: [SELECT FROM: System and communications protection policy; procedures addressing
+network disconnect; system design documentation; system security plan; system
+configuration settings and associated documentation; system audit logs and records;
+other relevant documents or records].
+Interview: [SELECT FROM: System or network administrators; personnel with information security
+responsibilities; system developer].
+Test: [SELECT FROM: Mechanisms supporting or implementing network disconnect capability].
+
+3.13.10
+
+SECURITY REQUIREMENT
+
+Establish and manage cryptographic keys for cryptography employed in organizational
+systems.
+ASSESSMENT OBJECTIVE
+
+Determine if:
+3.13.10[a]
+
+cryptographic keys are established whenever cryptography is employed.
+
+3.13.10[b]
+
+cryptographic keys are managed whenever cryptography is employed.
+
+POTENTIAL ASSESSMENT METHODS AND OBJECTS
+Examine: [SELECT FROM: System and communications protection policy; procedures addressing
+cryptographic key establishment and management; system security plan; system design
+documentation; cryptographic mechanisms; system configuration settings and associated
+documentation; system audit logs and records; other relevant documents or records].
+Interview: [SELECT FROM: System or network administrators; personnel with information security
+responsibilities; personnel with responsibilities for cryptographic key establishment and
+management].
+Test: [SELECT FROM: Mechanisms supporting or implementing cryptographic key establishment and
+management].
+
+3.13.11
+
+SECURITY REQUIREMENT
+
+Employ FIPS-validated cryptography when used to protect the confidentiality of CUI.
+ASSESSMENT OBJECTIVE
+
+Determine if FIPS-validated cryptography is employed to protect the confidentiality of CUI.
+POTENTIAL ASSESSMENT METHODS AND OBJECTS
+
+CHAPTER THREE
+
+PAGE 57
+
+NIST SP 800-171A
+
+ASSESSING SECURITY REQUIREMENTS FOR CONTROLLED UNCLASSIFIED INFORMATION
+
+________________________________________________________________________________________________
+Examine: [SELECT FROM: System and communications protection policy; procedures addressing
+cryptographic protection; system security plan; system design documentation; system
+configuration settings and associated documentation; cryptographic module validation
+certificates; list of FIPS-validated cryptographic modules; system audit logs and records;
+other relevant documents or records].
+Interview: [SELECT FROM: System or network administrators; personnel with information security
+responsibilities; system developer; personnel with responsibilities for cryptographic
+protection].
+Test: [SELECT FROM: Mechanisms supporting or implementing cryptographic protection].
+
+3.13.12
+
+SECURITY REQUIREMENT
+
+This publication is available free of charge from: https://doi.org/10.6028/NIST.SP.800-171A
+
+Prohibit remote activation of collaborative computing devices and provide indication of
+devices in use to users present at the device.
+ASSESSMENT OBJECTIVE
+
+Determine if:
+3.13.12[a]
+
+collaborative computing devices are identified.
+
+3.13.12[b]
+
+collaborative computing devices provide indication to users of devices in use.
+
+3.13.12[c]
+
+remote activation of collaborative computing devices is prohibited.
+
+POTENTIAL ASSESSMENT METHODS AND OBJECTS
+Examine: [SELECT FROM: System and communications protection policy; procedures addressing
+collaborative computing; access control policy and procedures; system security plan;
+system design documentation; system audit logs and records; system configuration
+settings and associated documentation; other relevant documents or records].
+Interview: [SELECT FROM: System or network administrators; personnel with information security
+responsibilities; system developer; personnel with responsibilities for managing
+collaborative computing devices].
+Test: [SELECT FROM: Mechanisms supporting or implementing management of remote activation of
+collaborative computing devices; mechanisms providing an indication of use of collaborative
+computing devices].
+
+3.13.13
+
+SECURITY REQUIREMENT
+
+Control and monitor the use of mobile code.
+ASSESSMENT OBJECTIVE
+
+Determine if:
+3.13.13[a]
+
+use of mobile code is controlled.
+
+3.13.13[b]
+
+use of mobile code is monitored.
+
+POTENTIAL ASSESSMENT METHODS AND OBJECTS
+Examine: [SELECT FROM: System and communications protection policy; procedures addressing
+mobile code; mobile code usage restrictions, mobile code implementation policy and
+procedures; system audit logs and records; system security plan; list of acceptable mobile
+code and mobile code technologies; list of unacceptable mobile code and mobile
+technologies; authorization records; system monitoring records; system audit logs and
+records; other relevant documents or records].
+Interview: [SELECT FROM: System or network administrators; personnel with information security
+responsibilities; personnel with responsibilities for managing mobile code].
+
+CHAPTER THREE
+
+PAGE 58
+
+NIST SP 800-171A
+
+ASSESSING SECURITY REQUIREMENTS FOR CONTROLLED UNCLASSIFIED INFORMATION
+
+________________________________________________________________________________________________
+Test: [SELECT FROM: Organizational process for controlling, authorizing, monitoring, and restricting
+mobile code; mechanisms supporting or implementing the management of mobile code;
+mechanisms supporting or implementing the monitoring of mobile code].
+
+3.13.14
+
+SECURITY REQUIREMENT
+
+Control and monitor the use of Voice over Internet Protocol (VoIP) technologies.
+ASSESSMENT OBJECTIVE
+
+Determine if:
+
+This publication is available free of charge from: https://doi.org/10.6028/NIST.SP.800-171A
+
+3.13.14[a]
+
+use of Voice over Internet Protocol (VoIP) technologies is controlled.
+
+3.13.14[b]
+
+use of Voice over Internet Protocol (VoIP) technologies is monitored.
+
+POTENTIAL ASSESSMENT METHODS AND OBJECTS
+Examine: [SELECT FROM: System and communications protection policy; procedures addressing
+VoIP; VoIP usage restrictions; VoIP implementation guidance; system security plan;
+system design documentation; system audit logs and records; system configuration
+settings and associated documentation; system monitoring records; other relevant
+documents or records].
+Interview: [SELECT FROM: System or network administrators; personnel with information security
+responsibilities; personnel with responsibilities for managing VoIP].
+Test: [SELECT FROM: Organizational process for authorizing, monitoring, and controlling VoIP;
+(Content truncated due to size limit. Use line ranges to read remaining content)

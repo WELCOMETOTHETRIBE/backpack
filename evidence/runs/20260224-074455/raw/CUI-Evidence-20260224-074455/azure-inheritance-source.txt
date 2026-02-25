@@ -1,0 +1,1 @@
+﻿Copied Azure inheritance artifacts from C:\evidence\CUI-Azure-Inheritance-20260207-231313

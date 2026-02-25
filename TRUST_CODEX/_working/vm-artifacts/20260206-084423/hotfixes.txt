@@ -1,0 +1,8 @@
+﻿
+Source          Description     HotFixID  InstalledBy InstalledOn          
+------          -----------     --------  ----------- -----------          
+cui-win-pilot-0 Security Update KB5072725             1/11/2026 12:00:00 AM
+cui-win-pilot-0 Security Update KB5073379             1/11/2026 12:00:00 AM
+cui-win-pilot-0 Update          KB5066131             1/11/2026 12:00:00 AM
+
+

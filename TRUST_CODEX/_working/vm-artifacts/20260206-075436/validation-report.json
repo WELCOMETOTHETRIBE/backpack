@@ -1,0 +1,92 @@
+﻿{
+    "summary":  {
+                    "generated_utc":  "2026-02-06T07:53:45.4282065Z",
+                    "computer":  "cui-win-pilot-0",
+                    "user":  "admin_patrick",
+                    "pass_count":  6,
+                    "fail_count":  2,
+                    "total":  8
+                },
+    "checks":  [
+                   {
+                       "id":  "PLAT-OS",
+                       "control":  "CM.L2-3.4.1",
+                       "title":  "OS identified",
+                       "pass":  true,
+                       "observed":  "Microsoft Windows Server 2025 Datacenter",
+                       "expected":  "Windows Server 2025 Datacenter (pilot)",
+                       "evidence_hint":  "systeminfo.txt (if collected)",
+                       "timestamp_utc":  "2026-02-06T07:53:40.2275193Z"
+                   },
+                   {
+                       "id":  "CRYPTO-FIPS",
+                       "control":  "SC.L2-3.13.11",
+                       "title":  "FIPS mode enabled",
+                       "pass":  true,
+                       "observed":  "Enabled=1",
+                       "expected":  "Enabled=1",
+                       "evidence_hint":  "reg query ...\\\\FipsAlgorithmPolicy (fips.txt)",
+                       "timestamp_utc":  "2026-02-06T07:53:40.2837045Z"
+                   },
+                   {
+                       "id":  "CRYPTO-TLS",
+                       "control":  "SC.L2-3.13.8",
+                       "title":  "TLS baseline (1.0/1.1 disabled; 1.2 enabled)",
+                       "pass":  true,
+                       "observed":  "TLS10 C/S=0/0; TLS11 C/S=0/0; TLS12 C/S=1/1",
+                       "expected":  "TLS 1.0/1.1 Enabled=0; TLS 1.2 Enabled=1",
+                       "evidence_hint":  "schannel-protocols.txt (if collected)",
+                       "timestamp_utc":  "2026-02-06T07:53:40.3542358Z"
+                   },
+                   {
+                       "id":  "NET-FW",
+                       "control":  "SC.L2-3.13.6",
+                       "title":  "Windows firewall baseline (block inbound, allow outbound)",
+                       "pass":  false,
+                       "observed":  "ERROR: The property \u0027LogDroppedConnections\u0027 cannot be found on this object. Verify that the property exists.",
+                       "expected":  "Firewall profiles queryable",
+                       "evidence_hint":  "firewall.txt",
+                       "timestamp_utc":  "2026-02-06T07:53:45.2389135Z"
+                   },
+                   {
+                       "id":  "RM-WINRM",
+                       "control":  "AC.L2-3.1.12",
+                       "title":  "WinRM disabled (pilot posture)",
+                       "pass":  true,
+                       "observed":  "Status=Stopped; StartType=Disabled",
+                       "expected":  "Not Running; Disabled",
+                       "evidence_hint":  "services-remote.txt (if collected)",
+                       "timestamp_utc":  "2026-02-06T07:53:45.2663002Z"
+                   },
+                   {
+                       "id":  "RDP-REDIR",
+                       "control":  "AC.L2-3.1.3",
+                       "title":  "RDP redirection disabled (clipboard + drive) and NLA enabled",
+                       "pass":  false,
+                       "observed":  "Clip=0; Cdm=0; NLA(UserAuthentication)=1",
+                       "expected":  "Clip=1; Cdm=1; NLA=1",
+                       "evidence_hint":  "rdp-policy.txt + rdp-tcp.txt",
+                       "timestamp_utc":  "2026-02-06T07:53:45.2959855Z"
+                   },
+                   {
+                       "id":  "LSA-PPL",
+                       "control":  "SI.L2-3.14.6",
+                       "title":  "LSA protection enabled (RunAsPPL)",
+                       "pass":  true,
+                       "observed":  "RunAsPPL=1",
+                       "expected":  "RunAsPPL=1",
+                       "evidence_hint":  "lsa.txt",
+                       "timestamp_utc":  "2026-02-06T07:53:45.3078157Z"
+                   },
+                   {
+                       "id":  "ACCT-POLICY",
+                       "control":  "IA.L2-3.5.7",
+                       "title":  "Local account policy captured (informational)",
+                       "pass":  true,
+                       "observed":  "Captured net accounts output",
+                       "expected":  "Policy visible for review",
+                       "evidence_hint":  "net-accounts.txt",
+                       "timestamp_utc":  "2026-02-06T07:53:45.4282065Z"
+                   }
+               ]
+}

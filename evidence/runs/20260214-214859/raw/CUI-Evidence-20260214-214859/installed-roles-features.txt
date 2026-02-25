@@ -1,0 +1,21 @@
+﻿
+Name                      DisplayName                  Installed
+----                      -----------                  ---------
+FileAndStorage-Services   File and Storage Services         True
+Storage-Services          Storage Services                  True
+NET-Framework-45-Features .NET Framework 4.8 Features       True
+NET-Framework-45-Core     .NET Framework 4.8                True
+NET-WCF-Services45        WCF Services                      True
+NET-WCF-TCP-PortSharing45 TCP Port Sharing                  True
+BitLocker                 BitLocker Drive Encryption        True
+EnhancedStorage           Enhanced Storage                  True
+Windows-Defender          Microsoft Defender Antivirus      True
+System-DataArchiver       System Data Archiver              True
+WindowsAdminCenterSetup   Windows Admin Center Setup        True
+PowerShellRoot            Windows PowerShell                True
+PowerShell                Windows PowerShell 5.1            True
+Wireless-Networking       Wireless LAN Service              True
+WoW64-Support             WoW64 Support                     True
+XPS-Viewer                XPS Viewer                        True
+
+

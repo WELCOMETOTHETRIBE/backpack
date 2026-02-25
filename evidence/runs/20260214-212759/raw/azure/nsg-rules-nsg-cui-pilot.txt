@@ -1,0 +1,5 @@
+Name                        ResourceGroup          Priority    SourcePortRanges    SourceAddressPrefixes    SourceASG    Access    Protocol    Direction    DestinationPortRanges    DestinationAddressPrefixes    DestinationASG
+--------------------------  ---------------------  ----------  ------------------  -----------------------  -----------  --------  ----------  -----------  -----------------------  ----------------------------  ----------------
+default-allow-rdp           rg-cui-pilot-envclave  1000        *                   *                        None         Allow     TCP         Inbound      3389                     *                             None
+allow-ssh-pilot             rg-cui-pilot-envclave  900         *                   104.174.231.1            None         Allow     TCP         Inbound      22                       *                             None
+Deny-RDP-From-Public-Codex  rg-cui-pilot-envclave  100         *                   0.0.0.0/0                None         Deny      Tcp         Inbound      3389                     *                             None

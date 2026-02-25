@@ -1,0 +1,49 @@
+﻿
+Host Name:                     cui-win-pilot-0
+OS Name:                       Microsoft Windows Server 2025 Datacenter
+OS Version:                    10.0.26100 N/A Build 26100
+OS Manufacturer:               Microsoft Corporation
+OS Configuration:              Standalone Server
+OS Build Type:                 Multiprocessor Free
+Registered Owner:              N/A
+Registered Organization:       N/A
+Product ID:                    00491-50000-00001-AA362
+Original Install Date:         2/6/2026, 4:59:08 AM
+System Boot Time:              2/11/2026, 4:13:26 AM
+System Manufacturer:           Microsoft Corporation
+System Model:                  Virtual Machine
+System Type:                   x64-based PC
+Processor(s):                  1 Processor(s) Installed.
+                               [01]: Intel64 Family 6 Model 85 Stepping 4 GenuineIntel ~2095 Mhz
+BIOS Version:                  Microsoft Corporation Hyper-V UEFI Release v4.1, 6/10/2025
+Windows Directory:             C:\Windows
+System Directory:              C:\Windows\system32
+Boot Device:                   \Device\HarddiskVolume3
+System Locale:                 en-us;English (United States)
+Input Locale:                  en-us;English (United States)
+Time Zone:                     (UTC) Coordinated Universal Time
+Total Physical Memory:         8,137 MB
+Available Physical Memory:     4,501 MB
+Virtual Memory: Max Size:      9,417 MB
+Virtual Memory: Available:     6,252 MB
+Virtual Memory: In Use:        3,165 MB
+Page File Location(s):         D:\pagefile.sys
+Domain:                        WORKGROUP
+Logon Server:                  \\cui-win-pilot-0
+Hotfix(s):                     3 Hotfix(s) Installed.
+                               [01]: KB5066131
+                               [02]: KB5075899
+                               [03]: KB5075898
+Network Card(s):               1 NIC(s) Installed.
+                               [01]: Microsoft Hyper-V Network Adapter
+                                     Connection Name: Ethernet
+                                     DHCP Enabled:    Yes
+                                     DHCP Server:     168.63.129.16
+                                     IP address(es)
+                                     [01]: 10.10.0.4
+                                     [02]: fe80::9078:dc0c:9eeb:bf1f
+Virtualization-based security: Status: Not enabled
+                               App Control for Business policy: Enforced
+                               App Control for Business user mode policy: Off
+                               Security Features Enabled:
+Hyper-V Requirements:          A hypervisor has been detected. Features required for Hyper-V will not be displayed.

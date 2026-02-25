@@ -1,0 +1,147 @@
+﻿
+
+AllowDatagramProcessingOnWinServer                    : False
+AllowNetworkProtectionDownLevel                       : False
+AllowNetworkProtectionOnWinServer                     : False
+AllowSwitchToAsyncInspection                          : True
+ApplyDisableNetworkScanningToIOAV                     : False
+AttackSurfaceReductionOnlyExclusions                  : 
+AttackSurfaceReductionRules_Actions                   : {1, 1}
+AttackSurfaceReductionRules_Ids                       : {56a863a9-875e-4185-98a7-b882c64b5ce5, 
+                                                        9e6b0f98-0d76-40b0-a98e-95b9d1d9ef0d}
+AttackSurfaceReductionRules_RuleSpecificExclusions    : 
+AttackSurfaceReductionRules_RuleSpecificExclusions_Id : 
+BruteForceProtectionAggressiveness                    : 0
+BruteForceProtectionConfiguredState                   : 0
+BruteForceProtectionExclusions                        : 
+BruteForceProtectionLocalNetworkBlocking              : False
+BruteForceProtectionMaxBlockTime                      : 0
+BruteForceProtectionSkipLearningPeriod                : False
+CheckForSignaturesBeforeRunningScan                   : False
+CloudBlockLevel                                       : 0
+CloudExtendedTimeout                                  : 0
+ComputerID                                            : E5E9B212-78FB-48B8-9FBD-1C1CFE2F06E1
+ControlledFolderAccessAllowedApplications             : 
+ControlledFolderAccessDefaultProtectedFolders         : {C:\Users\admin_patrick\Documents, C:\Users\Public\Documents, 
+                                                        C:\Users\admin_patrick\Pictures, C:\Users\Public\Pictures...}
+ControlledFolderAccessProtectedFolders                : 
+DefinitionUpdatesChannel                              : 0
+DisableArchiveScanning                                : False
+DisableAutoExclusions                                 : False
+DisableBehaviorMonitoring                             : False
+DisableBlockAtFirstSeen                               : False
+DisableCacheMaintenance                               : False
+DisableCatchupFullScan                                : True
+DisableCatchupQuickScan                               : True
+DisableCoreServiceECSIntegration                      : False
+DisableCoreServiceTelemetry                           : False
+DisableCpuThrottleOnIdleScans                         : True
+DisableDatagramProcessing                             : False
+DisableDnsOverTcpParsing                              : False
+DisableDnsParsing                                     : False
+DisableEmailScanning                                  : True
+DisableFtpParsing                                     : False
+DisableGradualRelease                                 : False
+DisableHttpParsing                                    : False
+DisableInboundConnectionFiltering                     : False
+DisableIOAVProtection                                 : False
+DisableNetworkProtectionPerfTelemetry                 : False
+DisablePrivacyMode                                    : False
+DisableQuicParsing                                    : True
+DisableRdpParsing                                     : False
+DisableRealtimeMonitoring                             : False
+DisableRemovableDriveScanning                         : True
+DisableRestorePoint                                   : True
+DisableScanningMappedNetworkDrivesForFullScan         : True
+DisableScanningNetworkFiles                           : False
+DisableScriptScanning                                 : False
+DisableSmtpParsing                                    : False
+DisableSshParsing                                     : False
+DisableTamperProtection                               : True
+DisableTlsParsing                                     : False
+EnableControlledFolderAccess                          : 2
+EnableConvertWarnToBlock                              : False
+EnableDnsSinkhole                                     : True
+EnableFileHashComputation                             : False
+EnableFullScanOnBatteryPower                          : False
+EnableLowCpuPriority                                  : False
+EnableNetworkProtection                               : 1
+EnableUdpReceiveOffload                               : False
+EnableUdpSegmentationOffload                          : False
+EngineUpdatesChannel                                  : 0
+ExclusionExtension                                    : 
+ExclusionIpAddress                                    : 
+ExclusionPath                                         : 
+ExclusionProcess                                      : 
+ForceUseProxyOnly                                     : False
+HideExclusionsFromLocalUsers                          : True
+HighThreatDefaultAction                               : 0
+IntelTDTEnabled                                       : 
+LowThreatDefaultAction                                : 0
+MAPSReporting                                         : 2
+MeteredConnectionUpdates                              : False
+ModerateThreatDefaultAction                           : 0
+NetworkProtectionReputationMode                       : 0
+OobeEnableRtpAndSigUpdate                             : False
+PerformanceModeStatus                                 : 1
+PlatformUpdatesChannel                                : 0
+ProxyBypass                                           : 
+ProxyPacUrl                                           : 
+ProxyServer                                           : 
+PUAProtection                                         : 1
+QuarantinePurgeItemsAfterDelay                        : 90
+QuickScanIncludeExclusions                            : 0
+RandomizeScheduleTaskTimes                            : True
+RealTimeScanDirection                                 : 0
+RemediationScheduleDay                                : 0
+RemediationScheduleTime                               : 02:00:00
+RemoteEncryptionProtectionAggressiveness              : 0
+RemoteEncryptionProtectionConfiguredState             : 0
+RemoteEncryptionProtectionExclusions                  : 
+RemoteEncryptionProtectionMaxBlockTime                : 0
+RemoveScanningThreadPoolCap                           : False
+ReportDynamicSignatureDroppedEvent                    : False
+ReportingAdditionalActionTimeOut                      : 10080
+ReportingCriticalFailureTimeOut                       : 10080
+ReportingNonCriticalTimeOut                           : 1440
+ScanAvgCPULoadFactor                                  : 50
+ScanOnlyIfIdleEnabled                                 : True
+ScanParameters                                        : 1
+ScanPurgeItemsAfterDelay                              : 15
+ScanScheduleDay                                       : 0
+ScanScheduleOffset                                    : 120
+ScanScheduleQuickScanTime                             : 00:00:00
+ScanScheduleTime                                      : 02:00:00
+SchedulerRandomizationTime                            : 4
+ServiceHealthReportInterval                           : 60
+SevereThreatDefaultAction                             : 0
+SharedSignaturesPath                                  : 
+SharedSignaturesPathUpdateAtScheduledTimeOnly         : False
+SignatureAuGracePeriod                                : 0
+SignatureBlobFileSharesSources                        : 
+SignatureBlobUpdateInterval                           : 60
+SignatureDefinitionUpdateFileSharesSources            : 
+SignatureDisableUpdateOnStartupWithoutEngine          : False
+SignatureFallbackOrder                                : MicrosoftUpdateServer|MMPC
+SignatureFirstAuGracePeriod                           : 120
+SignatureScheduleDay                                  : 8
+SignatureScheduleTime                                 : 01:45:00
+SignatureUpdateCatchupInterval                        : 1
+SignatureUpdateInterval                               : 0
+SubmitSamplesConsent                                  : 1
+ThreatIDDefaultAction_Actions                         : 
+ThreatIDDefaultAction_Ids                             : 
+ThrottleForScheduledScanOnly                          : True
+TrustLabelProtectionStatus                            : 0
+UILockdown                                            : False
+UnknownThreatDefaultAction                            : 0
+PSComputerName                                        : 
+CimClass                                              : root/Microsoft/Windows/Defender:MSFT_MpPreference
+CimInstanceProperties                                 : {AllowDatagramProcessingOnWinServer, 
+                                                        AllowNetworkProtectionDownLevel, 
+                                                        AllowNetworkProtectionOnWinServer, 
+                                                        AllowSwitchToAsyncInspection...}
+CimSystemProperties                                   : Microsoft.Management.Infrastructure.CimSystemProperties
+
+
+

@@ -1,0 +1,29 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260224075403
+Username: cui-win-pilot-0\admin_patrick
+RunAs User: cui-win-pilot-0\admin_patrick
+Configuration Name: 
+Machine: cui-win-pilot-0 (Microsoft Windows NT 10.0.26100.0)
+Host Application: powershell -NoProfile -ExecutionPolicy Bypass -File C:\\hardening\\codex-scripts\\Run-CuiBulkEvidenceAndValidate-RunId.ps1 -OutRoot C:\\evidence -RunId 20260224-075359
+Process ID: 7180
+PSVersion: 5.1.26100.32370
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.32370
+BuildVersion: 10.0.26100.32370
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+PS>TerminatingError(Get-FileHash): "The running command stopped because the preference variable "ErrorActionPreference" or common parameter is set to Stop: The file 'C:\evidence\CUI-Evidence-20260224-075359\meta\collector-transcript.txt' cannot be read: The process cannot access the file 'C:\evidence\CUI-Evidence-20260224-075359\meta\collector-transcript.txt' because it is being used by another process."
+>> TerminatingError(Get-FileHash): "The running command stopped because the preference variable "ErrorActionPreference" or common parameter is set to Stop: The file 'C:\evidence\CUI-Evidence-20260224-075359\meta\collector-transcript.txt' cannot be read: The process cannot access the file 'C:\evidence\CUI-Evidence-20260224-075359\meta\collector-transcript.txt' because it is being used by another process."
+PS>TerminatingError(ZipArchiveHelper): "The running command stopped because the preference variable "ErrorActionPreference" or common parameter is set to Stop: The process cannot access the file 'C:\evidence\CUI-Evidence-20260224-075359\meta\collector-transcript.txt' because it is being used by another process."
+PS>TerminatingError(ZipArchiveHelper): "The running command stopped because the preference variable "ErrorActionPreference" or common parameter is set to Stop: The process cannot access the file 'C:\evidence\CUI-Evidence-20260224-075359\meta\collector-transcript.txt' because it is being used by another process."
+>> TerminatingError(ZipArchiveHelper): "The running command stopped because the preference variable "ErrorActionPreference" or common parameter is set to Stop: The process cannot access the file 'C:\evidence\CUI-Evidence-20260224-075359\meta\collector-transcript.txt' because it is being used by another process."
+>> TerminatingError(ZipArchiveHelper): "The running command stopped because the preference variable "ErrorActionPreference" or common parameter is set to Stop: The process cannot access the file 'C:\evidence\CUI-Evidence-20260224-075359\meta\collector-transcript.txt' because it is being used by another process."
+PS>TerminatingError(ZipArchiveHelper): "The running command stopped because the preference variable "ErrorActionPreference" or common parameter is set to Stop: The process cannot access the file 'C:\evidence\CUI-Evidence-20260224-075359\meta\collector-transcript.txt' because it is being used by another process."
+**********************
+Windows PowerShell transcript end
+End time: 20260224075442
+**********************

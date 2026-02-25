@@ -1,0 +1,11 @@
+﻿
+
+legalnoticecaption : Authorized Use Only
+legalnoticetext    : This system is for authorized use only.
+                     Activities on this system are monitored and recorded.
+                     Unauthorized use is prohibited and may be subject to criminal and civil penalties.
+
+
+
+
+

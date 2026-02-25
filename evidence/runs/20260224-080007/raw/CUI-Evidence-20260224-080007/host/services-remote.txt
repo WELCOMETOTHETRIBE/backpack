@@ -1,0 +1,13 @@
+﻿
+Name               Status StartType
+----               ------ ---------
+LanmanServer      Running Automatic
+LanmanWorkstation Running Automatic
+RemoteRegistry    Stopped  Disabled
+sshd              Running Automatic
+TermService       Running    Manual
+WinRM             Stopped  Disabled
+
+
+
+

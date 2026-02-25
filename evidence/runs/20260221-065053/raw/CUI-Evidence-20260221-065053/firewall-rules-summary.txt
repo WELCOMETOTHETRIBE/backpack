@@ -1,0 +1,25 @@
+﻿
+Count Name                                          
+----- ----                                          
+   77 Any, False, Inbound, Allow                    
+   39 Any, False, Outbound, Allow                   
+   38 Any, True, Inbound, Allow                     
+   29 Any, True, Outbound, Allow                    
+   26 Domain, Private, Public, True, Outbound, Allow
+   13 Private, Public, False, Inbound, Allow        
+   13 Domain, False, Inbound, Allow                 
+   12 Domain, Private, True, Inbound, Allow         
+   11 Public, True, Inbound, Allow                  
+   10 Private, Public, False, Outbound, Allow       
+   10 Domain, False, Outbound, Allow                
+    9 Private, True, Inbound, Allow                 
+    6 Private, True, Outbound, Allow                
+    6 Public, True, Outbound, Allow                 
+    6 Domain, Private, Public, True, Inbound, Allow 
+    5 Domain, True, Inbound, Allow                  
+    5 Domain, True, Outbound, Allow                 
+    3 Domain, Private, True, Outbound, Allow        
+    2 Private, Public, True, Outbound, Allow        
+    2 Private, Public, True, Inbound, Allow         
+
+

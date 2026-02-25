@@ -1,0 +1,5 @@
+﻿{
+    "generated_at":  "2026-02-24T08:16:23.9569078+00:00",
+    "boundary_statement":  "CUI boundary: This system (enclave VM) processes CUI under organizational control. Azure provides infrastructure; OS and application hardening and evidence collection are organization-managed. Replace this stub with your formal boundary statement or IdP/Entra attestation.",
+    "schema":  "azure-inheritance.stub.v1"
+}

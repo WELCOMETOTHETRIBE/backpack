@@ -1,0 +1,26 @@
+﻿
+Name                       Length LastWriteTime      
+----                       ------ -------------      
+account-policy.txt            569 2/6/2026 7:54:48 AM
+auditpol.txt                 4029 2/6/2026 7:54:48 AM
+defender-preferences.txt     9138 2/6/2026 7:54:49 AM
+defender-status.txt          3036 2/6/2026 7:54:49 AM
+eventlog-application.txt      545 2/6/2026 7:54:48 AM
+eventlog-security.txt         330 2/6/2026 7:54:48 AM
+eventlog-system.txt           414 2/6/2026 7:54:48 AM
+fips.txt                      117 2/6/2026 7:54:47 AM
+firewall.txt                 2150 2/6/2026 7:54:44 AM
+firewall-rules-summary.txt   1197 2/6/2026 7:54:47 AM
+hardening.log                2395 2/6/2026 6:40:50 AM
+hotfixes.txt                  394 2/6/2026 7:54:44 AM
+local-accounts.txt            231 2/6/2026 7:54:47 AM
+local-admins.txt              186 2/6/2026 7:54:48 AM
+lsa.txt                      2276 2/6/2026 7:54:48 AM
+rdp-policy.txt                907 2/6/2026 7:54:48 AM
+rdp-tcp.txt                  3711 2/6/2026 7:54:48 AM
+schannel-protocols.txt       2249 2/6/2026 7:54:47 AM
+services-remote.txt           164 2/6/2026 7:54:49 AM
+systeminfo.txt               2728 2/6/2026 7:54:41 AM
+time-sync.txt                1646 2/6/2026 7:54:44 AM
+
+

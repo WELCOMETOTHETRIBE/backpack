@@ -1,0 +1,132 @@
+﻿{
+    "summary":  {
+                    "generated_utc":  "2026-02-06T08:59:29.2579098Z",
+                    "computer":  "cui-win-pilot-0",
+                    "user":  "admin_patrick",
+                    "pass_count":  10,
+                    "fail_count":  2,
+                    "total":  12
+                },
+    "checks":  [
+                   {
+                       "id":  "PLAT-OS",
+                       "control":  "CM.L2-3.4.1",
+                       "title":  "OS identified",
+                       "pass":  true,
+                       "observed":  "Microsoft Windows Server 2025 Datacenter",
+                       "expected":  "Windows Server 2025 Datacenter (pilot)",
+                       "evidence_hint":  "systeminfo.txt (if collected)",
+                       "timestamp_utc":  "2026-02-06T08:59:23.1961312Z"
+                   },
+                   {
+                       "id":  "CRYPTO-FIPS",
+                       "control":  "SC.L2-3.13.11",
+                       "title":  "FIPS mode enabled",
+                       "pass":  true,
+                       "observed":  "Enabled=1",
+                       "expected":  "Enabled=1",
+                       "evidence_hint":  "reg query ...\\\\FipsAlgorithmPolicy (fips.txt)",
+                       "timestamp_utc":  "2026-02-06T08:59:23.2514098Z"
+                   },
+                   {
+                       "id":  "CRYPTO-TLS",
+                       "control":  "SC.L2-3.13.8",
+                       "title":  "TLS baseline (1.0/1.1 disabled; 1.2 enabled)",
+                       "pass":  true,
+                       "observed":  "TLS10 C/S=0/0; TLS11 C/S=0/0; TLS12 C/S=1/1",
+                       "expected":  "TLS 1.0/1.1 Enabled=0; TLS 1.2 Enabled=1",
+                       "evidence_hint":  "schannel-protocols.txt (if collected)",
+                       "timestamp_utc":  "2026-02-06T08:59:23.3202835Z"
+                   },
+                   {
+                       "id":  "NET-FW",
+                       "control":  "SC.L2-3.13.6",
+                       "title":  "Windows firewall baseline (block inbound, allow outbound)",
+                       "pass":  true,
+                       "observed":  "Domain: Enabled=True In=Block Out=Allow LogBlocked=True LogAllowed=True; Private: Enabled=True In=Block Out=Allow LogBlocked=True LogAllowed=True; Public: Enabled=True In=Block Out=Allow LogBlocked=True LogAllowed=True",
+                       "expected":  "Enabled=True; In=Block; Out=Allow",
+                       "evidence_hint":  "firewall.txt",
+                       "timestamp_utc":  "2026-02-06T08:59:25.4793307Z"
+                   },
+                   {
+                       "id":  "RM-WINRM",
+                       "control":  "AC.L2-3.1.12",
+                       "title":  "WinRM disabled (pilot posture)",
+                       "pass":  true,
+                       "observed":  "Status=Stopped; StartType=Disabled",
+                       "expected":  "Not Running; Disabled",
+                       "evidence_hint":  "services-remote.txt (if collected)",
+                       "timestamp_utc":  "2026-02-06T08:59:25.5047990Z"
+                   },
+                   {
+                       "id":  "LOCKOUT",
+                       "control":  "AC.L2-3.1.8",
+                       "title":  "Account lockout threshold set (not \u0027Never\u0027)",
+                       "pass":  true,
+                       "observed":  "Lockout threshold: 5",
+                       "expected":  "A finite threshold is configured",
+                       "evidence_hint":  "net-accounts.txt / account-policy.txt",
+                       "timestamp_utc":  "2026-02-06T08:59:25.6737008Z"
+                   },
+                   {
+                       "id":  "INACTIVITY",
+                       "control":  "AC.L2-3.1.11",
+                       "title":  "Machine inactivity limit configured (InactivityTimeoutSecs \u003e 0)",
+                       "pass":  false,
+                       "observed":  "InactivityTimeoutSecs=",
+                       "expected":  "\u003e 0",
+                       "evidence_hint":  "machine-inactivity-limit.txt",
+                       "timestamp_utc":  "2026-02-06T08:59:25.6994606Z"
+                   },
+                   {
+                       "id":  "RDP-REDIR",
+                       "control":  "AC.L2-3.1.3",
+                       "title":  "RDP redirection disabled (clipboard + drive) and NLA enabled",
+                       "pass":  false,
+                       "observed":  "Clip=0; Cdm=0; NLA(UserAuthentication)=1",
+                       "expected":  "Clip=1; Cdm=1; NLA=1",
+                       "evidence_hint":  "rdp-policy.txt + rdp-tcp.txt",
+                       "timestamp_utc":  "2026-02-06T08:59:25.7317501Z"
+                   },
+                   {
+                       "id":  "LSA-PPL",
+                       "control":  "SI.L2-3.14.6",
+                       "title":  "LSA protection enabled (RunAsPPL)",
+                       "pass":  true,
+                       "observed":  "RunAsPPL=1",
+                       "expected":  "RunAsPPL=1",
+                       "evidence_hint":  "lsa.txt",
+                       "timestamp_utc":  "2026-02-06T08:59:25.7411270Z"
+                   },
+                   {
+                       "id":  "USBSTOR",
+                       "control":  "MP.L2-3.8.7",
+                       "title":  "USB mass storage disabled (USBSTOR Start=4)",
+                       "pass":  true,
+                       "observed":  "USBSTOR Start=4",
+                       "expected":  "USBSTOR Start=4",
+                       "evidence_hint":  "usbstor.txt",
+                       "timestamp_utc":  "2026-02-06T08:59:25.7512377Z"
+                   },
+                   {
+                       "id":  "SMB1",
+                       "control":  "SC.L2-3.13.8",
+                       "title":  "SMB1 disabled (server + client)",
+                       "pass":  true,
+                       "observed":  "SMB1Protocol=DisabledWithPayloadRemoved",
+                       "expected":  "SMB1Protocol feature Disabled",
+                       "evidence_hint":  "DISM / Get-WindowsOptionalFeature output (not currently collected)",
+                       "timestamp_utc":  "2026-02-06T08:59:29.1654102Z"
+                   },
+                   {
+                       "id":  "ACCT-POLICY",
+                       "control":  "IA.L2-3.5.7",
+                       "title":  "Local account policy captured (informational)",
+                       "pass":  true,
+                       "observed":  "Captured net accounts output",
+                       "expected":  "Policy visible for review",
+                       "evidence_hint":  "net-accounts.txt",
+                       "timestamp_utc":  "2026-02-06T08:59:29.2579098Z"
+                   }
+               ]
+}

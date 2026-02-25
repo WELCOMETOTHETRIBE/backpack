@@ -1,0 +1,1341 @@
+﻿
+
+TimeCreated      : 2/24/2026 7:54:17 AM
+Id               : 5152
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The Windows Filtering Platform has blocked a packet.
+                   
+                   Application Information:
+                   	Process ID:		0
+                   	Application Name:	-
+                   
+                   Network Information:
+                   	Direction:		Inbound
+                   	Source Address:		20.190.151.7
+                   	Source Port:		443
+                   	Destination Address:	10.10.0.4
+                   	Destination Port:		56726
+                   	Protocol:		6
+                   
+                   Filter Information:
+                   	Filter Origin:		Stealth
+                   	Filter Run-Time ID:	74381
+                   	Layer Name:		Transport
+                   	Layer Run-Time ID:	13
+
+TimeCreated      : 2/24/2026 7:54:16 AM
+Id               : 4658
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The handle to an object was closed.
+                   
+                   Subject :
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1F891845
+                   
+                   Object:
+                   	Object Server:		Security Account Manager
+                   	Handle ID:		0x1cf4c1a7610
+                   
+                   Process Information:
+                   	Process ID:		0x35c
+                   	Process Name:		C:\Windows\System32\lsass.exe
+
+TimeCreated      : 2/24/2026 7:54:16 AM
+Id               : 4658
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The handle to an object was closed.
+                   
+                   Subject :
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1F891845
+                   
+                   Object:
+                   	Object Server:		Security Account Manager
+                   	Handle ID:		0x1cf4c1a7050
+                   
+                   Process Information:
+                   	Process ID:		0x35c
+                   	Process Name:		C:\Windows\System32\lsass.exe
+
+TimeCreated      : 2/24/2026 7:54:16 AM
+Id               : 4658
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The handle to an object was closed.
+                   
+                   Subject :
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1F891845
+                   
+                   Object:
+                   	Object Server:		Security Account Manager
+                   	Handle ID:		0x1cf4c1a8190
+                   
+                   Process Information:
+                   	Process ID:		0x35c
+                   	Process Name:		C:\Windows\System32\lsass.exe
+
+TimeCreated      : 2/24/2026 7:54:16 AM
+Id               : 4799
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : A security-enabled local group membership was enumerated.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1F891845
+                   
+                   Group:
+                   	Security ID:		S-1-5-32-555
+                   	Group Name:		Remote Desktop Users
+                   	Group Domain:		Builtin
+                   
+                   Process Information:
+                   	Process ID:		0x1c0c
+                   	Process Name:		C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+
+TimeCreated      : 2/24/2026 7:54:16 AM
+Id               : 4656
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : A handle to an object was requested.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1F891845
+                   
+                   Object:
+                   	Object Server:		Security Account Manager
+                   	Object Type:		SAM_ALIAS
+                   	Object Name:		DOMAINS\Builtin\Aliases\0000022B
+                   	Handle ID:		0x1cf4c1a8190
+                   	Resource Attributes:	-
+                   
+                   Process Information:
+                   	Process ID:		0x35c
+                   	Process Name:		C:\Windows\System32\lsass.exe
+                   
+                   Access Request Information:
+                   	Transaction ID:		{00000000-0000-0000-0000-000000000000}
+                   	Accesses:		DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				AddMember
+                   				RemoveMember
+                   				ListMembers
+                   				ReadInformation
+                   				WriteAccount
+                   				
+                   	Access Reasons:		-
+                   	Access Mask:		0xF001F
+                   	Privileges Used for Access Check:	-
+                   	Restricted SID Count:	0
+
+TimeCreated      : 2/24/2026 7:54:16 AM
+Id               : 4658
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The handle to an object was closed.
+                   
+                   Subject :
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1F891845
+                   
+                   Object:
+                   	Object Server:		Security Account Manager
+                   	Handle ID:		0x1cf4c1a92d0
+                   
+                   Process Information:
+                   	Process ID:		0x35c
+                   	Process Name:		C:\Windows\System32\lsass.exe
+
+TimeCreated      : 2/24/2026 7:54:16 AM
+Id               : 4799
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : A security-enabled local group membership was enumerated.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1F891845
+                   
+                   Group:
+                   	Security ID:		S-1-5-32-555
+                   	Group Name:		Remote Desktop Users
+                   	Group Domain:		Builtin
+                   
+                   Process Information:
+                   	Process ID:		0x1c0c
+                   	Process Name:		C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+
+TimeCreated      : 2/24/2026 7:54:16 AM
+Id               : 4656
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : A handle to an object was requested.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1F891845
+                   
+                   Object:
+                   	Object Server:		Security Account Manager
+                   	Object Type:		SAM_ALIAS
+                   	Object Name:		DOMAINS\Builtin\Aliases\0000022B
+                   	Handle ID:		0x1cf4c1a92d0
+                   	Resource Attributes:	-
+                   
+                   Process Information:
+                   	Process ID:		0x35c
+                   	Process Name:		C:\Windows\System32\lsass.exe
+                   
+                   Access Request Information:
+                   	Transaction ID:		{00000000-0000-0000-0000-000000000000}
+                   	Accesses:		DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				AddMember
+                   				RemoveMember
+                   				ListMembers
+                   				ReadInformation
+                   				WriteAccount
+                   				
+                   	Access Reasons:		-
+                   	Access Mask:		0xF001F
+                   	Privileges Used for Access Check:	-
+                   	Restricted SID Count:	0
+
+TimeCreated      : 2/24/2026 7:54:16 AM
+Id               : 4656
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : A handle to an object was requested.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1F891845
+                   
+                   Object:
+                   	Object Server:		Security Account Manager
+                   	Object Type:		SAM_DOMAIN
+                   	Object Name:		Builtin
+                   	Handle ID:		0x1cf4c1a7050
+                   	Resource Attributes:	-
+                   
+                   Process Information:
+                   	Process ID:		0x35c
+                   	Process Name:		C:\Windows\System32\lsass.exe
+                   
+                   Access Request Information:
+                   	Transaction ID:		{00000000-0000-0000-0000-000000000000}
+                   	Accesses:		READ_CONTROL
+                   				WRITE_DAC
+                   				ReadPasswordParameters
+                   				ReadOtherParameters
+                   				CreateLocalGroup
+                   				GetLocalGroupMembership
+                   				ListAccounts
+                   				LookupIDs
+                   				AdministerServer
+                   				
+                   	Access Reasons:		-
+                   	Access Mask:		0x607C5
+                   	Privileges Used for Access Check:	-
+                   	Restricted SID Count:	0
+
+TimeCreated      : 2/24/2026 7:54:16 AM
+Id               : 4656
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : A handle to an object was requested.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1F891845
+                   
+                   Object:
+                   	Object Server:		Security Account Manager
+                   	Object Type:		SAM_DOMAIN
+                   	Object Name:		cui-win-pilot-0
+                   	Handle ID:		0x1cf4c1a7610
+                   	Resource Attributes:	-
+                   
+                   Process Information:
+                   	Process ID:		0x35c
+                   	Process Name:		C:\Windows\System32\lsass.exe
+                   
+                   Access Request Information:
+                   	Transaction ID:		{00000000-0000-0000-0000-000000000000}
+                   	Accesses:		DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				ReadPasswordParameters
+                   				WritePasswordParameters
+                   				ReadOtherParameters
+                   				WriteOtherParameters
+                   				CreateUser
+                   				CreateLocalGroup
+                   				GetLocalGroupMembership
+                   				ListAccounts
+                   				LookupIDs
+                   				AdministerServer
+                   				
+                   	Access Reasons:		-
+                   	Access Mask:		0xF07DF
+                   	Privileges Used for Access Check:	-
+                   	Restricted SID Count:	0
+
+TimeCreated      : 2/24/2026 7:54:16 AM
+Id               : 4658
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The handle to an object was closed.
+                   
+                   Subject :
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1F891845
+                   
+                   Object:
+                   	Object Server:		Security Account Manager
+                   	Handle ID:		0x1cf4c1a8190
+                   
+                   Process Information:
+                   	Process ID:		0x35c
+                   	Process Name:		C:\Windows\System32\lsass.exe
+
+TimeCreated      : 2/24/2026 7:54:16 AM
+Id               : 4658
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The handle to an object was closed.
+                   
+                   Subject :
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1F891845
+                   
+                   Object:
+                   	Object Server:		Security Account Manager
+                   	Handle ID:		0x1cf4c1a7050
+                   
+                   Process Information:
+                   	Process ID:		0x35c
+                   	Process Name:		C:\Windows\System32\lsass.exe
+
+TimeCreated      : 2/24/2026 7:54:16 AM
+Id               : 4658
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The handle to an object was closed.
+                   
+                   Subject :
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1F891845
+                   
+                   Object:
+                   	Object Server:		Security Account Manager
+                   	Handle ID:		0x1cf4c1a7610
+                   
+                   Process Information:
+                   	Process ID:		0x35c
+                   	Process Name:		C:\Windows\System32\lsass.exe
+
+TimeCreated      : 2/24/2026 7:54:16 AM
+Id               : 4799
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : A security-enabled local group membership was enumerated.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1F891845
+                   
+                   Group:
+                   	Security ID:		S-1-5-32-555
+                   	Group Name:		Remote Desktop Users
+                   	Group Domain:		Builtin
+                   
+                   Process Information:
+                   	Process ID:		0x1c0c
+                   	Process Name:		C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+
+TimeCreated      : 2/24/2026 7:54:16 AM
+Id               : 4656
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : A handle to an object was requested.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1F891845
+                   
+                   Object:
+                   	Object Server:		Security Account Manager
+                   	Object Type:		SAM_ALIAS
+                   	Object Name:		DOMAINS\Builtin\Aliases\0000022B
+                   	Handle ID:		0x1cf4c1a7610
+                   	Resource Attributes:	-
+                   
+                   Process Information:
+                   	Process ID:		0x35c
+                   	Process Name:		C:\Windows\System32\lsass.exe
+                   
+                   Access Request Information:
+                   	Transaction ID:		{00000000-0000-0000-0000-000000000000}
+                   	Accesses:		DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				AddMember
+                   				RemoveMember
+                   				ListMembers
+                   				ReadInformation
+                   				WriteAccount
+                   				
+                   	Access Reasons:		-
+                   	Access Mask:		0xF001F
+                   	Privileges Used for Access Check:	-
+                   	Restricted SID Count:	0
+
+TimeCreated      : 2/24/2026 7:54:16 AM
+Id               : 4656
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : A handle to an object was requested.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1F891845
+                   
+                   Object:
+                   	Object Server:		Security Account Manager
+                   	Object Type:		SAM_DOMAIN
+                   	Object Name:		Builtin
+                   	Handle ID:		0x1cf4c1a7050
+                   	Resource Attributes:	-
+                   
+                   Process Information:
+                   	Process ID:		0x35c
+                   	Process Name:		C:\Windows\System32\lsass.exe
+                   
+                   Access Request Information:
+                   	Transaction ID:		{00000000-0000-0000-0000-000000000000}
+                   	Accesses:		READ_CONTROL
+                   				WRITE_DAC
+                   				ReadPasswordParameters
+                   				ReadOtherParameters
+                   				CreateLocalGroup
+                   				GetLocalGroupMembership
+                   				ListAccounts
+                   				LookupIDs
+                   				AdministerServer
+                   				
+                   	Access Reasons:		-
+                   	Access Mask:		0x607C5
+                   	Privileges Used for Access Check:	-
+                   	Restricted SID Count:	0
+
+TimeCreated      : 2/24/2026 7:54:16 AM
+Id               : 4656
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : A handle to an object was requested.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1F891845
+                   
+                   Object:
+                   	Object Server:		Security Account Manager
+                   	Object Type:		SAM_DOMAIN
+                   	Object Name:		cui-win-pilot-0
+                   	Handle ID:		0x1cf4c1a8190
+                   	Resource Attributes:	-
+                   
+                   Process Information:
+                   	Process ID:		0x35c
+                   	Process Name:		C:\Windows\System32\lsass.exe
+                   
+                   Access Request Information:
+                   	Transaction ID:		{00000000-0000-0000-0000-000000000000}
+                   	Accesses:		DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				ReadPasswordParameters
+                   				WritePasswordParameters
+                   				ReadOtherParameters
+                   				WriteOtherParameters
+                   				CreateUser
+                   				CreateLocalGroup
+                   				GetLocalGroupMembership
+                   				ListAccounts
+                   				LookupIDs
+                   				AdministerServer
+                   				
+                   	Access Reasons:		-
+                   	Access Mask:		0xF07DF
+                   	Privileges Used for Access Check:	-
+                   	Restricted SID Count:	0
+
+TimeCreated      : 2/24/2026 7:54:16 AM
+Id               : 4658
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The handle to an object was closed.
+                   
+                   Subject :
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1F891845
+                   
+                   Object:
+                   	Object Server:		Security Account Manager
+                   	Handle ID:		0x1cf4c1a8190
+                   
+                   Process Information:
+                   	Process ID:		0x35c
+                   	Process Name:		C:\Windows\System32\lsass.exe
+
+TimeCreated      : 2/24/2026 7:54:16 AM
+Id               : 4658
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The handle to an object was closed.
+                   
+                   Subject :
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1F891845
+                   
+                   Object:
+                   	Object Server:		Security Account Manager
+                   	Handle ID:		0x1cf4c1a7610
+                   
+                   Process Information:
+                   	Process ID:		0x35c
+                   	Process Name:		C:\Windows\System32\lsass.exe
+
+TimeCreated      : 2/24/2026 7:54:16 AM
+Id               : 4658
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The handle to an object was closed.
+                   
+                   Subject :
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1F891845
+                   
+                   Object:
+                   	Object Server:		Security Account Manager
+                   	Handle ID:		0x1cf4c1a7050
+                   
+                   Process Information:
+                   	Process ID:		0x35c
+                   	Process Name:		C:\Windows\System32\lsass.exe
+
+TimeCreated      : 2/24/2026 7:54:16 AM
+Id               : 5152
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The Windows Filtering Platform has blocked a packet.
+                   
+                   Application Information:
+                   	Process ID:		0
+                   	Application Name:	-
+                   
+                   Network Information:
+                   	Direction:		Inbound
+                   	Source Address:		20.190.151.7
+                   	Source Port:		443
+                   	Destination Address:	10.10.0.4
+                   	Destination Port:		56720
+                   	Protocol:		6
+                   
+                   Filter Information:
+                   	Filter Origin:		Stealth
+                   	Filter Run-Time ID:	74381
+                   	Layer Name:		Transport
+                   	Layer Run-Time ID:	13
+
+TimeCreated      : 2/24/2026 7:54:16 AM
+Id               : 5156
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The Windows Filtering Platform has permitted a connection.
+                   
+                   Application Information:
+                   	Process ID:		860
+                   	Application Name:	\device\harddiskvolume4\windows\system32\lsass.exe
+                   
+                   Network Information:
+                   	Direction:		Outbound
+                   	Source Address:		10.10.0.4
+                   	Source Port:		56726
+                   	Destination Address:	20.190.151.7
+                   	Destination Port:		443
+                   	Protocol:		6
+                   	Interface Index:		6
+                   
+                   Filter Information:
+                   	Filter Origin:		Unknown
+                   	Filter Run-Time ID:	73997
+                   	Layer Name:		Connect
+                   	Layer Run-Time ID:	48
+                   	Remote User ID:		S-1-0-0
+                   	Remote Machine ID:	S-1-0-0
+
+TimeCreated      : 2/24/2026 7:54:16 AM
+Id               : 5158
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The Windows Filtering Platform has permitted a bind to a local port.
+                   
+                   Application Information:
+                   	Process ID:		860
+                   	Application Name:	\device\harddiskvolume4\windows\system32\lsass.exe
+                   
+                   Network Information:
+                   	Source Address:		0.0.0.0
+                   	Source Port:		56726
+                   	Protocol:		6
+                   
+                   Filter Information:
+                   	Filter Run-Time ID:	0
+                   	Layer Name:		Resource Assignment
+                   	Layer Run-Time ID:	36
+
+TimeCreated      : 2/24/2026 7:54:16 AM
+Id               : 5156
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The Windows Filtering Platform has permitted a connection.
+                   
+                   Application Information:
+                   	Process ID:		3412
+                   	Application Name:	\device\harddiskvolume4\windowsazure\guestagent_2.7.41491.1183_2026-02-06_050117\
+                   windowsazureguestagent.exe
+                   
+                   Network Information:
+                   	Direction:		Outbound
+                   	Source Address:		10.10.0.4
+                   	Source Port:		56725
+                   	Destination Address:	168.63.129.16
+                   	Destination Port:		80
+                   	Protocol:		6
+                   	Interface Index:		6
+                   
+                   Filter Information:
+                   	Filter Origin:		Unknown
+                   	Filter Run-Time ID:	71217
+                   	Layer Name:		Connect
+                   	Layer Run-Time ID:	48
+                   	Remote User ID:		S-1-0-0
+                   	Remote Machine ID:	S-1-0-0
+
+TimeCreated      : 2/24/2026 7:54:16 AM
+Id               : 5158
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The Windows Filtering Platform has permitted a bind to a local port.
+                   
+                   Application Information:
+                   	Process ID:		3412
+                   	Application Name:	\device\harddiskvolume4\windowsazure\guestagent_2.7.41491.1183_2026-02-06_050117\
+                   windowsazureguestagent.exe
+                   
+                   Network Information:
+                   	Source Address:		0.0.0.0
+                   	Source Port:		56725
+                   	Protocol:		6
+                   
+                   Filter Information:
+                   	Filter Run-Time ID:	0
+                   	Layer Name:		Resource Assignment
+                   	Layer Run-Time ID:	36
+
+TimeCreated      : 2/24/2026 7:54:16 AM
+Id               : 5156
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The Windows Filtering Platform has permitted a connection.
+                   
+                   Application Information:
+                   	Process ID:		3412
+                   	Application Name:	\device\harddiskvolume4\windowsazure\guestagent_2.7.41491.1183_2026-02-06_050117\
+                   windowsazureguestagent.exe
+                   
+                   Network Information:
+                   	Direction:		Outbound
+                   	Source Address:		10.10.0.4
+                   	Source Port:		56724
+                   	Destination Address:	168.63.129.16
+                   	Destination Port:		80
+                   	Protocol:		6
+                   	Interface Index:		6
+                   
+                   Filter Information:
+                   	Filter Origin:		Unknown
+                   	Filter Run-Time ID:	71217
+                   	Layer Name:		Connect
+                   	Layer Run-Time ID:	48
+                   	Remote User ID:		S-1-0-0
+                   	Remote Machine ID:	S-1-0-0
+
+TimeCreated      : 2/24/2026 7:54:16 AM
+Id               : 5158
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The Windows Filtering Platform has permitted a bind to a local port.
+                   
+                   Application Information:
+                   	Process ID:		3412
+                   	Application Name:	\device\harddiskvolume4\windowsazure\guestagent_2.7.41491.1183_2026-02-06_050117\
+                   windowsazureguestagent.exe
+                   
+                   Network Information:
+                   	Source Address:		0.0.0.0
+                   	Source Port:		56724
+                   	Protocol:		6
+                   
+                   Filter Information:
+                   	Filter Run-Time ID:	0
+                   	Layer Name:		Resource Assignment
+                   	Layer Run-Time ID:	36
+
+TimeCreated      : 2/24/2026 7:54:16 AM
+Id               : 5156
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The Windows Filtering Platform has permitted a connection.
+                   
+                   Application Information:
+                   	Process ID:		3412
+                   	Application Name:	\device\harddiskvolume4\windowsazure\guestagent_2.7.41491.1183_2026-02-06_050117\
+                   windowsazureguestagent.exe
+                   
+                   Network Information:
+                   	Direction:		Outbound
+                   	Source Address:		10.10.0.4
+                   	Source Port:		56723
+                   	Destination Address:	168.63.129.16
+                   	Destination Port:		80
+                   	Protocol:		6
+                   	Interface Index:		6
+                   
+                   Filter Information:
+                   	Filter Origin:		Unknown
+                   	Filter Run-Time ID:	71217
+                   	Layer Name:		Connect
+                   	Layer Run-Time ID:	48
+                   	Remote User ID:		S-1-0-0
+                   	Remote Machine ID:	S-1-0-0
+
+TimeCreated      : 2/24/2026 7:54:16 AM
+Id               : 5158
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The Windows Filtering Platform has permitted a bind to a local port.
+                   
+                   Application Information:
+                   	Process ID:		3412
+                   	Application Name:	\device\harddiskvolume4\windowsazure\guestagent_2.7.41491.1183_2026-02-06_050117\
+                   windowsazureguestagent.exe
+                   
+                   Network Information:
+                   	Source Address:		0.0.0.0
+                   	Source Port:		56723
+                   	Protocol:		6
+                   
+                   Filter Information:
+                   	Filter Run-Time ID:	0
+                   	Layer Name:		Resource Assignment
+                   	Layer Run-Time ID:	36
+
+TimeCreated      : 2/24/2026 7:54:16 AM
+Id               : 5156
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The Windows Filtering Platform has permitted a connection.
+                   
+                   Application Information:
+                   	Process ID:		3412
+                   	Application Name:	\device\harddiskvolume4\windowsazure\guestagent_2.7.41491.1183_2026-02-06_050117\
+                   windowsazureguestagent.exe
+                   
+                   Network Information:
+                   	Direction:		Outbound
+                   	Source Address:		10.10.0.4
+                   	Source Port:		56722
+                   	Destination Address:	168.63.129.16
+                   	Destination Port:		80
+                   	Protocol:		6
+                   	Interface Index:		6
+                   
+                   Filter Information:
+                   	Filter Origin:		Unknown
+                   	Filter Run-Time ID:	71217
+                   	Layer Name:		Connect
+                   	Layer Run-Time ID:	48
+                   	Remote User ID:		S-1-0-0
+                   	Remote Machine ID:	S-1-0-0
+
+TimeCreated      : 2/24/2026 7:54:16 AM
+Id               : 5158
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The Windows Filtering Platform has permitted a bind to a local port.
+                   
+                   Application Information:
+                   	Process ID:		3412
+                   	Application Name:	\device\harddiskvolume4\windowsazure\guestagent_2.7.41491.1183_2026-02-06_050117\
+                   windowsazureguestagent.exe
+                   
+                   Network Information:
+                   	Source Address:		0.0.0.0
+                   	Source Port:		56722
+                   	Protocol:		6
+                   
+                   Filter Information:
+                   	Filter Run-Time ID:	0
+                   	Layer Name:		Resource Assignment
+                   	Layer Run-Time ID:	36
+
+TimeCreated      : 2/24/2026 7:54:16 AM
+Id               : 5156
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The Windows Filtering Platform has permitted a connection.
+                   
+                   Application Information:
+                   	Process ID:		3412
+                   	Application Name:	\device\harddiskvolume4\windowsazure\guestagent_2.7.41491.1183_2026-02-06_050117\
+                   windowsazureguestagent.exe
+                   
+                   Network Information:
+                   	Direction:		Outbound
+                   	Source Address:		10.10.0.4
+                   	Source Port:		56721
+                   	Destination Address:	168.63.129.16
+                   	Destination Port:		80
+                   	Protocol:		6
+                   	Interface Index:		6
+                   
+                   Filter Information:
+                   	Filter Origin:		Unknown
+                   	Filter Run-Time ID:	71217
+                   	Layer Name:		Connect
+                   	Layer Run-Time ID:	48
+                   	Remote User ID:		S-1-0-0
+                   	Remote Machine ID:	S-1-0-0
+
+TimeCreated      : 2/24/2026 7:54:16 AM
+Id               : 5158
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The Windows Filtering Platform has permitted a bind to a local port.
+                   
+                   Application Information:
+                   	Process ID:		3412
+                   	Application Name:	\device\harddiskvolume4\windowsazure\guestagent_2.7.41491.1183_2026-02-06_050117\
+                   windowsazureguestagent.exe
+                   
+                   Network Information:
+                   	Source Address:		0.0.0.0
+                   	Source Port:		56721
+                   	Protocol:		6
+                   
+                   Filter Information:
+                   	Filter Run-Time ID:	0
+                   	Layer Name:		Resource Assignment
+                   	Layer Run-Time ID:	36
+
+TimeCreated      : 2/24/2026 7:54:15 AM
+Id               : 5156
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The Windows Filtering Platform has permitted a connection.
+                   
+                   Application Information:
+                   	Process ID:		860
+                   	Application Name:	\device\harddiskvolume4\windows\system32\lsass.exe
+                   
+                   Network Information:
+                   	Direction:		Outbound
+                   	Source Address:		10.10.0.4
+                   	Source Port:		56720
+                   	Destination Address:	20.190.151.7
+                   	Destination Port:		443
+                   	Protocol:		6
+                   	Interface Index:		6
+                   
+                   Filter Information:
+                   	Filter Origin:		Unknown
+                   	Filter Run-Time ID:	73997
+                   	Layer Name:		Connect
+                   	Layer Run-Time ID:	48
+                   	Remote User ID:		S-1-0-0
+                   	Remote Machine ID:	S-1-0-0
+
+TimeCreated      : 2/24/2026 7:54:15 AM
+Id               : 5158
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The Windows Filtering Platform has permitted a bind to a local port.
+                   
+                   Application Information:
+                   	Process ID:		860
+                   	Application Name:	\device\harddiskvolume4\windows\system32\lsass.exe
+                   
+                   Network Information:
+                   	Source Address:		0.0.0.0
+                   	Source Port:		56720
+                   	Protocol:		6
+                   
+                   Filter Information:
+                   	Filter Run-Time ID:	0
+                   	Layer Name:		Resource Assignment
+                   	Layer Run-Time ID:	36
+
+TimeCreated      : 2/24/2026 7:54:15 AM
+Id               : 5156
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The Windows Filtering Platform has permitted a connection.
+                   
+                   Application Information:
+                   	Process ID:		2060
+                   	Application Name:	\device\harddiskvolume4\windows\system32\svchost.exe
+                   
+                   Network Information:
+                   	Direction:		Outbound
+                   	Source Address:		10.10.0.4
+                   	Source Port:		55691
+                   	Destination Address:	168.63.129.16
+                   	Destination Port:		53
+                   	Protocol:		17
+                   	Interface Index:		6
+                   
+                   Filter Information:
+                   	Filter Origin:		Unknown
+                   	Filter Run-Time ID:	73997
+                   	Layer Name:		Connect
+                   	Layer Run-Time ID:	48
+                   	Remote User ID:		S-1-0-0
+                   	Remote Machine ID:	S-1-0-0
+
+TimeCreated      : 2/24/2026 7:54:15 AM
+Id               : 4799
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : A security-enabled local group membership was enumerated.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1F891845
+                   
+                   Group:
+                   	Security ID:		S-1-5-32-544
+                   	Group Name:		Administrators
+                   	Group Domain:		Builtin
+                   
+                   Process Information:
+                   	Process ID:		0x1c0c
+                   	Process Name:		C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+
+TimeCreated      : 2/24/2026 7:54:15 AM
+Id               : 4656
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : A handle to an object was requested.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1F891845
+                   
+                   Object:
+                   	Object Server:		Security Account Manager
+                   	Object Type:		SAM_ALIAS
+                   	Object Name:		DOMAINS\Builtin\Aliases\00000220
+                   	Handle ID:		0x1cf4c1a7050
+                   	Resource Attributes:	-
+                   
+                   Process Information:
+                   	Process ID:		0x35c
+                   	Process Name:		C:\Windows\System32\lsass.exe
+                   
+                   Access Request Information:
+                   	Transaction ID:		{00000000-0000-0000-0000-000000000000}
+                   	Accesses:		DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				AddMember
+                   				RemoveMember
+                   				ListMembers
+                   				ReadInformation
+                   				WriteAccount
+                   				
+                   	Access Reasons:		-
+                   	Access Mask:		0xF001F
+                   	Privileges Used for Access Check:	-
+                   	Restricted SID Count:	0
+
+TimeCreated      : 2/24/2026 7:54:15 AM
+Id               : 4658
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The handle to an object was closed.
+                   
+                   Subject :
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1F891845
+                   
+                   Object:
+                   	Object Server:		Security Account Manager
+                   	Handle ID:		0x1cf4c1a92d0
+                   
+                   Process Information:
+                   	Process ID:		0x35c
+                   	Process Name:		C:\Windows\System32\lsass.exe
+
+TimeCreated      : 2/24/2026 7:54:15 AM
+Id               : 4799
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : A security-enabled local group membership was enumerated.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1F891845
+                   
+                   Group:
+                   	Security ID:		S-1-5-32-544
+                   	Group Name:		Administrators
+                   	Group Domain:		Builtin
+                   
+                   Process Information:
+                   	Process ID:		0x1c0c
+                   	Process Name:		C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+
+TimeCreated      : 2/24/2026 7:54:15 AM
+Id               : 4656
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : A handle to an object was requested.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1F891845
+                   
+                   Object:
+                   	Object Server:		Security Account Manager
+                   	Object Type:		SAM_ALIAS
+                   	Object Name:		DOMAINS\Builtin\Aliases\00000220
+                   	Handle ID:		0x1cf4c1a92d0
+                   	Resource Attributes:	-
+                   
+                   Process Information:
+                   	Process ID:		0x35c
+                   	Process Name:		C:\Windows\System32\lsass.exe
+                   
+                   Access Request Information:
+                   	Transaction ID:		{00000000-0000-0000-0000-000000000000}
+                   	Accesses:		DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				AddMember
+                   				RemoveMember
+                   				ListMembers
+                   				ReadInformation
+                   				WriteAccount
+                   				
+                   	Access Reasons:		-
+                   	Access Mask:		0xF001F
+                   	Privileges Used for Access Check:	-
+                   	Restricted SID Count:	0
+
+TimeCreated      : 2/24/2026 7:54:15 AM
+Id               : 4656
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : A handle to an object was requested.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1F891845
+                   
+                   Object:
+                   	Object Server:		Security Account Manager
+                   	Object Type:		SAM_DOMAIN
+                   	Object Name:		Builtin
+                   	Handle ID:		0x1cf4c1a7610
+                   	Resource Attributes:	-
+                   
+                   Process Information:
+                   	Process ID:		0x35c
+                   	Process Name:		C:\Windows\System32\lsass.exe
+                   
+                   Access Request Information:
+                   	Transaction ID:		{00000000-0000-0000-0000-000000000000}
+                   	Accesses:		READ_CONTROL
+                   				WRITE_DAC
+                   				ReadPasswordParameters
+                   				ReadOtherParameters
+                   				CreateLocalGroup
+                   				GetLocalGroupMembership
+                   				ListAccounts
+                   				LookupIDs
+                   				AdministerServer
+                   				
+                   	Access Reasons:		-
+                   	Access Mask:		0x607C5
+                   	Privileges Used for Access Check:	-
+                   	Restricted SID Count:	0
+
+TimeCreated      : 2/24/2026 7:54:15 AM
+Id               : 4656
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : A handle to an object was requested.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1F891845
+                   
+                   Object:
+                   	Object Server:		Security Account Manager
+                   	Object Type:		SAM_DOMAIN
+                   	Object Name:		cui-win-pilot-0
+                   	Handle ID:		0x1cf4c1a8190
+                   	Resource Attributes:	-
+                   
+                   Process Information:
+                   	Process ID:		0x35c
+                   	Process Name:		C:\Windows\System32\lsass.exe
+                   
+                   Access Request Information:
+                   	Transaction ID:		{00000000-0000-0000-0000-000000000000}
+                   	Accesses:		DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				ReadPasswordParameters
+                   				WritePasswordParameters
+                   				ReadOtherParameters
+                   				WriteOtherParameters
+                   				CreateUser
+                   				CreateLocalGroup
+                   				GetLocalGroupMembership
+                   				ListAccounts
+                   				LookupIDs
+                   				AdministerServer
+                   				
+                   	Access Reasons:		-
+                   	Access Mask:		0xF07DF
+                   	Privileges Used for Access Check:	-
+                   	Restricted SID Count:	0
+
+TimeCreated      : 2/24/2026 7:54:15 AM
+Id               : 4658
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The handle to an object was closed.
+                   
+                   Subject :
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1F891845
+                   
+                   Object:
+                   	Object Server:		Security Account Manager
+                   	Handle ID:		0x1cf4c1a92d0
+                   
+                   Process Information:
+                   	Process ID:		0x35c
+                   	Process Name:		C:\Windows\System32\lsass.exe
+
+TimeCreated      : 2/24/2026 7:54:15 AM
+Id               : 4658
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The handle to an object was closed.
+                   
+                   Subject :
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1F891845
+                   
+                   Object:
+                   	Object Server:		Security Account Manager
+                   	Handle ID:		0x1cf4c1a8190
+                   
+                   Process Information:
+                   	Process ID:		0x35c
+                   	Process Name:		C:\Windows\System32\lsass.exe
+
+TimeCreated      : 2/24/2026 7:54:15 AM
+Id               : 4658
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The handle to an object was closed.
+                   
+                   Subject :
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1F891845
+                   
+                   Object:
+                   	Object Server:		Security Account Manager
+                   	Handle ID:		0x1cf4c1a7bd0
+                   
+                   Process Information:
+                   	Process ID:		0x35c
+                   	Process Name:		C:\Windows\System32\lsass.exe
+
+TimeCreated      : 2/24/2026 7:54:15 AM
+Id               : 4799
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : A security-enabled local group membership was enumerated.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1F891845
+                   
+                   Group:
+                   	Security ID:		S-1-5-32-545
+                   	Group Name:		Users
+                   	Group Domain:		Builtin
+                   
+                   Process Information:
+                   	Process ID:		0x1c0c
+                   	Process Name:		C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+
+TimeCreated      : 2/24/2026 7:54:15 AM
+Id               : 4656
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : A handle to an object was requested.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1F891845
+                   
+                   Object:
+                   	Object Server:		Security Account Manager
+                   	Object Type:		SAM_ALIAS
+                   	Object Name:		DOMAINS\Builtin\Aliases\00000221
+                   	Handle ID:		0x1cf4c1a7bd0
+                   	Resource Attributes:	-
+                   
+                   Process Information:
+                   	Process ID:		0x35c
+                   	Process Name:		C:\Windows\System32\lsass.exe
+                   
+                   Access Request Information:
+                   	Transaction ID:		{00000000-0000-0000-0000-000000000000}
+                   	Accesses:		DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				AddMember
+                   				RemoveMember
+                   				ListMembers
+                   				ReadInformation
+                   				WriteAccount
+                   				
+                   	Access Reasons:		-
+                   	Access Mask:		0xF001F
+                   	Privileges Used for Access Check:	-
+                   	Restricted SID Count:	0
+
+TimeCreated      : 2/24/2026 7:54:15 AM
+Id               : 4658
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The handle to an object was closed.
+                   
+                   Subject :
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1F891845
+                   
+                   Object:
+                   	Object Server:		Security Account Manager
+                   	Handle ID:		0x1cf4c1a7bd0
+                   
+                   Process Information:
+                   	Process ID:		0x35c
+                   	Process Name:		C:\Windows\System32\lsass.exe
+
+
+
+
+

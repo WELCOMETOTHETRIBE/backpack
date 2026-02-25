@@ -1,0 +1,9 @@
+﻿
+MountPoint   VolumeStatus ProtectionStatus EncryptionPercentage EncryptionMethod
+----------   ------------ ---------------- -------------------- ----------------
+C:         FullyEncrypted               On                  100        XtsAes128
+D:         FullyEncrypted               On                  100        XtsAes128
+
+
+
+

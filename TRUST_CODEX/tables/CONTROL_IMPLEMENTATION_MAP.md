@@ -1,0 +1,267 @@
+# Control implementation map — System-Enforced (Class A)
+
+Generated: `2026-02-07T23:05:43+00:00`
+
+This map explains where each requirement is enforced (VM vs Azure vs Entra) and what evidence/checks support it.
+
+## Domains (summary)
+
+- **azure_resource**: 2
+- **entra_tenant**: 5
+- **shared**: 58
+- **vm_local**: 15
+
+## Controls (grouped by domain)
+
+### azure_resource
+
+- **SC.L2-3.13.10** (SC) — Cryptographic key management  
+  - responsibility: **shared** · inherited: Microsoft Azure (resource configuration)
+  - validator checks: `—`
+- **SC.L2-3.13.5** (SC) — Implement subnetworks  
+  - responsibility: **shared** · inherited: Microsoft Azure (resource configuration)
+  - validator checks: `—`
+
+### entra_tenant
+
+- **IA.L2-3.5.3** (IA) — MFA for privileged accounts  
+  - responsibility: **shared** · inherited: Microsoft Entra ID (tenant controls)
+  - validator checks: `—`
+- **IA.L2-3.5.4** (IA) — Replay-resistant authentication  
+  - responsibility: **shared** · inherited: Microsoft Entra ID (tenant controls)
+  - validator checks: `—`
+- **IA.L2-3.5.5** (IA) — Prevent identifier reuse  
+  - responsibility: **shared** · inherited: Microsoft Entra ID (tenant controls)
+  - validator checks: `—`
+- **IA.L2-3.5.6** (IA) — Disable identifiers after inactivity  
+  - responsibility: **shared** · inherited: Microsoft Entra ID (tenant controls)
+  - validator checks: `—`
+- **MA.L2-3.7.5** (MA) — MFA for nonlocal maintenance  
+  - responsibility: **shared** · inherited: Microsoft Entra ID (tenant controls)
+  - validator checks: `—`
+
+### shared
+
+- **AC.L2-3.1.1** (AC) — Limit system access to authorized users, processes, devices  
+  - responsibility: **shared** · inherited: Access path is VM+Azure+Entra (shared)
+  - validator checks: `—`
+- **AC.L2-3.1.12** (AC) — Monitor remote access  
+  - responsibility: **shared** · inherited: Access path is VM+Azure+Entra (shared)
+  - validator checks: `RM-WINRM`
+- **AC.L2-3.1.13** (AC) — Cryptographic remote access  
+  - responsibility: **shared** · inherited: Access path is VM+Azure+Entra (shared)
+  - validator checks: `—`
+- **AC.L2-3.1.14** (AC) — Managed access control points  
+  - responsibility: **shared** · inherited: Access path is VM+Azure+Entra (shared)
+  - validator checks: `—`
+- **AC.L2-3.1.15** (AC) — Authorize remote privileged commands  
+  - responsibility: **shared** · inherited: Access path is VM+Azure+Entra (shared)
+  - validator checks: `—`
+- **AC.L2-3.1.18** (AC) — Control mobile devices  
+  - responsibility: **shared** · inherited: Access path is VM+Azure+Entra (shared)
+  - validator checks: `—`
+- **AC.L2-3.1.19** (AC) — Encrypt CUI on mobile devices  
+  - responsibility: **shared** · inherited: Access path is VM+Azure+Entra (shared)
+  - validator checks: `—`
+- **AC.L2-3.1.2** (AC) — Limit access to transactions/functions  
+  - responsibility: **shared** · inherited: Access path is VM+Azure+Entra (shared)
+  - validator checks: `—`
+- **AC.L2-3.1.20** (AC) — Verify external systems  
+  - responsibility: **shared** · inherited: Access path is VM+Azure+Entra (shared)
+  - validator checks: `—`
+- **AC.L2-3.1.21** (AC) — Limit portable storage  
+  - responsibility: **shared** · inherited: Access path is VM+Azure+Entra (shared)
+  - validator checks: `PORTABLE-STORAGE`
+- **AC.L2-3.1.22** (AC) — Control CUI on public systems  
+  - responsibility: **shared** · inherited: Access path is VM+Azure+Entra (shared)
+  - validator checks: `—`
+- **AC.L2-3.1.3** (AC) — Control flow of CUI  
+  - responsibility: **shared** · inherited: Access path is VM+Azure+Entra (shared)
+  - validator checks: `RDP-REDIR`
+- **AC.L2-3.1.5** (AC) — Least privilege  
+  - responsibility: **shared** · inherited: Access path is VM+Azure+Entra (shared)
+  - validator checks: `—`
+- **AC.L2-3.1.6** (AC) — Non-privileged accounts  
+  - responsibility: **shared** · inherited: Access path is VM+Azure+Entra (shared)
+  - validator checks: `—`
+- **AC.L2-3.1.7** (AC) — Prevent privileged function execution  
+  - responsibility: **shared** · inherited: Access path is VM+Azure+Entra (shared)
+  - validator checks: `—`
+- **AU.L2-3.3.1** (AU) — Create and retain audit logs  
+  - responsibility: **shared** · inherited: Windows VM + Azure Monitor/SIEM (shared)
+  - validator checks: `AU-SECLOG, AU-AUDITPOL`
+- **AU.L2-3.3.2** (AU) — Unique user traceability  
+  - responsibility: **shared** · inherited: Windows VM + Azure Monitor/SIEM (shared)
+  - validator checks: `—`
+- **AU.L2-3.3.4** (AU) — Alert on audit logging failure  
+  - responsibility: **shared** · inherited: Windows VM + Azure Monitor/SIEM (shared)
+  - validator checks: `—`
+- **AU.L2-3.3.5** (AU) — Correlate audit records  
+  - responsibility: **shared** · inherited: Windows VM + Azure Monitor/SIEM (shared)
+  - validator checks: `—`
+- **AU.L2-3.3.6** (AU) — Audit record reduction/reporting  
+  - responsibility: **shared** · inherited: Windows VM + Azure Monitor/SIEM (shared)
+  - validator checks: `—`
+- **AU.L2-3.3.7** (AU) — System clock synchronization  
+  - responsibility: **shared** · inherited: Windows VM + Azure Monitor/SIEM (shared)
+  - validator checks: `TIME-SYNC`
+- **AU.L2-3.3.8** (AU) — Protect audit information  
+  - responsibility: **shared** · inherited: Windows VM + Azure Monitor/SIEM (shared)
+  - validator checks: `—`
+- **AU.L2-3.3.9** (AU) — Limit audit logging management  
+  - responsibility: **shared** · inherited: Windows VM + Azure Monitor/SIEM (shared)
+  - validator checks: `—`
+- **IA.L2-3.5.1** (IA) — Identify users  
+  - responsibility: **shared** · inherited: Identity is VM+Entra (shared)
+  - validator checks: `GUEST-DISABLED, NO-AUTOLOGON`
+- **IA.L2-3.5.10** (IA) — Cryptographically-protected passwords  
+  - responsibility: **shared** · inherited: Identity is VM+Entra (shared)
+  - validator checks: `NTLMV2`
+- **IA.L2-3.5.2** (IA) — Authenticate users  
+  - responsibility: **shared** · inherited: Identity is VM+Entra (shared)
+  - validator checks: `—`
+- **IA.L2-3.5.9** (IA) — Temporary passwords  
+  - responsibility: **shared** · inherited: Identity is VM+Entra (shared)
+  - validator checks: `—`
+- **MA.L2-3.7.1** (MA) — Perform maintenance  
+  - responsibility: **shared** · inherited: Operational + VM + Azure (shared)
+  - validator checks: `—`
+- **MA.L2-3.7.2** (MA) — Controls on maintenance tools  
+  - responsibility: **shared** · inherited: Operational + VM + Azure (shared)
+  - validator checks: `—`
+- **MP.L2-3.8.1** (MP) — Protect system media  
+  - responsibility: **shared** · inherited: Operational + VM + Azure (shared)
+  - validator checks: `—`
+- **MP.L2-3.8.2** (MP) — Limit access to CUI on media  
+  - responsibility: **shared** · inherited: Operational + VM + Azure (shared)
+  - validator checks: `—`
+- **MP.L2-3.8.3** (MP) — Sanitize/destroy media  
+  - responsibility: **shared** · inherited: Operational + VM + Azure (shared)
+  - validator checks: `—`
+- **MP.L2-3.8.4** (MP) — Mark media with CUI markings  
+  - responsibility: **shared** · inherited: Operational + VM + Azure (shared)
+  - validator checks: `—`
+- **MP.L2-3.8.5** (MP) — Control access during transport  
+  - responsibility: **shared** · inherited: Operational + VM + Azure (shared)
+  - validator checks: `—`
+- **MP.L2-3.8.6** (MP) — Cryptographic protection on digital media  
+  - responsibility: **shared** · inherited: Operational + VM + Azure (shared)
+  - validator checks: `—`
+- **MP.L2-3.8.7** (MP) — Control removable media  
+  - responsibility: **shared** · inherited: Operational + VM + Azure (shared)
+  - validator checks: `USBSTOR`
+- **MP.L2-3.8.8** (MP) — Prohibit portable storage without owner  
+  - responsibility: **shared** · inherited: Operational + VM + Azure (shared)
+  - validator checks: `—`
+- **MP.L2-3.8.9** (MP) — Protect backup CUI  
+  - responsibility: **shared** · inherited: Operational + VM + Azure (shared)
+  - validator checks: `—`
+- **RA.L2-3.11.2** (RA) — Scan for vulnerabilities  
+  - responsibility: **shared** · inherited: Operational + VM + Azure (shared)
+  - validator checks: `—`
+- **RA.L2-3.11.3** (RA) — Remediate vulnerabilities  
+  - responsibility: **shared** · inherited: Operational + VM + Azure (shared)
+  - validator checks: `—`
+- **SC.L2-3.13.1** (SC) — Monitor/control/protect communications  
+  - responsibility: **shared** · inherited: Network boundary is VM+Azure (shared)
+  - validator checks: `NET-FW, SMB-SIGN`
+- **SC.L2-3.13.12** (SC) — Collaborative computing devices  
+  - responsibility: **shared** · inherited: Network boundary is VM+Azure (shared)
+  - validator checks: `—`
+- **SC.L2-3.13.13** (SC) — Control mobile code  
+  - responsibility: **shared** · inherited: Network boundary is VM+Azure (shared)
+  - validator checks: `—`
+- **SC.L2-3.13.15** (SC) — Protect authenticity of communications  
+  - responsibility: **shared** · inherited: Network boundary is VM+Azure (shared)
+  - validator checks: `—`
+- **SC.L2-3.13.16** (SC) — Protect CUI at rest  
+  - responsibility: **shared** · inherited: Network boundary is VM+Azure (shared)
+  - validator checks: `—`
+- **SC.L2-3.13.2** (SC) — Architectural designs  
+  - responsibility: **shared** · inherited: Network boundary is VM+Azure (shared)
+  - validator checks: `—`
+- **SC.L2-3.13.3** (SC) — Separate user/system management  
+  - responsibility: **shared** · inherited: Network boundary is VM+Azure (shared)
+  - validator checks: `—`
+- **SC.L2-3.13.4** (SC) — Prevent unauthorized information transfer  
+  - responsibility: **shared** · inherited: Network boundary is VM+Azure (shared)
+  - validator checks: `—`
+- **SC.L2-3.13.6** (SC) — Deny-by-default network communications  
+  - responsibility: **shared** · inherited: Network boundary is VM+Azure (shared)
+  - validator checks: `NET-FW`
+- **SC.L2-3.13.8** (SC) — Cryptographic mechanisms for CUI in transit  
+  - responsibility: **shared** · inherited: Network boundary is VM+Azure (shared)
+  - validator checks: `CRYPTO-TLS`
+- **SC.L2-3.13.9** (SC) — Terminate network connections  
+  - responsibility: **shared** · inherited: Network boundary is VM+Azure (shared)
+  - validator checks: `—`
+- **SI.L2-3.14.1** (SI) — Identify/report/correct flaws  
+  - responsibility: **shared** · inherited: Windows VM + Azure Monitor/SIEM (shared)
+  - validator checks: `WU-SERVICES`
+- **SI.L2-3.14.2** (SI) — Malicious code protection  
+  - responsibility: **shared** · inherited: Windows VM + Azure Monitor/SIEM (shared)
+  - validator checks: `DEFENDER-ON`
+- **SI.L2-3.14.3** (SI) — Monitor security alerts  
+  - responsibility: **shared** · inherited: Windows VM + Azure Monitor/SIEM (shared)
+  - validator checks: `—`
+- **SI.L2-3.14.4** (SI) — Update malicious code protection  
+  - responsibility: **shared** · inherited: Windows VM + Azure Monitor/SIEM (shared)
+  - validator checks: `DEFENDER-UPDATES`
+- **SI.L2-3.14.5** (SI) — Periodic/real-time scans  
+  - responsibility: **shared** · inherited: Windows VM + Azure Monitor/SIEM (shared)
+  - validator checks: `—`
+- **SI.L2-3.14.6** (SI) — Monitor systems and communications  
+  - responsibility: **shared** · inherited: Windows VM + Azure Monitor/SIEM (shared)
+  - validator checks: `LSA-PPL`
+- **SI.L2-3.14.7** (SI) — Identify unauthorized use  
+  - responsibility: **shared** · inherited: Windows VM + Azure Monitor/SIEM (shared)
+  - validator checks: `—`
+
+### vm_local
+
+- **AC.L2-3.1.10** (AC) — Session lock  
+  - responsibility: **customer**
+  - validator checks: `SESSION-LOCK`
+- **AC.L2-3.1.11** (AC) — Automatic session termination  
+  - responsibility: **customer**
+  - validator checks: `INACTIVITY`
+- **AC.L2-3.1.8** (AC) — Limit unsuccessful logon attempts  
+  - responsibility: **customer**
+  - validator checks: `LOCKOUT`
+- **AC.L2-3.1.9** (AC) — Privacy/security notices  
+  - responsibility: **customer**
+  - validator checks: `LEGALNOTICE`
+- **CM.L2-3.4.1** (CM) — Baseline configurations  
+  - responsibility: **customer**
+  - validator checks: `—`
+- **CM.L2-3.4.2** (CM) — Security configuration settings  
+  - responsibility: **customer**
+  - validator checks: `SECPOL-EXPORTED, SECPOL-PARSED`
+- **CM.L2-3.4.5** (CM) — Change access restrictions  
+  - responsibility: **customer**
+  - validator checks: `—`
+- **CM.L2-3.4.6** (CM) — Least functionality  
+  - responsibility: **customer**
+  - validator checks: `—`
+- **CM.L2-3.4.7** (CM) — Restrict nonessential programs  
+  - responsibility: **customer**
+  - validator checks: `—`
+- **CM.L2-3.4.8** (CM) — Software restriction policy  
+  - responsibility: **customer**
+  - validator checks: `—`
+- **CM.L2-3.4.9** (CM) — Control user-installed software  
+  - responsibility: **customer**
+  - validator checks: `—`
+- **IA.L2-3.5.11** (IA) — Obscure authentication feedback  
+  - responsibility: **customer**
+  - validator checks: `AUTH-UX`
+- **IA.L2-3.5.7** (IA) — Password complexity  
+  - responsibility: **customer**
+  - validator checks: `—`
+- **IA.L2-3.5.8** (IA) — Prohibit password reuse  
+  - responsibility: **customer**
+  - validator checks: `—`
+- **SC.L2-3.13.11** (SC) — FIPS-validated cryptography  
+  - responsibility: **customer**
+  - validator checks: `CRYPTO-FIPS`
+

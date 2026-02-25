@@ -1,0 +1,39 @@
+﻿{
+    "generated_at":  "2026-02-24T08:00:13.3503543+00:00",
+    "schema":  "control-mapping.v1",
+    "files":  [
+                  {
+                      "controls":  [
+                                       "AU.*"
+                                   ],
+                      "file":  "audit/auditpol.txt"
+                  },
+                  {
+                      "controls":  [
+                                       "IA.*",
+                                       "AC.*"
+                                   ],
+                      "file":  "policy/account-policy.txt"
+                  },
+                  {
+                      "controls":  [
+                                       "SC.L2-3.13.11"
+                                   ],
+                      "file":  "crypto/fips.txt"
+                  },
+                  {
+                      "controls":  [
+                                       "SC.L2-3.13.1",
+                                       "SC.L2-3.13.5"
+                                   ],
+                      "file":  "network/firewall.txt"
+                  },
+                  {
+                      "controls":  [
+                                       "SI.*"
+                                   ],
+                      "file":  "defender/defender-status.txt"
+                  }
+              ],
+    "notes":  "Map files to CMMC controls in Governance Portal. This is a starter stub."
+}

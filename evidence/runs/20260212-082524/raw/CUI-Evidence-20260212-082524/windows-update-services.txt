@@ -1,0 +1,8 @@
+﻿
+Name      Status StartType
+----      ------ ---------
+bits     Stopped    Manual
+cryptsvc Running Automatic
+wuauserv Running    Manual
+
+

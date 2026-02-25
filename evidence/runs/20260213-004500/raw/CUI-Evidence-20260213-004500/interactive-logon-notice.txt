@@ -1,0 +1,10 @@
+﻿
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
+    legalnoticecaption    REG_SZ    Authorized Use Only
+
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
+    legalnoticetext    REG_SZ    This system is for authorized use only.
+Activities on this system are monitored and recorded.
+Unauthorized use is prohibited and may be subject to criminal and civil penalties.
+

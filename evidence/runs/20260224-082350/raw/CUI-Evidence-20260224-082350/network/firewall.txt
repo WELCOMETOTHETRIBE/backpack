@@ -1,0 +1,10 @@
+﻿
+Name    Enabled DefaultInboundAction DefaultOutboundAction NotifyOnListen LogAllowed LogBlocked
+----    ------- -------------------- --------------------- -------------- ---------- ----------
+Domain     True                Block                 Allow          False       True       True
+Private    True                Block                 Allow          False       True       True
+Public     True                Block                 Allow          False       True       True
+
+
+
+

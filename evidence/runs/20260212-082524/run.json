@@ -1,0 +1,10 @@
+{
+  "run_id": "20260212-082524",
+  "generated_utc": "2026-02-12T08:25:24Z",
+  "evidence_runbook": "TRUST_CODEX/docs/EVIDENCE_RUNBOOK.md",
+  "vm_host": "cui-win-pilot-0 (20.57.129.142)",
+  "raw_paths": {
+    "CUI-Evidence": "raw/CUI-Evidence-20260212-082524",
+    "CUI-Validation": "raw/CUI-Validation-20260212-082524"
+  }
+}

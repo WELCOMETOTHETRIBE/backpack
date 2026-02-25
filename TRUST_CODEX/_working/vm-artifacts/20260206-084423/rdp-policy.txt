@@ -1,0 +1,19 @@
+﻿
+HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services
+    KeepAliveEnable    REG_DWORD    0x1
+    KeepAliveInterval    REG_DWORD    0x1
+    DisablePasswordSaving    REG_DWORD    0x1
+    fDisableCdm    REG_DWORD    0x0
+    fDisableClip    REG_DWORD    0x0
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\Client
+    fEnableUsbBlockDeviceBySetupClass    REG_DWORD    0x1
+    fEnableUsbNoAckIsochWriteToDevice    REG_DWORD    0x50
+    fEnableUsbSelectDeviceByInterface    REG_DWORD    0x1
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\Client\UsbBlockDeviceBySetupClasses
+    1000    REG_SZ    {3376f4ce-ff8d-40a2-a80f-bb4359d1415c}
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\Client\UsbSelectDeviceByInterfaces
+    1000    REG_SZ    {6bdd1fc6-810f-11d0-bec7-08002be2092f}
+

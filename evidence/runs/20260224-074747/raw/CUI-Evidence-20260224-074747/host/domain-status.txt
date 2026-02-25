@@ -1,0 +1,11 @@
+﻿
+
+Domain       : WORKGROUP
+PartOfDomain : False
+Manufacturer : Microsoft Corporation
+Model        : Virtual Machine
+
+
+
+
+

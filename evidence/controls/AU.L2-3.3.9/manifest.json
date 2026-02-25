@@ -1,0 +1,24 @@
+{
+  "control_id": "AU.L2-3.3.9",
+  "run_id": "20260213-004723",
+  "evidence_dir": "\\Users\\patrick\\cui-pilot\\evidence\\runs\\20260213-004723\\raw\\CUI-Evidence-20260213-004723",
+  "artifact_files": [
+    {
+      "name": "auditpol.txt",
+      "path": "\\Users\\patrick\\cui-pilot\\evidence\\runs\\20260213-004723\\raw\\CUI-Evidence-20260213-004723\\auditpol.txt"
+    },
+    {
+      "name": "eventlog-security.txt",
+      "path": "\\Users\\patrick\\cui-pilot\\evidence\\runs\\20260213-004723\\raw\\CUI-Evidence-20260213-004723\\eventlog-security.txt"
+    },
+    {
+      "name": "eventlog-system.txt",
+      "path": "\\Users\\patrick\\cui-pilot\\evidence\\runs\\20260213-004723\\raw\\CUI-Evidence-20260213-004723\\eventlog-system.txt"
+    },
+    {
+      "name": "eventlog-application.txt",
+      "path": "\\Users\\patrick\\cui-pilot\\evidence\\runs\\20260213-004723\\raw\\CUI-Evidence-20260213-004723\\eventlog-application.txt"
+    }
+  ],
+  "generated_utc": "2026-02-13T03:38:08+00:00"
+}

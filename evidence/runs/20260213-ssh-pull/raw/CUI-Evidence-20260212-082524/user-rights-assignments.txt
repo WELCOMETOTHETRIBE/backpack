@@ -1,0 +1,1 @@
+﻿ERROR parsing user rights: parsing "^\s*\\[" - Unterminated [] set.

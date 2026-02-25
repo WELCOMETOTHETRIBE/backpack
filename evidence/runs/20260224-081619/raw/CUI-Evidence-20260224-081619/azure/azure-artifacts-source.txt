@@ -1,0 +1,1 @@
+﻿Populate with Azure exports (NSG, policy assignments, disk encryption, Entra CA) in your Governance Portal for HYBRID evidence.

@@ -1,0 +1,20 @@
+{
+  "control_id": "SI.L2-3.14.1",
+  "run_id": "20260213-004723",
+  "evidence_dir": "\\Users\\patrick\\cui-pilot\\evidence\\runs\\20260213-004723\\raw\\CUI-Evidence-20260213-004723",
+  "artifact_files": [
+    {
+      "name": "defender-status.txt",
+      "path": "\\Users\\patrick\\cui-pilot\\evidence\\runs\\20260213-004723\\raw\\CUI-Evidence-20260213-004723\\defender-status.txt"
+    },
+    {
+      "name": "windows-update-services.txt",
+      "path": "\\Users\\patrick\\cui-pilot\\evidence\\runs\\20260213-004723\\raw\\CUI-Evidence-20260213-004723\\windows-update-services.txt"
+    },
+    {
+      "name": "windows-update-policy.txt",
+      "path": "\\Users\\patrick\\cui-pilot\\evidence\\runs\\20260213-004723\\raw\\CUI-Evidence-20260213-004723\\windows-update-policy.txt"
+    }
+  ],
+  "generated_utc": "2026-02-13T03:38:08+00:00"
+}

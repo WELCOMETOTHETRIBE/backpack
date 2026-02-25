@@ -1,0 +1,65 @@
+﻿Leap Indicator: 0(no warning)
+Stratum: 4 (secondary reference - syncd by (S)NTP)
+Precision: -23 (119.209ns per tick)
+Root Delay: 0.0001775s
+Root Dispersion: 0.0100002s
+ReferenceId: 0x564D5450 (source IP:  86.77.84.80)
+Last Successful Sync Time: 2/24/2026 7:54:13 AM
+Source: VM IC Time Synchronization Provider
+Poll Interval: 6 (64s)
+
+
+---
+
+[Configuration]
+
+EventLogFlags: 2 (Local)
+AnnounceFlags: 10 (Local)
+TimeJumpAuditOffset: 28800 (Local)
+MinPollInterval: 6 (Local)
+MaxPollInterval: 10 (Local)
+MaxNegPhaseCorrection: 54000 (Local)
+MaxPosPhaseCorrection: 54000 (Local)
+MaxAllowedPhaseOffset: 1 (Local)
+
+FrequencyCorrectRate: 4 (Local)
+PollAdjustFactor: 5 (Local)
+LargePhaseOffset: 50000000 (Local)
+SpikeWatchPeriod: 900 (Local)
+LocalClockDispersion: 10 (Local)
+HoldPeriod: 5 (Local)
+PhaseCorrectRate: 1 (Local)
+UpdateInterval: 100 (Local)
+
+FileLogName:  (Local)
+FileLogEntries:  (Local)
+FileLogSize: 0 (Local)
+
+[TimeProviders]
+
+NtpClient (Local)
+DllName: C:\Windows\system32\w32time.dll (Local)
+Enabled: 1 (Local)
+InputProvider: 1 (Local)
+AllowNonstandardModeCombinations: 1 (Local)
+ResolvePeerBackoffMinutes: 15 (Local)
+ResolvePeerBackoffMaxTimes: 7 (Local)
+CompatibilityFlags: 2147483648 (Local)
+EventLogFlags: 1 (Local)
+LargeSampleSkew: 3 (Local)
+SpecialPollInterval: 1024 (Local)
+Type: NTP (Local)
+NtpServer: time.windows.com,0x8 (Local)
+
+VMICTimeProvider (Local)
+DllName: C:\Windows\System32\vmictimeprovider.dll (Local)
+Enabled: 1 (Local)
+InputProvider: 1 (Local)
+
+NtpServer (Local)
+DllName: C:\Windows\system32\w32time.dll (Local)
+Enabled: 0 (Local)
+InputProvider: 0 (Local)
+
+
+

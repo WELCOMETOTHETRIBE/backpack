@@ -1,0 +1,66 @@
+﻿
+
+AnnounceComment                        : 
+AnnounceServer                         : False
+AsynchronousCredits                    : 512
+AuditClientCertificateAccess           : False
+AuditClientDoesNotSupportEncryption    : False
+AuditClientDoesNotSupportSigning       : False
+AuditInsecureGuestLogon                : False
+AuditSmb1Access                        : False
+AutoDisconnectTimeoutInMinutesV1       : 15
+AutoDisconnectTimeoutInSecondsV2       : 900
+AutoShareServer                        : True
+AutoShareWorkstation                   : True
+CachedOpenLimit                        : 10
+DisableCompression                     : False
+DisableSmbEncryptionOnSecureConnection : True
+DurableHandleV2TimeoutInSeconds        : 180
+EnableAuthenticateUserSharing          : False
+EnableAuthRateLimiter                  : True
+EnableDirectoryHandleLeasing           : True
+EnableDownlevelTimewarp                : False
+EnableForcedLogoff                     : True
+EnableLeasing                          : True
+EnableMailslots                        : False
+EnableMultiChannel                     : True
+EnableOplocks                          : True
+EnableSecuritySignature                : False
+EnableSMB1Protocol                     : False
+EnableSMB2Protocol                     : True
+EnableSMBQUIC                          : True
+EnableStrictNameChecking               : True
+EncryptData                            : False
+EncryptionCiphers                      : AES_128_GCM, AES_128_CCM, AES_256_GCM, AES_256_CCM
+InvalidAuthenticationDelayTimeInMs     : 2000
+IrpStackSize                           : 15
+KeepAliveTime                          : 2
+MaxChannelPerSession                   : 32
+MaxMpxCount                            : 50
+MaxSessionPerConnection                : 16384
+MaxThreadsPerQueue                     : 20
+MaxWorkItems                           : 1
+NullSessionPipes                       : 
+NullSessionShares                      : 
+OplockBreakWait                        : 35
+PendingClientTimeoutInSeconds          : 120
+RejectUnencryptedAccess                : True
+RequestCompression                     : False
+RequireSecuritySignature               : True
+RestrictNamedpipeAccessViaQuic         : True
+ServerHidden                           : True
+Smb2CreditsMax                         : 8192
+Smb2CreditsMin                         : 512
+Smb2DialectMax                         : None
+Smb2DialectMin                         : None
+SmbServerNameHardeningLevel            : 0
+TreatHostAsStableStorage               : False
+ValidateAliasNotCircular               : True
+ValidateShareScope                     : True
+ValidateShareScopeNotAliased           : True
+ValidateTargetName                     : True
+
+
+
+
+

@@ -1,0 +1,33 @@
+{
+  "generated_utc": "2026-02-15T18:28:15.159Z",
+  "description": "QMS export manifest: digest of attestation export and per-article hashes for controlled record-keeping.",
+  "digest_sha256": "0bed89a18f5d6b0ffad35c4ad39c5ff6a5c98a6043dea237dddc5907687cf8d2",
+  "attestation_file": "codex-attestations.md",
+  "articles": [
+    {
+      "id": "article_0",
+      "title": "# Trust Codex Manual — Attestations",
+      "sha256": "59536e62d5b39ac36fd954292430096e91f826a7edc92305696193bc5fd140a3"
+    },
+    {
+      "id": "article_1",
+      "title": "Document sign-offs (per document)",
+      "sha256": "d854d86786388932f5ffc57806eed99eee2f625b47fb2c8531f5932e8919886b"
+    },
+    {
+      "id": "article_2",
+      "title": "bulk:policy — 2026-02-15T18:28:15.151Z",
+      "sha256": "55581677721fa344e49e81449f467103e7a319427c5ad15d29fd5ecaa5d27635"
+    },
+    {
+      "id": "article_3",
+      "title": "bulk:procedure — 2026-02-15T18:28:15.151Z",
+      "sha256": "65d3270e53ced19d0375edd28b5ddcc8494b60c7330bd8b9232bcac862abbca1"
+    },
+    {
+      "id": "article_4",
+      "title": "bulk:supporting — 2026-02-15T18:28:15.151Z",
+      "sha256": "736184f5b5b622e86a28be1c5d09d7727bc0738144a506fe7e5888300be5b9fa"
+    }
+  ]
+}

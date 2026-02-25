@@ -1,0 +1,306 @@
+﻿
+
+TimeCreated      : 2/24/2026 8:04:45 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Network Setup Service service entered the running state.
+
+TimeCreated      : 2/24/2026 8:04:35 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Network Setup Service service entered the stopped state.
+
+TimeCreated      : 2/24/2026 8:02:31 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Network Setup Service service entered the running state.
+
+TimeCreated      : 2/24/2026 8:02:20 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Network Setup Service service entered the stopped state.
+
+TimeCreated      : 2/24/2026 8:02:19 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The AppX Deployment Service (AppXSVC) service entered the stopped state.
+
+TimeCreated      : 2/24/2026 8:00:23 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Network Setup Service service entered the running state.
+
+TimeCreated      : 2/24/2026 8:00:15 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Windows Modules Installer service entered the running state.
+
+TimeCreated      : 2/24/2026 8:00:13 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Microsoft Account Sign-in Assistant service entered the stopped state.
+
+TimeCreated      : 2/24/2026 7:58:12 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The WaaSMedicSvc service entered the stopped state.
+
+TimeCreated      : 2/24/2026 7:57:49 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Software Protection service entered the stopped state.
+
+TimeCreated      : 2/24/2026 7:57:18 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The AppX Deployment Service (AppXSVC) service entered the running state.
+
+TimeCreated      : 2/24/2026 7:57:17 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Software Protection service entered the running state.
+
+TimeCreated      : 2/24/2026 7:57:12 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Microsoft Account Sign-in Assistant service entered the running state.
+
+TimeCreated      : 2/24/2026 7:57:11 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The WaaSMedicSvc service entered the running state.
+
+TimeCreated      : 2/24/2026 7:56:48 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Windows Modules Installer service entered the stopped state.
+
+TimeCreated      : 2/24/2026 7:56:11 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Network Setup Service service entered the stopped state.
+
+TimeCreated      : 2/24/2026 7:54:14 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Network Setup Service service entered the running state.
+
+TimeCreated      : 2/24/2026 7:54:06 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Windows Modules Installer service entered the running state.
+
+TimeCreated      : 2/24/2026 7:53:43 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Software Protection service entered the stopped state.
+
+TimeCreated      : 2/24/2026 7:53:12 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Software Protection service entered the running state.
+
+TimeCreated      : 2/24/2026 7:51:38 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Software Protection service entered the stopped state.
+
+TimeCreated      : 2/24/2026 7:51:07 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Software Protection service entered the running state.
+
+TimeCreated      : 2/24/2026 7:50:45 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Windows Modules Installer service entered the stopped state.
+
+TimeCreated      : 2/24/2026 7:50:07 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Network Setup Service service entered the stopped state.
+
+TimeCreated      : 2/24/2026 7:48:29 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Microsoft Storage Spaces SMP service entered the running state.
+
+TimeCreated      : 2/24/2026 7:48:01 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Network Setup Service service entered the running state.
+
+TimeCreated      : 2/24/2026 7:47:54 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Windows Modules Installer service entered the running state.
+
+TimeCreated      : 2/24/2026 7:47:43 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Windows Modules Installer service entered the stopped state.
+
+TimeCreated      : 2/24/2026 7:47:04 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Network Setup Service service entered the stopped state.
+
+TimeCreated      : 2/24/2026 7:45:18 AM
+Id               : 1
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Configuration-Change-Monitor
+Message          : 
+
+TimeCreated      : 2/24/2026 7:45:12 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Network Setup Service service entered the running state.
+
+TimeCreated      : 2/24/2026 7:45:02 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Windows Modules Installer service entered the running state.
+
+TimeCreated      : 2/24/2026 7:44:33 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The AppX Deployment Service (AppXSVC) service entered the stopped state.
+
+TimeCreated      : 2/24/2026 7:42:55 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Windows Camera Frame Server Monitor service entered the stopped state.
+
+TimeCreated      : 2/24/2026 7:42:25 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Windows Camera Frame Server Monitor service entered the running state.
+
+TimeCreated      : 2/24/2026 7:40:02 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Software Protection service entered the stopped state.
+
+TimeCreated      : 2/24/2026 7:39:32 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The AppX Deployment Service (AppXSVC) service entered the running state.
+
+TimeCreated      : 2/24/2026 7:39:31 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Software Protection service entered the running state.
+
+TimeCreated      : 2/24/2026 7:33:15 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Windows Modules Installer service entered the stopped state.
+
+TimeCreated      : 2/24/2026 7:32:35 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Network Setup Service service entered the stopped state.
+
+TimeCreated      : 2/24/2026 7:32:22 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The WaaSMedicSvc service entered the stopped state.
+
+TimeCreated      : 2/24/2026 7:31:19 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The WaaSMedicSvc service entered the running state.
+
+TimeCreated      : 2/24/2026 7:30:41 AM
+Id               : 1
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Configuration-Change-Monitor
+Message          : 
+
+TimeCreated      : 2/24/2026 7:30:31 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Network Setup Service service entered the running state.
+
+TimeCreated      : 2/24/2026 7:30:20 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Windows Modules Installer service entered the running state.
+
+TimeCreated      : 2/24/2026 7:27:44 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Windows Camera Frame Server Monitor service entered the stopped state.
+
+TimeCreated      : 2/24/2026 7:27:14 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Windows Camera Frame Server Monitor service entered the running state.
+
+TimeCreated      : 2/24/2026 7:22:57 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The AppX Deployment Service (AppXSVC) service entered the stopped state.
+
+TimeCreated      : 2/24/2026 7:20:00 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Windows Camera Frame Server Monitor service entered the stopped state.
+
+TimeCreated      : 2/24/2026 7:19:30 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Windows Camera Frame Server Monitor service entered the running state.
+
+
+
+
+

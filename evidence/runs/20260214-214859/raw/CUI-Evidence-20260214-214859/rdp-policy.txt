@@ -1,0 +1,6 @@
+﻿
+HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services
+    fDisableCdm    REG_DWORD    0x1
+    DisablePasswordSaving    REG_DWORD    0x1
+    fDisableClip    REG_DWORD    0x1
+

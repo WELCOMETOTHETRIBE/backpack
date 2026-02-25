@@ -1,0 +1,11 @@
+﻿
+Name   Path       EncryptData FolderEnumerationMode
+----   ----       ----------- ---------------------
+ADMIN$ C:\Windows       False          Unrestricted
+C$     C:\              False          Unrestricted
+D$     D:\              False          Unrestricted
+IPC$                    False          Unrestricted
+
+
+
+

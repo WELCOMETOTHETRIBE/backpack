@@ -1,0 +1,355 @@
+{
+  "generated_utc": "2026-02-21T03:15:31.719Z",
+  "description": "QMS export manifest: digest of attestation export and per-article hashes for controlled record-keeping.",
+  "digest_sha256": "8a849a0c24460b19e43f725c0d5c40b493e365583d952ee297e79f6b4ffda9f2",
+  "attestation_file": "codex-attestations.md",
+  "articles": [
+    {
+      "id": "article_0",
+      "title": "# Trust Codex Manual — Attestations",
+      "sha256": "a6e9049eec45475b0e58d665b38c7f12c58c0be3ab50d8e1be35abd3a3aa2401"
+    },
+    {
+      "id": "article_1",
+      "title": "Document sign-offs (per document)",
+      "sha256": "39a20532a8ae9edd1643a93054bcb6eabb932ad259473153d99529d19c2d0cfa"
+    },
+    {
+      "id": "article_2",
+      "title": "bulk:policy — 2026-02-21T03:15:31.712Z",
+      "sha256": "5f63e3af47d74e9aae8163fa8594d91856b570169f0936b8339b4a9670e6ce27"
+    },
+    {
+      "id": "article_3",
+      "title": "bulk:procedure — 2026-02-21T03:15:31.712Z",
+      "sha256": "efc2f26694ad04c9c30c0e0851ff9813474774ccd40f89a6733b1167fff00090"
+    },
+    {
+      "id": "article_4",
+      "title": "bulk:supporting — 2026-02-21T03:15:31.712Z",
+      "sha256": "fd6cc10bdba56584c15d939b75395df73d4655a35383b05462d0cbad54cc6065"
+    }
+  ],
+  "documents": [
+    {
+      "code": "MAC-CMP-001",
+      "title": "Configuration Management Plan - CMMC Level 2",
+      "kind": "plan",
+      "filename_in_zip": "docs/MAC-CMP-001_Configuration_Management_Plan.md",
+      "content_sha256": "399e5ce3135f33fc03b833c12d12d4b49232af5ba3aee0c4893100bc25b08ce5",
+      "file_sha256": "a083558ce2496b7b8694fcf1499a936f3e10744bdc7c8fa992d691719d749fb8"
+    },
+    {
+      "code": "MAC-FRM-203",
+      "title": "User Access and FCI/CUI Handling Acknowledgement - CMMC Level 2",
+      "kind": "form",
+      "filename_in_zip": "docs/MAC-FRM-203_User_Access_and_FCI_Handling_Acknowledgement.md",
+      "content_sha256": "369551ef7582d76d62350a8bf6ed9b1c10994677a730415638ed6866351110fc",
+      "file_sha256": "5a1a00f202573fc17d0eaeb4ccdbc8b520ef59af1ca0f812a053dff98fbe617c"
+    },
+    {
+      "code": "MAC-FRM-204",
+      "title": "CUI Enclave User Agreement, Rules of Behavior, and Acceptable Use - CMMC Level 2",
+      "kind": "form",
+      "filename_in_zip": "docs/MAC-FRM-204_CUI_Enclave_User_Agreement_and_Rules_of_Behavior.md",
+      "content_sha256": "773237669e80cd17513eb507cab29f514abe1f4cf902e0a13ab9f0eb05860d22",
+      "file_sha256": "b4e5c3203cbda0a3a8f4766ef9c52c55fd475bda5fd689eff2fb1d8dbf9cc1de"
+    },
+    {
+      "code": "MAC-IRP-001",
+      "title": "Incident Response Plan (IRP) - CMMC Level 2",
+      "kind": "plan",
+      "filename_in_zip": "docs/MAC-IRP-001_Incident_Response_Plan.md",
+      "content_sha256": "3aec4ae0e1a3580f4715499e21636c08eed06a66a5aa6cc5ec5376ee163ab530",
+      "file_sha256": "beffb325dd911139267f85f3c11f51c041e13f8db93203034d68b21e6a76b7af"
+    },
+    {
+      "code": "MAC-POL-210",
+      "title": "Access Control Policy - CMMC Level 2",
+      "kind": "policy",
+      "filename_in_zip": "docs/MAC-POL-210_Access_Control_Policy.md",
+      "content_sha256": "287730f1dd270e99e5a66d0d7b55a0f1e0c072f8b1e04edbd7b932008d89b06c",
+      "file_sha256": "15f945eb82eb4699ce08bc7c4fb9335587dc4b6f5a3d11883de5e483e9232b04"
+    },
+    {
+      "code": "MAC-POL-211",
+      "title": "Identification & Authentication Policy - CMMC Level 2",
+      "kind": "policy",
+      "filename_in_zip": "docs/MAC-POL-211_Identification_and_Authentication_Policy.md",
+      "content_sha256": "1f7644dbe41ce46f41105f2f63903731d7d1f78e756db00e297b1a90c468b8ff",
+      "file_sha256": "2a31a4ac0c58781ae38cd5abbc9dbd14c3e6e9974903df5e9f37ff73e105d10a"
+    },
+    {
+      "code": "MAC-POL-212",
+      "title": "Physical Security Policy - CMMC Level 2",
+      "kind": "policy",
+      "filename_in_zip": "docs/MAC-POL-212_Physical_Security_Policy.md",
+      "content_sha256": "78390cf14c293e5419b5bc173bd237f16b70b283aeb5dae53819b08db99ce111",
+      "file_sha256": "4ea5423e3099dfc8acc978ffe22eb9e956714220b8aca22e7006a700419bbf5b"
+    },
+    {
+      "code": "MAC-POL-213",
+      "title": "Media Handling & Data Disposal Policy - CMMC Level 2",
+      "kind": "policy",
+      "filename_in_zip": "docs/MAC-POL-213_Media_Handling_Policy.md",
+      "content_sha256": "55173a64d07ab3b83641ffa79a73c62d1eb4c15bea32f99cfedeb9d769adf9aa",
+      "file_sha256": "f046ac73bf2511b50c87a44acc54f32f6da793dedfa571aac8b87f23b6537276"
+    },
+    {
+      "code": "MAC-POL-214",
+      "title": "System & Information Integrity Policy - CMMC Level 2",
+      "kind": "policy",
+      "filename_in_zip": "docs/MAC-POL-214_System_Integrity_Policy.md",
+      "content_sha256": "1386c254bd2664ff57d9cd30a5a2531752bf8099342fc4b3d4fc00ce423ff8b4",
+      "file_sha256": "72431b802191a7e7d7862f2ba3264a4d9a1c00593df349742d76c526a55b9939"
+    },
+    {
+      "code": "MAC-POL-215",
+      "title": "Incident Response Policy - CMMC Level 2",
+      "kind": "policy",
+      "filename_in_zip": "docs/MAC-POL-215_Incident_Response_Policy.md",
+      "content_sha256": "b018a8a8842b03526801ab07420e1220e2fc9671e3e339554cf9cff15dec549a",
+      "file_sha256": "b327bce93f55314c5d62cf14f7c15750be85593d2cbdf2149e4a6c6c9570b05d"
+    },
+    {
+      "code": "MAC-POL-216",
+      "title": "System & Information Integrity Policy - CMMC Level 2",
+      "kind": "policy",
+      "filename_in_zip": "docs/MAC-POL-216_System_Integrity_Policy_Reference.md",
+      "content_sha256": "ba0e0c1e393be27c06388afce6ea73b0c6b131b8e92f6a81c4226ccf377ee63a",
+      "file_sha256": "eea8ef14a9bae4493082be63761576e0e815259edc5fae24e6f534624a1987f9"
+    },
+    {
+      "code": "MAC-POL-217",
+      "title": "Ongoing Stakeholder Requirements - CMMC Level 2",
+      "kind": "policy",
+      "filename_in_zip": "docs/MAC-POL-217_Ongoing_Stakeholder_Requirements.md",
+      "content_sha256": "29b60ffbde2df9bc036591584d288bf19dd874a1b10e5e4937fa1f4c28c96aad",
+      "file_sha256": "0fafcb4c533f3ab1897d2a34c0f217fcc8b55c41b230be7b019ab65ad57a60b6"
+    },
+    {
+      "code": "MAC-POL-218",
+      "title": "Audit and Accountability Policy - CMMC Level 2",
+      "kind": "policy",
+      "filename_in_zip": "docs/MAC-POL-218_Audit_and_Accountability_Policy.md",
+      "content_sha256": "f7df35fb507ef0610a42557961954e63e422f62682d7feb4ae7735c012b7057a",
+      "file_sha256": "67f4158788cd018c0d5800b8cf7f05d1e89a001ee3cb2ae1a145935dc6ee2a55"
+    },
+    {
+      "code": "MAC-POL-219",
+      "title": "Awareness and Training Policy - CMMC Level 2",
+      "kind": "policy",
+      "filename_in_zip": "docs/MAC-POL-219_Awareness_and_Training_Policy.md",
+      "content_sha256": "d12215700fdc783220daac9ec1b7f8b89ff9f0a4367cc2958c004d396675ec02",
+      "file_sha256": "9412ee16083e7f0f1b56d8be986a7c6a2145f0ee72ed087c4cf1cda52b6f0342"
+    },
+    {
+      "code": "MAC-POL-220",
+      "title": "Configuration Management Policy - CMMC Level 2",
+      "kind": "policy",
+      "filename_in_zip": "docs/MAC-POL-220_Configuration_Management_Policy.md",
+      "content_sha256": "a3a38f1138bb225ab277e556c349d29f03345c98fc97440ad37e6a6774f31ca5",
+      "file_sha256": "588eb6e63daf1813a196da1490acf014d86c9ea029b9eaacb6d5afcff82e7209"
+    },
+    {
+      "code": "MAC-POL-221",
+      "title": "Maintenance Policy - CMMC Level 2",
+      "kind": "policy",
+      "filename_in_zip": "docs/MAC-POL-221_Maintenance_Policy.md",
+      "content_sha256": "acfeb577fdb36e505643e15c5af2fbc8063833a2bcd753fba4e42b83300eecc3",
+      "file_sha256": "f4c22ee81e72068fcc7e27b3792e51433eda73f83c85cf1badb8a74db8038ed2"
+    },
+    {
+      "code": "MAC-POL-222",
+      "title": "Personnel Security Policy - CMMC Level 2",
+      "kind": "policy",
+      "filename_in_zip": "docs/MAC-POL-222_Personnel_Security_Policy.md",
+      "content_sha256": "8618e039e404d35e15da17a97ff562226471cae463d3eac94aadaec4974afdad",
+      "file_sha256": "c672f6ee4f1db20a4a206af97c9e58a6e0ed834367dc8527a9581da930adc0dc"
+    },
+    {
+      "code": "MAC-POL-223",
+      "title": "Risk Assessment Policy - CMMC Level 2",
+      "kind": "policy",
+      "filename_in_zip": "docs/MAC-POL-223_Risk_Assessment_Policy.md",
+      "content_sha256": "f6103b627eb8fc76fc157fef4781065511d342348afd3b43724a132a5fdb5188",
+      "file_sha256": "377a6ff43e1877c624e3d8115fecce9995966833a655a4db49acbed3cf1e4be1"
+    },
+    {
+      "code": "MAC-POL-224",
+      "title": "Security Assessment Policy - CMMC Level 2",
+      "kind": "policy",
+      "filename_in_zip": "docs/MAC-POL-224_Security_Assessment_Policy.md",
+      "content_sha256": "036f28988657bdb4031c49d90ca8cc1b5363a8179798e7f025fc0bad428cfd1a",
+      "file_sha256": "0e8cc7ed1dab303f3e1a49262e74ee9af34c8b1fba1ddaa854bb619add8c990a"
+    },
+    {
+      "code": "MAC-POL-225",
+      "title": "System and Communications Protection Policy - CMMC Level 2",
+      "kind": "policy",
+      "filename_in_zip": "docs/MAC-POL-225_System_and_Communications_Protection_Policy.md",
+      "content_sha256": "eaf16186c8bb211d44dbb40ca0536aa83a7c8260c51b2edd6babedbca10be576",
+      "file_sha256": "78b042209aeebe05a98b45ceca23102f2acd246ef7c622b8851423612304cebe"
+    },
+    {
+      "code": "MAC-POL-226",
+      "title": "Software Restriction Policy - CMMC Level 2",
+      "kind": "policy",
+      "filename_in_zip": "docs/MAC-POL-226_Software_Restriction_Policy.md",
+      "content_sha256": "f79c1f74863341bd7e9e05dc74aab36b45bb4aa115d9d059cbb35370d2e1680e",
+      "file_sha256": "453cc58fed700b51501af74c0ccd5717494b3d01e1c4215216400f212873cf70"
+    },
+    {
+      "code": "MAC-SOP-221",
+      "title": "User Account Provisioning and Deprovisioning Procedure - CMMC Level 2",
+      "kind": "procedure",
+      "filename_in_zip": "docs/MAC-SOP-221_User_Account_Provisioning_and_Deprovisioning_Procedure.md",
+      "content_sha256": "41ad036488e4f2f2b19e460df4f30d5f21410560fc07a560472fd92f87e7d4e8",
+      "file_sha256": "75e6d3f567d8be2f1bcf41d0329df9784bc726cb88c1d2f1baabb22fb8a6e589"
+    },
+    {
+      "code": "MAC-SOP-222",
+      "title": "Account Lifecycle Enforcement - CMMC Level 2",
+      "kind": "procedure",
+      "filename_in_zip": "docs/MAC-SOP-222_Account_Lifecycle_Enforcement_Procedure.md",
+      "content_sha256": "142dca1a9b2c619ec65f5699702160192362454228aec3af9c48aacfef57f611",
+      "file_sha256": "44065c656870336b9ba70a2cd443fec7dbca6bf561c713efa4d169c2a140ca4c"
+    },
+    {
+      "code": "MAC-SOP-223",
+      "title": "Incident Identification and Reporting Procedure - CMMC Level 2",
+      "kind": "procedure",
+      "filename_in_zip": "docs/MAC-SOP-223_Incident_Identification_and_Reporting_Procedure.md",
+      "content_sha256": "fd82313c938407759bc100716d853600a1f1bf2ea36116de1885cb58459ea483",
+      "file_sha256": "111f8fd718899bbcd80be7e06473606c7030eff90d18392b9cf813c9625063c6"
+    },
+    {
+      "code": "MAC-SOP-224",
+      "title": "Physical Environment and Remote Work Controls - CMMC Level 2",
+      "kind": "procedure",
+      "filename_in_zip": "docs/MAC-SOP-224_Physical_Environment_and_Remote_Work_Controls.md",
+      "content_sha256": "0638be6ef5f8493fb81458f506d30e692bc130448b5f932d90c84de85e6ef9f9",
+      "file_sha256": "8081c16ad225eeb9e22cd4460068eb43a8a8aa3d2195fa77d7e98762be508409"
+    },
+    {
+      "code": "MAC-SOP-225",
+      "title": "Configuration Change Awareness Procedure - CMMC Level 2",
+      "kind": "procedure",
+      "filename_in_zip": "docs/MAC-SOP-225_Configuration_Change_Awareness_Procedure.md",
+      "content_sha256": "315902861a8c8b40f332b9be8fbc12f580b3ef6582affe7c772a50e225ab74ee",
+      "file_sha256": "ed3c85cd1cb80081d8a914b0b3b60f22cad1d08fa98e9249038648ac94f9879a"
+    },
+    {
+      "code": "MAC-SOP-226",
+      "title": "Audit Log Review Procedure - CMMC Level 2",
+      "kind": "procedure",
+      "filename_in_zip": "docs/MAC-SOP-226_Audit_Log_Review_Procedure.md",
+      "content_sha256": "ffe57966f8ee737b3c5e47f6403cc6eca5b517fd0e611bc4f4a19191bf08ee89",
+      "file_sha256": "548c772b64740d8221aa6f65752661edaf97a4de9dcf2eec7716fa654c385d4b"
+    },
+    {
+      "code": "MAC-SOP-227",
+      "title": "Security Awareness Training Procedure - CMMC Level 2",
+      "kind": "procedure",
+      "filename_in_zip": "docs/MAC-SOP-227_Security_Awareness_Training_Procedure.md",
+      "content_sha256": "f3dc8a82fe4cdc37b0711f9bac2fe781e6ac72cbc44830ecfabcf4b59815d8a9",
+      "file_sha256": "dd19eadaa8990f2ad3f84782a5c4d7909fc8e581edfd085a4ff8f9c75f58c22f"
+    },
+    {
+      "code": "MAC-SOP-228",
+      "title": "Configuration Baseline Management Procedure - CMMC Level 2",
+      "kind": "procedure",
+      "filename_in_zip": "docs/MAC-SOP-228_Configuration_Baseline_Management_Procedure.md",
+      "content_sha256": "e4c7048adf5a061a7dae8c56f941f82f260a7849178f4c4057a7751e3d0e0bdd",
+      "file_sha256": "f1efcabb1206c8343d3cc60bcff85f6d3ead70353155ed32d3a2c7afa924ff27"
+    },
+    {
+      "code": "MAC-SOP-229",
+      "title": "Risk Assessment Procedure - CMMC Level 2",
+      "kind": "procedure",
+      "filename_in_zip": "docs/MAC-SOP-229_Risk_Assessment_Procedure.md",
+      "content_sha256": "8261e18705683060d329f04e10f03c529f7ff745b9c277af509edea88b1411b3",
+      "file_sha256": "54c5f33f44e0d0005a63432e1c3bcffb494d2412cc350d0c5b0df38ce1504c39"
+    },
+    {
+      "code": "MAC-SOP-230",
+      "title": "Vulnerability Scanning and Remediation Procedure - CMMC Level 2",
+      "kind": "procedure",
+      "filename_in_zip": "docs/MAC-SOP-230_Vulnerability_Scanning_Procedure.md",
+      "content_sha256": "18c39ee3fe378428a7947bbbcc3efb67285305ddda010cc6a155f069530ae532",
+      "file_sha256": "8e79a69628ec1e526052f86b626f5c3ffb6ab0ca75ad13c7395b915ee788734a"
+    },
+    {
+      "code": "MAC-SOP-231",
+      "title": "Plan of Action and Milestones (POA&M) Process Procedure - CMMC Level 2",
+      "kind": "procedure",
+      "filename_in_zip": "docs/MAC-SOP-231_POA&M_Process_Procedure.md",
+      "content_sha256": "645a97a1f53f1db396c5a65a497341806f32fd2f807dd44c3ca37f940a6271b8",
+      "file_sha256": "546e68f58a4236a799dee089f323e90756a998a16c28465824bc9bb9482769b3"
+    },
+    {
+      "code": "MAC-SOP-232",
+      "title": "Incident Response Testing Procedure - CMMC Level 2",
+      "kind": "procedure",
+      "filename_in_zip": "docs/MAC-SOP-232_Incident_Response_Testing_Procedure.md",
+      "content_sha256": "a4d97c093260fd3991d2e5ec7e262549aa33b5c7ee077a0688329a3ca39d378e",
+      "file_sha256": "e750ffdcd5e14ea3d1157278d947cb32804a6e3ce8632ff2673eca7e79382639"
+    },
+    {
+      "code": "MAC-SOP-233",
+      "title": "Personnel Screening Procedure - CMMC Level 2",
+      "kind": "procedure",
+      "filename_in_zip": "docs/MAC-SOP-233_Personnel_Screening_Procedure.md",
+      "content_sha256": "949e026be55fefe42998876982616a62b5fb6b6e712510100e54a570b3fa01b1",
+      "file_sha256": "f39bc84a737321b9727f42c16c364bf7f13da70af2df80228a2e0979084a7785"
+    },
+    {
+      "code": "MAC-SOP-234",
+      "title": "Personnel Termination Procedure - CMMC Level 2",
+      "kind": "procedure",
+      "filename_in_zip": "docs/MAC-SOP-234_Personnel_Termination_Procedure.md",
+      "content_sha256": "164205ef39b0c27b9d0483e289f9b0b158b73095458ac40335a7290043e2fe46",
+      "file_sha256": "93528c610a3935d3860367328704f6231b640872db400a31a18d068c46ce7462"
+    },
+    {
+      "code": "MAC-SOP-235",
+      "title": "Separation of Duties Matrix - CMMC Level 2",
+      "kind": "procedure",
+      "filename_in_zip": "docs/MAC-SOP-235_Separation_of_Duties_Matrix.md",
+      "content_sha256": "38c487d76539ea5e60c0619cab1623fbf731015fe81aebc26d284ce47eff2a55",
+      "file_sha256": "e1b20ca4290846bd25e464da13d6a2f0b9ca9c05eedee6fb4b32ecab1ff43f35"
+    },
+    {
+      "code": "MAC-SOP-236",
+      "title": "Physical Access Device Control Procedure - CMMC Level 2",
+      "kind": "procedure",
+      "filename_in_zip": "docs/MAC-SOP-236_Physical_Access_Device_Control_Procedure.md",
+      "content_sha256": "2991b2e7afed14a6b59bb60cc528d9b2ae44d09a9fe185f742ec0edafd994cd4",
+      "file_sha256": "c83ac43dc2fd6543f10451e927641b16bdffb534d50000b93a8643b29ad437ab"
+    },
+    {
+      "code": "MAC-SOP-237",
+      "title": "Mobile Code Control Procedure - CMMC Level 2",
+      "kind": "procedure",
+      "filename_in_zip": "docs/MAC-SOP-237_Mobile_Code_Control_Procedure.md",
+      "content_sha256": "a6d3a93d0931b7b492ae16f5a723998f8bb55daa5348f6abcaeb0e88fa9996f3",
+      "file_sha256": "c1599ed3fb0f2d271ae4a7453c5722151ced13794f8581319f37c7be28c2feb0"
+    },
+    {
+      "code": "MAC-SOP-238",
+      "title": "Maintenance Tool Control Procedure - CMMC Level 2",
+      "kind": "procedure",
+      "filename_in_zip": "docs/MAC-SOP-238_Maintenance_Tool_Control_Procedure.md",
+      "content_sha256": "ff178ca021e54f23d001a80dba03f0f1aa49d5e8ff4f19d052256d61bff8032c",
+      "file_sha256": "25b7909e1103d692768ec01f4a809b7cd2abdd58ece8e21517e461b547a14887"
+    },
+    {
+      "code": "MAC-SEC-108",
+      "title": "MFA Implementation Guide - CMMC Level 2 (IA.L2-3.5.3)",
+      "kind": "guide",
+      "filename_in_zip": "docs/MAC-SEC-108_MFA_Implementation_Guide.md",
+      "content_sha256": "f81071e7da77f45b61934bbbcf3a1804c4036bdbaac255d066ab3bafae52168d",
+      "file_sha256": "be6d3b02ed873dbe3fe86e1e46cfb50777ae8a863dac9b4b078e37f06b2a2539"
+    }
+  ]
+}

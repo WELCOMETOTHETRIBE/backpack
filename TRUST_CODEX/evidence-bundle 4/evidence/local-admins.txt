@@ -1,0 +1,8 @@
+﻿
+Name                                                 ObjectClass PrincipalSource
+----                                                 ----------- ---------------
+cui-win-pilot-0\admin_patrick                        User                  Local
+S-1-12-1-1787151516-1162301926-2630198458-2831568435 Other               AzureAD
+S-1-12-1-4042501905-1132870130-2934997161-3235566704 Other               AzureAD
+
+

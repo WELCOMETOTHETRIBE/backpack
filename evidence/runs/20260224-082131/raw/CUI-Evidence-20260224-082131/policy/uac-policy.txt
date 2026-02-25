@@ -1,0 +1,22 @@
+﻿
+
+DontDisplayLastUserName    : 1
+ConsentPromptBehaviorAdmin : 2
+PromptOnSecureDesktop      : 1
+InactivityTimeoutSecs      : 900
+legalnoticecaption         : Authorized Use Only
+legalnoticetext            : This system is for authorized use only.
+                             Activities on this system are monitored and recorded.
+                             Unauthorized use is prohibited and may be subject to criminal and civil penalties.
+PSPath                     : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentV
+                             ersion\Policies\System
+PSParentPath               : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentV
+                             ersion\Policies
+PSChildName                : System
+PSDrive                    : HKLM
+PSProvider                 : Microsoft.PowerShell.Core\Registry
+
+
+
+
+

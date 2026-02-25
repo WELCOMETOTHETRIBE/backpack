@@ -1,0 +1,10 @@
+﻿
+
+QuickScanAge          : 0
+FullScanAge           : 12
+AntivirusSignatureAge : 0
+
+
+
+
+

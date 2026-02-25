@@ -1,0 +1,81 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "mactech.trust-codex.evidence-index.schema"
+title: "MacTech Trust Codex Evidence Index"
+type: object
+required:
+  - metadata
+  - controls
+properties:
+  metadata:
+    type: object
+    required:
+      - system_name
+      - framework
+      - control_set
+      - retention_baseline
+    properties:
+      system_name:
+        type: string
+      framework:
+        type: string
+        enum: ["CMMC 2.0 Level 2"]
+      control_set:
+        type: string
+        enum: ["NIST SP 800-171 Rev.2"]
+      retention_baseline:
+        type: string
+        description: "Human-readable baseline retention target (e.g., '1 year')."
+  controls:
+    type: array
+    minItems: 110
+    items:
+      type: object
+      required:
+        - control_id_cmmc
+        - nist_requirement_id
+        - evidence_items
+      properties:
+        control_id_cmmc:
+          type: string
+          description: "e.g., AC.L2-3.1.1"
+        nist_requirement_id:
+          type: string
+          description: "e.g., 3.1.1"
+        classification:
+          type: string
+          enum: ["Class A", "Class B", "Inherited", "Not Applicable"]
+        evidence_items:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required:
+              - evidence_type
+              - name
+              - owner_role
+              - location
+              - retention
+              - cadence
+              - regeneration_method
+            properties:
+              evidence_type:
+                type: string
+                enum: ["System", "Governance", "Inherited Provider", "N/A Justification"]
+              name:
+                type: string
+              owner_role:
+                type: string
+                enum: ["System Owner", "ISSO", "Compliance Officer", "IT Administrator"]
+              location:
+                type: string
+                description: "Where the artifact lives (path, system, or vault location)."
+              retention:
+                type: string
+              cadence:
+                type: string
+                description: "How often evidence is generated/reviewed (e.g., per-change, monthly)."
+              regeneration_method:
+                type: string
+              notes:
+                type: string
+

@@ -1,0 +1,311 @@
+﻿
+
+TimeCreated      : 2/24/2026 8:21:49 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Network Setup Service service entered the running state.
+
+TimeCreated      : 2/24/2026 8:21:11 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Windows Modules Installer service entered the running state.
+
+TimeCreated      : 2/24/2026 8:21:11 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Data Sharing Service service entered the running state.
+
+TimeCreated      : 2/24/2026 8:20:59 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The AppX Deployment Service (AppXSVC) service entered the stopped state.
+
+TimeCreated      : 2/24/2026 8:20:00 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Geolocation Service service entered the running state.
+
+TimeCreated      : 2/24/2026 8:19:36 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Windows Modules Installer service entered the stopped state.
+
+TimeCreated      : 2/24/2026 8:19:14 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Inventory and Compatibility Appraisal service service entered the stopped state.
+
+TimeCreated      : 2/24/2026 8:19:06 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Delivery Optimization service entered the stopped state.
+
+TimeCreated      : 2/24/2026 8:18:40 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Network Setup Service service entered the stopped state.
+
+TimeCreated      : 2/24/2026 8:18:14 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Diagnostic System Host service entered the running state.
+
+TimeCreated      : 2/24/2026 8:17:16 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Microsoft Storage Spaces SMP service entered the running state.
+
+TimeCreated      : 2/24/2026 8:16:34 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Microsoft Account Sign-in Assistant service entered the stopped state.
+
+TimeCreated      : 2/24/2026 8:16:28 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Windows Modules Installer service entered the running state.
+
+TimeCreated      : 2/24/2026 8:16:18 AM
+Id               : 16
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Kernel-General
+Message          : The access history in hive \??\C:\Users\admin_patrick\AppData\Local\Microsoft\Windows\UsrClass.dat 
+                   was cleared updating 1168 keys and creating 130 modified pages.
+
+TimeCreated      : 2/24/2026 8:16:18 AM
+Id               : 16
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Kernel-General
+Message          : The access history in hive \??\C:\Users\admin_patrick\ntuser.dat was cleared updating 2276 keys and 
+                   creating 176 modified pages.
+
+TimeCreated      : 2/24/2026 8:15:57 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Windows Modules Installer service entered the stopped state.
+
+TimeCreated      : 2/24/2026 8:15:00 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Client License Service (ClipSVC) service entered the stopped state.
+
+TimeCreated      : 2/24/2026 8:14:51 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The WaaSMedicSvc service entered the stopped state.
+
+TimeCreated      : 2/24/2026 8:14:32 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Software Protection service entered the stopped state.
+
+TimeCreated      : 2/24/2026 8:14:31 AM
+Id               : 19
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-WindowsUpdateClient
+Message          : Installation Successful: Windows successfully installed the following update: Security Intelligence 
+                   Update for Microsoft Defender Antivirus - KB2267602 (Version 1.445.224.0) - Current Channel (Broad)
+
+TimeCreated      : 2/24/2026 8:14:09 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Background Intelligent Transfer Service service entered the stopped state.
+
+TimeCreated      : 2/24/2026 8:14:08 AM
+Id               : 7040
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The start type of the Background Intelligent Transfer Service service was changed from auto start 
+                   to demand start.
+
+TimeCreated      : 2/24/2026 8:14:08 AM
+Id               : 43
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-WindowsUpdateClient
+Message          : Installation Started: Windows has started installing the following update: Security Intelligence 
+                   Update for Microsoft Defender Antivirus - KB2267602 (Version 1.445.224.0) - Current Channel (Broad)
+
+TimeCreated      : 2/24/2026 8:14:08 AM
+Id               : 44
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-WindowsUpdateClient
+Message          : Windows Update started downloading an update.
+
+TimeCreated      : 2/24/2026 8:14:06 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Delivery Optimization service entered the running state.
+
+TimeCreated      : 2/24/2026 8:13:53 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Windows Modules Installer service entered the running state.
+
+TimeCreated      : 2/24/2026 8:13:48 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The WaaSMedicSvc service entered the running state.
+
+TimeCreated      : 2/24/2026 8:13:35 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Windows PushToInstall Service service entered the stopped state.
+
+TimeCreated      : 2/24/2026 8:13:32 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Web Account Manager service entered the running state.
+
+TimeCreated      : 2/24/2026 8:13:32 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Software Protection service entered the running state.
+
+TimeCreated      : 2/24/2026 8:13:31 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Microsoft Store Install Service service entered the running state.
+
+TimeCreated      : 2/24/2026 8:13:30 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Microsoft Account Sign-in Assistant service entered the running state.
+
+TimeCreated      : 2/24/2026 8:13:29 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Windows PushToInstall Service service entered the running state.
+
+TimeCreated      : 2/24/2026 8:13:05 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The WaaSMedicSvc service entered the stopped state.
+
+TimeCreated      : 2/24/2026 8:12:31 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Software Protection service entered the stopped state.
+
+TimeCreated      : 2/24/2026 8:12:09 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The WMI Performance Adapter service entered the stopped state.
+
+TimeCreated      : 2/24/2026 8:12:05 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Update Orchestrator Service service entered the running state.
+
+TimeCreated      : 2/24/2026 8:12:05 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The WaaSMedicSvc service entered the running state.
+
+TimeCreated      : 2/24/2026 8:12:04 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The User Access Logging Service service entered the running state.
+
+TimeCreated      : 2/24/2026 8:12:02 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Network Setup Service service entered the running state.
+
+TimeCreated      : 2/24/2026 8:12:00 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Software Protection service entered the running state.
+
+TimeCreated      : 2/24/2026 8:12:00 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Program Compatibility Assistant Service service entered the running state.
+
+TimeCreated      : 2/24/2026 8:12:00 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Inventory and Compatibility Appraisal service service entered the running state.
+
+TimeCreated      : 2/24/2026 8:12:00 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Microsoft Edge Update Service (edgeupdate) service entered the stopped state.
+
+TimeCreated      : 2/24/2026 8:12:00 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Microsoft Edge Update Service (edgeupdate) service entered the running state.
+
+TimeCreated      : 2/24/2026 8:12:00 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Diagnostic Policy Service service entered the running state.
+
+TimeCreated      : 2/24/2026 8:11:59 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Connected Devices Platform Service service entered the running state.
+
+TimeCreated      : 2/24/2026 8:11:50 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Portable Device Enumerator Service service entered the stopped state.
+
+TimeCreated      : 2/24/2026 8:11:46 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The Print Device Configuration Service service entered the stopped state.
+
+TimeCreated      : 2/24/2026 8:11:45 AM
+Id               : 7036
+LevelDisplayName : Information
+ProviderName     : Service Control Manager
+Message          : The WMI Performance Adapter service entered the running state.
+
+
+
+
+

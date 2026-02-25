@@ -1,0 +1,10 @@
+﻿
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\USBSTOR
+    ImagePath    REG_EXPAND_SZ    \SystemRoot\System32\drivers\USBSTOR.SYS
+    Type    REG_DWORD    0x1
+    Start    REG_DWORD    0x4
+    ErrorControl    REG_DWORD    0x1
+    DisplayName    REG_SZ    @usbstor.inf,%USBSTOR.SvcDesc%;USB Mass Storage Driver
+    Owners    REG_MULTI_SZ    v_mscdsc.inf\0usbstor.inf
+    BootFlags    REG_DWORD    0x14
+

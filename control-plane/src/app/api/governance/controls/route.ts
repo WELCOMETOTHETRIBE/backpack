@@ -1,0 +1,131 @@
+import { NextResponse } from "next/server";
+import { db } from "@/db";
+import {
+  controlRecords,
+  controls,
+  controlFamilies,
+  governanceControlMetadata,
+  roles,
+} from "@/db/schema";
+import { eq, and, inArray, like, desc, sql } from "drizzle-orm";
+import { requireOrg, requireRole } from "@/lib/auth";
+
+const FAMILY_PREFIX: Record<string, string> = {
+  AC: "3.1", AT: "3.2", AU: "3.3", CM: "3.4", IA: "3.5", IR: "3.6",
+  MA: "3.7", MP: "3.8", PS: "3.9", PE: "3.10", RA: "3.11", CA: "3.12",
+  SC: "3.13", SI: "3.14",
+};
+
+/**
+ * GET /api/governance/controls?classification=PURE_GOV|HYBRID_GOV|TECHNICAL&status=...&domain=AC&page=1&limit=20
+ * List governance controls for org; only controls that have governance_control_metadata.
+ */
+export async function GET(req: Request) {
+  try {
+    const orgId = await requireOrg();
+    await requireRole(["Admin", "Compliance", "Assessor"]);
+
+    const { searchParams } = new URL(req.url);
+    const classification = searchParams.get("classification") as "PURE_GOV" | "HYBRID_GOV" | "TECHNICAL" | null;
+    const status = searchParams.get("status");
+    const domain = searchParams.get("domain");
+    const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10));
+    const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") ?? "20", 10)));
+    const offset = (page - 1) * limit;
+
+    const metaQuery = db
+      .select({
+        controlId: governanceControlMetadata.controlId,
+        classification: governanceControlMetadata.classification,
+        controlStatement: governanceControlMetadata.controlStatement,
+        requiredDocuments: governanceControlMetadata.requiredDocuments,
+        requiredRegisters: governanceControlMetadata.requiredRegisters,
+      })
+      .from(governanceControlMetadata);
+    const metaList = classification
+      ? await metaQuery.where(eq(governanceControlMetadata.classification, classification))
+      : await metaQuery;
+
+    const controlIds = metaList.map((m) => m.controlId);
+    if (controlIds.length === 0) {
+      return NextResponse.json({ items: [], total: 0, page, limit });
+    }
+
+    let conditions = and(
+      eq(controlRecords.organizationId, orgId),
+      inArray(controlRecords.controlId, controlIds)
+    );
+    const validStatuses = ["not_started", "in_progress", "implemented", "assessed", "inherited", "not_applicable"] as const;
+    if (status && validStatuses.includes(status as (typeof validStatuses)[number])) {
+      conditions = and(conditions, eq(controlRecords.implementationStatus, status as (typeof validStatuses)[number]));
+    }
+    if (domain && FAMILY_PREFIX[domain]) {
+      conditions = and(
+        conditions,
+        like(controlRecords.controlId, `${FAMILY_PREFIX[domain]}.%`)
+      );
+    }
+
+    const records = await db
+      .select({
+        id: controlRecords.id,
+        controlId: controlRecords.controlId,
+        implementationStatus: controlRecords.implementationStatus,
+        governanceNarrative: controlRecords.governanceNarrative,
+        roleName: roles.name,
+      })
+      .from(controlRecords)
+      .leftJoin(roles, eq(controlRecords.responsibleRoleId, roles.id))
+      .where(conditions)
+      .orderBy(controlRecords.controlId)
+      .limit(limit + 1)
+      .offset(offset);
+
+    const total = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(controlRecords)
+      .where(conditions);
+
+    const metaByControl = Object.fromEntries(metaList.map((m) => [m.controlId, m]));
+    const controlIdsToFetch = [...new Set(records.map((r) => r.controlId))];
+    const controlRows = await db
+      .select({
+        controlId: controls.controlId,
+        title: controls.title,
+        nistExactText: controls.nistExactText,
+        familyCode: controlFamilies.code,
+      })
+      .from(controls)
+      .innerJoin(controlFamilies, eq(controls.controlFamilyId, controlFamilies.id))
+      .where(inArray(controls.controlId, controlIdsToFetch));
+
+    const controlByKey = Object.fromEntries(controlRows.map((c) => [c.controlId, c]));
+    const items = records.slice(0, limit).map((r) => {
+      const meta = metaByControl[r.controlId];
+      const ctrl = controlByKey[r.controlId];
+      return {
+        id: r.id,
+        controlId: r.controlId,
+        cmmcRef: ctrl?.familyCode ? `${ctrl.familyCode}.L2-${r.controlId}` : r.controlId,
+        title: ctrl?.title ?? r.controlId,
+        classification: meta?.classification,
+        controlStatement: meta?.controlStatement,
+        status: r.implementationStatus,
+        governanceNarrative: r.governanceNarrative,
+        roleName: r.roleName,
+        requiredDocuments: meta?.requiredDocuments ?? [],
+        requiredRegisters: meta?.requiredRegisters ?? [],
+      };
+    });
+
+    return NextResponse.json({
+      items,
+      total: total[0]?.count ?? 0,
+      page,
+      limit,
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Failed to list governance controls";
+    return NextResponse.json({ error: msg }, { status: e instanceof Error && e.message === "Unauthorized" ? 401 : 500 });
+  }
+}

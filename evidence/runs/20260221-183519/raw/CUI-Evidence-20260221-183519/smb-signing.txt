@@ -1,0 +1,16 @@
+﻿
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters
+    RequireSecuritySignature    REG_DWORD    0x1
+
+
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters
+    EnableSecuritySignature    REG_DWORD    0x0
+
+
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters
+    RequireSecuritySignature    REG_DWORD    0x1
+
+
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters
+    EnableSecuritySignature    REG_DWORD    0x1
+

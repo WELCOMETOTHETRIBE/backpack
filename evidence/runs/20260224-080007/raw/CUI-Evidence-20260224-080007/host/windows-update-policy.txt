@@ -1,0 +1,20 @@
+﻿
+[Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU]
+
+
+AUOptions            : 4
+NoAutoUpdate         : 0
+ScheduledInstallDay  : 0
+ScheduledInstallTime : 3
+PSPath               : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windo
+                       wsUpdate\AU
+PSParentPath         : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windo
+                       wsUpdate
+PSChildName          : AU
+PSProvider           : Microsoft.PowerShell.Core\Registry
+
+
+
+
+
+

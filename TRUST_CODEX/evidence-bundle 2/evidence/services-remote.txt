@@ -1,0 +1,8 @@
+﻿
+Name         Status StartType
+----         ------ ---------
+sshd        Running Automatic
+TermService Running    Manual
+WinRM       Stopped  Disabled
+
+

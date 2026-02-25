@@ -1,0 +1,301 @@
+[2026-02-06 06:40:46Z][INFO] START CUI HARDENING
+[2026-02-06 06:40:46Z][CHANGE] Registry set HKLM:\System\CurrentControlSet\Control\Lsa\FipsAlgorithmPolicy\\Enabled=1 (was 0)
+[2026-02-06 06:40:46Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters\\RequireSecuritySignature=1
+[2026-02-06 06:40:46Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters\\RequireSecuritySignature=1
+[2026-02-06 06:40:46Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Client\\Enabled=0
+[2026-02-06 06:40:46Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Server\\Enabled=0
+[2026-02-06 06:40:47Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Client\\Enabled=0
+[2026-02-06 06:40:47Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Server\\Enabled=0
+[2026-02-06 06:40:47Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Client\\Enabled=1
+[2026-02-06 06:40:47Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Server\\Enabled=1
+[2026-02-06 06:40:47Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\\RunAsPPL=1
+[2026-02-06 06:40:47Z][INFO] Registry already HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\\ConsentPromptBehaviorAdmin=2
+[2026-02-06 06:40:47Z][INFO] Registry already HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\\PromptOnSecureDesktop=1
+[2026-02-06 06:40:47Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient\\EnableMulticast=0
+[2026-02-06 06:40:48Z][CHANGE] WinRM disabled
+[2026-02-06 06:40:48Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp\\UserAuthentication=1
+[2026-02-06 06:40:48Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\\fDisableClip=1
+[2026-02-06 06:40:48Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\\fDisableCdm=1
+[2026-02-06 06:40:50Z][CHANGE] ASR rules ensured
+[2026-02-06 06:40:50Z][INFO] HARDENING COMPLETE
+[2026-02-07 23:07:33Z][INFO] START CUI HARDENING
+[2026-02-07 23:07:33Z][INFO] RunId=20260207-230733 Mode=pilot_strict WhatIf=False
+[2026-02-07 23:07:33Z][INFO] Registry already HKLM:\System\CurrentControlSet\Control\Lsa\FipsAlgorithmPolicy\\Enabled=1
+[2026-02-07 23:07:34Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Client\\Enabled=0
+[2026-02-07 23:07:34Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Server\\Enabled=0
+[2026-02-07 23:07:34Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Client\\Enabled=0
+[2026-02-07 23:07:34Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Server\\Enabled=0
+[2026-02-07 23:07:34Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Client\\Enabled=1
+[2026-02-07 23:07:34Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Server\\Enabled=1
+[2026-02-07 23:07:34Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\\RunAsPPL=1
+[2026-02-07 23:07:34Z][CHANGE] Registry set HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\\AutoAdminLogon=0 (was )
+[2026-02-07 23:07:34Z][CHANGE] Guest account disabled (net user Guest /active:no)
+[2026-02-07 23:07:34Z][INFO] Local account policy already matches net accounts baseline
+[2026-02-07 23:07:34Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\\restrictanonymous=1
+[2026-02-07 23:07:34Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\\restrictanonymoussam=1
+[2026-02-07 23:07:34Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\\NoLmHash=1
+[2026-02-07 23:07:36Z][WARN] SMB1 disable skipped: A parameter cannot be found that matches parameter name 'EnableSMB1Protocol'.
+[2026-02-07 23:07:37Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters\\RequireSecuritySignature=1
+[2026-02-07 23:07:37Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters\\RequireSecuritySignature=1
+[2026-02-07 23:07:37Z][INFO] Registry already HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\\ConsentPromptBehaviorAdmin=2
+[2026-02-07 23:07:37Z][INFO] Registry already HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\\PromptOnSecureDesktop=1
+[2026-02-07 23:07:37Z][INFO] Registry already HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\\InactivityTimeoutSecs=900
+[2026-02-07 23:07:37Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows\Control Panel\Desktop\\ScreenSaveActive=1
+[2026-02-07 23:07:37Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows\Control Panel\Desktop\\ScreenSaverIsSecure=1
+[2026-02-07 23:07:37Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows\Control Panel\Desktop\\ScreenSaveTimeOut=900
+[2026-02-07 23:07:37Z][CHANGE] Registry set HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\\DontDisplayLastUserName=1 (was 0)
+[2026-02-07 23:07:37Z][CHANGE] Registry set HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\\LmCompatibilityLevel=5 (was )
+[2026-02-07 23:07:37Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient\\EnableMulticast=0
+[2026-02-07 23:07:37Z][CHANGE] Audit policy baseline applied (key subcategories enabled for success+failure)
+[2026-02-07 23:07:38Z][CHANGE] Event log max sizes set (Security/System/Application)
+[2026-02-07 23:07:39Z][CHANGE] W32Time ensured (StartupType=Automatic; attempted start/resync)
+[2026-02-07 23:07:44Z][CHANGE] Firewall baseline applied (block inbound, allow outbound; logging enabled)
+[2026-02-07 23:07:44Z][CHANGE] WinRM disabled
+[2026-02-07 23:07:44Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp\\UserAuthentication=1
+[2026-02-07 23:07:44Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\\DisablePasswordSaving=1
+[2026-02-07 23:07:44Z][CHANGE] Registry set HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\\fDisableClip=1 (was 0)
+[2026-02-07 23:07:44Z][CHANGE] Registry set HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\\fDisableCdm=1 (was )
+[2026-02-07 23:07:44Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Services\USBSTOR\\Start=4
+[2026-02-07 23:07:44Z][CHANGE] Windows Update services ensured (wuauserv=Manual; bits=Automatic)
+[2026-02-07 23:08:20Z][CHANGE] Defender realtime + signature update attempted
+[2026-02-07 23:08:21Z][CHANGE] Defender ASR rules ensured
+[2026-02-07 23:08:21Z][INFO] HARDENING COMPLETE
+[2026-02-07 23:08:54Z][INFO] START CUI HARDENING
+[2026-02-07 23:08:54Z][INFO] RunId=20260207-230854 Mode=pilot_strict WhatIf=True
+[2026-02-07 23:08:54Z][INFO] Registry already HKLM:\System\CurrentControlSet\Control\Lsa\FipsAlgorithmPolicy\\Enabled=1
+[2026-02-07 23:08:54Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Client\\Enabled=0
+[2026-02-07 23:08:54Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Server\\Enabled=0
+[2026-02-07 23:08:54Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Client\\Enabled=0
+[2026-02-07 23:08:54Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Server\\Enabled=0
+[2026-02-07 23:08:54Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Client\\Enabled=1
+[2026-02-07 23:08:54Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Server\\Enabled=1
+[2026-02-07 23:08:54Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\\RunAsPPL=1
+[2026-02-07 23:08:54Z][INFO] Registry already HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\\AutoAdminLogon=0
+[2026-02-07 23:08:54Z][WHATIF] WHATIF Would disable local Guest account
+[2026-02-07 23:08:54Z][WHATIF] WHATIF Would apply net accounts baseline (/minpwlen:14 /maxpwage:60 /minpwage:1 /uniquepw:24 /lockoutthreshold:5 ...)
+[2026-02-07 23:08:54Z][INFO] Local account policy already matches net accounts baseline
+[2026-02-07 23:08:54Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\\restrictanonymous=1
+[2026-02-07 23:08:54Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\\restrictanonymoussam=1
+[2026-02-07 23:08:54Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\\NoLmHash=1
+[2026-02-07 23:08:57Z][WARN] SMB1 disable skipped: A parameter cannot be found that matches parameter name 'EnableSMB1Protocol'.
+[2026-02-07 23:08:57Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters\\RequireSecuritySignature=1
+[2026-02-07 23:08:57Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters\\RequireSecuritySignature=1
+[2026-02-07 23:08:57Z][WHATIF] WHATIF Registry would set HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\\ConsentPromptBehaviorAdmin=2 (was )
+[2026-02-07 23:08:57Z][WHATIF] WHATIF Registry would set HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\\PromptOnSecureDesktop=1 (was )
+[2026-02-07 23:08:57Z][WHATIF] WHATIF Registry would set HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\\InactivityTimeoutSecs=900 (was )
+[2026-02-07 23:08:57Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows\Control Panel\Desktop\\ScreenSaveActive=1
+[2026-02-07 23:08:57Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows\Control Panel\Desktop\\ScreenSaverIsSecure=1
+[2026-02-07 23:08:57Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows\Control Panel\Desktop\\ScreenSaveTimeOut=900
+[2026-02-07 23:08:57Z][INFO] Registry already HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\\DontDisplayLastUserName=1
+[2026-02-07 23:08:58Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\\LmCompatibilityLevel=5
+[2026-02-07 23:08:58Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient\\EnableMulticast=0
+[2026-02-07 23:08:58Z][WHATIF] WHATIF Would enable audit policy subcategories (success+failure) for key areas
+[2026-02-07 23:08:58Z][WHATIF] WHATIF Would set event log Security maxsize=268435456 bytes
+[2026-02-07 23:08:58Z][WHATIF] WHATIF Would set event log System maxsize=67108864 bytes
+[2026-02-07 23:08:58Z][WHATIF] WHATIF Would set event log Application maxsize=67108864 bytes
+[2026-02-07 23:08:58Z][WHATIF] WHATIF Would ensure W32Time service enabled and running
+[2026-02-07 23:08:58Z][WHATIF] WHATIF Would apply firewall baseline (state on; block inbound/allow outbound; enable logging)
+[2026-02-07 23:08:58Z][WHATIF] WHATIF Would disable WinRM service
+[2026-02-07 23:08:58Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp\\UserAuthentication=1
+[2026-02-07 23:08:58Z][WHATIF] WHATIF Registry would set HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\\DisablePasswordSaving=1 (was )
+[2026-02-07 23:08:58Z][WHATIF] WHATIF Registry would set HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\\fDisableClip=1 (was )
+[2026-02-07 23:08:58Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\\fDisableCdm=1
+[2026-02-07 23:08:58Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Services\USBSTOR\\Start=4
+[2026-02-07 23:08:58Z][WHATIF] WHATIF Would ensure wuauserv/bits StartType not Disabled
+[2026-02-07 23:08:58Z][WHATIF] WHATIF Would ensure Defender realtime + signature updates (best-effort)
+[2026-02-07 23:08:58Z][WHATIF] WHATIF Would ensure Defender ASR rules
+[2026-02-07 23:08:58Z][INFO] HARDENING COMPLETE
+[2026-02-07 23:24:49Z][INFO] START CUI HARDENING
+[2026-02-07 23:24:49Z][INFO] RunId=20260207-232449 Mode=pilot_strict WhatIf=False
+[2026-02-07 23:24:49Z][INFO] Registry already HKLM:\System\CurrentControlSet\Control\Lsa\FipsAlgorithmPolicy\\Enabled=1
+[2026-02-07 23:24:49Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Client\\Enabled=0
+[2026-02-07 23:24:49Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Server\\Enabled=0
+[2026-02-07 23:24:49Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Client\\Enabled=0
+[2026-02-07 23:24:49Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Server\\Enabled=0
+[2026-02-07 23:24:49Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Client\\Enabled=1
+[2026-02-07 23:24:49Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Server\\Enabled=1
+[2026-02-07 23:24:49Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\\RunAsPPL=1
+[2026-02-07 23:24:49Z][INFO] Registry already HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\\AutoAdminLogon=0
+[2026-02-07 23:24:49Z][CHANGE] Guest account disabled (net user Guest /active:no)
+[2026-02-07 23:24:49Z][INFO] Local account policy already matches net accounts baseline
+[2026-02-07 23:24:49Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\\restrictanonymous=1
+[2026-02-07 23:24:49Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\\restrictanonymoussam=1
+[2026-02-07 23:24:49Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\\NoLmHash=1
+[2026-02-07 23:24:54Z][INFO] SMB1 feature already disabled (WindowsOptionalFeature)
+[2026-02-07 23:24:54Z][CHANGE] SMB1 disable completed (one of the methods applied or confirmed disabled)
+[2026-02-07 23:24:54Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters\\RequireSecuritySignature=1
+[2026-02-07 23:24:54Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters\\RequireSecuritySignature=1
+[2026-02-07 23:24:54Z][CHANGE] Registry created HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\\ConsentPromptBehaviorAdmin=2 (type=DWord; was missing)
+[2026-02-07 23:24:54Z][CHANGE] Registry created HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\\PromptOnSecureDesktop=1 (type=DWord; was missing)
+[2026-02-07 23:24:54Z][CHANGE] Registry created HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\\InactivityTimeoutSecs=900 (type=DWord; was missing)
+[2026-02-07 23:24:54Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows\Control Panel\Desktop\\ScreenSaveActive=1
+[2026-02-07 23:24:54Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows\Control Panel\Desktop\\ScreenSaverIsSecure=1
+[2026-02-07 23:24:54Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows\Control Panel\Desktop\\ScreenSaveTimeOut=900
+[2026-02-07 23:24:54Z][INFO] Registry already HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\\DontDisplayLastUserName=1
+[2026-02-07 23:24:54Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\\LmCompatibilityLevel=5
+[2026-02-07 23:24:54Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient\\EnableMulticast=0
+[2026-02-07 23:24:55Z][CHANGE] Audit policy baseline applied (key subcategories enabled for success+failure)
+[2026-02-07 23:24:55Z][CHANGE] Event log max sizes set (Security/System/Application)
+[2026-02-07 23:24:57Z][CHANGE] W32Time ensured (StartupType=Automatic; attempted start/resync)
+[2026-02-07 23:25:00Z][CHANGE] Firewall baseline applied (block inbound, allow outbound; logging enabled)
+[2026-02-07 23:25:00Z][CHANGE] WinRM disabled
+[2026-02-07 23:25:00Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp\\UserAuthentication=1
+[2026-02-07 23:25:00Z][CHANGE] Registry created HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\\DisablePasswordSaving=1 (type=DWord; was missing)
+[2026-02-07 23:25:00Z][CHANGE] Registry created HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\\fDisableClip=1 (type=DWord; was missing)
+[2026-02-07 23:25:00Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\\fDisableCdm=1
+[2026-02-07 23:25:00Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Services\USBSTOR\\Start=4
+[2026-02-07 23:25:00Z][CHANGE] Windows Update services ensured (wuauserv=Manual; bits=Automatic)
+[2026-02-07 23:25:03Z][CHANGE] Defender realtime + signature update attempted
+[2026-02-07 23:25:04Z][CHANGE] Defender ASR rules ensured
+[2026-02-07 23:25:04Z][INFO] HARDENING COMPLETE
+[2026-02-08 00:08:55Z][INFO] START CUI HARDENING
+[2026-02-08 00:08:55Z][INFO] RunId=20260208-000855 Mode=pilot_strict WhatIf=False
+[2026-02-08 00:08:55Z][INFO] Registry already HKLM:\System\CurrentControlSet\Control\Lsa\FipsAlgorithmPolicy\\Enabled=1
+[2026-02-08 00:08:55Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Client\\Enabled=0
+[2026-02-08 00:08:56Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Server\\Enabled=0
+[2026-02-08 00:08:56Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Client\\Enabled=0
+[2026-02-08 00:08:56Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Server\\Enabled=0
+[2026-02-08 00:08:56Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Client\\Enabled=1
+[2026-02-08 00:08:56Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Server\\Enabled=1
+[2026-02-08 00:08:56Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\\RunAsPPL=1
+[2026-02-08 00:08:56Z][INFO] Registry already HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\\AutoAdminLogon=0
+[2026-02-08 00:08:56Z][CHANGE] Guest account disabled (net user Guest /active:no)
+[2026-02-08 00:08:56Z][INFO] Local account policy already matches net accounts baseline
+[2026-02-08 00:08:56Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\\restrictanonymous=1
+[2026-02-08 00:08:56Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\\restrictanonymoussam=1
+[2026-02-08 00:08:56Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\\NoLmHash=1
+[2026-02-08 00:09:01Z][INFO] SMB1 feature already disabled (WindowsOptionalFeature)
+[2026-02-08 00:09:01Z][CHANGE] SMB1 disable completed (one of the methods applied or confirmed disabled)
+[2026-02-08 00:09:01Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters\\RequireSecuritySignature=1
+[2026-02-08 00:09:01Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters\\RequireSecuritySignature=1
+[2026-02-08 00:09:01Z][INFO] Registry already HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\\ConsentPromptBehaviorAdmin=2
+[2026-02-08 00:09:01Z][INFO] Registry already HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\\PromptOnSecureDesktop=1
+[2026-02-08 00:09:01Z][WARN] AppIDSvc configuration failed (continuing): Service 'Application Identity (AppIDSvc)' description cannot be configured due to the following error: Access is denied
+[2026-02-08 00:09:01Z][WARN] AppLocker policy apply failed (continuing): The following file cannot be resolved: <AppLockerPolicy Version="1"><RuleCollection Type="Exe" EnforcementMode="NotConfigured"><RuleCollectionExtensions><ThresholdExtensions /><RedstoneExtensions><SystemApps Allow="Enabled" /></RedstoneExtensions></RuleCollectionExtensions></RuleCollection><RuleCollection Type="Dll" EnforcementMode="NotConfigured"><RuleCollectionExtensions><ThresholdExtensions /><RedstoneExtensions><SystemApps Allow="Enabled" /></RedstoneExtensions></RuleCollectionExtensions></RuleCollection></AppLockerPolicy>, Reason: Cannot find path 'C:\Users\admin_patrick\<AppLockerPolicy Version="1"><RuleCollection Type="Exe" EnforcementMode="NotConfigured"><RuleCollectionExtensions><ThresholdExtensions \><RedstoneExtensions><SystemApps Allow="Enabled" \><\RedstoneExtensions><\RuleCollectionExtensions><\RuleCollection><RuleCollection Type="Dll" EnforcementMode="NotConfigured"><RuleCollectionExtensions><ThresholdExtensions \><RedstoneExtensions><SystemApps Allow="Enabled" \><\RedstoneExtensions><\RuleCollectionExtensions><\RuleCollection><\AppLockerPolicy>' because it does not exist.
+[2026-02-08 00:09:01Z][INFO] Registry already HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\\InactivityTimeoutSecs=900
+[2026-02-08 00:09:01Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows\Control Panel\Desktop\\ScreenSaveActive=1
+[2026-02-08 00:09:01Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows\Control Panel\Desktop\\ScreenSaverIsSecure=1
+[2026-02-08 00:09:01Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows\Control Panel\Desktop\\ScreenSaveTimeOut=900
+[2026-02-08 00:09:01Z][INFO] Registry already HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\\DontDisplayLastUserName=1
+[2026-02-08 00:09:01Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\\LmCompatibilityLevel=5
+[2026-02-08 00:09:01Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient\\EnableMulticast=0
+[2026-02-08 00:09:02Z][CHANGE] Audit policy baseline applied (key subcategories enabled for success+failure)
+[2026-02-08 00:09:02Z][CHANGE] Event log max sizes set (Security/System/Application)
+[2026-02-08 00:09:04Z][CHANGE] W32Time ensured (StartupType=Automatic; attempted start/resync)
+[2026-02-08 00:09:07Z][CHANGE] Firewall baseline applied (block inbound, allow outbound; logging enabled)
+[2026-02-08 00:09:07Z][CHANGE] WinRM disabled
+[2026-02-08 00:09:07Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp\\UserAuthentication=1
+[2026-02-08 00:09:07Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\\DisablePasswordSaving=1
+[2026-02-08 00:09:07Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\\fDisableClip=1
+[2026-02-08 00:09:07Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\\fDisableCdm=1
+[2026-02-08 00:09:07Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Services\USBSTOR\\Start=4
+[2026-02-08 00:09:07Z][CHANGE] Windows Update services ensured (wuauserv=Manual; bits=Automatic)
+[2026-02-08 00:09:11Z][CHANGE] Defender realtime + signature update attempted
+[2026-02-08 00:09:11Z][CHANGE] Defender ASR rules ensured
+[2026-02-08 00:09:11Z][INFO] HARDENING COMPLETE
+[2026-02-08 00:29:57Z][INFO] START CUI HARDENING
+[2026-02-08 00:29:57Z][INFO] RunId=20260208-002957 Mode=pilot_strict WhatIf=False
+[2026-02-08 00:29:58Z][INFO] Registry already HKLM:\System\CurrentControlSet\Control\Lsa\FipsAlgorithmPolicy\\Enabled=1
+[2026-02-08 00:29:58Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Client\\Enabled=0
+[2026-02-08 00:29:58Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Server\\Enabled=0
+[2026-02-08 00:29:58Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Client\\Enabled=0
+[2026-02-08 00:29:58Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Server\\Enabled=0
+[2026-02-08 00:29:58Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Client\\Enabled=1
+[2026-02-08 00:29:58Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Server\\Enabled=1
+[2026-02-08 00:29:58Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\\RunAsPPL=1
+[2026-02-08 00:29:58Z][INFO] Registry already HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\\AutoAdminLogon=0
+[2026-02-08 00:29:58Z][CHANGE] Guest account disabled (net user Guest /active:no)
+[2026-02-08 00:29:58Z][INFO] Local account policy already matches net accounts baseline
+[2026-02-08 00:29:58Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\\restrictanonymous=1
+[2026-02-08 00:29:58Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\\restrictanonymoussam=1
+[2026-02-08 00:29:58Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\\NoLmHash=1
+[2026-02-08 00:30:04Z][INFO] SMB1 feature already disabled (WindowsOptionalFeature)
+[2026-02-08 00:30:04Z][CHANGE] SMB1 disable completed (one of the methods applied or confirmed disabled)
+[2026-02-08 00:30:04Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters\\RequireSecuritySignature=1
+[2026-02-08 00:30:04Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters\\RequireSecuritySignature=1
+[2026-02-08 00:30:04Z][INFO] Registry already HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\\ConsentPromptBehaviorAdmin=2
+[2026-02-08 00:30:04Z][INFO] Registry already HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\\PromptOnSecureDesktop=1
+[2026-02-08 00:30:04Z][WARN] AppIDSvc configuration failed (continuing): Service 'Application Identity (AppIDSvc)' description cannot be configured due to the following error: Access is denied
+[2026-02-08 00:30:05Z][CHANGE] AppLocker baseline policy applied (AllowWindows Path rules)
+[2026-02-08 00:30:05Z][INFO] Registry already HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\\InactivityTimeoutSecs=900
+[2026-02-08 00:30:05Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows\Control Panel\Desktop\\ScreenSaveActive=1
+[2026-02-08 00:30:05Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows\Control Panel\Desktop\\ScreenSaverIsSecure=1
+[2026-02-08 00:30:05Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows\Control Panel\Desktop\\ScreenSaveTimeOut=900
+[2026-02-08 00:30:06Z][INFO] Registry already HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\\DontDisplayLastUserName=1
+[2026-02-08 00:30:06Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\\LmCompatibilityLevel=5
+[2026-02-08 00:30:06Z][CHANGE] Registry created HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\\legalnoticecaption=Authorized Use Only (type=String; was missing)
+[2026-02-08 00:30:06Z][CHANGE] Registry created HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\\legalnoticetext=This system is for authorized use only.
+Activities on this system are monitored and recorded.
+Unauthorized use is prohibited and may be subject to criminal and civil penalties. (type=String; was missing)
+[2026-02-08 00:30:06Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient\\EnableMulticast=0
+[2026-02-08 00:30:13Z][CHANGE] Audit policy baseline applied (key subcategories enabled for success+failure)
+[2026-02-08 00:30:13Z][CHANGE] Event log max sizes set (Security/System/Application)
+[2026-02-08 00:30:14Z][CHANGE] W32Time ensured (StartupType=Automatic; attempted start/resync)
+[2026-02-08 00:30:20Z][CHANGE] Firewall: ensured inbound allow for SSH (TCP 22)
+[2026-02-08 00:30:20Z][CHANGE] Firewall: ensured inbound allow for RDP (TCP 3389)
+[2026-02-08 00:30:20Z][CHANGE] Firewall baseline applied (block inbound, allow outbound; logging enabled)
+[2026-02-08 00:30:20Z][CHANGE] WinRM disabled
+[2026-02-08 00:30:20Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp\\UserAuthentication=1
+[2026-02-08 00:30:20Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\\DisablePasswordSaving=1
+[2026-02-08 00:30:20Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\\fDisableClip=1
+[2026-02-08 00:30:20Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\\fDisableCdm=1
+[2026-02-08 00:30:24Z][CHANGE] BitLocker recovery password protector added (saved to C:\Hardening\bitlocker-recovery-password-20260208-002957.txt; secure/escrow it)
+[2026-02-08 00:30:26Z][CHANGE] BitLocker enable initiated on C: (UsedSpaceOnly; RecoveryPassword; SkipHardwareTest)
+[2026-02-08 00:30:26Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Services\USBSTOR\\Start=4
+[2026-02-08 00:30:26Z][CHANGE] Windows Update services ensured (wuauserv=Manual; bits=Automatic)
+[2026-02-08 00:30:34Z][CHANGE] Defender realtime + signature update attempted
+[2026-02-08 00:30:34Z][CHANGE] Defender ASR rules ensured
+[2026-02-08 00:30:34Z][INFO] HARDENING COMPLETE
+[2026-02-08 00:34:08Z][INFO] START CUI HARDENING
+[2026-02-08 00:34:08Z][INFO] RunId=20260208-003408 Mode=pilot_strict WhatIf=False
+[2026-02-08 00:34:08Z][INFO] Registry already HKLM:\System\CurrentControlSet\Control\Lsa\FipsAlgorithmPolicy\\Enabled=1
+[2026-02-08 00:34:09Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Client\\Enabled=0
+[2026-02-08 00:34:09Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Server\\Enabled=0
+[2026-02-08 00:34:09Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Client\\Enabled=0
+[2026-02-08 00:34:09Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Server\\Enabled=0
+[2026-02-08 00:34:09Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Client\\Enabled=1
+[2026-02-08 00:34:09Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Server\\Enabled=1
+[2026-02-08 00:34:09Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\\RunAsPPL=1
+[2026-02-08 00:34:09Z][INFO] Registry already HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\\AutoAdminLogon=0
+[2026-02-08 00:34:09Z][CHANGE] Guest account disabled (net user Guest /active:no)
+[2026-02-08 00:34:09Z][INFO] Local account policy already matches net accounts baseline
+[2026-02-08 00:34:09Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\\restrictanonymous=1
+[2026-02-08 00:34:09Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\\restrictanonymoussam=1
+[2026-02-08 00:34:09Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\\NoLmHash=1
+[2026-02-08 00:34:15Z][INFO] SMB1 feature already disabled (WindowsOptionalFeature)
+[2026-02-08 00:34:15Z][CHANGE] SMB1 disable completed (one of the methods applied or confirmed disabled)
+[2026-02-08 00:34:15Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters\\RequireSecuritySignature=1
+[2026-02-08 00:34:15Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters\\RequireSecuritySignature=1
+[2026-02-08 00:34:15Z][INFO] Registry already HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\\ConsentPromptBehaviorAdmin=2
+[2026-02-08 00:34:15Z][INFO] Registry already HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\\PromptOnSecureDesktop=1
+[2026-02-08 00:34:15Z][WARN] AppIDSvc configuration failed (continuing): Service 'Application Identity (AppIDSvc)' description cannot be configured due to the following error: Access is denied
+[2026-02-08 00:34:15Z][WARN] AppLocker policy apply failed (continuing): '\' is an unexpected token. The expected token is '"' or '''. Line 1, position 73.
+[2026-02-08 00:34:15Z][INFO] Registry already HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\\InactivityTimeoutSecs=900
+[2026-02-08 00:34:15Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows\Control Panel\Desktop\\ScreenSaveActive=1
+[2026-02-08 00:34:15Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows\Control Panel\Desktop\\ScreenSaverIsSecure=1
+[2026-02-08 00:34:15Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows\Control Panel\Desktop\\ScreenSaveTimeOut=900
+[2026-02-08 00:34:15Z][INFO] Registry already HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\\DontDisplayLastUserName=1
+[2026-02-08 00:34:15Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\\LmCompatibilityLevel=5
+[2026-02-08 00:34:15Z][INFO] Registry already HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\\legalnoticecaption=Authorized Use Only
+[2026-02-08 00:34:15Z][INFO] Registry already HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\\legalnoticetext=This system is for authorized use only.
+Activities on this system are monitored and recorded.
+Unauthorized use is prohibited and may be subject to criminal and civil penalties.
+[2026-02-08 00:34:15Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient\\EnableMulticast=0
+[2026-02-08 00:34:16Z][CHANGE] Audit policy baseline applied (key subcategories enabled for success+failure)
+[2026-02-08 00:34:16Z][CHANGE] Event log max sizes set (Security/System/Application)
+[2026-02-08 00:34:18Z][CHANGE] W32Time ensured (StartupType=Automatic; attempted start/resync)
+[2026-02-08 00:34:21Z][CHANGE] Firewall: ensured inbound allow for SSH (TCP 22)
+[2026-02-08 00:34:22Z][CHANGE] Firewall: ensured inbound allow for RDP (TCP 3389)
+[2026-02-08 00:34:22Z][CHANGE] Firewall baseline applied (block inbound, allow outbound; logging enabled)
+[2026-02-08 00:34:22Z][CHANGE] WinRM disabled
+[2026-02-08 00:34:22Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp\\UserAuthentication=1
+[2026-02-08 00:34:22Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\\DisablePasswordSaving=1
+[2026-02-08 00:34:22Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\\fDisableClip=1
+[2026-02-08 00:34:22Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\\fDisableCdm=1
+[2026-02-08 00:34:24Z][CHANGE] BitLocker recovery password protector added (saved to C:\Hardening\bitlocker-recovery-password-20260208-003408.txt; secure/escrow it)
+[2026-02-08 00:34:25Z][CHANGE] BitLocker enable initiated on C: (UsedSpaceOnly; RecoveryPassword; SkipHardwareTest)
+[2026-02-08 00:34:25Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Services\USBSTOR\\Start=4
+[2026-02-08 00:34:25Z][CHANGE] Windows Update services ensured (wuauserv=Manual; bits=Automatic)
+[2026-02-08 00:34:28Z][CHANGE] Defender realtime + signature update attempted
+[2026-02-08 00:34:29Z][CHANGE] Defender ASR rules ensured
+[2026-02-08 00:34:29Z][INFO] HARDENING COMPLETE

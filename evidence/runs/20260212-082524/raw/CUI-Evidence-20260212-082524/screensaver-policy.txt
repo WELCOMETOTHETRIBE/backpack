@@ -1,0 +1,6 @@
+﻿
+HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Control Panel\Desktop
+    ScreenSaveActive    REG_SZ    1
+    ScreenSaverIsSecure    REG_SZ    1
+    ScreenSaveTimeOut    REG_SZ    900
+

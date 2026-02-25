@@ -1,0 +1,93 @@
+{
+  "summary": {
+    "generated_utc": "2026-02-14T21:02:58.755672+00:00",
+    "computer": "Patricks-MacBook-Pro.local",
+    "user": "patrick",
+    "azure_entra_dir": "/Users/patrick/cui-pilot/evidence/runs/20260214-210217/raw/azure",
+    "pass_count": 3,
+    "fail_count": 4,
+    "total": 7,
+    "control_ids": [
+      "IA.L2-3.5.3",
+      "IA.L2-3.5.4",
+      "IA.L2-3.5.5",
+      "IA.L2-3.5.6",
+      "MA.L2-3.7.5",
+      "SC.L2-3.13.10",
+      "SC.L2-3.13.5"
+    ]
+  },
+  "checks": [
+    {
+      "id": "ENTRA-MFA",
+      "control": "IA.L2-3.5.3",
+      "title": "MFA for privileged accounts (Entra evidence)",
+      "pass": false,
+      "observed": "Sign-in artifact=False; MFA/Conditional Access policy=False",
+      "expected": "entra-signin.json and/or Conditional Access/MFA policy export present",
+      "evidence_hint": "entra-signin.json; Conditional Access export (portal) in artifact folder",
+      "timestamp_utc": "2026-02-14T21:02:58.754662+00:00"
+    },
+    {
+      "id": "ENTRA-MFA-MA",
+      "control": "MA.L2-3.7.5",
+      "title": "MFA for nonlocal maintenance (Entra evidence)",
+      "pass": false,
+      "observed": "Sign-in artifact=False; MFA policy=False",
+      "expected": "Entra sign-in logs and/or MFA policy (same as IA.L2-3.5.3)",
+      "evidence_hint": "entra-signin.json; MFA policy export",
+      "timestamp_utc": "2026-02-14T21:02:58.754861+00:00"
+    },
+    {
+      "id": "ENTRA-REPLAY",
+      "control": "IA.L2-3.5.4",
+      "title": "Replay-resistant authentication (Entra evidence)",
+      "pass": true,
+      "observed": "Entra/sign-in or role evidence present=True",
+      "expected": "Entra sign-in or role evidence for tenant auth posture",
+      "evidence_hint": "entra-signin.json; role-assignments-all.json",
+      "timestamp_utc": "2026-02-14T21:02:58.755203+00:00"
+    },
+    {
+      "id": "ENTRA-NO-REUSE",
+      "control": "IA.L2-3.5.5",
+      "title": "Prevent identifier reuse (Entra evidence)",
+      "pass": true,
+      "observed": "Entra/sign-in or role evidence present=True",
+      "expected": "Tenant identity evidence (Entra enforces no reuse)",
+      "evidence_hint": "entra-signin.json; role-assignments-all.json",
+      "timestamp_utc": "2026-02-14T21:02:58.755211+00:00"
+    },
+    {
+      "id": "ENTRA-INACTIVITY",
+      "control": "IA.L2-3.5.6",
+      "title": "Disable identifiers after inactivity (Entra evidence)",
+      "pass": true,
+      "observed": "Entra/sign-in or role evidence present=True",
+      "expected": "Tenant identity/lifecycle evidence",
+      "evidence_hint": "entra-signin.json; role-assignments-all.json",
+      "timestamp_utc": "2026-02-14T21:02:58.755213+00:00"
+    },
+    {
+      "id": "AZ-KEYVAULT",
+      "control": "SC.L2-3.13.10",
+      "title": "Cryptographic key management (Azure Key Vault evidence)",
+      "pass": false,
+      "observed": "keyvault-list.json present and non-empty=False",
+      "expected": "Azure Key Vault list or key management artifact",
+      "evidence_hint": "keyvault-list.json; or document key management approach",
+      "timestamp_utc": "2026-02-14T21:02:58.755640+00:00"
+    },
+    {
+      "id": "AZ-NSG",
+      "control": "SC.L2-3.13.5",
+      "title": "Implement subnetworks (NSG evidence)",
+      "pass": false,
+      "observed": "NSG list present=False; RDP open to 0.0.0.0/0=False",
+      "expected": "NSG list/rules present; RDP (3389) not allowed from 0.0.0.0/0",
+      "evidence_hint": "nsg-list.json; nsg-rules-*.json",
+      "timestamp_utc": "2026-02-14T21:02:58.755668+00:00"
+    }
+  ],
+  "azure_entra_dir": "/Users/patrick/cui-pilot/evidence/runs/20260214-210217/raw/azure"
+}

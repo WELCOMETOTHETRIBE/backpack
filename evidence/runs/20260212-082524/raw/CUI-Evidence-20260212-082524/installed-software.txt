@@ -1,0 +1,9 @@
+﻿
+DisplayName                     DisplayVersion Publisher             InstallDate
+-----------                     -------------- ---------             -----------
+Microsoft Edge                  144.0.3719.115 Microsoft Corporation 20260207   
+Microsoft Edge WebView2 Runtime 144.0.3719.115 Microsoft Corporation 20260207   
+Node.js                         24.13.0        Node.js Foundation    20260208   
+Pandoc 3.8.3                    3.8.3          John MacFarlane       20260209   
+
+

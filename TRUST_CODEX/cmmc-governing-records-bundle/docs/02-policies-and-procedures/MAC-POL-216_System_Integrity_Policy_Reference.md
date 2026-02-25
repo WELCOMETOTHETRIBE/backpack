@@ -1,0 +1,373 @@
+# System & Information Integrity Policy - CMMC Level 2
+
+**Document Version:** 1.0  
+**Date:** 2026-01-21  
+**Classification:** Internal Use  
+**Compliance Framework:** CMMC 2.0 Level 2 (Advanced)  
+**Reference:** FAR 52.204-21
+
+**Applies to:** CMMC 2.0 Level 1 (FCI-only system)
+
+**Note:** This document is maintained for reference. The authoritative System Integrity Policy is `MAC-POL-214_System_Integrity_Policy.md`.
+
+---
+
+## 1. Policy Statement
+
+MacTech Solutions maintains system and information integrity controls to protect Federal Contract Information (FCI) and system resources from malicious code, unauthorized changes, and vulnerabilities. This policy establishes requirements for malware protection, system patching, and vulnerability management.
+
+This policy aligns with CMMC Level 2 requirements and FAR 52.204-21.
+
+---
+
+## 2. Scope
+
+This policy applies to:
+- All system components (application, database, infrastructure)
+- All software dependencies and libraries
+- All system updates and patches
+- All vulnerability management activities
+
+---
+
+## 3. Malware Protection
+
+### 3.1 Malware Protection (FAR 52.204-21(b)(3))
+
+**Requirement:** Systems must be protected from malicious code.
+
+**Implementation:**
+- Malware protection is provided by the Microsoft Azure / other systems (outside CUI boundary) cloud platform
+- Microsoft Azure / CUI enclave VM includes malware protection and security scanning
+- Application dependencies are managed via npm package manager
+- No additional endpoint protection software is installed on application servers
+
+**Inherited Controls:**
+- Microsoft Azure / CUI enclave VM provides infrastructure-level malware protection
+- Platform security includes automated threat detection
+- Network-level protections against malicious traffic
+
+**Status:** Inherited control from Microsoft Azure / CUI enclave VM
+
+**Coverage:** All application and database infrastructure hosted on Microsoft Azure / other systems (outside CUI boundary)
+
+---
+
+### 3.2 Application-Level Protections
+
+**Input Validation:**
+- All user inputs are validated using Zod schemas
+- SQL injection prevention via Prisma ORM (parameterized queries)
+- XSS risk mitigation via React framework output encoding
+- Evidence: Input validation throughout application code
+
+**Framework Protections:**
+- Next.js framework features are implemented as described
+- Framework-level protections are implemented. No additional CSRF controls are required for Level 1.
+- Session management via NextAuth.js with token-based authentication
+
+---
+
+## 4. System Patching
+
+### 4.1 Patching Responsibilities
+
+**Application Dependencies:**
+- Dependencies are managed via npm and `package.json`
+- Dependencies are updated during development cycles
+- Security updates are applied as they become available
+- Evidence: `package.json` (dependencies and devDependencies)
+
+**Infrastructure Patching:**
+- Microsoft Azure / CUI enclave VM manages infrastructure patching
+- Platform updates are managed by Microsoft Azure / CUI enclave VM
+- No manual infrastructure patching required by organization
+
+**Status:** Infrastructure patching is inherited from Microsoft Azure / CUI enclave VM
+
+---
+
+### 4.2 Dependency Management
+
+**Package Management:**
+- Dependencies are defined in `package.json`
+- Dependencies are installed via npm
+- Dependency versions are specified in `package.json`
+- Evidence: `package.json`
+
+**Key Dependencies:**
+- Next.js 14.0.4
+- NextAuth.js 5.0.0-beta.30
+- Prisma 5.22.0
+- bcryptjs 3.0.3
+- React 18.2.0
+- Evidence: `package.json` (lines 21-38)
+
+**Dependency Updates:**
+- Dependencies are reviewed and updated during development cycles
+- Security advisories are monitored
+- Updates are tested before deployment
+
+---
+
+### 4.3 Patching Process
+
+**Process:**
+1. Security advisories are reviewed
+2. Vulnerable dependencies are identified
+3. Updates are tested in development environment
+4. Updates are applied to production via deployment
+5. Deployment includes dependency updates
+
+**Deployment:**
+- Updates are deployed via Microsoft Azure / CUI enclave VM
+- Build process includes `npm install` to update dependencies
+- Evidence: `railway.json`, `package.json` build scripts
+
+---
+
+## 5. Vulnerability Management
+
+### 5.1 Vulnerability Awareness
+
+**Process:**
+- Dependencies are reviewed for known vulnerabilities
+- Security advisories are monitored
+- npm audit may be used to identify vulnerabilities
+- Vulnerabilities are addressed during development cycles
+
+**Vulnerability Sources:**
+- npm security advisories
+- GitHub security advisories
+- Framework and library security announcements
+- CVE databases
+
+---
+
+### 5.2 Vulnerability Response
+
+**Process:**
+1. Vulnerability is identified
+2. Severity is assessed
+3. Update or patch is identified
+4. Update is tested
+5. Update is deployed to production
+
+**Timeline:**
+- Critical vulnerabilities are addressed promptly
+- High-severity vulnerabilities are addressed in next development cycle
+- Medium and low-severity vulnerabilities are addressed as resources permit
+
+---
+
+### 5.3 Dependency Vulnerability Scanning
+
+**Tools:**
+- npm audit (available via npm)
+- GitHub Dependabot (enabled)
+- Manual review of security advisories
+
+**Process:**
+- Dependencies are automatically scanned for known vulnerabilities via GitHub Dependabot
+- Dependabot runs weekly scans (Mondays at 9:00 AM)
+- Security updates are automatically grouped and presented as pull requests
+- Vulnerabilities are documented in Dependabot alerts
+- Remediation plans are developed
+- Updates are applied and tested via pull request review process
+
+**Implementation:**
+- GitHub Dependabot is configured to scan npm dependencies weekly
+- Security updates are automatically identified and grouped
+- Pull requests are created for security updates
+- Major version updates are excluded (require manual review)
+- Evidence: `.github/dependabot.yml`
+
+**Status:** ✅ **Implemented** - Automated vulnerability scanning via GitHub Dependabot
+
+---
+
+## 6. System Integrity Monitoring
+
+### 6.1 Application Monitoring
+
+**Logging:**
+- Application logs are available through Microsoft Azure / CUI enclave VM
+- Errors are logged to console
+- Logs are accessible via Microsoft Azure / other systems (outside CUI boundary) dashboard
+
+**Monitoring:**
+- Microsoft Azure / CUI enclave VM provides application monitoring
+- Performance metrics are available
+- Error tracking is available through platform
+
+**Status:** Monitoring is provided by Microsoft Azure / CUI enclave VM (inherited control)
+
+---
+
+### 6.2 Database Integrity
+
+**Database Management:**
+- Database is managed via Prisma ORM
+- Database migrations are version-controlled
+- Database schema is defined in `prisma/schema.prisma`
+- Evidence: `prisma/schema.prisma`, `prisma/migrations/`
+
+**Database Backups:**
+- Microsoft Azure / CUI enclave VM provides database backups
+- Backup retention is managed by Microsoft Azure / other systems (outside CUI boundary)
+- Backup restoration is available through Microsoft Azure / other systems (outside CUI boundary)
+
+**Status:** Database backups are provided by Microsoft Azure / CUI enclave VM (inherited control)
+
+---
+
+## 7. Change Management
+
+### 7.1 Code Changes
+
+**Version Control:**
+- All code changes are managed via Git
+- Source code is stored in GitHub
+- Changes are reviewed before merging
+- Evidence: GitHub repository
+
+**Deployment:**
+- Changes are deployed via Microsoft Azure / CUI enclave VM
+- Deployment process includes build and migration steps
+- Evidence: `railway.json`, `Procfile`
+
+---
+
+### 7.2 Configuration Changes
+
+**Configuration Management:**
+- Environment variables are managed via Microsoft Azure / CUI enclave VM
+- Configuration changes are documented
+- Configuration is version-controlled where possible
+
+**Security Configuration:**
+- Authentication secrets are stored as environment variables
+- Database connection strings are stored as environment variables
+- No secrets are committed to source code
+- Evidence: `.gitignore` excludes `.env` files
+
+---
+
+## 8. Compliance Risks & Open Items
+
+### 8.1 Automated Vulnerability Scanning
+
+**Status:** ✅ **Implemented** - Automated vulnerability scanning is implemented via GitHub Dependabot. Dependabot performs weekly scans of npm dependencies, automatically identifies security vulnerabilities, and creates pull requests for security updates. Dependencies are also reviewed manually and via npm audit as needed.
+
+**Evidence:** `.github/dependabot.yml`
+
+---
+
+### 8.2 Formal Patch Management Process
+
+**Status:** Patch management is performed during development cycles. Formal patch management procedures and schedules may be documented as a future enhancement.
+
+---
+
+### 8.3 Security Incident Response
+
+**Status:** Security incident response procedures may be documented as a future enhancement. Current focus is on vulnerability management and patching.
+
+---
+
+### 8.4 Non-Required Hardening Items (Out of Scope for Level 1)
+The following items are not required for CMMC Level 2 but represent potential future enhancements:
+- Security information and event management (SIEM)
+- Intrusion detection systems (IDS)
+- Formal security testing and penetration testing
+
+**Note:** Automated dependency vulnerability scanning (Dependabot) is now implemented. See Section 5.3 for details.
+
+---
+
+## 9. Procedures
+
+### 9.1 Dependency Update Procedure
+
+1. Review security advisories and vulnerability reports
+2. Identify dependencies requiring updates
+3. Test updates in development environment
+4. Update `package.json` with new versions
+5. Run `npm install` to update dependencies
+6. Test application functionality
+7. Deploy updates to production via Microsoft Azure / other systems (outside CUI boundary)
+
+---
+
+### 9.2 Vulnerability Response Procedure
+
+1. Identify vulnerability (via advisory, scan, or report)
+2. Assess severity and impact
+3. Identify available patch or update
+4. Test patch or update in development
+5. Deploy patch or update to production
+6. Verify patch or update is effective
+7. Document resolution
+
+---
+
+### 9.3 System Update Procedure
+
+1. Review available updates
+2. Test updates in development environment
+3. Update code and dependencies
+4. Run database migrations if needed
+5. Deploy updates via Microsoft Azure / CUI enclave VM
+6. Verify system functionality
+7. Monitor for issues
+
+---
+
+## 10. Document Control
+
+**Prepared By:** MacTech Solutions Compliance Team  
+**Reviewed By:** ________________________  
+**Approved By:** ________________________  
+**Next Review Date:** ________________________  
+*(Complete at document approval.)*
+
+**Change History:**
+- Version 1.0 (2026-01-21): Initial document creation
+
+---
+
+## Appendix A: Evidence Locations
+
+| Control | Evidence Location |
+|---------|------------------|
+| Dependencies | `package.json` |
+| Automated Vulnerability Scanning | `.github/dependabot.yml` |
+| Database Schema | `prisma/schema.prisma` |
+| Database Migrations | `prisma/migrations/` |
+| Deployment Config | `railway.json`, `Procfile` |
+| Environment Variables | Microsoft Azure / CUI enclave VM configuration |
+| Source Code | GitHub repository |
+
+## Appendix B: FAR 52.204-21 Mapping
+
+| FAR Clause | Control | Implementation |
+|------------|---------|----------------|
+| 52.204-21(b)(3) | Malware protection | Microsoft Azure / CUI enclave VM (inherited) |
+| 52.204-21(b)(3) | System patching | Dependency management via npm |
+| 52.204-21(b)(3) | Vulnerability management | Automated scanning (Dependabot), manual review, and npm audit |
+---
+
+## Signature & evidence record (enclave deployment)
+
+Approval record is maintained via the Trust Codex Manual Governance workflow (per-document sign-off under C:\evidence\CUI-Doc-Signoff-* or central app).
+
+**What counts as the approval record** is the per-document sign-off artifact written under `C:\evidence`, which includes:
+- attestor identity (name/title/org)
+- timestamp (UTC)
+- **document SHA-256 hash** (the exact version reviewed)
+- **stored record location** (where the sign-off record is retained)
+
+**Expected location (written by the manual app):**
+- `C:\evidence\CUI-Doc-Signoff-<RunId>\MAC-POL-216-signoff.json`
+- `C:\evidence\CUI-Doc-Signoff-<RunId>\MAC-POL-216-signoff.md`
+

@@ -1,0 +1,1723 @@
+﻿
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4656
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : A handle to an object was requested.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Object:
+                   	Object Server:		Security
+                   	Object Type:		File
+                   	Object Name:		C:\Windows\System32\CatRoot\{F750E6C3-38EE-11D1-85E5-00C04FC295EE}\Microsoft-Windows-
+                   PowerShell-ServerCore-WOW64-Package~31bf3856ad364e35~amd64~~10.0.26100.1591.cat
+                   	Handle ID:		0xb18
+                   	Resource Attributes:	-
+                   
+                   Process Information:
+                   	Process ID:		0x1ccc
+                   	Process Name:		C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+                   
+                   Access Request Information:
+                   	Transaction ID:		{00000000-0000-0000-0000-000000000000}
+                   	Accesses:		READ_CONTROL
+                   				SYNCHRONIZE
+                   				ReadData (or ListDirectory)
+                   				ReadEA
+                   				ReadAttributes
+                   				
+                   	Access Reasons:		READ_CONTROL:	Granted by	D:(A;;0x1200a9;;;BA)
+                   				SYNCHRONIZE:	Granted by	D:(A;;0x1200a9;;;BA)
+                   				ReadData (or ListDirectory):	Granted by	D:(A;;0x1200a9;;;BA)
+                   				ReadEA:	Granted by	D:(A;;0x1200a9;;;BA)
+                   				ReadAttributes:	Granted by	D:(A;;0x1200a9;;;BA)
+                   				
+                   	Access Mask:		0x120089
+                   	Privileges Used for Access Check:	-
+                   	Restricted SID Count:	0
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4658
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The handle to an object was closed.
+                   
+                   Subject :
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Object:
+                   	Object Server:		Security
+                   	Handle ID:		0x2724
+                   
+                   Process Information:
+                   	Process ID:		0x1ccc
+                   	Process Name:		C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4690
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An attempt was made to duplicate a handle to an object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Source Handle Information:
+                   	Source Handle ID:	0xb18
+                   	Source Process ID:	0x1ccc
+                   
+                   New Handle Information:
+                   	Target Handle ID:	0x2724
+                   	Target Process ID:	0x4
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4658
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The handle to an object was closed.
+                   
+                   Subject :
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Object:
+                   	Object Server:		Security
+                   	Handle ID:		0xca4
+                   
+                   Process Information:
+                   	Process ID:		0x1ccc
+                   	Process Name:		C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4656
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : A handle to an object was requested.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Object:
+                   	Object Server:		Security
+                   	Object Type:		File
+                   	Object Name:		C:\Windows\System32\CatRoot\{F750E6C3-38EE-11D1-85E5-00C04FC295EE}\Microsoft-Windows-
+                   PowerShell-ServerCore-WOW64-Package~31bf3856ad364e35~amd64~~10.0.26100.1591.cat
+                   	Handle ID:		0xca4
+                   	Resource Attributes:	-
+                   
+                   Process Information:
+                   	Process ID:		0x1ccc
+                   	Process Name:		C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+                   
+                   Access Request Information:
+                   	Transaction ID:		{00000000-0000-0000-0000-000000000000}
+                   	Accesses:		READ_CONTROL
+                   				SYNCHRONIZE
+                   				ReadData (or ListDirectory)
+                   				ReadEA
+                   				ReadAttributes
+                   				
+                   	Access Reasons:		READ_CONTROL:	Granted by	D:(A;;0x1200a9;;;BA)
+                   				SYNCHRONIZE:	Granted by	D:(A;;0x1200a9;;;BA)
+                   				ReadData (or ListDirectory):	Granted by	D:(A;;0x1200a9;;;BA)
+                   				ReadEA:	Granted by	D:(A;;0x1200a9;;;BA)
+                   				ReadAttributes:	Granted by	D:(A;;0x1200a9;;;BA)
+                   				
+                   	Access Mask:		0x120089
+                   	Privileges Used for Access Check:	-
+                   	Restricted SID Count:	0
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4658
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The handle to an object was closed.
+                   
+                   Subject :
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Object:
+                   	Object Server:		Security
+                   	Handle ID:		0x30d4
+                   
+                   Process Information:
+                   	Process ID:		0x1ccc
+                   	Process Name:		C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4690
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An attempt was made to duplicate a handle to an object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Source Handle Information:
+                   	Source Handle ID:	0xca4
+                   	Source Process ID:	0x1ccc
+                   
+                   New Handle Information:
+                   	Target Handle ID:	0x30d4
+                   	Target Process ID:	0x4
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4688
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : A new process has been created.
+                   
+                   Creator Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Target Subject:
+                   	Security ID:		S-1-0-0
+                   	Account Name:		-
+                   	Account Domain:		-
+                   	Logon ID:		0x0
+                   
+                   Process Information:
+                   	New Process ID:		0x2bcc
+                   	New Process Name:	C:\Windows\System32\wevtutil.exe
+                   	Token Elevation Type:	TokenElevationTypeDefault (1)
+                   	Mandatory Label:		S-1-16-12288
+                   	Creator Process ID:	0x1ccc
+                   	Creator Process Name:	C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+                   	Process Command Line:	
+                   
+                   Token Elevation Type indicates the type of token that was assigned to the new process in accordance 
+                   with User Account Control policy.
+                   
+                   Type 1 is a full token with no privileges removed or groups disabled.  A full token is only used if 
+                   User Account Control is disabled or if the user is the built-in Administrator account or a service 
+                   account.
+                   
+                   Type 2 is an elevated token with no privileges removed or groups disabled.  An elevated token is 
+                   used when User Account Control is enabled and the user chooses to start the program using Run as 
+                   administrator.  An elevated token is also used when an application is configured to always require 
+                   administrative privilege or to always require maximum privilege, and the user is a member of the 
+                   Administrators group.
+                   
+                   Type 3 is a limited token with administrative privileges removed and administrative groups 
+                   disabled.  The limited token is used when User Account Control is enabled, the application does not 
+                   require administrative privilege, and the user does not choose to start the program using Run as 
+                   administrator.
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4688
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : A new process has been created.
+                   
+                   Creator Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Target Subject:
+                   	Security ID:		S-1-0-0
+                   	Account Name:		-
+                   	Account Domain:		-
+                   	Logon ID:		0x0
+                   
+                   Process Information:
+                   	New Process ID:		0x1ac4
+                   	New Process Name:	C:\Windows\System32\wevtutil.exe
+                   	Token Elevation Type:	TokenElevationTypeDefault (1)
+                   	Mandatory Label:		S-1-16-12288
+                   	Creator Process ID:	0x1ccc
+                   	Creator Process Name:	C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+                   	Process Command Line:	
+                   
+                   Token Elevation Type indicates the type of token that was assigned to the new process in accordance 
+                   with User Account Control policy.
+                   
+                   Type 1 is a full token with no privileges removed or groups disabled.  A full token is only used if 
+                   User Account Control is disabled or if the user is the built-in Administrator account or a service 
+                   account.
+                   
+                   Type 2 is an elevated token with no privileges removed or groups disabled.  An elevated token is 
+                   used when User Account Control is enabled and the user chooses to start the program using Run as 
+                   administrator.  An elevated token is also used when an application is configured to always require 
+                   administrative privilege or to always require maximum privilege, and the user is a member of the 
+                   Administrators group.
+                   
+                   Type 3 is a limited token with administrative privileges removed and administrative groups 
+                   disabled.  The limited token is used when User Account Control is enabled, the application does not 
+                   require administrative privilege, and the user does not choose to start the program using Run as 
+                   administrator.
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4688
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : A new process has been created.
+                   
+                   Creator Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Target Subject:
+                   	Security ID:		S-1-0-0
+                   	Account Name:		-
+                   	Account Domain:		-
+                   	Logon ID:		0x0
+                   
+                   Process Information:
+                   	New Process ID:		0x1f9c
+                   	New Process Name:	C:\Windows\System32\wevtutil.exe
+                   	Token Elevation Type:	TokenElevationTypeDefault (1)
+                   	Mandatory Label:		S-1-16-12288
+                   	Creator Process ID:	0x1ccc
+                   	Creator Process Name:	C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+                   	Process Command Line:	
+                   
+                   Token Elevation Type indicates the type of token that was assigned to the new process in accordance 
+                   with User Account Control policy.
+                   
+                   Type 1 is a full token with no privileges removed or groups disabled.  A full token is only used if 
+                   User Account Control is disabled or if the user is the built-in Administrator account or a service 
+                   account.
+                   
+                   Type 2 is an elevated token with no privileges removed or groups disabled.  An elevated token is 
+                   used when User Account Control is enabled and the user chooses to start the program using Run as 
+                   administrator.  An elevated token is also used when an application is configured to always require 
+                   administrative privilege or to always require maximum privilege, and the user is a member of the 
+                   Administrators group.
+                   
+                   Type 3 is a limited token with administrative privileges removed and administrative groups 
+                   disabled.  The limited token is used when User Account Control is enabled, the application does not 
+                   require administrative privilege, and the user does not choose to start the program using Run as 
+                   administrator.
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Object:
+                   	Object Server:	LSA
+                   	Object Type:	-
+                   	Object Name:	-
+                   	Object Handle:	0x0
+                   
+                   Process Information:
+                   	Process ID:	0x35c
+                   	Process Name:	C:\Windows\System32\lsass.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	16777216
+                   	Privileges:		SeSecurityPrivilege
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4688
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : A new process has been created.
+                   
+                   Creator Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Target Subject:
+                   	Security ID:		S-1-0-0
+                   	Account Name:		-
+                   	Account Domain:		-
+                   	Logon ID:		0x0
+                   
+                   Process Information:
+                   	New Process ID:		0x19dc
+                   	New Process Name:	C:\Windows\System32\auditpol.exe
+                   	Token Elevation Type:	TokenElevationTypeDefault (1)
+                   	Mandatory Label:		S-1-16-12288
+                   	Creator Process ID:	0x1ccc
+                   	Creator Process Name:	C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+                   	Process Command Line:	
+                   
+                   Token Elevation Type indicates the type of token that was assigned to the new process in accordance 
+                   with User Account Control policy.
+                   
+                   Type 1 is a full token with no privileges removed or groups disabled.  A full token is only used if 
+                   User Account Control is disabled or if the user is the built-in Administrator account or a service 
+                   account.
+                   
+                   Type 2 is an elevated token with no privileges removed or groups disabled.  An elevated token is 
+                   used when User Account Control is enabled and the user chooses to start the program using Run as 
+                   administrator.  An elevated token is also used when an application is configured to always require 
+                   administrative privilege or to always require maximum privilege, and the user is a member of the 
+                   Administrators group.
+                   
+                   Type 3 is a limited token with administrative privileges removed and administrative groups 
+                   disabled.  The limited token is used when User Account Control is enabled, the application does not 
+                   require administrative privilege, and the user does not choose to start the program using Run as 
+                   administrator.
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4688
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : A new process has been created.
+                   
+                   Creator Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Target Subject:
+                   	Security ID:		S-1-0-0
+                   	Account Name:		-
+                   	Account Domain:		-
+                   	Logon ID:		0x0
+                   
+                   Process Information:
+                   	New Process ID:		0x2bdc
+                   	New Process Name:	C:\Windows\System32\auditpol.exe
+                   	Token Elevation Type:	TokenElevationTypeDefault (1)
+                   	Mandatory Label:		S-1-16-12288
+                   	Creator Process ID:	0x22a0
+                   	Creator Process Name:	C:\Windows\System32\cmd.exe
+                   	Process Command Line:	
+                   
+                   Token Elevation Type indicates the type of token that was assigned to the new process in accordance 
+                   with User Account Control policy.
+                   
+                   Type 1 is a full token with no privileges removed or groups disabled.  A full token is only used if 
+                   User Account Control is disabled or if the user is the built-in Administrator account or a service 
+                   account.
+                   
+                   Type 2 is an elevated token with no privileges removed or groups disabled.  An elevated token is 
+                   used when User Account Control is enabled and the user chooses to start the program using Run as 
+                   administrator.  An elevated token is also used when an application is configured to always require 
+                   administrative privilege or to always require maximum privilege, and the user is a member of the 
+                   Administrators group.
+                   
+                   Type 3 is a limited token with administrative privileges removed and administrative groups 
+                   disabled.  The limited token is used when User Account Control is enabled, the application does not 
+                   require administrative privilege, and the user does not choose to start the program using Run as 
+                   administrator.
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	File
+                   	Object Name:	\Device\ConDrv
+                   	Object Handle:	0x4
+                   
+                   Process Information:
+                   	Process ID:	0x1398
+                   	Process Name:	C:\Windows\System32\cmd.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				ReadData (or ListDirectory)
+                   				WriteData (or AddFile)
+                   				AppendData (or AddSubdirectory or CreatePipeInstance)
+                   				ReadEA
+                   				WriteEA
+                   				Execute/Traverse
+                   				DeleteChild
+                   				ReadAttributes
+                   				WriteAttributes
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4688
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : A new process has been created.
+                   
+                   Creator Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Target Subject:
+                   	Security ID:		S-1-0-0
+                   	Account Name:		-
+                   	Account Domain:		-
+                   	Logon ID:		0x0
+                   
+                   Process Information:
+                   	New Process ID:		0x1398
+                   	New Process Name:	C:\Windows\System32\conhost.exe
+                   	Token Elevation Type:	TokenElevationTypeDefault (1)
+                   	Mandatory Label:		S-1-16-12288
+                   	Creator Process ID:	0x22a0
+                   	Creator Process Name:	C:\Windows\System32\cmd.exe
+                   	Process Command Line:	
+                   
+                   Token Elevation Type indicates the type of token that was assigned to the new process in accordance 
+                   with User Account Control policy.
+                   
+                   Type 1 is a full token with no privileges removed or groups disabled.  A full token is only used if 
+                   User Account Control is disabled or if the user is the built-in Administrator account or a service 
+                   account.
+                   
+                   Type 2 is an elevated token with no privileges removed or groups disabled.  An elevated token is 
+                   used when User Account Control is enabled and the user chooses to start the program using Run as 
+                   administrator.  An elevated token is also used when an application is configured to always require 
+                   administrative privilege or to always require maximum privilege, and the user is a member of the 
+                   Administrators group.
+                   
+                   Type 3 is a limited token with administrative privileges removed and administrative groups 
+                   disabled.  The limited token is used when User Account Control is enabled, the application does not 
+                   require administrative privilege, and the user does not choose to start the program using Run as 
+                   administrator.
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4688
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : A new process has been created.
+                   
+                   Creator Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Target Subject:
+                   	Security ID:		S-1-0-0
+                   	Account Name:		-
+                   	Account Domain:		-
+                   	Logon ID:		0x0
+                   
+                   Process Information:
+                   	New Process ID:		0x22a0
+                   	New Process Name:	C:\Windows\System32\cmd.exe
+                   	Token Elevation Type:	TokenElevationTypeDefault (1)
+                   	Mandatory Label:		S-1-16-12288
+                   	Creator Process ID:	0x1ccc
+                   	Creator Process Name:	C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+                   	Process Command Line:	
+                   
+                   Token Elevation Type indicates the type of token that was assigned to the new process in accordance 
+                   with User Account Control policy.
+                   
+                   Type 1 is a full token with no privileges removed or groups disabled.  A full token is only used if 
+                   User Account Control is disabled or if the user is the built-in Administrator account or a service 
+                   account.
+                   
+                   Type 2 is an elevated token with no privileges removed or groups disabled.  An elevated token is 
+                   used when User Account Control is enabled and the user chooses to start the program using Run as 
+                   administrator.  An elevated token is also used when an application is configured to always require 
+                   administrative privilege or to always require maximum privilege, and the user is a member of the 
+                   Administrators group.
+                   
+                   Type 3 is a limited token with administrative privileges removed and administrative groups 
+                   disabled.  The limited token is used when User Account Control is enabled, the application does not 
+                   require administrative privilege, and the user does not choose to start the program using Run as 
+                   administrator.
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Object:
+                   	Object Server:	LSA
+                   	Object Type:	-
+                   	Object Name:	-
+                   	Object Handle:	0x0
+                   
+                   Process Information:
+                   	Process ID:	0x35c
+                   	Process Name:	C:\Windows\System32\lsass.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	16777216
+                   	Privileges:		SeSecurityPrivilege
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4688
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : A new process has been created.
+                   
+                   Creator Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Target Subject:
+                   	Security ID:		S-1-0-0
+                   	Account Name:		-
+                   	Account Domain:		-
+                   	Logon ID:		0x0
+                   
+                   Process Information:
+                   	New Process ID:		0x2498
+                   	New Process Name:	C:\Windows\System32\auditpol.exe
+                   	Token Elevation Type:	TokenElevationTypeDefault (1)
+                   	Mandatory Label:		S-1-16-12288
+                   	Creator Process ID:	0x1ccc
+                   	Creator Process Name:	C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+                   	Process Command Line:	
+                   
+                   Token Elevation Type indicates the type of token that was assigned to the new process in accordance 
+                   with User Account Control policy.
+                   
+                   Type 1 is a full token with no privileges removed or groups disabled.  A full token is only used if 
+                   User Account Control is disabled or if the user is the built-in Administrator account or a service 
+                   account.
+                   
+                   Type 2 is an elevated token with no privileges removed or groups disabled.  An elevated token is 
+                   used when User Account Control is enabled and the user chooses to start the program using Run as 
+                   administrator.  An elevated token is also used when an application is configured to always require 
+                   administrative privilege or to always require maximum privilege, and the user is a member of the 
+                   Administrators group.
+                   
+                   Type 3 is a limited token with administrative privileges removed and administrative groups 
+                   disabled.  The limited token is used when User Account Control is enabled, the application does not 
+                   require administrative privilege, and the user does not choose to start the program using Run as 
+                   administrator.
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 5156
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The Windows Filtering Platform has permitted a connection.
+                   
+                   Application Information:
+                   	Process ID:		3412
+                   	Application Name:	\device\harddiskvolume4\windowsazure\guestagent_2.7.41491.1183_2026-02-06_050117\
+                   windowsazureguestagent.exe
+                   
+                   Network Information:
+                   	Direction:		Outbound
+                   	Source Address:		10.10.0.4
+                   	Source Port:		52883
+                   	Destination Address:	168.63.129.16
+                   	Destination Port:		80
+                   	Protocol:		6
+                   	Interface Index:		6
+                   
+                   Filter Information:
+                   	Filter Origin:		Unknown
+                   	Filter Run-Time ID:	71217
+                   	Layer Name:		Connect
+                   	Layer Run-Time ID:	48
+                   	Remote User ID:		S-1-0-0
+                   	Remote Machine ID:	S-1-0-0
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 5158
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The Windows Filtering Platform has permitted a bind to a local port.
+                   
+                   Application Information:
+                   	Process ID:		3412
+                   	Application Name:	\device\harddiskvolume4\windowsazure\guestagent_2.7.41491.1183_2026-02-06_050117\
+                   windowsazureguestagent.exe
+                   
+                   Network Information:
+                   	Source Address:		0.0.0.0
+                   	Source Port:		52883
+                   	Protocol:		6
+                   
+                   Filter Information:
+                   	Filter Run-Time ID:	0
+                   	Layer Name:		Resource Assignment
+                   	Layer Run-Time ID:	36
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Semaphore
+                   	Object Name:	\BaseNamedObjects\SM0:5420:304:WilStaging_02_p0h
+                   	Object Handle:	0x25c
+                   
+                   Process Information:
+                   	Process ID:	0x152c
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query semaphore state
+                   				Modify semaphore state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Semaphore
+                   	Object Name:	\BaseNamedObjects\SM0:5420:304:WilStaging_02_p0
+                   	Object Handle:	0x258
+                   
+                   Process Information:
+                   	Process ID:	0x152c
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query semaphore state
+                   				Modify semaphore state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	-
+                   	Object Name:	-
+                   	Object Handle:	0x254
+                   
+                   Process Information:
+                   	Process ID:	0x152c
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	2031617
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Mutant
+                   	Object Name:	\BaseNamedObjects\SM0:5420:304:WilStaging_02
+                   	Object Handle:	0x254
+                   
+                   Process Information:
+                   	Process ID:	0x152c
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query mutant state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Semaphore
+                   	Object Name:	\BaseNamedObjects\SM0:5420:304:WilStaging_02_p0h
+                   	Object Handle:	0x210
+                   
+                   Process Information:
+                   	Process ID:	0x152c
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query semaphore state
+                   				Modify semaphore state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Semaphore
+                   	Object Name:	\BaseNamedObjects\SM0:5420:304:WilStaging_02_p0
+                   	Object Handle:	0x200
+                   
+                   Process Information:
+                   	Process ID:	0x152c
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query semaphore state
+                   				Modify semaphore state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	-
+                   	Object Name:	-
+                   	Object Handle:	0x1fc
+                   
+                   Process Information:
+                   	Process ID:	0x152c
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	2031617
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Mutant
+                   	Object Name:	\BaseNamedObjects\SM0:5420:304:WilStaging_02
+                   	Object Handle:	0x1fc
+                   
+                   Process Information:
+                   	Process ID:	0x152c
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query mutant state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4688
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : A new process has been created.
+                   
+                   Creator Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Target Subject:
+                   	Security ID:		S-1-0-0
+                   	Account Name:		-
+                   	Account Domain:		-
+                   	Logon ID:		0x0
+                   
+                   Process Information:
+                   	New Process ID:		0x152c
+                   	New Process Name:	C:\Windows\System32\gpresult.exe
+                   	Token Elevation Type:	TokenElevationTypeDefault (1)
+                   	Mandatory Label:		S-1-16-12288
+                   	Creator Process ID:	0x196c
+                   	Creator Process Name:	C:\Windows\System32\cmd.exe
+                   	Process Command Line:	
+                   
+                   Token Elevation Type indicates the type of token that was assigned to the new process in accordance 
+                   with User Account Control policy.
+                   
+                   Type 1 is a full token with no privileges removed or groups disabled.  A full token is only used if 
+                   User Account Control is disabled or if the user is the built-in Administrator account or a service 
+                   account.
+                   
+                   Type 2 is an elevated token with no privileges removed or groups disabled.  An elevated token is 
+                   used when User Account Control is enabled and the user chooses to start the program using Run as 
+                   administrator.  An elevated token is also used when an application is configured to always require 
+                   administrative privilege or to always require maximum privilege, and the user is a member of the 
+                   Administrators group.
+                   
+                   Type 3 is a limited token with administrative privileges removed and administrative groups 
+                   disabled.  The limited token is used when User Account Control is enabled, the application does not 
+                   require administrative privilege, and the user does not choose to start the program using Run as 
+                   administrator.
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	File
+                   	Object Name:	\Device\ConDrv
+                   	Object Handle:	0x4
+                   
+                   Process Information:
+                   	Process ID:	0x17b4
+                   	Process Name:	C:\Windows\System32\cmd.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				ReadData (or ListDirectory)
+                   				WriteData (or AddFile)
+                   				AppendData (or AddSubdirectory or CreatePipeInstance)
+                   				ReadEA
+                   				WriteEA
+                   				Execute/Traverse
+                   				DeleteChild
+                   				ReadAttributes
+                   				WriteAttributes
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4688
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : A new process has been created.
+                   
+                   Creator Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Target Subject:
+                   	Security ID:		S-1-0-0
+                   	Account Name:		-
+                   	Account Domain:		-
+                   	Logon ID:		0x0
+                   
+                   Process Information:
+                   	New Process ID:		0x17b4
+                   	New Process Name:	C:\Windows\System32\conhost.exe
+                   	Token Elevation Type:	TokenElevationTypeDefault (1)
+                   	Mandatory Label:		S-1-16-12288
+                   	Creator Process ID:	0x196c
+                   	Creator Process Name:	C:\Windows\System32\cmd.exe
+                   	Process Command Line:	
+                   
+                   Token Elevation Type indicates the type of token that was assigned to the new process in accordance 
+                   with User Account Control policy.
+                   
+                   Type 1 is a full token with no privileges removed or groups disabled.  A full token is only used if 
+                   User Account Control is disabled or if the user is the built-in Administrator account or a service 
+                   account.
+                   
+                   Type 2 is an elevated token with no privileges removed or groups disabled.  An elevated token is 
+                   used when User Account Control is enabled and the user chooses to start the program using Run as 
+                   administrator.  An elevated token is also used when an application is configured to always require 
+                   administrative privilege or to always require maximum privilege, and the user is a member of the 
+                   Administrators group.
+                   
+                   Type 3 is a limited token with administrative privileges removed and administrative groups 
+                   disabled.  The limited token is used when User Account Control is enabled, the application does not 
+                   require administrative privilege, and the user does not choose to start the program using Run as 
+                   administrator.
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4688
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : A new process has been created.
+                   
+                   Creator Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Target Subject:
+                   	Security ID:		S-1-0-0
+                   	Account Name:		-
+                   	Account Domain:		-
+                   	Logon ID:		0x0
+                   
+                   Process Information:
+                   	New Process ID:		0x196c
+                   	New Process Name:	C:\Windows\System32\cmd.exe
+                   	Token Elevation Type:	TokenElevationTypeDefault (1)
+                   	Mandatory Label:		S-1-16-12288
+                   	Creator Process ID:	0x1ccc
+                   	Creator Process Name:	C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+                   	Process Command Line:	
+                   
+                   Token Elevation Type indicates the type of token that was assigned to the new process in accordance 
+                   with User Account Control policy.
+                   
+                   Type 1 is a full token with no privileges removed or groups disabled.  A full token is only used if 
+                   User Account Control is disabled or if the user is the built-in Administrator account or a service 
+                   account.
+                   
+                   Type 2 is an elevated token with no privileges removed or groups disabled.  An elevated token is 
+                   used when User Account Control is enabled and the user chooses to start the program using Run as 
+                   administrator.  An elevated token is also used when an application is configured to always require 
+                   administrative privilege or to always require maximum privilege, and the user is a member of the 
+                   Administrators group.
+                   
+                   Type 3 is a limited token with administrative privileges removed and administrative groups 
+                   disabled.  The limited token is used when User Account Control is enabled, the application does not 
+                   require administrative privilege, and the user does not choose to start the program using Run as 
+                   administrator.
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Semaphore
+                   	Object Name:	\BaseNamedObjects\SM0:8056:304:WilStaging_02_p0h
+                   	Object Handle:	0x25c
+                   
+                   Process Information:
+                   	Process ID:	0x1f78
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query semaphore state
+                   				Modify semaphore state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Semaphore
+                   	Object Name:	\BaseNamedObjects\SM0:8056:304:WilStaging_02_p0
+                   	Object Handle:	0x258
+                   
+                   Process Information:
+                   	Process ID:	0x1f78
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query semaphore state
+                   				Modify semaphore state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	-
+                   	Object Name:	-
+                   	Object Handle:	0x254
+                   
+                   Process Information:
+                   	Process ID:	0x1f78
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	2031617
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Mutant
+                   	Object Name:	\BaseNamedObjects\SM0:8056:304:WilStaging_02
+                   	Object Handle:	0x254
+                   
+                   Process Information:
+                   	Process ID:	0x1f78
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query mutant state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Semaphore
+                   	Object Name:	\BaseNamedObjects\SM0:8056:304:WilStaging_02_p0h
+                   	Object Handle:	0x1fc
+                   
+                   Process Information:
+                   	Process ID:	0x1f78
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query semaphore state
+                   				Modify semaphore state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Semaphore
+                   	Object Name:	\BaseNamedObjects\SM0:8056:304:WilStaging_02_p0
+                   	Object Handle:	0x1f4
+                   
+                   Process Information:
+                   	Process ID:	0x1f78
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query semaphore state
+                   				Modify semaphore state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	-
+                   	Object Name:	-
+                   	Object Handle:	0x1f0
+                   
+                   Process Information:
+                   	Process ID:	0x1f78
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	2031617
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Mutant
+                   	Object Name:	\BaseNamedObjects\SM0:8056:304:WilStaging_02
+                   	Object Handle:	0x1f0
+                   
+                   Process Information:
+                   	Process ID:	0x1f78
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query mutant state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4688
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : A new process has been created.
+                   
+                   Creator Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Target Subject:
+                   	Security ID:		S-1-0-0
+                   	Account Name:		-
+                   	Account Domain:		-
+                   	Logon ID:		0x0
+                   
+                   Process Information:
+                   	New Process ID:		0x1f78
+                   	New Process Name:	C:\Windows\System32\gpresult.exe
+                   	Token Elevation Type:	TokenElevationTypeDefault (1)
+                   	Mandatory Label:		S-1-16-12288
+                   	Creator Process ID:	0x1bfc
+                   	Creator Process Name:	C:\Windows\System32\cmd.exe
+                   	Process Command Line:	
+                   
+                   Token Elevation Type indicates the type of token that was assigned to the new process in accordance 
+                   with User Account Control policy.
+                   
+                   Type 1 is a full token with no privileges removed or groups disabled.  A full token is only used if 
+                   User Account Control is disabled or if the user is the built-in Administrator account or a service 
+                   account.
+                   
+                   Type 2 is an elevated token with no privileges removed or groups disabled.  An elevated token is 
+                   used when User Account Control is enabled and the user chooses to start the program using Run as 
+                   administrator.  An elevated token is also used when an application is configured to always require 
+                   administrative privilege or to always require maximum privilege, and the user is a member of the 
+                   Administrators group.
+                   
+                   Type 3 is a limited token with administrative privileges removed and administrative groups 
+                   disabled.  The limited token is used when User Account Control is enabled, the application does not 
+                   require administrative privilege, and the user does not choose to start the program using Run as 
+                   administrator.
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	File
+                   	Object Name:	\Device\ConDrv
+                   	Object Handle:	0x4
+                   
+                   Process Information:
+                   	Process ID:	0xbdc
+                   	Process Name:	C:\Windows\System32\cmd.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				ReadData (or ListDirectory)
+                   				WriteData (or AddFile)
+                   				AppendData (or AddSubdirectory or CreatePipeInstance)
+                   				ReadEA
+                   				WriteEA
+                   				Execute/Traverse
+                   				DeleteChild
+                   				ReadAttributes
+                   				WriteAttributes
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4688
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : A new process has been created.
+                   
+                   Creator Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Target Subject:
+                   	Security ID:		S-1-0-0
+                   	Account Name:		-
+                   	Account Domain:		-
+                   	Logon ID:		0x0
+                   
+                   Process Information:
+                   	New Process ID:		0xbdc
+                   	New Process Name:	C:\Windows\System32\conhost.exe
+                   	Token Elevation Type:	TokenElevationTypeDefault (1)
+                   	Mandatory Label:		S-1-16-12288
+                   	Creator Process ID:	0x1bfc
+                   	Creator Process Name:	C:\Windows\System32\cmd.exe
+                   	Process Command Line:	
+                   
+                   Token Elevation Type indicates the type of token that was assigned to the new process in accordance 
+                   with User Account Control policy.
+                   
+                   Type 1 is a full token with no privileges removed or groups disabled.  A full token is only used if 
+                   User Account Control is disabled or if the user is the built-in Administrator account or a service 
+                   account.
+                   
+                   Type 2 is an elevated token with no privileges removed or groups disabled.  An elevated token is 
+                   used when User Account Control is enabled and the user chooses to start the program using Run as 
+                   administrator.  An elevated token is also used when an application is configured to always require 
+                   administrative privilege or to always require maximum privilege, and the user is a member of the 
+                   Administrators group.
+                   
+                   Type 3 is a limited token with administrative privileges removed and administrative groups 
+                   disabled.  The limited token is used when User Account Control is enabled, the application does not 
+                   require administrative privilege, and the user does not choose to start the program using Run as 
+                   administrator.
+
+TimeCreated      : 2/24/2026 8:04:52 AM
+Id               : 4688
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : A new process has been created.
+                   
+                   Creator Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Target Subject:
+                   	Security ID:		S-1-0-0
+                   	Account Name:		-
+                   	Account Domain:		-
+                   	Logon ID:		0x0
+                   
+                   Process Information:
+                   	New Process ID:		0x1bfc
+                   	New Process Name:	C:\Windows\System32\cmd.exe
+                   	Token Elevation Type:	TokenElevationTypeDefault (1)
+                   	Mandatory Label:		S-1-16-12288
+                   	Creator Process ID:	0x1ccc
+                   	Creator Process Name:	C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+                   	Process Command Line:	
+                   
+                   Token Elevation Type indicates the type of token that was assigned to the new process in accordance 
+                   with User Account Control policy.
+                   
+                   Type 1 is a full token with no privileges removed or groups disabled.  A full token is only used if 
+                   User Account Control is disabled or if the user is the built-in Administrator account or a service 
+                   account.
+                   
+                   Type 2 is an elevated token with no privileges removed or groups disabled.  An elevated token is 
+                   used when User Account Control is enabled and the user chooses to start the program using Run as 
+                   administrator.  An elevated token is also used when an application is configured to always require 
+                   administrative privilege or to always require maximum privilege, and the user is a member of the 
+                   Administrators group.
+                   
+                   Type 3 is a limited token with administrative privileges removed and administrative groups 
+                   disabled.  The limited token is used when User Account Control is enabled, the application does not 
+                   require administrative privilege, and the user does not choose to start the program using Run as 
+                   administrator.
+
+TimeCreated      : 2/24/2026 8:04:51 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	-
+                   	Object Name:	-
+                   	Object Handle:	0x39c
+                   
+                   Process Information:
+                   	Process ID:	0x161c
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	983103
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:04:51 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Key
+                   	Object Name:	\REGISTRY\MACHINE\SYSTEM\ControlSet001\Services\WinSock2\Parameters
+                   	Object Handle:	0x39c
+                   
+                   Process Information:
+                   	Process ID:	0x161c
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				Query key value
+                   				Set key value
+                   				Create sub-key
+                   				Enumerate sub-keys
+                   				Notify about changes to keys
+                   				Create Link
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:04:50 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Semaphore
+                   	Object Name:	\BaseNamedObjects\SM0:5660:304:WilStaging_02_p0h
+                   	Object Handle:	0x3b0
+                   
+                   Process Information:
+                   	Process ID:	0x161c
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query semaphore state
+                   				Modify semaphore state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:04:50 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Semaphore
+                   	Object Name:	\BaseNamedObjects\SM0:5660:304:WilStaging_02_p0
+                   	Object Handle:	0x3fc
+                   
+                   Process Information:
+                   	Process ID:	0x161c
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query semaphore state
+                   				Modify semaphore state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:04:50 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	-
+                   	Object Name:	-
+                   	Object Handle:	0x3f8
+                   
+                   Process Information:
+                   	Process ID:	0x161c
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	2031617
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:04:50 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x1FA3C606
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Mutant
+                   	Object Name:	\BaseNamedObjects\SM0:5660:304:WilStaging_02
+                   	Object Handle:	0x3f8
+                   
+                   Process Information:
+                   	Process ID:	0x161c
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query mutant state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+
+
+
+

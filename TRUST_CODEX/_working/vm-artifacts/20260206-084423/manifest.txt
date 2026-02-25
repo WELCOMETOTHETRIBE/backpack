@@ -1,0 +1,35 @@
+﻿
+Name                           Length LastWriteTime      
+----                           ------ -------------      
+account-policy.txt                569 2/6/2026 8:44:38 AM
+auditpol.txt                     4029 2/6/2026 8:44:38 AM
+bitlocker-status.txt              977 2/6/2026 8:44:40 AM
+computerinfo.txt                  369 2/6/2026 8:44:35 AM
+defender-preferences.txt         9138 2/6/2026 8:44:40 AM
+defender-status.txt              3036 2/6/2026 8:44:39 AM
+eventlog-application.txt          545 2/6/2026 8:44:39 AM
+eventlog-security.txt             330 2/6/2026 8:44:38 AM
+eventlog-system.txt               414 2/6/2026 8:44:38 AM
+fips.txt                          117 2/6/2026 8:44:37 AM
+firewall.txt                     2150 2/6/2026 8:44:36 AM
+firewall-rules-summary.txt       1197 2/6/2026 8:44:37 AM
+hardening.log                    2395 2/6/2026 6:40:50 AM
+hotfixes.txt                      394 2/6/2026 8:44:31 AM
+local-accounts.txt                231 2/6/2026 8:44:37 AM
+local-admins.txt                  186 2/6/2026 8:44:38 AM
+lsa.txt                          2276 2/6/2026 8:44:38 AM
+rdp-policy.txt                    907 2/6/2026 8:44:38 AM
+rdp-tcp.txt                      3711 2/6/2026 8:44:38 AM
+removable-storage-policies.txt      0 2/6/2026 8:44:40 AM
+schannel-protocols.txt           2249 2/6/2026 8:44:37 AM
+secpol.cfg                      17480 2/6/2026 8:44:41 AM
+services-remote.txt               164 2/6/2026 8:44:40 AM
+smb-client-config.txt            2545 2/6/2026 8:44:38 AM
+smb-server-config.txt            3217 2/6/2026 8:44:38 AM
+smb-shares.txt                    411 2/6/2026 8:44:38 AM
+systeminfo.txt                   2728 2/6/2026 8:44:28 AM
+time-sync.txt                    1646 2/6/2026 8:44:31 AM
+tls-ciphersuites.txt              126 2/6/2026 8:44:37 AM
+usbstor.txt                       422 2/6/2026 8:44:40 AM
+
+

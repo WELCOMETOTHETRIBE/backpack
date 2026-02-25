@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>Codex Doc Viewer</title>
+    <link rel="stylesheet" href="styles.css?v=20260211-20" />
+    <style>
+      .dv-shell {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      .dv-top {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 14px;
+        background: rgba(10, 16, 32, 0.78);
+        backdrop-filter: blur(14px);
+        border-bottom: 1px solid var(--border);
+      }
+      .dv-title {
+        font-weight: 900;
+        letter-spacing: 0.2px;
+      }
+      .dv-sub {
+        color: var(--muted);
+        font-size: 12px;
+        margin-top: 2px;
+        max-width: 62vw;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .dv-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        align-items: center;
+      }
+      .dv-main {
+        flex: 1;
+        padding: 16px;
+        overflow: auto;
+      }
+      .dv-inner {
+        max-width: 1600px;
+        margin: 0 auto;
+      }
+      .dv-toolbar {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+      .dv-toolbar .input {
+        flex: 1;
+        min-width: 240px;
+      }
+      .dv-status {
+        color: var(--muted);
+        font-size: 12px;
+        margin-top: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="dv-shell">
+      <div class="dv-top">
+        <div>
+          <div class="dv-title">Codex Doc Viewer</div>
+          <div class="dv-sub mono" id="dvPath">(loading…)</div>
+        </div>
+        <div class="dv-actions">
+          <button class="btn btn-secondary" id="dvOpenRaw" title="Open the raw Markdown in a new tab">Open raw</button>
+          <button class="btn btn-secondary" id="dvCopyLink" title="Copy a shareable viewer link">Copy link</button>
+          <button class="btn" id="dvClose" title="Close this tab/window">Close</button>
+        </div>
+      </div>
+      <div class="dv-main">
+        <div class="dv-inner">
+          <div class="dv-toolbar">
+            <input id="dvSearch" class="input" placeholder="Search within this doc" />
+            <button class="btn btn-secondary" id="dvTop">Top</button>
+          </div>
+          <article class="markdown" id="dvBody"></article>
+          <div class="dv-status mono" id="dvStatus"></div>
+        </div>
+      </div>
+    </div>
+    <script src="doc_viewer.js?v=20260211-20"></script>
+  </body>
+</html>
+

@@ -1,0 +1,14 @@
+﻿{
+    "version":  "2.0.0",
+    "name":  "Collect-Cui-Evidence-v2",
+    "out_root":  "C:\\\\evidence",
+    "powershell_version":  "5.1.26100.32370",
+    "host":  {
+                 "computer_name":  "cui-win-pilot-0",
+                 "user":  "admin_patrick",
+                 "is_admin":  true,
+                 "user_domain":  "WORKGROUP"
+             },
+    "collected_at":  "2026-02-24T08:23:54.7176623+00:00",
+    "run_id":  "CUI-Evidence-20260224-082350"
+}

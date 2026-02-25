@@ -1,0 +1,8 @@
+﻿
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Lsa
+    LmCompatibilityLevel    REG_DWORD    0x5
+
+
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Lsa
+    NoLmHash    REG_DWORD    0x1
+

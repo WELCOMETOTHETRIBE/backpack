@@ -1,0 +1,1512 @@
+﻿
+
+TimeCreated      : 2/24/2026 8:24:24 AM
+Id               : 5156
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The Windows Filtering Platform has permitted a connection.
+                   
+                   Application Information:
+                   	Process ID:		3880
+                   	Application Name:	\device\harddiskvolume4\windowsazure\guestagent_2.7.41491.1183_2026-02-06_050117\
+                   windowsazureguestagent.exe
+                   
+                   Network Information:
+                   	Direction:		Outbound
+                   	Source Address:		10.10.0.4
+                   	Source Port:		50094
+                   	Destination Address:	168.63.129.16
+                   	Destination Port:		80
+                   	Protocol:		6
+                   	Interface Index:		15
+                   
+                   Filter Information:
+                   	Filter Origin:		Unknown
+                   	Filter Run-Time ID:	72222
+                   	Layer Name:		Connect
+                   	Layer Run-Time ID:	48
+                   	Remote User ID:		S-1-0-0
+                   	Remote Machine ID:	S-1-0-0
+
+TimeCreated      : 2/24/2026 8:24:24 AM
+Id               : 5158
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The Windows Filtering Platform has permitted a bind to a local port.
+                   
+                   Application Information:
+                   	Process ID:		3880
+                   	Application Name:	\device\harddiskvolume4\windowsazure\guestagent_2.7.41491.1183_2026-02-06_050117\
+                   windowsazureguestagent.exe
+                   
+                   Network Information:
+                   	Source Address:		0.0.0.0
+                   	Source Port:		50094
+                   	Protocol:		6
+                   
+                   Filter Information:
+                   	Filter Run-Time ID:	0
+                   	Layer Name:		Resource Assignment
+                   	Layer Run-Time ID:	36
+
+TimeCreated      : 2/24/2026 8:24:24 AM
+Id               : 5156
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The Windows Filtering Platform has permitted a connection.
+                   
+                   Application Information:
+                   	Process ID:		3880
+                   	Application Name:	\device\harddiskvolume4\windowsazure\guestagent_2.7.41491.1183_2026-02-06_050117\
+                   windowsazureguestagent.exe
+                   
+                   Network Information:
+                   	Direction:		Outbound
+                   	Source Address:		10.10.0.4
+                   	Source Port:		50093
+                   	Destination Address:	168.63.129.16
+                   	Destination Port:		80
+                   	Protocol:		6
+                   	Interface Index:		15
+                   
+                   Filter Information:
+                   	Filter Origin:		Unknown
+                   	Filter Run-Time ID:	72222
+                   	Layer Name:		Connect
+                   	Layer Run-Time ID:	48
+                   	Remote User ID:		S-1-0-0
+                   	Remote Machine ID:	S-1-0-0
+
+TimeCreated      : 2/24/2026 8:24:24 AM
+Id               : 5158
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The Windows Filtering Platform has permitted a bind to a local port.
+                   
+                   Application Information:
+                   	Process ID:		3880
+                   	Application Name:	\device\harddiskvolume4\windowsazure\guestagent_2.7.41491.1183_2026-02-06_050117\
+                   windowsazureguestagent.exe
+                   
+                   Network Information:
+                   	Source Address:		0.0.0.0
+                   	Source Port:		50093
+                   	Protocol:		6
+                   
+                   Filter Information:
+                   	Filter Run-Time ID:	0
+                   	Layer Name:		Resource Assignment
+                   	Layer Run-Time ID:	36
+
+TimeCreated      : 2/24/2026 8:24:24 AM
+Id               : 5156
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The Windows Filtering Platform has permitted a connection.
+                   
+                   Application Information:
+                   	Process ID:		3880
+                   	Application Name:	\device\harddiskvolume4\windowsazure\guestagent_2.7.41491.1183_2026-02-06_050117\
+                   windowsazureguestagent.exe
+                   
+                   Network Information:
+                   	Direction:		Outbound
+                   	Source Address:		10.10.0.4
+                   	Source Port:		50092
+                   	Destination Address:	168.63.129.16
+                   	Destination Port:		80
+                   	Protocol:		6
+                   	Interface Index:		15
+                   
+                   Filter Information:
+                   	Filter Origin:		Unknown
+                   	Filter Run-Time ID:	72222
+                   	Layer Name:		Connect
+                   	Layer Run-Time ID:	48
+                   	Remote User ID:		S-1-0-0
+                   	Remote Machine ID:	S-1-0-0
+
+TimeCreated      : 2/24/2026 8:24:24 AM
+Id               : 5158
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The Windows Filtering Platform has permitted a bind to a local port.
+                   
+                   Application Information:
+                   	Process ID:		3880
+                   	Application Name:	\device\harddiskvolume4\windowsazure\guestagent_2.7.41491.1183_2026-02-06_050117\
+                   windowsazureguestagent.exe
+                   
+                   Network Information:
+                   	Source Address:		0.0.0.0
+                   	Source Port:		50092
+                   	Protocol:		6
+                   
+                   Filter Information:
+                   	Filter Run-Time ID:	0
+                   	Layer Name:		Resource Assignment
+                   	Layer Run-Time ID:	36
+
+TimeCreated      : 2/24/2026 8:24:24 AM
+Id               : 5156
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The Windows Filtering Platform has permitted a connection.
+                   
+                   Application Information:
+                   	Process ID:		3880
+                   	Application Name:	\device\harddiskvolume4\windowsazure\guestagent_2.7.41491.1183_2026-02-06_050117\
+                   windowsazureguestagent.exe
+                   
+                   Network Information:
+                   	Direction:		Outbound
+                   	Source Address:		10.10.0.4
+                   	Source Port:		50091
+                   	Destination Address:	168.63.129.16
+                   	Destination Port:		80
+                   	Protocol:		6
+                   	Interface Index:		15
+                   
+                   Filter Information:
+                   	Filter Origin:		Unknown
+                   	Filter Run-Time ID:	72222
+                   	Layer Name:		Connect
+                   	Layer Run-Time ID:	48
+                   	Remote User ID:		S-1-0-0
+                   	Remote Machine ID:	S-1-0-0
+
+TimeCreated      : 2/24/2026 8:24:24 AM
+Id               : 5158
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The Windows Filtering Platform has permitted a bind to a local port.
+                   
+                   Application Information:
+                   	Process ID:		3880
+                   	Application Name:	\device\harddiskvolume4\windowsazure\guestagent_2.7.41491.1183_2026-02-06_050117\
+                   windowsazureguestagent.exe
+                   
+                   Network Information:
+                   	Source Address:		0.0.0.0
+                   	Source Port:		50091
+                   	Protocol:		6
+                   
+                   Filter Information:
+                   	Filter Run-Time ID:	0
+                   	Layer Name:		Resource Assignment
+                   	Layer Run-Time ID:	36
+
+TimeCreated      : 2/24/2026 8:24:24 AM
+Id               : 5156
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The Windows Filtering Platform has permitted a connection.
+                   
+                   Application Information:
+                   	Process ID:		3880
+                   	Application Name:	\device\harddiskvolume4\windowsazure\guestagent_2.7.41491.1183_2026-02-06_050117\
+                   windowsazureguestagent.exe
+                   
+                   Network Information:
+                   	Direction:		Outbound
+                   	Source Address:		10.10.0.4
+                   	Source Port:		50090
+                   	Destination Address:	168.63.129.16
+                   	Destination Port:		80
+                   	Protocol:		6
+                   	Interface Index:		15
+                   
+                   Filter Information:
+                   	Filter Origin:		Unknown
+                   	Filter Run-Time ID:	72222
+                   	Layer Name:		Connect
+                   	Layer Run-Time ID:	48
+                   	Remote User ID:		S-1-0-0
+                   	Remote Machine ID:	S-1-0-0
+
+TimeCreated      : 2/24/2026 8:24:24 AM
+Id               : 5158
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The Windows Filtering Platform has permitted a bind to a local port.
+                   
+                   Application Information:
+                   	Process ID:		3880
+                   	Application Name:	\device\harddiskvolume4\windowsazure\guestagent_2.7.41491.1183_2026-02-06_050117\
+                   windowsazureguestagent.exe
+                   
+                   Network Information:
+                   	Source Address:		0.0.0.0
+                   	Source Port:		50090
+                   	Protocol:		6
+                   
+                   Filter Information:
+                   	Filter Run-Time ID:	0
+                   	Layer Name:		Resource Assignment
+                   	Layer Run-Time ID:	36
+
+TimeCreated      : 2/24/2026 8:24:22 AM
+Id               : 5156
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The Windows Filtering Platform has permitted a connection.
+                   
+                   Application Information:
+                   	Process ID:		3880
+                   	Application Name:	\device\harddiskvolume4\windowsazure\guestagent_2.7.41491.1183_2026-02-06_050117\
+                   windowsazureguestagent.exe
+                   
+                   Network Information:
+                   	Direction:		Outbound
+                   	Source Address:		10.10.0.4
+                   	Source Port:		50089
+                   	Destination Address:	168.63.129.16
+                   	Destination Port:		80
+                   	Protocol:		6
+                   	Interface Index:		15
+                   
+                   Filter Information:
+                   	Filter Origin:		Unknown
+                   	Filter Run-Time ID:	72222
+                   	Layer Name:		Connect
+                   	Layer Run-Time ID:	48
+                   	Remote User ID:		S-1-0-0
+                   	Remote Machine ID:	S-1-0-0
+
+TimeCreated      : 2/24/2026 8:24:22 AM
+Id               : 5158
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The Windows Filtering Platform has permitted a bind to a local port.
+                   
+                   Application Information:
+                   	Process ID:		3880
+                   	Application Name:	\device\harddiskvolume4\windowsazure\guestagent_2.7.41491.1183_2026-02-06_050117\
+                   windowsazureguestagent.exe
+                   
+                   Network Information:
+                   	Source Address:		0.0.0.0
+                   	Source Port:		50089
+                   	Protocol:		6
+                   
+                   Filter Information:
+                   	Filter Run-Time ID:	0
+                   	Layer Name:		Resource Assignment
+                   	Layer Run-Time ID:	36
+
+TimeCreated      : 2/24/2026 8:24:20 AM
+Id               : 5152
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : The Windows Filtering Platform has blocked a packet.
+                   
+                   Application Information:
+                   	Process ID:		0
+                   	Application Name:	-
+                   
+                   Network Information:
+                   	Direction:		Inbound
+                   	Source Address:		40.87.176.0
+                   	Source Port:		23456
+                   	Destination Address:	10.10.0.4
+                   	Destination Port:		20974
+                   	Protocol:		6
+                   
+                   Filter Information:
+                   	Filter Origin:		Stealth
+                   	Filter Run-Time ID:	72150
+                   	Layer Name:		Transport
+                   	Layer Run-Time ID:	13
+
+TimeCreated      : 2/24/2026 8:24:18 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Semaphore
+                   	Object Name:	\BaseNamedObjects\SM0:5848:304:WilStaging_02_p0h
+                   	Object Handle:	0x6b4
+                   
+                   Process Information:
+                   	Process ID:	0x16d8
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query semaphore state
+                   				Modify semaphore state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:24:18 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Semaphore
+                   	Object Name:	\BaseNamedObjects\SM0:5848:304:WilStaging_02_p0
+                   	Object Handle:	0x630
+                   
+                   Process Information:
+                   	Process ID:	0x16d8
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query semaphore state
+                   				Modify semaphore state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:24:18 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	-
+                   	Object Name:	-
+                   	Object Handle:	0x6b8
+                   
+                   Process Information:
+                   	Process ID:	0x16d8
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	2031617
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:24:18 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Mutant
+                   	Object Name:	\BaseNamedObjects\SM0:5848:304:WilStaging_02
+                   	Object Handle:	0x6b8
+                   
+                   Process Information:
+                   	Process ID:	0x16d8
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query mutant state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:24:17 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Semaphore
+                   	Object Name:	\BaseNamedObjects\SM0:5848:304:WilStaging_02_p0h
+                   	Object Handle:	0x6a0
+                   
+                   Process Information:
+                   	Process ID:	0x16d8
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query semaphore state
+                   				Modify semaphore state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:24:17 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Semaphore
+                   	Object Name:	\BaseNamedObjects\SM0:5848:304:WilStaging_02_p0
+                   	Object Handle:	0x69c
+                   
+                   Process Information:
+                   	Process ID:	0x16d8
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query semaphore state
+                   				Modify semaphore state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:24:17 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	-
+                   	Object Name:	-
+                   	Object Handle:	0x698
+                   
+                   Process Information:
+                   	Process ID:	0x16d8
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	2031617
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:24:17 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Mutant
+                   	Object Name:	\BaseNamedObjects\SM0:5848:304:WilStaging_02
+                   	Object Handle:	0x698
+                   
+                   Process Information:
+                   	Process ID:	0x16d8
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query mutant state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:24:17 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Semaphore
+                   	Object Name:	\BaseNamedObjects\SM0:5848:304:WilStaging_02_p0h
+                   	Object Handle:	0x4bc
+                   
+                   Process Information:
+                   	Process ID:	0x16d8
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query semaphore state
+                   				Modify semaphore state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:24:17 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Semaphore
+                   	Object Name:	\BaseNamedObjects\SM0:5848:304:WilStaging_02_p0
+                   	Object Handle:	0x4b8
+                   
+                   Process Information:
+                   	Process ID:	0x16d8
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query semaphore state
+                   				Modify semaphore state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:24:17 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	-
+                   	Object Name:	-
+                   	Object Handle:	0x4b4
+                   
+                   Process Information:
+                   	Process ID:	0x16d8
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	2031617
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:24:17 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Mutant
+                   	Object Name:	\BaseNamedObjects\SM0:5848:304:WilStaging_02
+                   	Object Handle:	0x4b4
+                   
+                   Process Information:
+                   	Process ID:	0x16d8
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query mutant state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:24:17 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Semaphore
+                   	Object Name:	\BaseNamedObjects\SM0:5848:304:WilStaging_02_p0h
+                   	Object Handle:	0x488
+                   
+                   Process Information:
+                   	Process ID:	0x16d8
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query semaphore state
+                   				Modify semaphore state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:24:17 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Semaphore
+                   	Object Name:	\BaseNamedObjects\SM0:5848:304:WilStaging_02_p0
+                   	Object Handle:	0x490
+                   
+                   Process Information:
+                   	Process ID:	0x16d8
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query semaphore state
+                   				Modify semaphore state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:24:17 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	-
+                   	Object Name:	-
+                   	Object Handle:	0x480
+                   
+                   Process Information:
+                   	Process ID:	0x16d8
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	2031617
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:24:17 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Mutant
+                   	Object Name:	\BaseNamedObjects\SM0:5848:304:WilStaging_02
+                   	Object Handle:	0x480
+                   
+                   Process Information:
+                   	Process ID:	0x16d8
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query mutant state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:24:17 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Semaphore
+                   	Object Name:	\BaseNamedObjects\SM0:5848:304:WilStaging_02_p0h
+                   	Object Handle:	0x484
+                   
+                   Process Information:
+                   	Process ID:	0x16d8
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query semaphore state
+                   				Modify semaphore state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:24:17 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Semaphore
+                   	Object Name:	\BaseNamedObjects\SM0:5848:304:WilStaging_02_p0
+                   	Object Handle:	0x480
+                   
+                   Process Information:
+                   	Process ID:	0x16d8
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query semaphore state
+                   				Modify semaphore state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:24:17 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	-
+                   	Object Name:	-
+                   	Object Handle:	0x47c
+                   
+                   Process Information:
+                   	Process ID:	0x16d8
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	2031617
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:24:17 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Mutant
+                   	Object Name:	\BaseNamedObjects\SM0:5848:304:WilStaging_02
+                   	Object Handle:	0x47c
+                   
+                   Process Information:
+                   	Process ID:	0x16d8
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query mutant state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:24:16 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Semaphore
+                   	Object Name:	\BaseNamedObjects\SM0:5848:304:WilStaging_02_p0h
+                   	Object Handle:	0x2d4
+                   
+                   Process Information:
+                   	Process ID:	0x16d8
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query semaphore state
+                   				Modify semaphore state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:24:16 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Semaphore
+                   	Object Name:	\BaseNamedObjects\SM0:5848:304:WilStaging_02_p0
+                   	Object Handle:	0x2d0
+                   
+                   Process Information:
+                   	Process ID:	0x16d8
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query semaphore state
+                   				Modify semaphore state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:24:16 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	-
+                   	Object Name:	-
+                   	Object Handle:	0x2cc
+                   
+                   Process Information:
+                   	Process ID:	0x16d8
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	2031617
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:24:16 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Mutant
+                   	Object Name:	\BaseNamedObjects\SM0:5848:304:WilStaging_02
+                   	Object Handle:	0x2cc
+                   
+                   Process Information:
+                   	Process ID:	0x16d8
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query mutant state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:24:16 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Semaphore
+                   	Object Name:	\BaseNamedObjects\SM0:5848:304:WilStaging_02_p0h
+                   	Object Handle:	0x260
+                   
+                   Process Information:
+                   	Process ID:	0x16d8
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query semaphore state
+                   				Modify semaphore state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:24:16 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Semaphore
+                   	Object Name:	\BaseNamedObjects\SM0:5848:304:WilStaging_02_p0
+                   	Object Handle:	0x258
+                   
+                   Process Information:
+                   	Process ID:	0x16d8
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query semaphore state
+                   				Modify semaphore state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:24:16 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	-
+                   	Object Name:	-
+                   	Object Handle:	0x254
+                   
+                   Process Information:
+                   	Process ID:	0x16d8
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	2031617
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:24:16 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Mutant
+                   	Object Name:	\BaseNamedObjects\SM0:5848:304:WilStaging_02
+                   	Object Handle:	0x254
+                   
+                   Process Information:
+                   	Process ID:	0x16d8
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query mutant state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:24:16 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Semaphore
+                   	Object Name:	\BaseNamedObjects\SM0:5848:304:WilStaging_02_p0h
+                   	Object Handle:	0x5c
+                   
+                   Process Information:
+                   	Process ID:	0x16d8
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query semaphore state
+                   				Modify semaphore state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:24:16 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Semaphore
+                   	Object Name:	\BaseNamedObjects\SM0:5848:304:WilStaging_02_p0
+                   	Object Handle:	0x1f4
+                   
+                   Process Information:
+                   	Process ID:	0x16d8
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query semaphore state
+                   				Modify semaphore state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:24:16 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	-
+                   	Object Name:	-
+                   	Object Handle:	0x1ec
+                   
+                   Process Information:
+                   	Process ID:	0x16d8
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	2031617
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:24:16 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Mutant
+                   	Object Name:	\BaseNamedObjects\SM0:5848:304:WilStaging_02
+                   	Object Handle:	0x1ec
+                   
+                   Process Information:
+                   	Process ID:	0x16d8
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query mutant state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:24:16 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	File
+                   	Object Name:	\Device\ConDrv
+                   	Object Handle:	0x4
+                   
+                   Process Information:
+                   	Process ID:	0x1040
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				ReadData (or ListDirectory)
+                   				WriteData (or AddFile)
+                   				AppendData (or AddSubdirectory or CreatePipeInstance)
+                   				ReadEA
+                   				WriteEA
+                   				Execute/Traverse
+                   				DeleteChild
+                   				ReadAttributes
+                   				WriteAttributes
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:24:16 AM
+Id               : 4688
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : A new process has been created.
+                   
+                   Creator Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Target Subject:
+                   	Security ID:		S-1-0-0
+                   	Account Name:		-
+                   	Account Domain:		-
+                   	Logon ID:		0x0
+                   
+                   Process Information:
+                   	New Process ID:		0x1040
+                   	New Process Name:	C:\Windows\System32\conhost.exe
+                   	Token Elevation Type:	TokenElevationTypeDefault (1)
+                   	Mandatory Label:		S-1-16-12288
+                   	Creator Process ID:	0x16d8
+                   	Creator Process Name:	C:\Windows\System32\gpresult.exe
+                   	Process Command Line:	
+                   
+                   Token Elevation Type indicates the type of token that was assigned to the new process in accordance 
+                   with User Account Control policy.
+                   
+                   Type 1 is a full token with no privileges removed or groups disabled.  A full token is only used if 
+                   User Account Control is disabled or if the user is the built-in Administrator account or a service 
+                   account.
+                   
+                   Type 2 is an elevated token with no privileges removed or groups disabled.  An elevated token is 
+                   used when User Account Control is enabled and the user chooses to start the program using Run as 
+                   administrator.  An elevated token is also used when an application is configured to always require 
+                   administrative privilege or to always require maximum privilege, and the user is a member of the 
+                   Administrators group.
+                   
+                   Type 3 is a limited token with administrative privileges removed and administrative groups 
+                   disabled.  The limited token is used when User Account Control is enabled, the application does not 
+                   require administrative privilege, and the user does not choose to start the program using Run as 
+                   administrator.
+
+TimeCreated      : 2/24/2026 8:24:15 AM
+Id               : 4688
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : A new process has been created.
+                   
+                   Creator Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Target Subject:
+                   	Security ID:		S-1-0-0
+                   	Account Name:		-
+                   	Account Domain:		-
+                   	Logon ID:		0x0
+                   
+                   Process Information:
+                   	New Process ID:		0x16d8
+                   	New Process Name:	C:\Windows\System32\gpresult.exe
+                   	Token Elevation Type:	TokenElevationTypeDefault (1)
+                   	Mandatory Label:		S-1-16-12288
+                   	Creator Process ID:	0x10c4
+                   	Creator Process Name:	C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+                   	Process Command Line:	
+                   
+                   Token Elevation Type indicates the type of token that was assigned to the new process in accordance 
+                   with User Account Control policy.
+                   
+                   Type 1 is a full token with no privileges removed or groups disabled.  A full token is only used if 
+                   User Account Control is disabled or if the user is the built-in Administrator account or a service 
+                   account.
+                   
+                   Type 2 is an elevated token with no privileges removed or groups disabled.  An elevated token is 
+                   used when User Account Control is enabled and the user chooses to start the program using Run as 
+                   administrator.  An elevated token is also used when an application is configured to always require 
+                   administrative privilege or to always require maximum privilege, and the user is a member of the 
+                   Administrators group.
+                   
+                   Type 3 is a limited token with administrative privileges removed and administrative groups 
+                   disabled.  The limited token is used when User Account Control is enabled, the application does not 
+                   require administrative privilege, and the user does not choose to start the program using Run as 
+                   administrator.
+
+TimeCreated      : 2/24/2026 8:24:13 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Semaphore
+                   	Object Name:	\BaseNamedObjects\SM0:4492:304:WilStaging_02_p0h
+                   	Object Handle:	0x6bc
+                   
+                   Process Information:
+                   	Process ID:	0x118c
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query semaphore state
+                   				Modify semaphore state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+TimeCreated      : 2/24/2026 8:24:13 AM
+Id               : 4674
+LevelDisplayName : Information
+ProviderName     : Microsoft-Windows-Security-Auditing
+Message          : An operation was attempted on a privileged object.
+                   
+                   Subject:
+                   	Security ID:		S-1-5-21-2575695074-2613746757-3083589692-500
+                   	Account Name:		admin_patrick
+                   	Account Domain:		cui-win-pilot-0
+                   	Logon ID:		0x278C88
+                   
+                   Object:
+                   	Object Server:	Security
+                   	Object Type:	Semaphore
+                   	Object Name:	\BaseNamedObjects\SM0:4492:304:WilStaging_02_p0
+                   	Object Handle:	0x5b4
+                   
+                   Process Information:
+                   	Process ID:	0x118c
+                   	Process Name:	C:\Windows\System32\gpresult.exe
+                   
+                   Requested Operation:
+                   	Desired Access:	DELETE
+                   				READ_CONTROL
+                   				WRITE_DAC
+                   				WRITE_OWNER
+                   				SYNCHRONIZE
+                   				Query semaphore state
+                   				Modify semaphore state
+                   				
+                   	Privileges:		SeTakeOwnershipPrivilege
+
+
+
+
+

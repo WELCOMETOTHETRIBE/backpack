@@ -1,0 +1,1 @@
+ALTER TYPE "public"."implementation_status" ADD VALUE 'inherited';

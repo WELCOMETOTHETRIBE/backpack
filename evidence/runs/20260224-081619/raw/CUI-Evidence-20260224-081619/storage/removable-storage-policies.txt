@@ -1,0 +1,30 @@
+﻿
+=== HKLM:\SOFTWARE\Policies\Microsoft\Windows\RemovableStorageDevices ===
+
+Missing: HKLM:\SOFTWARE\Policies\Microsoft\Windows\RemovableStorageDevices
+
+=== HKLM:\SOFTWARE\Policies\Microsoft\Windows\DeviceInstall\Restrictions ===
+
+Missing: HKLM:\SOFTWARE\Policies\Microsoft\Windows\DeviceInstall\Restrictions
+
+=== HKLM:\SYSTEM\CurrentControlSet\Services\USBSTOR ===
+
+
+
+ImagePath    : \SystemRoot\System32\drivers\USBSTOR.SYS
+Type         : 1
+Start        : 4
+ErrorControl : 1
+DisplayName  : @usbstor.inf,%USBSTOR.SvcDesc%;USB Mass Storage Driver
+Owners       : {v_mscdsc.inf, usbstor.inf}
+BootFlags    : 20
+PSPath       : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\USBSTOR
+PSParentPath : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services
+PSChildName  : USBSTOR
+PSDrive      : HKLM
+PSProvider   : Microsoft.PowerShell.Core\Registry
+
+
+
+
+

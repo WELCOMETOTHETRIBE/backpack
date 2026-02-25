@@ -1,0 +1,244 @@
+{
+  "schema": "mactech.codex.manual.governance_manifest",
+  "version": 3,
+  "source": {
+    "bundle": "platform-agnostic-governance-bundle-20260205-2125",
+    "path": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures"
+  },
+  "docs": [
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-CMP-001_Configuration_Management_Plan.md",
+      "kind": "plan",
+      "code": "MAC-CMP-001",
+      "title": "Configuration Management Plan - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-FRM-203_User_Access_and_FCI_Handling_Acknowledgement.md",
+      "kind": "form",
+      "code": "MAC-FRM-203",
+      "title": "User Access and FCI/CUI Handling Acknowledgement - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-FRM-204_CUI_Enclave_User_Agreement_and_Rules_of_Behavior.md",
+      "kind": "form",
+      "code": "MAC-FRM-204",
+      "title": "CUI Enclave User Agreement, Rules of Behavior, and Acceptable Use - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-IRP-001_Incident_Response_Plan.md",
+      "kind": "plan",
+      "code": "MAC-IRP-001",
+      "title": "Incident Response Plan (IRP) - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-210_Access_Control_Policy.md",
+      "kind": "policy",
+      "code": "MAC-POL-210",
+      "title": "Access Control Policy - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-211_Identification_and_Authentication_Policy.md",
+      "kind": "policy",
+      "code": "MAC-POL-211",
+      "title": "Identification & Authentication Policy - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-212_Physical_Security_Policy.md",
+      "kind": "policy",
+      "code": "MAC-POL-212",
+      "title": "Physical Security Policy - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-213_Media_Handling_Policy.md",
+      "kind": "policy",
+      "code": "MAC-POL-213",
+      "title": "Media Handling & Data Disposal Policy - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-214_System_Integrity_Policy.md",
+      "kind": "policy",
+      "code": "MAC-POL-214",
+      "title": "System & Information Integrity Policy - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-215_Incident_Response_Policy.md",
+      "kind": "policy",
+      "code": "MAC-POL-215",
+      "title": "Incident Response Policy - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-216_System_Integrity_Policy_Reference.md",
+      "kind": "policy",
+      "code": "MAC-POL-216",
+      "title": "System & Information Integrity Policy - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-217_Ongoing_Stakeholder_Requirements.md",
+      "kind": "policy",
+      "code": "MAC-POL-217",
+      "title": "Ongoing Stakeholder Requirements - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-218_Audit_and_Accountability_Policy.md",
+      "kind": "policy",
+      "code": "MAC-POL-218",
+      "title": "Audit and Accountability Policy - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-219_Awareness_and_Training_Policy.md",
+      "kind": "policy",
+      "code": "MAC-POL-219",
+      "title": "Awareness and Training Policy - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-220_Configuration_Management_Policy.md",
+      "kind": "policy",
+      "code": "MAC-POL-220",
+      "title": "Configuration Management Policy - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-221_Maintenance_Policy.md",
+      "kind": "policy",
+      "code": "MAC-POL-221",
+      "title": "Maintenance Policy - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-222_Personnel_Security_Policy.md",
+      "kind": "policy",
+      "code": "MAC-POL-222",
+      "title": "Personnel Security Policy - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-223_Risk_Assessment_Policy.md",
+      "kind": "policy",
+      "code": "MAC-POL-223",
+      "title": "Risk Assessment Policy - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-224_Security_Assessment_Policy.md",
+      "kind": "policy",
+      "code": "MAC-POL-224",
+      "title": "Security Assessment Policy - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-225_System_and_Communications_Protection_Policy.md",
+      "kind": "policy",
+      "code": "MAC-POL-225",
+      "title": "System and Communications Protection Policy - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-226_Software_Restriction_Policy.md",
+      "kind": "policy",
+      "code": "MAC-POL-226",
+      "title": "Software Restriction Policy - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-221_User_Account_Provisioning_and_Deprovisioning_Procedure.md",
+      "kind": "procedure",
+      "code": "MAC-SOP-221",
+      "title": "User Account Provisioning and Deprovisioning Procedure - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-222_Account_Lifecycle_Enforcement_Procedure.md",
+      "kind": "procedure",
+      "code": "MAC-SOP-222",
+      "title": "Account Lifecycle Enforcement - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-223_Incident_Identification_and_Reporting_Procedure.md",
+      "kind": "procedure",
+      "code": "MAC-SOP-223",
+      "title": "Incident Identification and Reporting Procedure - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-224_Physical_Environment_and_Remote_Work_Controls.md",
+      "kind": "procedure",
+      "code": "MAC-SOP-224",
+      "title": "Physical Environment and Remote Work Controls - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-225_Configuration_Change_Awareness_Procedure.md",
+      "kind": "procedure",
+      "code": "MAC-SOP-225",
+      "title": "Configuration Change Awareness Procedure - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-226_Audit_Log_Review_Procedure.md",
+      "kind": "procedure",
+      "code": "MAC-SOP-226",
+      "title": "Audit Log Review Procedure - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-227_Security_Awareness_Training_Procedure.md",
+      "kind": "procedure",
+      "code": "MAC-SOP-227",
+      "title": "Security Awareness Training Procedure - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-228_Configuration_Baseline_Management_Procedure.md",
+      "kind": "procedure",
+      "code": "MAC-SOP-228",
+      "title": "Configuration Baseline Management Procedure - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-229_Risk_Assessment_Procedure.md",
+      "kind": "procedure",
+      "code": "MAC-SOP-229",
+      "title": "Risk Assessment Procedure - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-230_Vulnerability_Scanning_Procedure.md",
+      "kind": "procedure",
+      "code": "MAC-SOP-230",
+      "title": "Vulnerability Scanning and Remediation Procedure - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-231_POA&M_Process_Procedure.md",
+      "kind": "procedure",
+      "code": "MAC-SOP-231",
+      "title": "Plan of Action and Milestones (POA&M) Process Procedure - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-232_Incident_Response_Testing_Procedure.md",
+      "kind": "procedure",
+      "code": "MAC-SOP-232",
+      "title": "Incident Response Testing Procedure - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-233_Personnel_Screening_Procedure.md",
+      "kind": "procedure",
+      "code": "MAC-SOP-233",
+      "title": "Personnel Screening Procedure - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-234_Personnel_Termination_Procedure.md",
+      "kind": "procedure",
+      "code": "MAC-SOP-234",
+      "title": "Personnel Termination Procedure - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-235_Separation_of_Duties_Matrix.md",
+      "kind": "procedure",
+      "code": "MAC-SOP-235",
+      "title": "Separation of Duties Matrix - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-236_Physical_Access_Device_Control_Procedure.md",
+      "kind": "procedure",
+      "code": "MAC-SOP-236",
+      "title": "Physical Access Device Control Procedure - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-237_Mobile_Code_Control_Procedure.md",
+      "kind": "procedure",
+      "code": "MAC-SOP-237",
+      "title": "Mobile Code Control Procedure - CMMC Level 2"
+    },
+    {
+      "id": "governance/platform-agnostic/compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-238_Maintenance_Tool_Control_Procedure.md",
+      "kind": "procedure",
+      "code": "MAC-SOP-238",
+      "title": "Maintenance Tool Control Procedure - CMMC Level 2"
+    }
+  ]
+}

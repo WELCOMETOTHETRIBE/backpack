@@ -1,0 +1,175 @@
+﻿
+[Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\SSL 3.0]
+
+
+[Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\SSL 3.0\Client]
+
+
+Enabled      : 0
+PSPath       : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProvider
+               s\SCHANNEL\Protocols\SSL 3.0\Client
+PSParentPath : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProvider
+               s\SCHANNEL\Protocols\SSL 3.0
+PSChildName  : Client
+PSProvider   : Microsoft.PowerShell.Core\Registry
+
+
+
+
+
+[Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\SSL 3.0\Server]
+
+
+Enabled      : 0
+PSPath       : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProvider
+               s\SCHANNEL\Protocols\SSL 3.0\Server
+PSParentPath : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProvider
+               s\SCHANNEL\Protocols\SSL 3.0
+PSChildName  : Server
+PSProvider   : Microsoft.PowerShell.Core\Registry
+
+
+
+
+
+[Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0]
+
+
+[Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Client]
+
+
+Enabled           : 0
+DisabledByDefault : 1
+PSPath            : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityPro
+                    viders\SCHANNEL\Protocols\TLS 1.0\Client
+PSParentPath      : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityPro
+                    viders\SCHANNEL\Protocols\TLS 1.0
+PSChildName       : Client
+PSProvider        : Microsoft.PowerShell.Core\Registry
+
+
+
+
+
+[Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Server]
+
+
+Enabled           : 0
+DisabledByDefault : 1
+PSPath            : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityPro
+                    viders\SCHANNEL\Protocols\TLS 1.0\Server
+PSParentPath      : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityPro
+                    viders\SCHANNEL\Protocols\TLS 1.0
+PSChildName       : Server
+PSProvider        : Microsoft.PowerShell.Core\Registry
+
+
+
+
+
+[Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1]
+
+
+[Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Client]
+
+
+Enabled           : 0
+DisabledByDefault : 1
+PSPath            : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityPro
+                    viders\SCHANNEL\Protocols\TLS 1.1\Client
+PSParentPath      : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityPro
+                    viders\SCHANNEL\Protocols\TLS 1.1
+PSChildName       : Client
+PSProvider        : Microsoft.PowerShell.Core\Registry
+
+
+
+
+
+[Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Server]
+
+
+Enabled           : 0
+DisabledByDefault : 1
+PSPath            : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityPro
+                    viders\SCHANNEL\Protocols\TLS 1.1\Server
+PSParentPath      : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityPro
+                    viders\SCHANNEL\Protocols\TLS 1.1
+PSChildName       : Server
+PSProvider        : Microsoft.PowerShell.Core\Registry
+
+
+
+
+
+[Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2]
+
+
+[Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Client]
+
+
+Enabled           : 1
+DisabledByDefault : 0
+PSPath            : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityPro
+                    viders\SCHANNEL\Protocols\TLS 1.2\Client
+PSParentPath      : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityPro
+                    viders\SCHANNEL\Protocols\TLS 1.2
+PSChildName       : Client
+PSProvider        : Microsoft.PowerShell.Core\Registry
+
+
+
+
+
+[Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Server]
+
+
+Enabled           : 1
+DisabledByDefault : 0
+PSPath            : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityPro
+                    viders\SCHANNEL\Protocols\TLS 1.2\Server
+PSParentPath      : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityPro
+                    viders\SCHANNEL\Protocols\TLS 1.2
+PSChildName       : Server
+PSProvider        : Microsoft.PowerShell.Core\Registry
+
+
+
+
+
+[Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.3]
+
+
+[Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.3\Client]
+
+
+Enabled           : 1
+DisabledByDefault : 0
+PSPath            : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityPro
+                    viders\SCHANNEL\Protocols\TLS 1.3\Client
+PSParentPath      : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityPro
+                    viders\SCHANNEL\Protocols\TLS 1.3
+PSChildName       : Client
+PSProvider        : Microsoft.PowerShell.Core\Registry
+
+
+
+
+
+[Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.3\Server]
+
+
+Enabled           : 1
+DisabledByDefault : 0
+PSPath            : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityPro
+                    viders\SCHANNEL\Protocols\TLS 1.3\Server
+PSParentPath      : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityPro
+                    viders\SCHANNEL\Protocols\TLS 1.3
+PSChildName       : Server
+PSProvider        : Microsoft.PowerShell.Core\Registry
+
+
+
+
+
+

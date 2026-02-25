@@ -1,0 +1,18 @@
+{
+  "description": "Enclave scope and design/NA justifications for controls satisfied by scope (no mobile, no wireless, no removable CUI media, etc.). Must be present in evidence bundle for design_na controls to pass validation.",
+  "controls": [
+    { "control_id": "AC.L2-3.1.18", "reason": "No mobile devices in enclave scope; access is VPN + RDP only." },
+    { "control_id": "AC.L2-3.1.19", "reason": "No mobile devices in scope; N/A." },
+    { "control_id": "AC.L2-3.1.20", "reason": "No external system interconnections for CUI; enclave boundary is VPN + single VM." },
+    { "control_id": "AC.L2-3.1.22", "reason": "No public systems used for CUI; enclave is private VM." },
+    { "control_id": "MP.L2-3.8.3", "reason": "No removable CUI media in scope; USB mass storage disabled (usbstor)." },
+    { "control_id": "MP.L2-3.8.4", "reason": "No physical CUI media in scope; N/A." },
+    { "control_id": "MP.L2-3.8.5", "reason": "No transport of CUI media; N/A." },
+    { "control_id": "SC.L2-3.13.12", "reason": "No collaborative computing devices in enclave scope; N/A." }
+  ],
+  "governance_attested": [
+    { "control_id": "MA.L2-3.7.1", "reason": "Maintenance performed per documented procedures; evidence in governance records." },
+    { "control_id": "MP.L2-3.8.9", "reason": "Backup CUI protection per backup procedures; governance." },
+    { "control_id": "SC.L2-3.13.2", "reason": "Architectural designs in network diagram and boundary docs; governance." }
+  ]
+}

@@ -1,0 +1,1156 @@
+{
+    "schema":  "mactech.codex.azure_inheritance",
+    "version":  1,
+    "generated_utc":  "2026-02-07T23:13:13.8821671Z",
+    "run_id":  "20260207-231313",
+    "out_dir":  "C:\\evidence\\CUI-Azure-Inheritance-20260207-231313",
+    "mapping_sources":  {
+                            "control_implementation_map":  true,
+                            "sctm_csv":  true
+                        },
+    "boundary_statement":  "Microsoft Azure provides datacenter physical security and platform operations. Customer remains responsible for enclave configuration: identity, network rules, OS hardening, logging/monitoring, and governance.",
+    "azure_related_controls":  [
+                                   {
+                                       "control_id":  "AC.L2-3.1.1",
+                                       "family":  "AC",
+                                       "title":  "Limit system access to authorized users, processes, devices",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Access path is VM+Azure+Entra (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/access/ (to be implemented)",
+                                                                  "Regeneration: Export config/logs; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "AC.L2-3.1.12",
+                                       "family":  "AC",
+                                       "title":  "Monitor remote access",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Access path is VM+Azure+Entra (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+                                                                   "RM-WINRM"
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/access/ (to be implemented)",
+                                                                  "Regeneration: Export config/logs; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "AC.L2-3.1.13",
+                                       "family":  "AC",
+                                       "title":  "Cryptographic remote access",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Access path is VM+Azure+Entra (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/access/ (to be implemented)",
+                                                                  "Regeneration: Export config/logs; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "AC.L2-3.1.14",
+                                       "family":  "AC",
+                                       "title":  "Managed access control points",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Access path is VM+Azure+Entra (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/access/ (to be implemented)",
+                                                                  "Regeneration: Export config/logs; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "AC.L2-3.1.15",
+                                       "family":  "AC",
+                                       "title":  "Authorize remote privileged commands",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Access path is VM+Azure+Entra (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/access/ (to be implemented)",
+                                                                  "Regeneration: Export config/logs; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "AC.L2-3.1.18",
+                                       "family":  "AC",
+                                       "title":  "Control mobile devices",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Access path is VM+Azure+Entra (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/access/ (to be implemented)",
+                                                                  "Regeneration: Export config/logs; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "AC.L2-3.1.19",
+                                       "family":  "AC",
+                                       "title":  "Encrypt CUI on mobile devices",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Access path is VM+Azure+Entra (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/access/ (to be implemented)",
+                                                                  "Regeneration: Export config/logs; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "AC.L2-3.1.2",
+                                       "family":  "AC",
+                                       "title":  "Limit access to transactions/functions",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Access path is VM+Azure+Entra (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/access/ (to be implemented)",
+                                                                  "Regeneration: Export config/logs; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "AC.L2-3.1.20",
+                                       "family":  "AC",
+                                       "title":  "Verify external systems",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Access path is VM+Azure+Entra (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/access/ (to be implemented)",
+                                                                  "Regeneration: Export config/logs; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "AC.L2-3.1.21",
+                                       "family":  "AC",
+                                       "title":  "Limit portable storage",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Access path is VM+Azure+Entra (shared)",
+                                       "hardening_actions":  [
+                                                                 "VM: Disable USB mass storage (USBSTOR) + removable storage policies."
+                                                             ],
+                                       "validator_check_ids":  [
+                                                                   "PORTABLE-STORAGE"
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "VM: C:\\evidence\\CUI-Evidence-20260206-084423\\rdp-policy.txt; C:\\evidence\\CUI-Evidence-20260206-084423\\rdp-tcp.txt",
+                                                                  "Regeneration: Run C:\\hardening\\codex-scripts\\Collect-Cui-Evidence.ps1; hash + store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "AC.L2-3.1.22",
+                                       "family":  "AC",
+                                       "title":  "Control CUI on public systems",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Access path is VM+Azure+Entra (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/access/ (to be implemented)",
+                                                                  "Regeneration: Export config/logs; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "AC.L2-3.1.3",
+                                       "family":  "AC",
+                                       "title":  "Control flow of CUI",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Access path is VM+Azure+Entra (shared)",
+                                       "hardening_actions":  [
+                                                                 "VM: Enforce RDP redirection restrictions (clipboard/drive) + NLA.",
+                                                                 "Azure: Restrict egress (NSG/Azure Firewall) and keep admin access Bastion-only."
+                                                             ],
+                                       "validator_check_ids":  [
+                                                                   "RDP-REDIR"
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "VM: C:\\evidence\\CUI-Evidence-20260206-084423\\rdp-policy.txt; C:\\evidence\\CUI-Evidence-20260206-084423\\rdp-tcp.txt",
+                                                                  "Regeneration: Run C:\\hardening\\codex-scripts\\Collect-Cui-Evidence.ps1; hash + store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "AC.L2-3.1.5",
+                                       "family":  "AC",
+                                       "title":  "Least privilege",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Access path is VM+Azure+Entra (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/access/ (to be implemented)",
+                                                                  "Regeneration: Export config/logs; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "AC.L2-3.1.6",
+                                       "family":  "AC",
+                                       "title":  "Non-privileged accounts",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Access path is VM+Azure+Entra (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/access/ (to be implemented)",
+                                                                  "Regeneration: Export config/logs; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "AC.L2-3.1.7",
+                                       "family":  "AC",
+                                       "title":  "Prevent privileged function execution",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Access path is VM+Azure+Entra (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/access/ (to be implemented)",
+                                                                  "Regeneration: Export config/logs; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "AU.L2-3.3.1",
+                                       "family":  "AU",
+                                       "title":  "Create and retain audit logs",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Windows VM + Azure Monitor/SIEM (shared)",
+                                       "hardening_actions":  [
+                                                                 "VM: Enable audit policy; ensure event logs enabled/retained.",
+                                                                 "Azure: Export/send logs to Log Analytics/SIEM (optional)."
+                                                             ],
+                                       "validator_check_ids":  [
+                                                                   "AU-SECLOG",
+                                                                   "AU-AUDITPOL"
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "VM: C:\\evidence\\CUI-Evidence-20260206-084423\\eventlog-security.txt; C:\\evidence\\CUI-Evidence-20260206-084423\\eventlog-system.txt; C:\\evidence\\CUI-Evidence-20260206-084423\\eventlog-application.txt; C:\\evidence\\CUI-Evidence-20260206-084423\\auditpol.txt",
+                                                                  "Regeneration: Run C:\\hardening\\codex-scripts\\Collect-Cui-Evidence.ps1; hash + store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "AU.L2-3.3.2",
+                                       "family":  "AU",
+                                       "title":  "Unique user traceability",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Windows VM + Azure Monitor/SIEM (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/logging/ (to be implemented)",
+                                                                  "Regeneration: Export config + query outputs; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "AU.L2-3.3.4",
+                                       "family":  "AU",
+                                       "title":  "Alert on audit logging failure",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Windows VM + Azure Monitor/SIEM (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/logging/ (to be implemented)",
+                                                                  "Regeneration: Export config + query outputs; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "AU.L2-3.3.5",
+                                       "family":  "AU",
+                                       "title":  "Correlate audit records",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Windows VM + Azure Monitor/SIEM (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/logging/ (to be implemented)",
+                                                                  "Regeneration: Export config + query outputs; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "AU.L2-3.3.6",
+                                       "family":  "AU",
+                                       "title":  "Audit record reduction/reporting",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Windows VM + Azure Monitor/SIEM (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/logging/ (to be implemented)",
+                                                                  "Regeneration: Export config + query outputs; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "AU.L2-3.3.7",
+                                       "family":  "AU",
+                                       "title":  "System clock synchronization",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Windows VM + Azure Monitor/SIEM (shared)",
+                                       "hardening_actions":  [
+                                                                 "VM: Ensure W32Time running and time source not Local CMOS Clock."
+                                                             ],
+                                       "validator_check_ids":  [
+                                                                   "TIME-SYNC"
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "VM: C:\\evidence\\CUI-Evidence-20260206-084423\\time-sync.txt",
+                                                                  "Regeneration: Run C:\\hardening\\codex-scripts\\Collect-Cui-Evidence.ps1; hash + store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "AU.L2-3.3.8",
+                                       "family":  "AU",
+                                       "title":  "Protect audit information",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Windows VM + Azure Monitor/SIEM (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/logging/ (to be implemented)",
+                                                                  "Regeneration: Export config + query outputs; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "AU.L2-3.3.9",
+                                       "family":  "AU",
+                                       "title":  "Limit audit logging management",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Windows VM + Azure Monitor/SIEM (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/logging/ (to be implemented)",
+                                                                  "Regeneration: Export config + query outputs; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "MA.L2-3.7.1",
+                                       "family":  "MA",
+                                       "title":  "Perform maintenance",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Operational + VM + Azure (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/access/ (to be implemented)",
+                                                                  "Regeneration: Export config/logs; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "MA.L2-3.7.2",
+                                       "family":  "MA",
+                                       "title":  "Controls on maintenance tools",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Operational + VM + Azure (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/access/ (to be implemented)",
+                                                                  "Regeneration: Export config/logs; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "MP.L2-3.8.1",
+                                       "family":  "MP",
+                                       "title":  "Protect system media",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Operational + VM + Azure (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/media/ (to be implemented)",
+                                                                  "Regeneration: Run policy checks + export settings; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "MP.L2-3.8.2",
+                                       "family":  "MP",
+                                       "title":  "Limit access to CUI on media",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Operational + VM + Azure (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/media/ (to be implemented)",
+                                                                  "Regeneration: Run policy checks + export settings; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "MP.L2-3.8.3",
+                                       "family":  "MP",
+                                       "title":  "Sanitize/destroy media",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Operational + VM + Azure (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/media/ (to be implemented)",
+                                                                  "Regeneration: Run policy checks + export settings; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "MP.L2-3.8.4",
+                                       "family":  "MP",
+                                       "title":  "Mark media with CUI markings",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Operational + VM + Azure (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/media/ (to be implemented)",
+                                                                  "Regeneration: Run policy checks + export settings; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "MP.L2-3.8.5",
+                                       "family":  "MP",
+                                       "title":  "Control access during transport",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Operational + VM + Azure (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/media/ (to be implemented)",
+                                                                  "Regeneration: Run policy checks + export settings; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "MP.L2-3.8.6",
+                                       "family":  "MP",
+                                       "title":  "Cryptographic protection on digital media",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Operational + VM + Azure (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/media/ (to be implemented)",
+                                                                  "Regeneration: Run policy checks + export settings; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "MP.L2-3.8.7",
+                                       "family":  "MP",
+                                       "title":  "Control removable media",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Operational + VM + Azure (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+                                                                   "USBSTOR"
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "VM: C:\\evidence\\CUI-Evidence-20260206-085929\\usbstor.txt; C:\\evidence\\CUI-Validation-20260206-085922\\validation-report.txt",
+                                                                  "Regeneration: Run C:\\hardening\\codex-scripts\\Collect-Cui-Evidence.ps1 + C:\\hardening\\codex-scripts\\Test-CuiHardening.ps1; hash + store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "MP.L2-3.8.8",
+                                       "family":  "MP",
+                                       "title":  "Prohibit portable storage without owner",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Operational + VM + Azure (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/media/ (to be implemented)",
+                                                                  "Regeneration: Run policy checks + export settings; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "MP.L2-3.8.9",
+                                       "family":  "MP",
+                                       "title":  "Protect backup CUI",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Operational + VM + Azure (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/media/ (to be implemented)",
+                                                                  "Regeneration: Run policy checks + export settings; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "RA.L2-3.11.2",
+                                       "family":  "RA",
+                                       "title":  "Scan for vulnerabilities",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Operational + VM + Azure (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/vulnerability/ (to be implemented)",
+                                                                  "Regeneration: Export scan results + remediation logs; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "RA.L2-3.11.3",
+                                       "family":  "RA",
+                                       "title":  "Remediate vulnerabilities",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Operational + VM + Azure (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/vulnerability/ (to be implemented)",
+                                                                  "Regeneration: Export scan results + remediation logs; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "SC.L2-3.13.1",
+                                       "family":  "SC",
+                                       "title":  "Monitor/control/protect communications",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Network boundary is VM+Azure (shared)",
+                                       "hardening_actions":  [
+                                                                 "Azure: Enforce network boundary via VNet/NSG; no public RDP.",
+                                                                 "VM: Firewall baseline + SMB signing required."
+                                                             ],
+                                       "validator_check_ids":  [
+                                                                   "NET-FW",
+                                                                   "SMB-SIGN"
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "VM: C:\\evidence\\CUI-Evidence-20260206-084423\\firewall.txt; C:\\evidence\\CUI-Evidence-20260206-084423\\firewall-rules-summary.txt",
+                                                                  "Regeneration: Run C:\\hardening\\codex-scripts\\Collect-Cui-Evidence.ps1; hash + store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "SC.L2-3.13.10",
+                                       "family":  "SC",
+                                       "title":  "Cryptographic key management",
+                                       "implementation_domain":  "azure_resource",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Microsoft Azure (resource configuration)",
+                                       "hardening_actions":  [
+                                                                 "Azure: Configure resource controls (NSG/Bastion/Disks/Monitor/Backup) to satisfy this requirement."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/network/ (to be implemented)",
+                                                                  "Regeneration: Export IaC/config + verification; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "SC.L2-3.13.12",
+                                       "family":  "SC",
+                                       "title":  "Collaborative computing devices",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Network boundary is VM+Azure (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/network/ (to be implemented)",
+                                                                  "Regeneration: Export IaC/config + verification; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "SC.L2-3.13.13",
+                                       "family":  "SC",
+                                       "title":  "Control mobile code",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Network boundary is VM+Azure (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/network/ (to be implemented)",
+                                                                  "Regeneration: Export IaC/config + verification; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "SC.L2-3.13.15",
+                                       "family":  "SC",
+                                       "title":  "Protect authenticity of communications",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Network boundary is VM+Azure (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/network/ (to be implemented)",
+                                                                  "Regeneration: Export IaC/config + verification; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "SC.L2-3.13.16",
+                                       "family":  "SC",
+                                       "title":  "Protect CUI at rest",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Network boundary is VM+Azure (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "VM: C:\\evidence\\CUI-Evidence-20260206-084423\\bitlocker-status.txt",
+                                                                  "Regeneration: Run C:\\hardening\\codex-scripts\\Collect-Cui-Evidence.ps1; hash + store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "SC.L2-3.13.2",
+                                       "family":  "SC",
+                                       "title":  "Architectural designs",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Network boundary is VM+Azure (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/network/ (to be implemented)",
+                                                                  "Regeneration: Export IaC/config + verification; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "SC.L2-3.13.3",
+                                       "family":  "SC",
+                                       "title":  "Separate user/system management",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Network boundary is VM+Azure (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/network/ (to be implemented)",
+                                                                  "Regeneration: Export IaC/config + verification; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "SC.L2-3.13.4",
+                                       "family":  "SC",
+                                       "title":  "Prevent unauthorized information transfer",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Network boundary is VM+Azure (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/network/ (to be implemented)",
+                                                                  "Regeneration: Export IaC/config + verification; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "SC.L2-3.13.5",
+                                       "family":  "SC",
+                                       "title":  "Implement subnetworks",
+                                       "implementation_domain":  "azure_resource",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Microsoft Azure (resource configuration)",
+                                       "hardening_actions":  [
+                                                                 "Azure: Configure resource controls (NSG/Bastion/Disks/Monitor/Backup) to satisfy this requirement."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/network/ (to be implemented)",
+                                                                  "Regeneration: Export IaC/config + verification; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "SC.L2-3.13.6",
+                                       "family":  "SC",
+                                       "title":  "Deny-by-default network communications",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Network boundary is VM+Azure (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+                                                                   "NET-FW"
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "VM: C:\\evidence\\CUI-Evidence-20260206-085929\\firewall.txt; C:\\evidence\\CUI-Evidence-20260206-085929\\firewall-rules-summary.txt; C:\\evidence\\CUI-Validation-20260206-085922\\validation-report.txt",
+                                                                  "Regeneration: Run C:\\hardening\\codex-scripts\\Collect-Cui-Evidence.ps1 + C:\\hardening\\codex-scripts\\Test-CuiHardening.ps1; hash + store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "SC.L2-3.13.8",
+                                       "family":  "SC",
+                                       "title":  "Cryptographic mechanisms for CUI in transit",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Network boundary is VM+Azure (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+                                                                   "CRYPTO-TLS"
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "VM: C:\\evidence\\CUI-Evidence-20260206-085929\\schannel-protocols.txt; C:\\evidence\\CUI-Evidence-20260206-085929\\smb1-feature.txt; C:\\evidence\\CUI-Validation-20260206-085922\\validation-report.txt",
+                                                                  "Regeneration: Run C:\\hardening\\codex-scripts\\Collect-Cui-Evidence.ps1 + C:\\hardening\\codex-scripts\\Test-CuiHardening.ps1; hash + store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "SC.L2-3.13.9",
+                                       "family":  "SC",
+                                       "title":  "Terminate network connections",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Network boundary is VM+Azure (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/network/ (to be implemented)",
+                                                                  "Regeneration: Export IaC/config + verification; hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "SI.L2-3.14.1",
+                                       "family":  "SI",
+                                       "title":  "Identify/report/correct flaws",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Windows VM + Azure Monitor/SIEM (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+                                                                   "WU-SERVICES"
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "VM: C:\\evidence\\CUI-Evidence-20260206-084423\\hotfixes.txt",
+                                                                  "Regeneration: Run C:\\hardening\\codex-scripts\\Collect-Cui-Evidence.ps1; hash + store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "SI.L2-3.14.2",
+                                       "family":  "SI",
+                                       "title":  "Malicious code protection",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Windows VM + Azure Monitor/SIEM (shared)",
+                                       "hardening_actions":  [
+                                                                 "VM: Defender enabled; ASR rules where applicable.",
+                                                                 "Azure: Defender for Cloud (optional)."
+                                                             ],
+                                       "validator_check_ids":  [
+                                                                   "DEFENDER-ON"
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "VM: C:\\evidence\\CUI-Evidence-20260206-084423\\defender-status.txt",
+                                                                  "Regeneration: Run C:\\hardening\\codex-scripts\\Collect-Cui-Evidence.ps1; hash + store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "SI.L2-3.14.3",
+                                       "family":  "SI",
+                                       "title":  "Monitor security alerts",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Windows VM + Azure Monitor/SIEM (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/integrity/ (to be implemented)",
+                                                                  "Regeneration: Export reports + hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "SI.L2-3.14.4",
+                                       "family":  "SI",
+                                       "title":  "Update malicious code protection",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Windows VM + Azure Monitor/SIEM (shared)",
+                                       "hardening_actions":  [
+                                                                 "VM: Defender signatures updated (age threshold)."
+                                                             ],
+                                       "validator_check_ids":  [
+                                                                   "DEFENDER-UPDATES"
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "VM: C:\\evidence\\CUI-Evidence-20260206-084423\\defender-preferences.txt",
+                                                                  "Regeneration: Run C:\\hardening\\codex-scripts\\Collect-Cui-Evidence.ps1; hash + store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "SI.L2-3.14.5",
+                                       "family":  "SI",
+                                       "title":  "Periodic/real-time scans",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Windows VM + Azure Monitor/SIEM (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/integrity/ (to be implemented)",
+                                                                  "Regeneration: Export reports + hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "SI.L2-3.14.6",
+                                       "family":  "SI",
+                                       "title":  "Monitor systems and communications",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Windows VM + Azure Monitor/SIEM (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+                                                                   "LSA-PPL"
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "VM: C:\\evidence\\CUI-Evidence-20260206-084423\\lsa.txt",
+                                                                  "Regeneration: Run C:\\hardening\\codex-scripts\\Collect-Cui-Evidence.ps1; hash + store"
+                                                              ],
+                                       "notes":  ""
+                                   },
+                                   {
+                                       "control_id":  "SI.L2-3.14.7",
+                                       "family":  "SI",
+                                       "title":  "Identify unauthorized use",
+                                       "implementation_domain":  "shared",
+                                       "responsibility":  "shared",
+                                       "inheritance_source":  "Windows VM + Azure Monitor/SIEM (shared)",
+                                       "hardening_actions":  [
+                                                                 "Shared: Requires a combination of VM, Azure, and/or Entra enforcement + records."
+                                                             ],
+                                       "validator_check_ids":  [
+
+                                                               ],
+                                       "evidence_artifacts":  [
+                                                                  "Evidence vault: /evidence/integrity/ (to be implemented)",
+                                                                  "Regeneration: Export reports + hash; store"
+                                                              ],
+                                       "notes":  ""
+                                   }
+                               ],
+    "inherited_controls":  [
+                               {
+                                   "control_id":  "PE.L2-3.10.1",
+                                   "family":  "PE",
+                                   "nist_req_id":  "3.10.1",
+                                   "title":  "Limit physical access",
+                                   "classification":  "Inherited",
+                                   "pilot_status":  "Inherited (Evidence Pending)",
+                                   "pilot_status_basis":  "Inherited responsibility boundary documented; provider evidence not yet attached.",
+                                   "owner_role":  "Compliance Officer",
+                                   "implementation_domain":  "azure_platform_inherited",
+                                   "responsibility":  "provider",
+                                   "inheritance_source":  "Microsoft Azure (physical datacenter/platform)"
+                               },
+                               {
+                                   "control_id":  "PE.L2-3.10.2",
+                                   "family":  "PE",
+                                   "nist_req_id":  "3.10.2",
+                                   "title":  "Protect and monitor facility",
+                                   "classification":  "Inherited",
+                                   "pilot_status":  "Inherited (Evidence Pending)",
+                                   "pilot_status_basis":  "Inherited responsibility boundary documented; provider evidence not yet attached.",
+                                   "owner_role":  "Compliance Officer",
+                                   "implementation_domain":  "azure_platform_inherited",
+                                   "responsibility":  "provider",
+                                   "inheritance_source":  "Microsoft Azure (physical datacenter/platform)"
+                               },
+                               {
+                                   "control_id":  "PE.L2-3.10.3",
+                                   "family":  "PE",
+                                   "nist_req_id":  "3.10.3",
+                                   "title":  "Escort and monitor visitors",
+                                   "classification":  "Inherited",
+                                   "pilot_status":  "Inherited (Evidence Pending)",
+                                   "pilot_status_basis":  "Inherited responsibility boundary documented; provider evidence not yet attached.",
+                                   "owner_role":  "Compliance Officer",
+                                   "implementation_domain":  "azure_platform_inherited",
+                                   "responsibility":  "provider",
+                                   "inheritance_source":  "Microsoft Azure (physical datacenter/platform)"
+                               },
+                               {
+                                   "control_id":  "PE.L2-3.10.4",
+                                   "family":  "PE",
+                                   "nist_req_id":  "3.10.4",
+                                   "title":  "Physical access audit logs",
+                                   "classification":  "Inherited",
+                                   "pilot_status":  "Inherited (Evidence Pending)",
+                                   "pilot_status_basis":  "Inherited responsibility boundary documented; provider evidence not yet attached.",
+                                   "owner_role":  "Compliance Officer",
+                                   "implementation_domain":  "azure_platform_inherited",
+                                   "responsibility":  "provider",
+                                   "inheritance_source":  "Microsoft Azure (physical datacenter/platform)"
+                               },
+                               {
+                                   "control_id":  "PE.L2-3.10.5",
+                                   "family":  "PE",
+                                   "nist_req_id":  "3.10.5",
+                                   "title":  "Control physical access devices",
+                                   "classification":  "Inherited",
+                                   "pilot_status":  "Inherited (Evidence Pending)",
+                                   "pilot_status_basis":  "Inherited responsibility boundary documented; provider evidence not yet attached.",
+                                   "owner_role":  "Compliance Officer",
+                                   "implementation_domain":  "azure_platform_inherited",
+                                   "responsibility":  "provider",
+                                   "inheritance_source":  "Microsoft Azure (physical datacenter/platform)"
+                               }
+                           ],
+    "evidence_expectations":  [
+                                  "Retain provider attestation snapshot(s) (e.g., SOC reports, compliance offerings) as applicable to inherited controls.",
+                                  "Retain SRM review record (initial + annual + per material change).",
+                                  "Retain Azure configuration exports (NSG, Bastion, VM properties, disks encryption settings)."
+                              ]
+}

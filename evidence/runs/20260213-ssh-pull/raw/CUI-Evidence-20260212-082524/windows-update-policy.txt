@@ -1,0 +1,14 @@
+﻿
+HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU
+    AUOptions    REG_DWORD    0x4
+    NoAutoUpdate    REG_DWORD    0x0
+    ScheduledInstallDay    REG_DWORD    0x0
+    ScheduledInstallTime    REG_DWORD    0x3
+
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU
+    AUOptions    REG_DWORD    0x4
+    NoAutoUpdate    REG_DWORD    0x0
+    ScheduledInstallDay    REG_DWORD    0x0
+    ScheduledInstallTime    REG_DWORD    0x3
+

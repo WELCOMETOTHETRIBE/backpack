@@ -1,0 +1,23 @@
+﻿
+Name                      DisplayName                 
+----                      -----------                 
+BitLocker                 BitLocker Drive Encryption  
+EnhancedStorage           Enhanced Storage            
+FileAndStorage-Services   File and Storage Services   
+NET-Framework-45-Core     .NET Framework 4.8          
+NET-Framework-45-Features .NET Framework 4.8 Features 
+NET-WCF-Services45        WCF Services                
+NET-WCF-TCP-PortSharing45 TCP Port Sharing            
+PowerShell                Windows PowerShell 5.1      
+PowerShellRoot            Windows PowerShell          
+Storage-Services          Storage Services            
+System-DataArchiver       System Data Archiver        
+WindowsAdminCenterSetup   Windows Admin Center Setup  
+Windows-Defender          Microsoft Defender Antivirus
+Wireless-Networking       Wireless LAN Service        
+WoW64-Support             WoW64 Support               
+XPS-Viewer                XPS Viewer                  
+
+
+
+

@@ -1,0 +1,93 @@
+{
+  "summary": {
+    "generated_utc": "2026-02-14T21:53:23.169425+00:00",
+    "computer": "Patricks-MacBook-Pro.local",
+    "user": "patrick",
+    "azure_entra_dir": "/Users/patrick/cui-pilot/evidence/runs/20260214-214859/raw/azure",
+    "pass_count": 2,
+    "fail_count": 5,
+    "total": 7,
+    "control_ids": [
+      "IA.L2-3.5.3",
+      "IA.L2-3.5.4",
+      "IA.L2-3.5.5",
+      "IA.L2-3.5.6",
+      "MA.L2-3.7.5",
+      "SC.L2-3.13.10",
+      "SC.L2-3.13.5"
+    ]
+  },
+  "checks": [
+    {
+      "id": "ENTRA-MFA",
+      "control": "IA.L2-3.5.3",
+      "title": "MFA for privileged accounts (Entra evidence)",
+      "pass": false,
+      "observed": "Sign-in/CA evidence=True; MFA in access path attested=False",
+      "expected": "entra-signin or CA policy export present AND mfa-in-path-attested.txt (MFA in enclave access path)",
+      "evidence_hint": "entra-signin.json; Conditional Access export; mfa-in-path-attested.txt (add when VPN+Entra or Azure AD login for RDP)",
+      "timestamp_utc": "2026-02-14T21:53:23.167992+00:00"
+    },
+    {
+      "id": "ENTRA-MFA-MA",
+      "control": "MA.L2-3.7.5",
+      "title": "MFA for nonlocal maintenance (Entra evidence)",
+      "pass": false,
+      "observed": "Sign-in/CA evidence=True; MFA in access path attested=False",
+      "expected": "Entra/MFA evidence AND mfa-in-path-attested.txt (MFA in enclave access path)",
+      "evidence_hint": "entra-signin.json; MFA policy; mfa-in-path-attested.txt",
+      "timestamp_utc": "2026-02-14T21:53:23.168197+00:00"
+    },
+    {
+      "id": "ENTRA-REPLAY",
+      "control": "IA.L2-3.5.4",
+      "title": "Replay-resistant authentication (Entra evidence)",
+      "pass": false,
+      "observed": "Entra/role evidence=True; MFA in access path attested=False",
+      "expected": "Entra/role evidence AND mfa-in-path-attested.txt (MFA in enclave access path)",
+      "evidence_hint": "entra-signin.json; role-assignments-all.json; mfa-in-path-attested.txt",
+      "timestamp_utc": "2026-02-14T21:53:23.168533+00:00"
+    },
+    {
+      "id": "ENTRA-NO-REUSE",
+      "control": "IA.L2-3.5.5",
+      "title": "Prevent identifier reuse (Entra evidence)",
+      "pass": false,
+      "observed": "Entra/role evidence=True; MFA in access path attested=False",
+      "expected": "Entra/role evidence AND mfa-in-path-attested.txt (MFA in enclave access path)",
+      "evidence_hint": "entra-signin.json; role-assignments-all.json; mfa-in-path-attested.txt",
+      "timestamp_utc": "2026-02-14T21:53:23.168538+00:00"
+    },
+    {
+      "id": "ENTRA-INACTIVITY",
+      "control": "IA.L2-3.5.6",
+      "title": "Disable identifiers after inactivity (Entra evidence)",
+      "pass": false,
+      "observed": "Entra/role evidence=True; MFA in access path attested=False",
+      "expected": "Entra/role evidence AND mfa-in-path-attested.txt (MFA in enclave access path)",
+      "evidence_hint": "entra-signin.json; role-assignments-all.json; mfa-in-path-attested.txt",
+      "timestamp_utc": "2026-02-14T21:53:23.168540+00:00"
+    },
+    {
+      "id": "AZ-KEYVAULT",
+      "control": "SC.L2-3.13.10",
+      "title": "Cryptographic key management (Azure Key Vault evidence)",
+      "pass": true,
+      "observed": "keyvault-list.json present and non-empty=True",
+      "expected": "Azure Key Vault list or key management artifact",
+      "evidence_hint": "keyvault-list.json; or document key management approach",
+      "timestamp_utc": "2026-02-14T21:53:23.168771+00:00"
+    },
+    {
+      "id": "AZ-NSG",
+      "control": "SC.L2-3.13.5",
+      "title": "Implement subnetworks (NSG evidence)",
+      "pass": true,
+      "observed": "NSG list present=True; RDP open to 0.0.0.0/0=False",
+      "expected": "NSG list/rules present; RDP (3389) not allowed from 0.0.0.0/0",
+      "evidence_hint": "nsg-list.json; nsg-rules-*.json",
+      "timestamp_utc": "2026-02-14T21:53:23.169420+00:00"
+    }
+  ],
+  "azure_entra_dir": "/Users/patrick/cui-pilot/evidence/runs/20260214-214859/raw/azure"
+}

@@ -1,0 +1,6 @@
+﻿
+Name                          ObjectClass PrincipalSource
+----                          ----------- ---------------
+cui-win-pilot-0\admin_patrick User                  Local
+
+

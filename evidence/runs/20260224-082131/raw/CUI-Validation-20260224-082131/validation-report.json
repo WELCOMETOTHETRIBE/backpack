@@ -1,0 +1,2221 @@
+{
+    "summary":  {
+                    "generated_utc":  "2026-02-24T08:22:48.9235926Z",
+                    "computer":  "cui-win-pilot-0",
+                    "user":  "admin_patrick",
+                    "pass_count":  40,
+                    "fail_count":  0,
+                    "total":  40
+                },
+    "checks":  [
+                   {
+                       "id":  "EVIDENCE-BUNDLE",
+                       "control":  "CM.L2-3.4.1",
+                       "title":  "Evidence bundle selection",
+                       "pass":  true,
+                       "observed":  "Mode=explicit; Provided=C:\\\\evidence\\CUI-Evidence-20260224-082131; Exists=True; Resolved=C:\\evidence\\CUI-Evidence-20260224-082131",
+                       "expected":  "Resolved evidence_dir present (for file-based requirements)",
+                       "evidence_hint":  "C:\\\\evidence\\\\CUI-Evidence-\u003cRunId\u003e\\\\*",
+                       "timestamp_utc":  "2026-02-24T08:22:40.9617219Z"
+                   },
+                   {
+                       "id":  "PLAT-OS",
+                       "control":  "CM.L2-3.4.1",
+                       "title":  "OS identified",
+                       "pass":  true,
+                       "observed":  "Microsoft Windows Server 2025 Datacenter",
+                       "expected":  "Windows Server 2025 Datacenter (pilot)",
+                       "evidence_hint":  "systeminfo.txt (if collected)",
+                       "timestamp_utc":  "2026-02-24T08:22:41.0827975Z"
+                   },
+                   {
+                       "id":  "CRYPTO-FIPS",
+                       "control":  "SC.L2-3.13.11",
+                       "title":  "FIPS mode enabled",
+                       "pass":  true,
+                       "observed":  "Enabled=1",
+                       "expected":  "Enabled=1",
+                       "evidence_hint":  "reg query ...\\\\FipsAlgorithmPolicy (fips.txt)",
+                       "timestamp_utc":  "2026-02-24T08:22:41.1125584Z"
+                   },
+                   {
+                       "id":  "CRYPTO-TLS",
+                       "control":  "SC.L2-3.13.8",
+                       "title":  "TLS baseline (1.0/1.1 disabled; 1.2 enabled)",
+                       "pass":  true,
+                       "observed":  "TLS10 C/S=0/0; TLS11 C/S=0/0; TLS12 C/S=1/1",
+                       "expected":  "TLS 1.0/1.1 Enabled=0; TLS 1.2 Enabled=1",
+                       "evidence_hint":  "schannel-protocols.txt (if collected)",
+                       "timestamp_utc":  "2026-02-24T08:22:41.3031763Z"
+                   },
+                   {
+                       "id":  "NET-FW",
+                       "control":  "SC.L2-3.13.6",
+                       "title":  "Windows firewall baseline (block inbound, allow outbound)",
+                       "pass":  true,
+                       "observed":  "Domain: Enabled=True In=Block Out=Allow LogBlocked=True LogAllowed=True; Private: Enabled=True In=Block Out=Allow LogBlocked=True LogAllowed=True; Public: Enabled=True In=Block Out=Allow LogBlocked=True LogAllowed=True",
+                       "expected":  "Enabled=True; In=Block; Out=Allow",
+                       "evidence_hint":  "firewall.txt",
+                       "timestamp_utc":  "2026-02-24T08:22:41.4260848Z"
+                   },
+                   {
+                       "id":  "RM-WINRM",
+                       "control":  "AC.L2-3.1.12",
+                       "title":  "WinRM disabled (pilot posture)",
+                       "pass":  true,
+                       "observed":  "Status=Stopped; StartType=Disabled",
+                       "expected":  "Not Running; Disabled",
+                       "evidence_hint":  "services-remote.txt (if collected)",
+                       "timestamp_utc":  "2026-02-24T08:22:41.4558367Z"
+                   },
+                   {
+                       "id":  "LOCKOUT",
+                       "control":  "AC.L2-3.1.8",
+                       "title":  "Account lockout threshold set (not \u0027Never\u0027)",
+                       "pass":  true,
+                       "observed":  "Lockout threshold: 5",
+                       "expected":  "A finite threshold is configured",
+                       "evidence_hint":  "net-accounts.txt / account-policy.txt",
+                       "timestamp_utc":  "2026-02-24T08:22:41.5987214Z"
+                   },
+                   {
+                       "id":  "UAC-PROMPT",
+                       "control":  "AC.L2-3.1.5",
+                       "title":  "UAC prompts enabled for administrators (ConsentPromptBehaviorAdmin=2; PromptOnSecureDesktop=1)",
+                       "pass":  true,
+                       "observed":  "ConsentPromptBehaviorAdmin=2; PromptOnSecureDesktop=1",
+                       "expected":  "2 and 1",
+                       "evidence_hint":  "uac-policy.txt",
+                       "timestamp_utc":  "2026-02-24T08:22:41.6345173Z"
+                   },
+                   {
+                       "id":  "LEGALNOTICE",
+                       "control":  "AC.L2-3.1.9",
+                       "title":  "Interactive logon notice configured (caption + text present)",
+                       "pass":  true,
+                       "observed":  "CaptionLen=19; TextLen=176",
+                       "expected":  "Both non-empty",
+                       "evidence_hint":  "interactive-logon-notice.txt",
+                       "timestamp_utc":  "2026-02-24T08:22:41.6682726Z"
+                   },
+                   {
+                       "id":  "AZ-INHERITANCE",
+                       "control":  "AC.L2-3.1.1",
+                       "title":  "Azure inheritance/shared responsibility artifact present (boundary statement recorded)",
+                       "pass":  true,
+                       "observed":  "azure-inheritance.json present",
+                       "expected":  "azure-inheritance.json present with boundary_statement",
+                       "evidence_hint":  "azure-inheritance.json (copied into evidence bundle)",
+                       "timestamp_utc":  "2026-02-24T08:22:41.7318139Z"
+                   },
+                   {
+                       "id":  "INACTIVITY",
+                       "control":  "AC.L2-3.1.11",
+                       "title":  "Machine inactivity limit configured (InactivityTimeoutSecs \u003e 0)",
+                       "pass":  true,
+                       "observed":  "InactivityTimeoutSecs=900",
+                       "expected":  "\u003e 0",
+                       "evidence_hint":  "machine-inactivity-limit.txt",
+                       "timestamp_utc":  "2026-02-24T08:22:41.7514632Z"
+                   },
+                   {
+                       "id":  "SESSION-LOCK",
+                       "control":  "AC.L2-3.1.10",
+                       "title":  "Session lock configured (secure screen saver enabled with timeout)",
+                       "pass":  true,
+                       "observed":  "Active=1; Secure=1; Timeout=900",
+                       "expected":  "Active=1; Secure=1; Timeout\u003e0",
+                       "evidence_hint":  "screensaver-policy.txt",
+                       "timestamp_utc":  "2026-02-24T08:22:41.7991085Z"
+                   },
+                   {
+                       "id":  "RDP-REDIR",
+                       "control":  "AC.L2-3.1.3",
+                       "title":  "RDP redirection disabled (clipboard + drive) and NLA enabled",
+                       "pass":  true,
+                       "observed":  "fDisableClip=1 (1=disable,0=allow); fDisableCdm=1 (1=disable,0=allow); NLA(UserAuthentication)=1 (1=enabled)",
+                       "expected":  "fDisableClip=1; fDisableCdm=1; NLA=1",
+                       "evidence_hint":  "rdp-policy.txt + rdp-tcp.txt",
+                       "timestamp_utc":  "2026-02-24T08:22:41.8487630Z"
+                   },
+                   {
+                       "id":  "RDP-SESSION-LIMITS",
+                       "control":  "AC.L2-3.1.11",
+                       "title":  "RDP session limits set (idle/disconnect/connection time; session ended after disconnect)",
+                       "pass":  true,
+                       "observed":  "MaxIdleTime=900000ms; MaxDisconnectionTime=300000ms; MaxConnectionTime=28800000ms",
+                       "expected":  "All \u003e 0 (session terminated after disconnect -\u003e re-auth on reconnect)",
+                       "evidence_hint":  "rdp-tcp.txt",
+                       "timestamp_utc":  "2026-02-24T08:22:41.8865789Z"
+                   },
+                   {
+                       "id":  "AU-SECLOG",
+                       "control":  "AU.L2-3.3.1",
+                       "title":  "Security audit log enabled (baseline)",
+                       "pass":  true,
+                       "observed":  "enabled: true",
+                       "expected":  "enabled: true",
+                       "evidence_hint":  "eventlog-security.txt + auditpol.txt",
+                       "timestamp_utc":  "2026-02-24T08:22:41.9561019Z"
+                   },
+                   {
+                       "id":  "AU-AUDITPOL",
+                       "control":  "AU.L2-3.3.1",
+                       "title":  "Audit policy queryable (auditpol output present)",
+                       "pass":  true,
+                       "observed":  "Length=4026",
+                       "expected":  "Non-empty auditpol output",
+                       "evidence_hint":  "auditpol.txt",
+                       "timestamp_utc":  "2026-02-24T08:22:42.0274090Z"
+                   },
+                   {
+                       "id":  "AU-SUBCATS",
+                       "control":  "AU.L2-3.3.1",
+                       "title":  "Audit policy subcategories enabled (Success and Failure) for key areas",
+                       "pass":  true,
+                       "observed":  "All required subcategories set to Success and Failure.",
+                       "expected":  "Key subcategories set to Success and Failure",
+                       "evidence_hint":  "auditpol-subcategories.txt",
+                       "timestamp_utc":  "2026-02-24T08:22:42.1148671Z"
+                   },
+                   {
+                       "id":  "AU-LOGSIZE",
+                       "control":  "AU.L2-3.3.1",
+                       "title":  "Event log max sizes meet pilot baseline (Security\u003e=256MB; System/App\u003e=64MB)",
+                       "pass":  true,
+                       "observed":  "Security=268435456; System=67108864; Application=67108864",
+                       "expected":  "Security\u003e=268435456; System\u003e=67108864; Application\u003e=67108864",
+                       "evidence_hint":  "eventlog-security.txt + eventlog-system.txt + eventlog-application.txt",
+                       "timestamp_utc":  "2026-02-24T08:22:42.3255717Z"
+                   },
+                   {
+                       "id":  "TIME-SYNC",
+                       "control":  "AU.L2-3.3.7",
+                       "title":  "Time synchronization configured (W32Time running; source not Local CMOS Clock)",
+                       "pass":  true,
+                       "observed":  "W32Time=Running; Source=VM IC Time Synchronization Provider",
+                       "expected":  "W32Time=Running; Source != Local CMOS Clock",
+                       "evidence_hint":  "time-sync.txt",
+                       "timestamp_utc":  "2026-02-24T08:22:42.4301230Z"
+                   },
+                   {
+                       "id":  "SECPOL-EXPORTED",
+                       "control":  "CM.L2-3.4.2",
+                       "title":  "Local security policy export present in evidence bundle (secpol.cfg)",
+                       "pass":  true,
+                       "observed":  "secpol.cfg present",
+                       "expected":  "secpol.cfg present",
+                       "evidence_hint":  "secpol.cfg (in evidence bundle)",
+                       "timestamp_utc":  "2026-02-24T08:22:42.4359199Z"
+                   },
+                   {
+                       "id":  "SECPOL-PARSED",
+                       "control":  "CM.L2-3.4.2",
+                       "title":  "Local security policy export parseable (System Access + Privilege Rights sections present)",
+                       "pass":  true,
+                       "observed":  "SystemAccess=True; PrivilegeRights=True",
+                       "expected":  "Both sections present",
+                       "evidence_hint":  "secpol.cfg",
+                       "timestamp_utc":  "2026-02-24T08:22:42.4875886Z"
+                   },
+                   {
+                       "id":  "GUEST-DISABLED",
+                       "control":  "IA.L2-3.5.1",
+                       "title":  "Guest account disabled (baseline identity hygiene)",
+                       "pass":  true,
+                       "observed":  "Guest Disabled=True",
+                       "expected":  "Guest Disabled=True",
+                       "evidence_hint":  "local-accounts.txt / secpol.cfg",
+                       "timestamp_utc":  "2026-02-24T08:22:42.5530992Z"
+                   },
+                   {
+                       "id":  "NO-AUTOLOGON",
+                       "control":  "IA.L2-3.5.1",
+                       "title":  "Automatic logon disabled (AutoAdminLogon not enabled)",
+                       "pass":  true,
+                       "observed":  "AutoAdminLogon=0",
+                       "expected":  "AutoAdminLogon != 1",
+                       "evidence_hint":  "registry Winlogon AutoAdminLogon",
+                       "timestamp_utc":  "2026-02-24T08:22:42.5730157Z"
+                   },
+                   {
+                       "id":  "SC-COMMS",
+                       "control":  "SC.L2-3.13.1",
+                       "title":  "Network boundary enforced (firewall baseline in effect)",
+                       "pass":  true,
+                       "observed":  "See NET-FW check",
+                       "expected":  "Firewall baseline PASS",
+                       "evidence_hint":  "firewall.txt + firewall-rules-summary.txt",
+                       "timestamp_utc":  "2026-02-24T08:22:42.6007354Z"
+                   },
+                   {
+                       "id":  "SMB-SIGN",
+                       "control":  "SC.L2-3.13.1",
+                       "title":  "SMB signing required (server + workstation RequireSecuritySignature=1)",
+                       "pass":  true,
+                       "observed":  "ServerRequire=1; WorkstationRequire=1",
+                       "expected":  "ServerRequire=1; WorkstationRequire=1",
+                       "evidence_hint":  "smb-signing.txt",
+                       "timestamp_utc":  "2026-02-24T08:22:42.6284535Z"
+                   },
+                   {
+                       "id":  "WU-SERVICES",
+                       "control":  "SI.L2-3.14.1",
+                       "title":  "Update services enabled (wuauserv/bits not disabled)",
+                       "pass":  true,
+                       "observed":  "wuauserv=Running/Manual; bits=Stopped/Manual",
+                       "expected":  "StartType != Disabled",
+                       "evidence_hint":  "windows-update-services.txt + windows-update-policy.txt",
+                       "timestamp_utc":  "2026-02-24T08:22:42.6443357Z"
+                   },
+                   {
+                       "id":  "DEFENDER-ON",
+                       "control":  "SI.L2-3.14.2",
+                       "title":  "Malicious code protection enabled (Defender real-time protection)",
+                       "pass":  true,
+                       "observed":  "RealTimeProtectionEnabled=True",
+                       "expected":  "RealTimeProtectionEnabled=True",
+                       "evidence_hint":  "defender-status.txt",
+                       "timestamp_utc":  "2026-02-24T08:22:42.8070426Z"
+                   },
+                   {
+                       "id":  "DEFENDER-UPDATES",
+                       "control":  "SI.L2-3.14.4",
+                       "title":  "Malicious code protection updated (Defender signature age \u003c= 7 days)",
+                       "pass":  true,
+                       "observed":  "AntivirusSignatureAge=0",
+                       "expected":  "\u003c= 7",
+                       "evidence_hint":  "defender-status.txt",
+                       "timestamp_utc":  "2026-02-24T08:22:42.8168829Z"
+                   },
+                   {
+                       "id":  "AUTH-UX",
+                       "control":  "IA.L2-3.5.11",
+                       "title":  "Obscure authentication feedback (Don\u0027t display last username)",
+                       "pass":  true,
+                       "observed":  "DontDisplayLastUserName=1",
+                       "expected":  "DontDisplayLastUserName=1",
+                       "evidence_hint":  "auth-ux-policy.txt",
+                       "timestamp_utc":  "2026-02-24T08:22:42.8367979Z"
+                   },
+                   {
+                       "id":  "NTLMV2",
+                       "control":  "IA.L2-3.5.10",
+                       "title":  "NTLMv2-only posture (LmCompatibilityLevel=5; NoLmHash=1)",
+                       "pass":  true,
+                       "observed":  "LmCompatibilityLevel=5; NoLmHash=1",
+                       "expected":  "LmCompatibilityLevel=5; NoLmHash=1",
+                       "evidence_hint":  "ntlm-policy.txt",
+                       "timestamp_utc":  "2026-02-24T08:22:42.8725766Z"
+                   },
+                   {
+                       "id":  "LSA-PPL",
+                       "control":  "SI.L2-3.14.6",
+                       "title":  "LSA protection enabled (RunAsPPL)",
+                       "pass":  true,
+                       "observed":  "RunAsPPL=1",
+                       "expected":  "RunAsPPL=1",
+                       "evidence_hint":  "lsa.txt",
+                       "timestamp_utc":  "2026-02-24T08:22:42.8924846Z"
+                   },
+                   {
+                       "id":  "USBSTOR",
+                       "control":  "MP.L2-3.8.7",
+                       "title":  "USB mass storage disabled (USBSTOR Start=4)",
+                       "pass":  true,
+                       "observed":  "USBSTOR Start=4",
+                       "expected":  "USBSTOR Start=4",
+                       "evidence_hint":  "usbstor.txt",
+                       "timestamp_utc":  "2026-02-24T08:22:42.9083554Z"
+                   },
+                   {
+                       "id":  "PORTABLE-STORAGE",
+                       "control":  "AC.L2-3.1.21",
+                       "title":  "Portable storage limited (USB mass storage disabled)",
+                       "pass":  true,
+                       "observed":  "USBSTOR Start=4; RemovableStoragePolicyKey=False",
+                       "expected":  "USBSTOR Start=4",
+                       "evidence_hint":  "usbstor.txt + removable-storage-policies.txt",
+                       "timestamp_utc":  "2026-02-24T08:22:42.9242178Z"
+                   },
+                   {
+                       "id":  "SMB1",
+                       "control":  "SC.L2-3.13.8",
+                       "title":  "SMB1 disabled (server + client)",
+                       "pass":  true,
+                       "observed":  "SMB1Protocol=DisabledWithPayloadRemoved",
+                       "expected":  "SMB1Protocol feature Disabled",
+                       "evidence_hint":  "DISM / Get-WindowsOptionalFeature output (not currently collected)",
+                       "timestamp_utc":  "2026-02-24T08:22:47.6026011Z"
+                   },
+                   {
+                       "id":  "LOCAL-ADMINS",
+                       "control":  "CM.L2-3.4.5",
+                       "title":  "Local Administrators group does not include broad principals (Everyone/Users)",
+                       "pass":  true,
+                       "observed":  "No broad principals detected.",
+                       "expected":  "No Everyone/Users in Administrators",
+                       "evidence_hint":  "local-admins.txt",
+                       "timestamp_utc":  "2026-02-24T08:22:48.7330986Z"
+                   },
+                   {
+                       "id":  "APPIDSVC",
+                       "control":  "CM.L2-3.4.8",
+                       "title":  "Application Identity service enabled (AppIDSvc not Disabled)",
+                       "pass":  true,
+                       "observed":  "Status=Running; StartType=Automatic",
+                       "expected":  "StartType != Disabled",
+                       "evidence_hint":  "services-security-relevant.txt",
+                       "timestamp_utc":  "2026-02-24T08:22:48.7388918Z"
+                   },
+                   {
+                       "id":  "APPLOCKER",
+                       "control":  "CM.L2-3.4.8",
+                       "title":  "AppLocker effective policy present (rules exported)",
+                       "pass":  true,
+                       "observed":  "XML=True; Rules=True; EnforcementModeEnabled=False",
+                       "expected":  "AppLockerPolicy XML with RuleCollection(s)",
+                       "evidence_hint":  "applocker-policy.txt",
+                       "timestamp_utc":  "2026-02-24T08:22:48.7567938Z"
+                   },
+                   {
+                       "id":  "BITLOCKER-OS",
+                       "control":  "MP.L2-3.8.1",
+                       "title":  "BitLocker enabled for OS volume (C: fully encrypted; protection on)",
+                       "pass":  true,
+                       "observed":  "C: Fully Encrypted; Protection On",
+                       "expected":  "C: Fully Encrypted and Protection On",
+                       "evidence_hint":  "bitlocker-status.txt",
+                       "timestamp_utc":  "2026-02-24T08:22:48.7726827Z"
+                   },
+                   {
+                       "id":  "ACCT-POLICY",
+                       "control":  "IA.L2-3.5.7",
+                       "title":  "Local account policy captured (informational)",
+                       "pass":  true,
+                       "observed":  "Captured net accounts output",
+                       "expected":  "Policy visible for review",
+                       "evidence_hint":  "net-accounts.txt",
+                       "timestamp_utc":  "2026-02-24T08:22:48.9114935Z"
+                   },
+                   {
+                       "id":  "PW-HISTORY",
+                       "control":  "IA.L2-3.5.8",
+                       "title":  "Password reuse prohibited (password history \u003e= 24)",
+                       "pass":  true,
+                       "observed":  "History=24",
+                       "expected":  "History \u003e= 24",
+                       "evidence_hint":  "net-accounts.txt",
+                       "timestamp_utc":  "2026-02-24T08:22:48.9235926Z"
+                   }
+               ],
+    "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+    "evidence_bundle_selection":  {
+                                      "provided":  "C:\\\\evidence\\CUI-Evidence-20260224-082131",
+                                      "provided_exists":  true,
+                                      "mode":  "explicit",
+                                      "resolved":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                      "note":  "Using explicitly provided -EvidenceDir."
+                                  },
+    "control_results":  [
+                            {
+                                "control_id":  "AC.L2-3.1.1",
+                                "family":  "AC",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "firewall.txt",
+                                                       "local-accounts.txt",
+                                                       "account-policy.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "AZ-INHERITANCE",
+                                                           "NET-FW",
+                                                           "RM-WINRM"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:49.0246640Z"
+                            },
+                            {
+                                "control_id":  "AC.L2-3.1.2",
+                                "family":  "AC",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "firewall.txt",
+                                                       "local-accounts.txt",
+                                                       "account-policy.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "AZ-INHERITANCE",
+                                                           "NET-FW",
+                                                           "RM-WINRM"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:49.0486210Z"
+                            },
+                            {
+                                "control_id":  "AC.L2-3.1.3",
+                                "family":  "AC",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "firewall.txt",
+                                                       "local-accounts.txt",
+                                                       "account-policy.txt",
+                                                       "rdp-policy.txt",
+                                                       "rdp-tcp.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "RDP-REDIR"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:49.0804068Z"
+                            },
+                            {
+                                "control_id":  "AC.L2-3.1.5",
+                                "family":  "AC",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "firewall.txt",
+                                                       "local-accounts.txt",
+                                                       "account-policy.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "UAC-PROMPT"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:49.1018469Z"
+                            },
+                            {
+                                "control_id":  "AC.L2-3.1.6",
+                                "family":  "AC",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "firewall.txt",
+                                                       "local-accounts.txt",
+                                                       "account-policy.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "GUEST-DISABLED",
+                                                           "UAC-PROMPT"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:49.2033179Z"
+                            },
+                            {
+                                "control_id":  "AC.L2-3.1.7",
+                                "family":  "AC",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "firewall.txt",
+                                                       "local-accounts.txt",
+                                                       "account-policy.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "UAC-PROMPT"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:49.2232459Z"
+                            },
+                            {
+                                "control_id":  "AC.L2-3.1.9",
+                                "family":  "AC",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "firewall.txt",
+                                                       "local-accounts.txt",
+                                                       "account-policy.txt",
+                                                       "interactive-logon-notice.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "LEGALNOTICE"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:49.2570443Z"
+                            },
+                            {
+                                "control_id":  "AC.L2-3.1.10",
+                                "family":  "AC",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "firewall.txt",
+                                                       "local-accounts.txt",
+                                                       "account-policy.txt",
+                                                       "screensaver-policy.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "SESSION-LOCK"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:49.2913447Z"
+                            },
+                            {
+                                "control_id":  "AC.L2-3.1.13",
+                                "family":  "AC",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "firewall.txt",
+                                                       "local-accounts.txt",
+                                                       "account-policy.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "CRYPTO-TLS",
+                                                           "AZ-INHERITANCE"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:49.3384733Z"
+                            },
+                            {
+                                "control_id":  "AC.L2-3.1.14",
+                                "family":  "AC",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "firewall.txt",
+                                                       "local-accounts.txt",
+                                                       "account-policy.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "NET-FW",
+                                                           "AZ-INHERITANCE"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:49.3740156Z"
+                            },
+                            {
+                                "control_id":  "AC.L2-3.1.15",
+                                "family":  "AC",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "firewall.txt",
+                                                       "local-accounts.txt",
+                                                       "account-policy.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "RM-WINRM",
+                                                           "AZ-INHERITANCE"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:49.4000002Z"
+                            },
+                            {
+                                "control_id":  "AC.L2-3.1.18",
+                                "family":  "AC",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "firewall.txt",
+                                                       "local-accounts.txt",
+                                                       "account-policy.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "AZ-INHERITANCE"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:49.4277277Z"
+                            },
+                            {
+                                "control_id":  "AC.L2-3.1.19",
+                                "family":  "AC",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "firewall.txt",
+                                                       "local-accounts.txt",
+                                                       "account-policy.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "AZ-INHERITANCE"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:49.4778790Z"
+                            },
+                            {
+                                "control_id":  "AC.L2-3.1.20",
+                                "family":  "AC",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "firewall.txt",
+                                                       "local-accounts.txt",
+                                                       "account-policy.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "AZ-INHERITANCE"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:49.4952858Z"
+                            },
+                            {
+                                "control_id":  "AC.L2-3.1.22",
+                                "family":  "AC",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "firewall.txt",
+                                                       "local-accounts.txt",
+                                                       "account-policy.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "AZ-INHERITANCE"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:49.5169611Z"
+                            },
+                            {
+                                "control_id":  "AC.L2-3.1.8",
+                                "family":  "AC",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "firewall.txt",
+                                                       "local-accounts.txt",
+                                                       "account-policy.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "LOCKOUT"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:49.5389080Z"
+                            },
+                            {
+                                "control_id":  "AC.L2-3.1.11",
+                                "family":  "AC",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "firewall.txt",
+                                                       "local-accounts.txt",
+                                                       "account-policy.txt",
+                                                       "machine-inactivity-limit.txt",
+                                                       "rdp-tcp.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "INACTIVITY",
+                                                           "RDP-SESSION-LIMITS"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:49.5926571Z"
+                            },
+                            {
+                                "control_id":  "AC.L2-3.1.12",
+                                "family":  "AC",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "firewall.txt",
+                                                       "local-accounts.txt",
+                                                       "account-policy.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "RM-WINRM"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:49.6175897Z"
+                            },
+                            {
+                                "control_id":  "AC.L2-3.1.21",
+                                "family":  "AC",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "firewall.txt",
+                                                       "local-accounts.txt",
+                                                       "account-policy.txt",
+                                                       "usbstor.txt",
+                                                       "removable-storage-policies.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "PORTABLE-STORAGE"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:49.6574461Z"
+                            },
+                            {
+                                "control_id":  "AU.L2-3.3.1",
+                                "family":  "AU",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "auditpol.txt",
+                                                       "eventlog-security.txt",
+                                                       "eventlog-system.txt",
+                                                       "eventlog-application.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "AU-SECLOG",
+                                                           "AU-AUDITPOL",
+                                                           "AU-SUBCATS",
+                                                           "AU-LOGSIZE"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:49.6954994Z"
+                            },
+                            {
+                                "control_id":  "AU.L2-3.3.2",
+                                "family":  "AU",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "auditpol.txt",
+                                                       "eventlog-security.txt",
+                                                       "eventlog-system.txt",
+                                                       "eventlog-application.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "AU-SECLOG",
+                                                           "AU-SUBCATS"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:49.7267730Z"
+                            },
+                            {
+                                "control_id":  "AU.L2-3.3.4",
+                                "family":  "AU",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "auditpol.txt",
+                                                       "eventlog-security.txt",
+                                                       "eventlog-system.txt",
+                                                       "eventlog-application.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "AU-SECLOG",
+                                                           "AU-LOGSIZE",
+                                                           "AU-SUBCATS"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:49.7683670Z"
+                            },
+                            {
+                                "control_id":  "AU.L2-3.3.5",
+                                "family":  "AU",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "auditpol.txt",
+                                                       "eventlog-security.txt",
+                                                       "eventlog-system.txt",
+                                                       "eventlog-application.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "TIME-SYNC",
+                                                           "AU-SECLOG"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:49.8061685Z"
+                            },
+                            {
+                                "control_id":  "AU.L2-3.3.6",
+                                "family":  "AU",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "auditpol.txt",
+                                                       "eventlog-security.txt",
+                                                       "eventlog-system.txt",
+                                                       "eventlog-application.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "AU-LOGSIZE"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:49.8577672Z"
+                            },
+                            {
+                                "control_id":  "AU.L2-3.3.7",
+                                "family":  "AU",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "auditpol.txt",
+                                                       "eventlog-security.txt",
+                                                       "eventlog-system.txt",
+                                                       "eventlog-application.txt",
+                                                       "time-sync.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "TIME-SYNC"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:49.8953201Z"
+                            },
+                            {
+                                "control_id":  "AU.L2-3.3.8",
+                                "family":  "AU",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "auditpol.txt",
+                                                       "eventlog-security.txt",
+                                                       "eventlog-system.txt",
+                                                       "eventlog-application.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "AU-SECLOG",
+                                                           "AU-LOGSIZE"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:49.9290839Z"
+                            },
+                            {
+                                "control_id":  "AU.L2-3.3.9",
+                                "family":  "AU",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "auditpol.txt",
+                                                       "eventlog-security.txt",
+                                                       "eventlog-system.txt",
+                                                       "eventlog-application.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "AU-SECLOG",
+                                                           "AU-SUBCATS"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:49.9530379Z"
+                            },
+                            {
+                                "control_id":  "CM.L2-3.4.5",
+                                "family":  "CM",
+                                "pass":  false,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "installed-roles-features.txt",
+                                                       "installed-software.txt",
+                                                       "manifest.txt",
+                                                       "hashes.sha256.txt"
+                                                   ],
+                                "missing_files":  [
+                                                      "manifest.txt"
+                                                  ],
+                                "required_check_ids":  [
+                                                           "LOCAL-ADMINS"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Missing artifacts and/or failed checks; see missing_files / failed_check_ids.",
+                                "timestamp_utc":  "2026-02-24T08:22:49.9848070Z"
+                            },
+                            {
+                                "control_id":  "CM.L2-3.4.6",
+                                "family":  "CM",
+                                "pass":  false,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "installed-roles-features.txt",
+                                                       "installed-software.txt",
+                                                       "manifest.txt",
+                                                       "hashes.sha256.txt"
+                                                   ],
+                                "missing_files":  [
+                                                      "manifest.txt"
+                                                  ],
+                                "required_check_ids":  [
+                                                           "SMB1",
+                                                           "NET-FW",
+                                                           "RM-WINRM"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Missing artifacts and/or failed checks; see missing_files / failed_check_ids.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.0085029Z"
+                            },
+                            {
+                                "control_id":  "CM.L2-3.4.7",
+                                "family":  "CM",
+                                "pass":  false,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "installed-roles-features.txt",
+                                                       "installed-software.txt",
+                                                       "manifest.txt",
+                                                       "hashes.sha256.txt"
+                                                   ],
+                                "missing_files":  [
+                                                      "manifest.txt"
+                                                  ],
+                                "required_check_ids":  [
+                                                           "APPIDSVC",
+                                                           "APPLOCKER"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Missing artifacts and/or failed checks; see missing_files / failed_check_ids.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.0349830Z"
+                            },
+                            {
+                                "control_id":  "CM.L2-3.4.8",
+                                "family":  "CM",
+                                "pass":  false,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "installed-roles-features.txt",
+                                                       "installed-software.txt",
+                                                       "manifest.txt",
+                                                       "hashes.sha256.txt"
+                                                   ],
+                                "missing_files":  [
+                                                      "manifest.txt"
+                                                  ],
+                                "required_check_ids":  [
+                                                           "APPIDSVC",
+                                                           "APPLOCKER"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Missing artifacts and/or failed checks; see missing_files / failed_check_ids.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.0601825Z"
+                            },
+                            {
+                                "control_id":  "CM.L2-3.4.9",
+                                "family":  "CM",
+                                "pass":  false,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "installed-roles-features.txt",
+                                                       "installed-software.txt",
+                                                       "manifest.txt",
+                                                       "hashes.sha256.txt"
+                                                   ],
+                                "missing_files":  [
+                                                      "manifest.txt"
+                                                  ],
+                                "required_check_ids":  [
+                                                           "APPIDSVC",
+                                                           "APPLOCKER"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Missing artifacts and/or failed checks; see missing_files / failed_check_ids.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.0858833Z"
+                            },
+                            {
+                                "control_id":  "CM.L2-3.4.1",
+                                "family":  "CM",
+                                "pass":  false,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "installed-roles-features.txt",
+                                                       "installed-software.txt",
+                                                       "manifest.txt",
+                                                       "hashes.sha256.txt"
+                                                   ],
+                                "missing_files":  [
+                                                      "manifest.txt"
+                                                  ],
+                                "required_check_ids":  [
+                                                           "PLAT-OS"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Missing artifacts and/or failed checks; see missing_files / failed_check_ids.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.1098340Z"
+                            },
+                            {
+                                "control_id":  "CM.L2-3.4.2",
+                                "family":  "CM",
+                                "pass":  false,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "installed-roles-features.txt",
+                                                       "installed-software.txt",
+                                                       "manifest.txt",
+                                                       "hashes.sha256.txt",
+                                                       "secpol.cfg",
+                                                       "user-rights-assignments.txt"
+                                                   ],
+                                "missing_files":  [
+                                                      "manifest.txt"
+                                                  ],
+                                "required_check_ids":  [
+                                                           "SECPOL-EXPORTED",
+                                                           "SECPOL-PARSED"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Missing artifacts and/or failed checks; see missing_files / failed_check_ids.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.1614937Z"
+                            },
+                            {
+                                "control_id":  "IA.L2-3.5.1",
+                                "family":  "IA",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "account-policy.txt",
+                                                       "auth-ux-policy.txt",
+                                                       "ntlm-policy.txt",
+                                                       "local-accounts.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "GUEST-DISABLED",
+                                                           "NO-AUTOLOGON"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.1894428Z"
+                            },
+                            {
+                                "control_id":  "IA.L2-3.5.2",
+                                "family":  "IA",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "account-policy.txt",
+                                                       "auth-ux-policy.txt",
+                                                       "ntlm-policy.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "AZ-INHERITANCE"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.2084280Z"
+                            },
+                            {
+                                "control_id":  "IA.L2-3.5.3",
+                                "family":  "IA",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "account-policy.txt",
+                                                       "auth-ux-policy.txt",
+                                                       "ntlm-policy.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "AZ-INHERITANCE"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.2280956Z"
+                            },
+                            {
+                                "control_id":  "IA.L2-3.5.4",
+                                "family":  "IA",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "account-policy.txt",
+                                                       "auth-ux-policy.txt",
+                                                       "ntlm-policy.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "AZ-INHERITANCE"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.2459925Z"
+                            },
+                            {
+                                "control_id":  "IA.L2-3.5.5",
+                                "family":  "IA",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "account-policy.txt",
+                                                       "auth-ux-policy.txt",
+                                                       "ntlm-policy.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "AZ-INHERITANCE"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.2638951Z"
+                            },
+                            {
+                                "control_id":  "IA.L2-3.5.6",
+                                "family":  "IA",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "account-policy.txt",
+                                                       "auth-ux-policy.txt",
+                                                       "ntlm-policy.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "AZ-INHERITANCE"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.2817965Z"
+                            },
+                            {
+                                "control_id":  "IA.L2-3.5.8",
+                                "family":  "IA",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "account-policy.txt",
+                                                       "auth-ux-policy.txt",
+                                                       "ntlm-policy.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "PW-HISTORY"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.3022165Z"
+                            },
+                            {
+                                "control_id":  "IA.L2-3.5.9",
+                                "family":  "IA",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "account-policy.txt",
+                                                       "auth-ux-policy.txt",
+                                                       "ntlm-policy.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "AZ-INHERITANCE"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.3216299Z"
+                            },
+                            {
+                                "control_id":  "IA.L2-3.5.10",
+                                "family":  "IA",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "account-policy.txt",
+                                                       "auth-ux-policy.txt",
+                                                       "ntlm-policy.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "NTLMV2"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.3412609Z"
+                            },
+                            {
+                                "control_id":  "IA.L2-3.5.11",
+                                "family":  "IA",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "account-policy.txt",
+                                                       "auth-ux-policy.txt",
+                                                       "ntlm-policy.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "AUTH-UX"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.3730205Z"
+                            },
+                            {
+                                "control_id":  "IA.L2-3.5.7",
+                                "family":  "IA",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "account-policy.txt",
+                                                       "auth-ux-policy.txt",
+                                                       "ntlm-policy.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "ACCT-POLICY"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.4010031Z"
+                            },
+                            {
+                                "control_id":  "MA.L2-3.7.1",
+                                "family":  "MA",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  "installed-software.txt",
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "AZ-INHERITANCE"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.4088213Z"
+                            },
+                            {
+                                "control_id":  "MA.L2-3.7.2",
+                                "family":  "MA",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  "installed-software.txt",
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "AZ-INHERITANCE"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.4168929Z"
+                            },
+                            {
+                                "control_id":  "MA.L2-3.7.5",
+                                "family":  "MA",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  "installed-software.txt",
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "AZ-INHERITANCE"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.4226921Z"
+                            },
+                            {
+                                "control_id":  "MP.L2-3.8.1",
+                                "family":  "MP",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "usbstor.txt",
+                                                       "bitlocker-status.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "USBSTOR",
+                                                           "BITLOCKER-OS"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.4365599Z"
+                            },
+                            {
+                                "control_id":  "MP.L2-3.8.2",
+                                "family":  "MP",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "usbstor.txt",
+                                                       "bitlocker-status.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "USBSTOR",
+                                                           "BITLOCKER-OS"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.4486680Z"
+                            },
+                            {
+                                "control_id":  "MP.L2-3.8.3",
+                                "family":  "MP",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "usbstor.txt",
+                                                       "bitlocker-status.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "USBSTOR"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.4625307Z"
+                            },
+                            {
+                                "control_id":  "MP.L2-3.8.4",
+                                "family":  "MP",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "usbstor.txt",
+                                                       "bitlocker-status.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "USBSTOR"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.4763832Z"
+                            },
+                            {
+                                "control_id":  "MP.L2-3.8.5",
+                                "family":  "MP",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "usbstor.txt",
+                                                       "bitlocker-status.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "USBSTOR"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.4887386Z"
+                            },
+                            {
+                                "control_id":  "MP.L2-3.8.6",
+                                "family":  "MP",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "usbstor.txt",
+                                                       "bitlocker-status.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "USBSTOR"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.5048842Z"
+                            },
+                            {
+                                "control_id":  "MP.L2-3.8.8",
+                                "family":  "MP",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "usbstor.txt",
+                                                       "bitlocker-status.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "USBSTOR"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.5179776Z"
+                            },
+                            {
+                                "control_id":  "MP.L2-3.8.9",
+                                "family":  "MP",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "usbstor.txt",
+                                                       "bitlocker-status.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "USBSTOR"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.5318360Z"
+                            },
+                            {
+                                "control_id":  "MP.L2-3.8.7",
+                                "family":  "MP",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "usbstor.txt",
+                                                       "bitlocker-status.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "USBSTOR"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.5444480Z"
+                            },
+                            {
+                                "control_id":  "RA.L2-3.11.2",
+                                "family":  "RA",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "hotfixes.txt",
+                                                       "windows-update-policy.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "DEFENDER-ON",
+                                                           "DEFENDER-UPDATES"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.5585793Z"
+                            },
+                            {
+                                "control_id":  "RA.L2-3.11.3",
+                                "family":  "RA",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "hotfixes.txt",
+                                                       "windows-update-policy.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "WU-SERVICES",
+                                                           "DEFENDER-UPDATES"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.5716770Z"
+                            },
+                            {
+                                "control_id":  "SC.L2-3.13.2",
+                                "family":  "SC",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "fips.txt",
+                                                       "schannel-protocols.txt",
+                                                       "firewall.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "NET-FW",
+                                                           "AZ-INHERITANCE"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.5915915Z"
+                            },
+                            {
+                                "control_id":  "SC.L2-3.13.3",
+                                "family":  "SC",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "fips.txt",
+                                                       "schannel-protocols.txt",
+                                                       "firewall.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "NET-FW"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.6112492Z"
+                            },
+                            {
+                                "control_id":  "SC.L2-3.13.4",
+                                "family":  "SC",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "fips.txt",
+                                                       "schannel-protocols.txt",
+                                                       "firewall.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "NET-FW"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.6299244Z"
+                            },
+                            {
+                                "control_id":  "SC.L2-3.13.5",
+                                "family":  "SC",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "fips.txt",
+                                                       "schannel-protocols.txt",
+                                                       "firewall.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "NET-FW"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.6490765Z"
+                            },
+                            {
+                                "control_id":  "SC.L2-3.13.9",
+                                "family":  "SC",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "fips.txt",
+                                                       "schannel-protocols.txt",
+                                                       "firewall.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "NET-FW"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.6689846Z"
+                            },
+                            {
+                                "control_id":  "SC.L2-3.13.10",
+                                "family":  "SC",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "fips.txt",
+                                                       "schannel-protocols.txt",
+                                                       "firewall.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "NET-FW"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.6889259Z"
+                            },
+                            {
+                                "control_id":  "SC.L2-3.13.12",
+                                "family":  "SC",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "fips.txt",
+                                                       "schannel-protocols.txt",
+                                                       "firewall.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "CRYPTO-TLS"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.7085680Z"
+                            },
+                            {
+                                "control_id":  "SC.L2-3.13.13",
+                                "family":  "SC",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "fips.txt",
+                                                       "schannel-protocols.txt",
+                                                       "firewall.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "CRYPTO-TLS"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.7284888Z"
+                            },
+                            {
+                                "control_id":  "SC.L2-3.13.15",
+                                "family":  "SC",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "fips.txt",
+                                                       "schannel-protocols.txt",
+                                                       "firewall.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "CRYPTO-TLS",
+                                                           "BITLOCKER-OS"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.7484001Z"
+                            },
+                            {
+                                "control_id":  "SC.L2-3.13.16",
+                                "family":  "SC",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "fips.txt",
+                                                       "schannel-protocols.txt",
+                                                       "firewall.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "BITLOCKER-OS"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.7675918Z"
+                            },
+                            {
+                                "control_id":  "SC.L2-3.13.1",
+                                "family":  "SC",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "fips.txt",
+                                                       "schannel-protocols.txt",
+                                                       "firewall.txt",
+                                                       "firewall-rules-summary.txt",
+                                                       "smb-signing.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "NET-FW",
+                                                           "SC-COMMS",
+                                                           "SMB-SIGN"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.8043584Z"
+                            },
+                            {
+                                "control_id":  "SC.L2-3.13.6",
+                                "family":  "SC",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "fips.txt",
+                                                       "schannel-protocols.txt",
+                                                       "firewall.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "NET-FW"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.8225159Z"
+                            },
+                            {
+                                "control_id":  "SC.L2-3.13.8",
+                                "family":  "SC",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "fips.txt",
+                                                       "schannel-protocols.txt",
+                                                       "firewall.txt",
+                                                       "smb1-feature.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "CRYPTO-TLS",
+                                                           "SMB1"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.8499938Z"
+                            },
+                            {
+                                "control_id":  "SC.L2-3.13.11",
+                                "family":  "SC",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "fips.txt",
+                                                       "schannel-protocols.txt",
+                                                       "firewall.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "CRYPTO-FIPS"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.8694036Z"
+                            },
+                            {
+                                "control_id":  "SI.L2-3.14.3",
+                                "family":  "SI",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "defender-status.txt",
+                                                       "windows-update-services.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "DEFENDER-ON",
+                                                           "DEFENDER-UPDATES"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.8832741Z"
+                            },
+                            {
+                                "control_id":  "SI.L2-3.14.5",
+                                "family":  "SI",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "defender-status.txt",
+                                                       "windows-update-services.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "WU-SERVICES"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.8991536Z"
+                            },
+                            {
+                                "control_id":  "SI.L2-3.14.7",
+                                "family":  "SI",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "defender-status.txt",
+                                                       "windows-update-services.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "DEFENDER-ON",
+                                                           "WU-SERVICES"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.9150376Z"
+                            },
+                            {
+                                "control_id":  "SI.L2-3.14.1",
+                                "family":  "SI",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "defender-status.txt",
+                                                       "windows-update-services.txt",
+                                                       "windows-update-policy.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "WU-SERVICES"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.9349643Z"
+                            },
+                            {
+                                "control_id":  "SI.L2-3.14.2",
+                                "family":  "SI",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "defender-status.txt",
+                                                       "windows-update-services.txt",
+                                                       "defender-preferences.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "DEFENDER-ON"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.9528736Z"
+                            },
+                            {
+                                "control_id":  "SI.L2-3.14.4",
+                                "family":  "SI",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "defender-status.txt",
+                                                       "windows-update-services.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "DEFENDER-UPDATES"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.9647263Z"
+                            },
+                            {
+                                "control_id":  "SI.L2-3.14.6",
+                                "family":  "SI",
+                                "pass":  true,
+                                "evidence_dir":  "C:\\evidence\\CUI-Evidence-20260224-082131",
+                                "required_files":  [
+                                                       "defender-status.txt",
+                                                       "windows-update-services.txt",
+                                                       "lsa.txt"
+                                                   ],
+                                "missing_files":  [
+
+                                                  ],
+                                "required_check_ids":  [
+                                                           "LSA-PPL"
+                                                       ],
+                                "failed_check_ids":  [
+
+                                                     ],
+                                "basis":  "Evidence bundle contains required artifacts and required checks passed.",
+                                "timestamp_utc":  "2026-02-24T08:22:50.9846430Z"
+                            }
+                        ]
+}

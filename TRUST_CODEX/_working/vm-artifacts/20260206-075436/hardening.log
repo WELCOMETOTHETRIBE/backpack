@@ -1,0 +1,20 @@
+[2026-02-06 06:40:46Z][INFO] START CUI HARDENING
+[2026-02-06 06:40:46Z][CHANGE] Registry set HKLM:\System\CurrentControlSet\Control\Lsa\FipsAlgorithmPolicy\\Enabled=1 (was 0)
+[2026-02-06 06:40:46Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters\\RequireSecuritySignature=1
+[2026-02-06 06:40:46Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters\\RequireSecuritySignature=1
+[2026-02-06 06:40:46Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Client\\Enabled=0
+[2026-02-06 06:40:46Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Server\\Enabled=0
+[2026-02-06 06:40:47Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Client\\Enabled=0
+[2026-02-06 06:40:47Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Server\\Enabled=0
+[2026-02-06 06:40:47Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Client\\Enabled=1
+[2026-02-06 06:40:47Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Server\\Enabled=1
+[2026-02-06 06:40:47Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\\RunAsPPL=1
+[2026-02-06 06:40:47Z][INFO] Registry already HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\\ConsentPromptBehaviorAdmin=2
+[2026-02-06 06:40:47Z][INFO] Registry already HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\\PromptOnSecureDesktop=1
+[2026-02-06 06:40:47Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient\\EnableMulticast=0
+[2026-02-06 06:40:48Z][CHANGE] WinRM disabled
+[2026-02-06 06:40:48Z][INFO] Registry already HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp\\UserAuthentication=1
+[2026-02-06 06:40:48Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\\fDisableClip=1
+[2026-02-06 06:40:48Z][INFO] Registry already HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\\fDisableCdm=1
+[2026-02-06 06:40:50Z][CHANGE] ASR rules ensured
+[2026-02-06 06:40:50Z][INFO] HARDENING COMPLETE

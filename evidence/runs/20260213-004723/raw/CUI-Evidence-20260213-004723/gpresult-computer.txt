@@ -1,0 +1,45 @@
+﻿
+Microsoft (R) Windows (R) Operating System Group Policy Result tool v2.0
+c Microsoft Corporation. All rights reserved.
+
+Created on ?2/?13/?2026 at 12:47:43 AM
+
+
+
+RSOP data for  on cui-win-pilot-0 : Logging Mode
+-------------------------------------------------
+
+OS Configuration:            Standalone Server
+OS Version:                  10.0.26100
+Site Name:                   N/A
+Roaming Profile:             
+Local Profile:               
+Connected over a slow link?: No
+
+
+COMPUTER SETTINGS
+------------------
+    
+    Last time Group Policy was applied: 2/12/2026 at 5:17:11 PM
+    Group Policy was applied from:      N/A
+    Group Policy slow link threshold:   500 kbps
+    Domain Name:                        cui-win-pilot-0
+    Domain Type:                        <Local Computer>
+
+    Applied Group Policy Objects
+    -----------------------------
+        Local Group Policy
+
+    The computer is a part of the following security groups
+    -------------------------------------------------------
+        System Mandatory Level
+        Everyone
+        BUILTIN\Users
+        NT AUTHORITY\SERVICE
+        CONSOLE LOGON
+        NT AUTHORITY\Authenticated Users
+        This Organization
+        gpsvc
+        LOCAL
+        BUILTIN\Administrators
+        

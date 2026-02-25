@@ -1,0 +1,2 @@
+﻿HKCU screensaver policy key not present (may be controlled via user GPO or not configured).
+

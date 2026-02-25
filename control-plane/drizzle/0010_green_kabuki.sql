@@ -1,0 +1,1 @@
+ALTER TABLE "mock_assessments" ADD COLUMN "control_ids" jsonb DEFAULT '[]'::jsonb NOT NULL;
