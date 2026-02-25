@@ -1,6 +1,6 @@
 "use client";
 
-import { CONTROL_FAMILIES } from "@/components/governance-wizard/constants";
+import { CONTROL_FAMILIES, getControlFamilyPrefix } from "@/components/governance-wizard/constants";
 
 const ADJUDICATED = ["implemented", "assessed", "inherited", "not_applicable"];
 
@@ -34,7 +34,7 @@ export function SCTMFilters({
   const outstanding = records.length - adjudicated;
 
   const familyStats = CONTROL_FAMILIES.map((f) => {
-    const inFamily = records.filter((r) => r.controlId.startsWith(f.controlPrefix));
+    const inFamily = records.filter((r) => getControlFamilyPrefix(r.controlId) === f.controlPrefix);
     const adj = inFamily.filter((r) => ADJUDICATED.includes(r.implementationStatus)).length;
     return { code: f.code, name: f.plainName, total: inFamily.length, adjudicated: adj };
   });

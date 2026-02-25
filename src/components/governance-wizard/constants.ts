@@ -39,3 +39,9 @@ export const CONTROL_FAMILIES: {
   { code: "SC", name: "System and Communications Protection", plainName: "Network & Communications", controlPrefix: "3.13", icon: Network },
   { code: "SI", name: "System and Information Integrity", plainName: "System Health & Integrity", controlPrefix: "3.14", icon: Activity },
 ];
+
+/** Control ID family prefix (e.g. "3.1" for 3.1.5, "3.10" for 3.10.1). Use this instead of startsWith(controlPrefix) to avoid 3.1 matching 3.10/3.11/3.12/3.13/3.14. */
+export function getControlFamilyPrefix(controlId: string): string {
+  const parts = controlId.split(".");
+  return parts.length >= 2 ? `${parts[0]}.${parts[1]}` : controlId;
+}

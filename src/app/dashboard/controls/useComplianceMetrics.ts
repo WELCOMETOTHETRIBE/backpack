@@ -42,7 +42,8 @@ export function useComplianceMetrics(
     for (const controlId of ALL_CONTROL_IDS) {
       const opt = optimizedByControlId[controlId];
       const sprs = opt?.scoring?.sprs ?? 1;
-      const domain = CONTROL_FAMILIES.find((f) => controlId.startsWith(f.controlPrefix))?.code ?? "AC";
+      const prefix = controlId.split(".").slice(0, 2).join(".");
+      const domain = CONTROL_FAMILIES.find((f) => f.controlPrefix === prefix)?.code ?? "AC";
       if (!domainMetrics[domain]) {
         domainMetrics[domain] = { total: 0, completed: 0, sprs5: 0, sprs3: 0, sprs1: 0 };
       }

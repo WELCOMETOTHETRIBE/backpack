@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Search, LayoutList, LayoutGrid } from "lucide-react";
 import { getSpecForControl, ALL_CONTROL_IDS } from "@/lib/artifact-guide";
-import { CONTROL_FAMILIES } from "@/components/governance-wizard/constants";
+import { CONTROL_FAMILIES, getControlFamilyPrefix } from "@/components/governance-wizard/constants";
 import { StatusBadge } from "@/components/governance-wizard/StatusBadge";
 import { type SCTMRecord } from "./SCTMFilters";
 import { SCTMControlDetail, type NistRow } from "./SCTMControlDetail";
@@ -15,11 +15,11 @@ import { getOptimizedByControlId } from "@/lib/sctm-optimized-types";
 
 const ADJUDICATED = ["implemented", "assessed", "inherited", "not_applicable"];
 
-/** Canonical control count per family (NIST SP 800-171 Rev 2: 110 total). */
+/** Canonical control count per family (NIST SP 800-171 Rev 2: 110 total). Use family prefix (3.1 vs 3.10) so AC is 22, not 58. */
 const FAMILY_CONTROL_COUNTS: Record<string, number> = (() => {
   const counts: Record<string, number> = {};
   for (const f of CONTROL_FAMILIES) {
-    counts[f.code] = ALL_CONTROL_IDS.filter((id) => id.startsWith(f.controlPrefix)).length;
+    counts[f.code] = ALL_CONTROL_IDS.filter((id) => getControlFamilyPrefix(id) === f.controlPrefix).length;
   }
   return counts;
 })();
@@ -83,7 +83,7 @@ export function SCTMPage() {
     let list = records;
     if (family) {
       const fam = CONTROL_FAMILIES.find((f) => f.code === family);
-      if (fam) list = list.filter((r) => r.controlId.startsWith(fam.controlPrefix));
+      if (fam) list = list.filter((r) => getControlFamilyPrefix(r.controlId) === fam.controlPrefix);
     }
     if (type !== "all") {
       list = list.filter((r) => {
@@ -134,7 +134,7 @@ export function SCTMPage() {
     );
     return CONTROL_FAMILIES.map((f) => {
       const total = FAMILY_CONTROL_COUNTS[f.code] ?? 0;
-      const inFamilyIds = ALL_CONTROL_IDS.filter((id) => id.startsWith(f.controlPrefix));
+      const inFamilyIds = ALL_CONTROL_IDS.filter((id) => getControlFamilyPrefix(id) === f.controlPrefix);
       const adj = inFamilyIds.filter((id) => adjudicatedControlIds.has(id)).length;
       return { code: f.code, plainName: f.plainName, name: f.name, total, adjudicated: adj };
     });
@@ -177,25 +177,75 @@ export function SCTMPage() {
     );
   }
 
+  const { complianceScore, priorityDistribution } = metrics;
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      {/* Single top bar: family chips + type + counts */}
-      <div className="flex flex-wrap items-center gap-4 border-b border-[var(--color-border)]/60 bg-white/80 px-6 py-4">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-medium uppercase tracking-wider text-[var(--color-gray-400)]">Family</span>
+      {/* Top: SPRS progress bar + priority pills */}
+      <div className="border-b border-[var(--color-border)]/60 bg-gradient-to-b from-[var(--color-gray-50)] to-white px-6 pt-5 pb-4">
+        <div className="flex flex-wrap items-center gap-6">
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="flex-shrink-0 w-32">
+              <div className="h-2.5 w-full rounded-full bg-[var(--color-gray-200)] overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-[var(--color-blue-accent)] transition-all duration-500"
+                  style={{ width: `${complianceScore}%` }}
+                />
+              </div>
+              <p className="mt-1 text-xs font-medium text-[var(--color-gray-600)]">
+                <span className="tabular-nums font-semibold text-[var(--color-gray-900)]">{complianceScore}%</span> SPRS-weighted
+              </p>
+            </div>
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--color-status-red)]/12 px-2.5 py-1 text-xs font-medium text-[var(--color-status-red)]">
+                <span className="tabular-nums font-semibold">{priorityDistribution.sprs5}</span> High (5)
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--color-status-amber)]/12 px-2.5 py-1 text-xs font-medium text-[var(--color-status-amber)]">
+                <span className="tabular-nums font-semibold">{priorityDistribution.sprs3}</span> Medium (3)
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--color-blue-accent)]/12 px-2.5 py-1 text-xs font-medium text-[var(--color-blue-accent)]">
+                <span className="tabular-nums font-semibold">{priorityDistribution.sprs1}</span> Basic (1)
+              </span>
+            </div>
+          </div>
+          <div className="ml-auto flex items-center gap-3 text-sm text-[var(--color-gray-500)]">
+            <span><strong className="text-[var(--color-gray-800)]">{adjudicatedCount}</strong> adjudicated</span>
+            <span><strong className="text-[var(--color-gray-800)]">{outstandingCount}</strong> outstanding</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Family chips + type + view */}
+      <div className="flex flex-wrap items-center gap-3 border-b border-[var(--color-border)]/60 bg-white/80 px-6 py-3">
+        <span className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-400)]">Domains</span>
+        <div className="flex flex-wrap gap-2">
           {familyStats.map((f) => {
             const isActive = family === f.code;
+            const pct = f.total ? Math.round((f.adjudicated / f.total) * 100) : 0;
             return (
               <button
                 key={f.code}
                 type="button"
                 onClick={() => setFamily(isActive ? null : f.code)}
                 title={`${f.name}: ${f.adjudicated}/${f.total}`}
-                className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                  isActive ? "bg-[var(--color-primary)] text-white" : "text-[var(--color-gray-600)] hover:bg-[var(--color-gray-100)]"
+                className={`group flex items-center gap-2 rounded-xl border px-3 py-2 text-left transition-all duration-200 ${
+                  isActive
+                    ? "border-[var(--color-primary)] bg-[var(--color-primary)]/10 shadow-sm ring-1 ring-[var(--color-primary)]/20"
+                    : "border-[var(--color-border)]/80 bg-white hover:border-[var(--color-gray-300)] hover:bg-[var(--color-gray-50)]/50"
                 }`}
               >
-                {f.code} <span className="tabular-nums opacity-80">{f.adjudicated}/{f.total}</span>
+                <span className={`font-mono text-sm font-bold tabular-nums ${isActive ? "text-[var(--color-primary)]" : "text-[var(--color-gray-700)]"}`}>
+                  {f.code}
+                </span>
+                <span className="text-xs text-[var(--color-gray-500)] tabular-nums">
+                  {f.adjudicated}/{f.total}
+                </span>
+                <div className="w-12 h-1 rounded-full bg-[var(--color-gray-100)] overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all ${isActive ? "bg-[var(--color-primary)]" : "bg-[var(--color-gray-300)]"}`}
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
               </button>
             );
           })}
@@ -235,10 +285,6 @@ export function SCTMPage() {
           >
             <LayoutGrid className="h-4 w-4" />
           </button>
-        </div>
-        <div className="ml-auto flex items-center gap-4 text-xs text-[var(--color-gray-500)]">
-          <span><strong className="text-[var(--color-gray-800)]">{adjudicatedCount}</strong> adjudicated</span>
-          <span><strong className="text-[var(--color-gray-800)]">{outstandingCount}</strong> outstanding</span>
         </div>
       </div>
 

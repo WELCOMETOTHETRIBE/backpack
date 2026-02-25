@@ -7,14 +7,21 @@ import {
   governanceControlMetadata,
   roles,
 } from "@/db/schema";
-import { eq, and, inArray, like, desc, sql } from "drizzle-orm";
+import { eq, and, inArray, sql } from "drizzle-orm";
 import { requireOrg, requireRole } from "@/lib/auth";
+import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
+import { getControlFamilyPrefix } from "@/components/governance-wizard/constants";
+import { PURE_GOV_CONTROL_IDS, HYBRID_GOV_CONTROL_IDS } from "@/lib/governance/seed-data";
 
 const FAMILY_PREFIX: Record<string, string> = {
   AC: "3.1", AT: "3.2", AU: "3.3", CM: "3.4", IA: "3.5", IR: "3.6",
   MA: "3.7", MP: "3.8", PS: "3.9", PE: "3.10", RA: "3.11", CA: "3.12",
   SC: "3.13", SI: "3.14",
 };
+
+const TECHNICAL_CONTROL_IDS = ALL_CONTROL_IDS.filter(
+  (id) => !PURE_GOV_CONTROL_IDS.includes(id) && !HYBRID_GOV_CONTROL_IDS.includes(id)
+);
 
 /**
  * GET /api/governance/controls?classification=PURE_GOV|HYBRID_GOV|TECHNICAL&status=...&domain=AC&page=1&limit=20
@@ -46,7 +53,17 @@ export async function GET(req: Request) {
       ? await metaQuery.where(eq(governanceControlMetadata.classification, classification))
       : await metaQuery;
 
-    const controlIds = metaList.map((m) => m.controlId);
+    let controlIds = metaList.map((m) => m.controlId);
+    if (controlIds.length === 0) {
+      if (classification === "PURE_GOV") controlIds = [...PURE_GOV_CONTROL_IDS];
+      else if (classification === "HYBRID_GOV") controlIds = [...HYBRID_GOV_CONTROL_IDS];
+      else if (classification === "TECHNICAL") controlIds = [...TECHNICAL_CONTROL_IDS];
+      else controlIds = [...ALL_CONTROL_IDS];
+    }
+    if (domain && FAMILY_PREFIX[domain]) {
+      const prefix = FAMILY_PREFIX[domain];
+      controlIds = controlIds.filter((id) => getControlFamilyPrefix(id) === prefix);
+    }
     if (controlIds.length === 0) {
       return NextResponse.json({ items: [], total: 0, page, limit });
     }
@@ -58,12 +75,6 @@ export async function GET(req: Request) {
     const validStatuses = ["not_started", "in_progress", "implemented", "assessed", "inherited", "not_applicable"] as const;
     if (status && validStatuses.includes(status as (typeof validStatuses)[number])) {
       conditions = and(conditions, eq(controlRecords.implementationStatus, status as (typeof validStatuses)[number]));
-    }
-    if (domain && FAMILY_PREFIX[domain]) {
-      conditions = and(
-        conditions,
-        like(controlRecords.controlId, `${FAMILY_PREFIX[domain]}.%`)
-      );
     }
 
     const records = await db
@@ -87,6 +98,11 @@ export async function GET(req: Request) {
       .where(conditions);
 
     const metaByControl = Object.fromEntries(metaList.map((m) => [m.controlId, m]));
+    function fallbackClassification(controlId: string): "PURE_GOV" | "HYBRID_GOV" | "TECHNICAL" {
+      if (PURE_GOV_CONTROL_IDS.includes(controlId)) return "PURE_GOV";
+      if (HYBRID_GOV_CONTROL_IDS.includes(controlId)) return "HYBRID_GOV";
+      return "TECHNICAL";
+    }
     const controlIdsToFetch = [...new Set(records.map((r) => r.controlId))];
     const controlRows = await db
       .select({
@@ -108,8 +124,8 @@ export async function GET(req: Request) {
         controlId: r.controlId,
         cmmcRef: ctrl?.familyCode ? `${ctrl.familyCode}.L2-${r.controlId}` : r.controlId,
         title: ctrl?.title ?? r.controlId,
-        classification: meta?.classification,
-        controlStatement: meta?.controlStatement,
+        classification: meta?.classification ?? fallbackClassification(r.controlId),
+        controlStatement: meta?.controlStatement ?? null,
         status: r.implementationStatus,
         governanceNarrative: r.governanceNarrative,
         roleName: r.roleName,
