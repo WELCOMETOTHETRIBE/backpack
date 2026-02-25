@@ -12,6 +12,7 @@ import {
   cleanDisplayText,
   type GuideSection,
 } from "./assessment-guide-sections";
+import type { SctmOptimizedControl } from "@/lib/sctm-optimized-types";
 
 function familyCodeFromControlId(controlId: string): string {
   const prefix = controlId.split(".").slice(0, 2).join(".");
@@ -84,11 +85,13 @@ function refreshArtifacts(recordId: string, setArtifacts: (a: { artifactLabel: s
 export function SCTMControlDetail({
   record,
   nist,
+  sctmOptimized,
   orgUploadedLabels = [],
   onSaved,
 }: {
   record: SCTMRecord;
   nist: NistRow | undefined;
+  sctmOptimized?: SctmOptimizedControl | null;
   orgUploadedLabels?: string[];
   onSaved?: () => void;
 }) {
@@ -114,8 +117,8 @@ export function SCTMControlDetail({
   const uploadedSet = new Set(artifacts.map((a) => a.artifactLabel));
 
   const guideSections = parseAssessmentGuideSections(nist?.nistDiscussionGuidance);
-  const requirementText = cleanDisplayText(nist?.nistExactText);
-  const displayTitle = nist?.title ? cleanDisplayText(nist.title) : null;
+  const requirementText = sctmOptimized?.requirement ?? cleanDisplayText(nist?.nistExactText);
+  const displayTitle = sctmOptimized?.title ?? (nist?.title ? cleanDisplayText(nist.title) : null);
 
   async function saveNarrative() {
     if (savingNarrative) return;
@@ -164,7 +167,14 @@ export function SCTMControlDetail({
 
       {/* Requirement — the main “field we were working on” */}
       <section className="mb-8">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-2">Requirement</h2>
+        <div className="flex items-center gap-3 mb-2">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)]">Requirement</h2>
+          {sctmOptimized?.scoring && (
+            <span className="rounded-full bg-[var(--color-gray-100)] px-2.5 py-0.5 text-xs font-medium text-[var(--color-gray-700)]">
+              SPRS {sctmOptimized.scoring.sprs} · {sctmOptimized.scoring.weight}
+            </span>
+          )}
+        </div>
         {displayTitle && <p className="text-[17px] font-medium text-[var(--color-gray-900)] mb-2">{displayTitle}</p>}
         <div className="rounded-xl border border-[var(--color-border)]/50 bg-white px-5 py-4">
           {requirementText ? (
@@ -175,7 +185,40 @@ export function SCTMControlDetail({
         </div>
       </section>
 
-      {/* Assessment guide — objectives, discussion, examples, etc. */}
+      {(sctmOptimized?.objectives?.length ?? 0) > 0 && (
+        <section className="mb-8">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-3">Assessment objectives</h2>
+          <div className="rounded-xl border border-[var(--color-border)]/50 bg-white px-5 py-4">
+            <ul className="space-y-2" role="list">
+              {(sctmOptimized?.objectives ?? []).map((obj) => (
+                <li key={obj.id} className="flex gap-2 text-[15px] leading-relaxed text-[var(--color-gray-800)]">
+                  <span className="font-mono text-xs text-[var(--color-gray-500)] shrink-0">{obj.id.split("-").pop()}</span>
+                  <span>{obj.text}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
+
+      {sctmOptimized?.nist_guidance && (
+        <section className="mb-8">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-2">NIST guidance</h2>
+          <div className="rounded-xl border border-[var(--color-border)]/50 bg-white px-5 py-4">
+            <p className="text-[15px] leading-relaxed text-[var(--color-gray-700)] whitespace-pre-wrap">{sctmOptimized.nist_guidance}</p>
+          </div>
+        </section>
+      )}
+
+      {sctmOptimized?.onboarding_tips && (
+        <section className="mb-8">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-2">Onboarding tips</h2>
+          <div className="rounded-xl border border-[var(--color-border)]/50 bg-white px-5 py-4">
+            <p className="text-[15px] leading-relaxed text-[var(--color-gray-700)] whitespace-pre-wrap">{sctmOptimized.onboarding_tips}</p>
+          </div>
+        </section>
+      )}
+
       {guideSections.length > 0 && (
         <section className="mb-8">
           <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-3">Assessment guide</h2>

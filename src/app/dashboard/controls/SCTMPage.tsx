@@ -7,6 +7,8 @@ import { CONTROL_FAMILIES } from "@/components/governance-wizard/constants";
 import { StatusBadge } from "@/components/governance-wizard/StatusBadge";
 import { type SCTMRecord } from "./SCTMFilters";
 import { SCTMControlDetail, type NistRow } from "./SCTMControlDetail";
+import type { SctmOptimizedControl } from "@/lib/sctm-optimized-types";
+import { getOptimizedByControlId } from "@/lib/sctm-optimized-types";
 
 const ADJUDICATED = ["implemented", "assessed", "inherited", "not_applicable"];
 
@@ -29,21 +31,32 @@ export function SCTMPage() {
   const [records, setRecords] = useState<SCTMRecord[]>([]);
   const [nistList, setNistList] = useState<NistRow[]>([]);
   const [uploadedLabels, setUploadedLabels] = useState<string[]>([]);
+  const [optimizedList, setOptimizedList] = useState<SctmOptimizedControl[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const optimizedByControlId = useMemo(
+    () => (optimizedList.length > 0 ? getOptimizedByControlId(optimizedList) : {}),
+    [optimizedList]
+  );
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [recRes, nistRes, labelsRes] = await Promise.all([
+      const [recRes, nistRes, labelsRes, optRes] = await Promise.all([
         fetch("/api/control-records"),
         fetch("/api/controls/nist"),
         fetch("/api/governance-documents/uploaded-labels"),
+        fetch("/CMMC_SCTM_UI_Optimized.json").catch(() => null),
       ]);
       if (recRes.ok) setRecords(await recRes.json());
       if (nistRes.ok) setNistList(await nistRes.json());
       if (labelsRes.ok) {
         const d = await labelsRes.json().catch(() => ({}));
         setUploadedLabels(d.uploadedLabels ?? []);
+      }
+      if (optRes?.ok) {
+        const arr = await optRes.json();
+        if (Array.isArray(arr) && arr.length > 0) setOptimizedList(arr);
       }
     } finally {
       setLoading(false);
@@ -183,9 +196,10 @@ export function SCTMPage() {
           </div>
           <ul className="flex-1 overflow-y-auto p-3 space-y-2" role="list">
             {filteredRecords.map((r) => {
+              const opt = optimizedByControlId[r.controlId];
               const nist = nistByControlId[r.controlId];
-              const title = nist?.title ?? r.controlId;
-              const description = nist?.nistExactText?.replace(/\s+/g, " ").trim().slice(0, 120);
+              const title = opt?.title ?? nist?.title ?? r.controlId;
+              const description = opt?.summary ?? nist?.nistExactText?.replace(/\s+/g, " ").trim().slice(0, 120);
               const isSelected = r.controlId === controlId;
               return (
                 <li key={r.controlId}>
@@ -209,7 +223,6 @@ export function SCTMPage() {
                       {description && (
                         <p className="mt-1 text-xs text-[var(--color-gray-500)] leading-relaxed line-clamp-2">
                           {description}
-                          {description.length >= 120 ? "…" : ""}
                         </p>
                       )}
                     </div>
@@ -226,6 +239,7 @@ export function SCTMPage() {
             <SCTMControlDetail
               record={selectedRecord}
               nist={selectedNist}
+              sctmOptimized={optimizedByControlId[selectedRecord.controlId] ?? undefined}
               orgUploadedLabels={uploadedLabels}
               onSaved={fetchData}
             />
