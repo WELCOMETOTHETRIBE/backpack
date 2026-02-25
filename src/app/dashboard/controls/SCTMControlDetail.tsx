@@ -14,6 +14,28 @@ import {
 } from "./assessment-guide-sections";
 import type { SctmOptimizedControl } from "@/lib/sctm-optimized-types";
 
+function TextWithBold({ text }: { text: string }) {
+  const parts: React.ReactNode[] = [];
+  let remaining = text;
+  let key = 0;
+  while (remaining.length > 0) {
+    const i = remaining.indexOf("**");
+    if (i === -1) {
+      parts.push(<span key={key++}>{remaining}</span>);
+      break;
+    }
+    if (i > 0) parts.push(<span key={key++}>{remaining.slice(0, i)}</span>);
+    const j = remaining.indexOf("**", i + 2);
+    if (j === -1) {
+      parts.push(<span key={key++}>{remaining.slice(i)}</span>);
+      break;
+    }
+    parts.push(<strong key={key++}>{remaining.slice(i + 2, j)}</strong>);
+    remaining = remaining.slice(j + 2);
+  }
+  return <>{parts}</>;
+}
+
 function familyCodeFromControlId(controlId: string): string {
   const prefix = controlId.split(".").slice(0, 2).join(".");
   const family = CONTROL_FAMILIES.find((f) => f.controlPrefix === prefix);
@@ -113,7 +135,14 @@ export function SCTMControlDetail({
   }, [record.id, record.artifactCount]);
 
   const spec = getSpecForControl(record.controlId);
-  const requiredUpload = spec?.artifacts.filter((a) => a.handling === "UPLOAD" || a.handling === "NATIVE") ?? [];
+  const ultimateArtifacts = sctmOptimized?.compliance_meta?.required_artifacts ?? [];
+  const hasUltimateArtifacts = ultimateArtifacts.length > 0;
+  const requiredUpload = hasUltimateArtifacts
+    ? ultimateArtifacts.filter((a) => a.handling === "UPLOAD" || a.handling === "NATIVE").map((a) => ({ label: a.name, handling: a.handling }))
+    : (spec?.artifacts.filter((a) => a.handling === "UPLOAD" || a.handling === "NATIVE") ?? []);
+  const allEvidenceArtifacts = hasUltimateArtifacts
+    ? ultimateArtifacts.map((a) => ({ label: a.name, handling: a.handling }))
+    : (spec?.artifacts ?? []);
   const uploadedSet = new Set(artifacts.map((a) => a.artifactLabel));
 
   const guideSections = parseAssessmentGuideSections(nist?.nistDiscussionGuidance);
@@ -161,6 +190,11 @@ export function SCTMControlDetail({
         <StatusBadge status={record.implementationStatus} />
         {familyCode && (
           <span className="text-xs font-medium text-[var(--color-gray-500)]">{familyCode}</span>
+        )}
+        {sctmOptimized?.compliance_meta?.satisfaction_type && (
+          <span className="rounded-full bg-[var(--color-blue-accent)]/10 px-2.5 py-0.5 text-xs font-medium text-[var(--color-blue-accent)]">
+            {sctmOptimized.compliance_meta.satisfaction_type.replace(/-/g, " ")}
+          </span>
         )}
         {record.roleName && <span className="text-xs text-[var(--color-gray-400)]">· {record.roleName}</span>}
       </div>
@@ -215,6 +249,32 @@ export function SCTMControlDetail({
           <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-2">Onboarding tips</h2>
           <div className="rounded-xl border border-[var(--color-border)]/50 bg-white px-5 py-4">
             <p className="text-[15px] leading-relaxed text-[var(--color-gray-700)] whitespace-pre-wrap">{sctmOptimized.onboarding_tips}</p>
+          </div>
+        </section>
+      )}
+
+      {sctmOptimized?.assessor_interrogation && (sctmOptimized.assessor_interrogation.assessor_questions || sctmOptimized.assessor_interrogation.examine_criteria || sctmOptimized.assessor_interrogation.test_procedures) && (
+        <section className="mb-8">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-3">What assessors do</h2>
+          <div className="rounded-xl border border-[var(--color-border)]/50 bg-white overflow-hidden">
+            {sctmOptimized.assessor_interrogation.assessor_questions && (
+              <div className="px-5 py-4 border-b border-[var(--color-border)]/50">
+                <h3 className="text-sm font-semibold text-[var(--color-gray-800)] mb-2">Interview</h3>
+                <p className="text-[15px] leading-relaxed text-[var(--color-gray-700)]"><TextWithBold text={sctmOptimized.assessor_interrogation.assessor_questions} /></p>
+              </div>
+            )}
+            {sctmOptimized.assessor_interrogation.examine_criteria && (
+              <div className="px-5 py-4 border-b border-[var(--color-border)]/50">
+                <h3 className="text-sm font-semibold text-[var(--color-gray-800)] mb-2">Examine</h3>
+                <p className="text-[15px] leading-relaxed text-[var(--color-gray-700)]"><TextWithBold text={sctmOptimized.assessor_interrogation.examine_criteria} /></p>
+              </div>
+            )}
+            {sctmOptimized.assessor_interrogation.test_procedures && (
+              <div className="px-5 py-4">
+                <h3 className="text-sm font-semibold text-[var(--color-gray-800)] mb-2">Test</h3>
+                <p className="text-[15px] leading-relaxed text-[var(--color-gray-700)] whitespace-pre-wrap"><TextWithBold text={sctmOptimized.assessor_interrogation.test_procedures} /></p>
+              </div>
+            )}
           </div>
         </section>
       )}
@@ -286,33 +346,39 @@ export function SCTMControlDetail({
             </button>
           </div>
 
-          {requiredUpload.length > 0 && (
+          {(allEvidenceArtifacts.length > 0 || requiredUpload.length > 0) && (
             <div>
               <p className="text-sm font-medium text-[var(--color-gray-700)] mb-2">Evidence</p>
               <ul className="space-y-3">
-                {requiredUpload.map((a) => (
-                  <li key={a.label} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
-                    <div className="flex items-center gap-2 min-w-0">
-                      {uploadedSet.has(a.label) ? (
-                        <CheckCircle2 className="h-4 w-4 shrink-0 text-[var(--color-status-green)]" aria-hidden />
-                      ) : (
-                        <span className="w-4 h-4 shrink-0 rounded-full border-2 border-[var(--color-gray-300)]" aria-hidden />
+                {(allEvidenceArtifacts.length > 0 ? allEvidenceArtifacts : requiredUpload).map((a) => {
+                  const needsUpload = (a.handling === "UPLOAD" || a.handling === "NATIVE") && !uploadedSet.has(a.label);
+                  return (
+                    <li key={a.label} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+                      <div className="flex items-center gap-2 min-w-0">
+                        {uploadedSet.has(a.label) ? (
+                          <CheckCircle2 className="h-4 w-4 shrink-0 text-[var(--color-status-green)]" aria-hidden />
+                        ) : (
+                          <span className="w-4 h-4 shrink-0 rounded-full border-2 border-[var(--color-gray-300)]" aria-hidden />
+                        )}
+                        <span className="text-sm text-[var(--color-gray-800)]">{a.label}</span>
+                        {a.handling && a.handling !== "UPLOAD" && a.handling !== "NATIVE" && (
+                          <span className="text-xs text-[var(--color-gray-500)]">({a.handling})</span>
+                        )}
+                      </div>
+                      {needsUpload && (
+                        <FileUploadWidget
+                          compact
+                          controlRecordId={record.id}
+                          artifactLabel={a.label}
+                          onUploaded={() => {
+                            refresh();
+                            refreshArtifacts(record.id, setArtifacts);
+                          }}
+                        />
                       )}
-                      <span className="text-sm text-[var(--color-gray-800)]">{a.label}</span>
-                    </div>
-                    {!uploadedSet.has(a.label) && (
-                      <FileUploadWidget
-                        compact
-                        controlRecordId={record.id}
-                        artifactLabel={a.label}
-                        onUploaded={() => {
-                          refresh();
-                          refreshArtifacts(record.id, setArtifacts);
-                        }}
-                      />
-                    )}
-                  </li>
-                ))}
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           )}

@@ -2,11 +2,14 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { Search, LayoutList, LayoutGrid } from "lucide-react";
 import { getSpecForControl, ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { CONTROL_FAMILIES } from "@/components/governance-wizard/constants";
 import { StatusBadge } from "@/components/governance-wizard/StatusBadge";
 import { type SCTMRecord } from "./SCTMFilters";
 import { SCTMControlDetail, type NistRow } from "./SCTMControlDetail";
+import { SCTMMetricsPanel } from "./SCTMMetricsPanel";
+import { useComplianceMetrics } from "./useComplianceMetrics";
 import type { SctmOptimizedControl } from "@/lib/sctm-optimized-types";
 import { getOptimizedByControlId } from "@/lib/sctm-optimized-types";
 
@@ -33,6 +36,14 @@ export function SCTMPage() {
   const [uploadedLabels, setUploadedLabels] = useState<string[]>([]);
   const [optimizedList, setOptimizedList] = useState<SctmOptimizedControl[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchQuery.trim()), 300);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
 
   const optimizedByControlId = useMemo(
     () => (optimizedList.length > 0 ? getOptimizedByControlId(optimizedList) : {}),
@@ -42,10 +53,11 @@ export function SCTMPage() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [recRes, nistRes, labelsRes, optRes] = await Promise.all([
+      const [recRes, nistRes, labelsRes, ultimateRes, fallbackRes] = await Promise.all([
         fetch("/api/control-records"),
         fetch("/api/controls/nist"),
         fetch("/api/governance-documents/uploaded-labels"),
+        fetch("/CMMC_SCTM_Ultimate_Onboarding_Data.json").catch(() => null),
         fetch("/CMMC_SCTM_UI_Optimized.json").catch(() => null),
       ]);
       if (recRes.ok) setRecords(await recRes.json());
@@ -54,10 +66,8 @@ export function SCTMPage() {
         const d = await labelsRes.json().catch(() => ({}));
         setUploadedLabels(d.uploadedLabels ?? []);
       }
-      if (optRes?.ok) {
-        const arr = await optRes.json();
-        if (Array.isArray(arr) && arr.length > 0) setOptimizedList(arr);
-      }
+      const optArr = ultimateRes?.ok ? await ultimateRes.json() : fallbackRes?.ok ? await fallbackRes.json() : null;
+      if (Array.isArray(optArr) && optArr.length > 0) setOptimizedList(optArr);
     } finally {
       setLoading(false);
     }
@@ -87,8 +97,30 @@ export function SCTMPage() {
     for (const r of list) {
       if (!byControlId.has(r.controlId)) byControlId.set(r.controlId, r);
     }
-    return Array.from(byControlId.values()).sort((a, b) => a.controlId.localeCompare(b.controlId));
-  }, [records, family, type]);
+    let result = Array.from(byControlId.values()).sort((a, b) => a.controlId.localeCompare(b.controlId));
+
+    if (debouncedSearch) {
+      const q = debouncedSearch.toLowerCase();
+      result = result.filter((r) => {
+        const opt = optimizedByControlId[r.controlId];
+        const nist = nistByControlId[r.controlId];
+        const searchable = [
+          r.controlId,
+          opt?.title,
+          opt?.summary,
+          opt?.requirement,
+          nist?.title,
+          nist?.nistExactText,
+          ...(opt?.objectives?.map((o) => o.text) ?? []),
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        return searchable.includes(q);
+      });
+    }
+    return result;
+  }, [records, family, type, debouncedSearch, optimizedByControlId, nistByControlId]);
 
   const selectedRecord = useMemo(
     () => (controlId ? records.find((r) => r.controlId === controlId) ?? null : null),
@@ -114,6 +146,8 @@ export function SCTMPage() {
   );
   const adjudicatedCount = adjudicatedControlIds.size;
   const outstandingCount = 110 - adjudicatedCount;
+
+  const metrics = useComplianceMetrics(records, optimizedByControlId);
 
   function setFamily(code: string | null) {
     const u = new URLSearchParams(searchParams.toString());
@@ -181,6 +215,27 @@ export function SCTMPage() {
             </button>
           ))}
         </div>
+        <div className="flex items-center gap-2">
+          <span className="sr-only">View mode</span>
+          <button
+            type="button"
+            onClick={() => setViewMode("list")}
+            className={`rounded-lg p-1.5 transition-colors ${viewMode === "list" ? "bg-[var(--color-gray-900)] text-white" : "text-[var(--color-gray-500)] hover:bg-[var(--color-gray-100)]"}`}
+            title="List view"
+            aria-pressed={viewMode === "list"}
+          >
+            <LayoutList className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode("grid")}
+            className={`rounded-lg p-1.5 transition-colors ${viewMode === "grid" ? "bg-[var(--color-gray-900)] text-white" : "text-[var(--color-gray-500)] hover:bg-[var(--color-gray-100)]"}`}
+            title="Grid view"
+            aria-pressed={viewMode === "grid"}
+          >
+            <LayoutGrid className="h-4 w-4" />
+          </button>
+        </div>
         <div className="ml-auto flex items-center gap-4 text-xs text-[var(--color-gray-500)]">
           <span><strong className="text-[var(--color-gray-800)]">{adjudicatedCount}</strong> adjudicated</span>
           <span><strong className="text-[var(--color-gray-800)]">{outstandingCount}</strong> outstanding</span>
@@ -188,13 +243,29 @@ export function SCTMPage() {
       </div>
 
       <div className="flex min-h-0 flex-1 min-w-0">
-        {/* Control list — minimal, clean */}
+        {/* Left: search + control list */}
         <aside className="w-64 shrink-0 flex flex-col border-r border-[var(--color-border)]/60 bg-[var(--color-gray-50)]/50">
+          <div className="p-3 border-b border-[var(--color-border)]/60">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--color-gray-400)]" aria-hidden />
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search controls…"
+                className="w-full rounded-lg border border-[var(--color-border)] bg-white py-2 pl-8 pr-3 text-sm text-[var(--color-gray-900)] placeholder:text-[var(--color-gray-400)] focus:border-[var(--color-blue-accent)] focus:outline-none focus:ring-2 focus:ring-[var(--color-blue-accent)]/20"
+                aria-label="Search controls by title, description, or objectives"
+              />
+            </div>
+          </div>
           <div className="px-4 py-3 border-b border-[var(--color-border)]/60">
             <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)]">Controls</h2>
             <p className="mt-0.5 text-sm text-[var(--color-gray-600)]">{filteredRecords.length} shown</p>
           </div>
-          <ul className="flex-1 overflow-y-auto p-3 space-y-2" role="list">
+          <ul
+            className={`flex-1 overflow-y-auto p-3 ${viewMode === "grid" ? "grid grid-cols-2 gap-2" : "space-y-2"}`}
+            role="list"
+          >
             {filteredRecords.map((r) => {
               const opt = optimizedByControlId[r.controlId];
               const nist = nistByControlId[r.controlId];
@@ -202,25 +273,34 @@ export function SCTMPage() {
               const description = opt?.summary ?? nist?.nistExactText?.replace(/\s+/g, " ").trim().slice(0, 120);
               const isSelected = r.controlId === controlId;
               return (
-                <li key={r.controlId}>
+                <li key={r.controlId} className={viewMode === "grid" ? "min-w-0" : undefined}>
                   <button
                     type="button"
                     onClick={() => setControl(isSelected ? null : r.controlId)}
                     className={`w-full text-left rounded-xl border transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2 ${
+                      viewMode === "grid"
+                        ? "p-2.5"
+                        : ""
+                    } ${
                       isSelected
                         ? "bg-white border-[var(--color-primary)] shadow-md ring-1 ring-[var(--color-primary)]/20"
                         : "bg-white/70 border-[var(--color-border)]/80 hover:border-[var(--color-gray-300)] hover:bg-white hover:shadow-sm"
                     }`}
                   >
-                    <div className="px-4 py-3">
+                    <div className={viewMode === "list" ? "px-4 py-3" : ""}>
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-mono text-sm font-semibold text-[var(--color-navy-primary)] tracking-tight">{r.controlId}</span>
                         <StatusBadge status={r.implementationStatus} />
+                        {opt?.compliance_meta?.satisfaction_type && viewMode === "list" && (
+                          <span className="rounded bg-[var(--color-gray-100)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--color-gray-600)]">
+                            {opt.compliance_meta.satisfaction_type.replace(/-/g, " ")}
+                          </span>
+                        )}
                       </div>
-                      <p className="mt-2 text-[13px] font-medium text-[var(--color-gray-900)] leading-snug line-clamp-2">
+                      <p className={`font-medium text-[var(--color-gray-900)] leading-snug line-clamp-2 ${viewMode === "list" ? "mt-2 text-[13px]" : "mt-1 text-xs"}`}>
                         {title}
                       </p>
-                      {description && (
+                      {description && viewMode === "list" && (
                         <p className="mt-1 text-xs text-[var(--color-gray-500)] leading-relaxed line-clamp-2">
                           {description}
                         </p>
@@ -249,6 +329,11 @@ export function SCTMPage() {
             </div>
           )}
         </main>
+
+        {/* Right: compliance metrics */}
+        <aside className="w-72 shrink-0 border-l border-[var(--color-border)]/60 bg-[var(--color-gray-50)]/50 overflow-y-auto">
+          <SCTMMetricsPanel metrics={metrics} />
+        </aside>
       </div>
     </div>
   );

@@ -1,11 +1,27 @@
 /**
- * Types for CMMC_SCTM_UI_Optimized.json — 110 controls with title, summary, objectives, scoring, etc.
- * Used by SCTM list and detail to show consistent, readable control content.
+ * Types for CMMC SCTM control data (UI Optimized and Ultimate Onboarding JSON).
+ * Ultimate includes compliance_meta and assessor_interrogation for a full onboarding/assessment tool.
  */
 
 export interface SctmOptimizedObjective {
   id: string;
   text: string;
+}
+
+export interface SctmRequiredArtifact {
+  name: string;
+  handling: string;
+}
+
+export interface SctmComplianceMeta {
+  satisfaction_type?: string;
+  required_artifacts?: SctmRequiredArtifact[];
+}
+
+export interface SctmAssessorInterrogation {
+  assessor_questions?: string;
+  examine_criteria?: string;
+  test_procedures?: string;
 }
 
 export interface SctmOptimizedControl {
@@ -24,9 +40,11 @@ export interface SctmOptimizedControl {
     nist_id: string;
     level: string;
   };
+  compliance_meta?: SctmComplianceMeta;
+  assessor_interrogation?: SctmAssessorInterrogation;
 }
 
-/** controlId is 3.x.x (e.g. 3.1.1). Optimized JSON uses metadata.nist_id for this. */
+/** controlId is 3.x.x (e.g. 3.1.1). JSON uses metadata.nist_id for this. */
 export function getOptimizedByControlId(
   list: SctmOptimizedControl[]
 ): Record<string, SctmOptimizedControl> {
@@ -37,3 +55,4 @@ export function getOptimizedByControlId(
   }
   return map;
 }
+
