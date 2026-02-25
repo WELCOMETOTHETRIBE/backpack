@@ -1,2 +1,2 @@
-ALTER TABLE "control_records" ADD COLUMN "sprs_31311_condition" varchar(20);--> statement-breakpoint
-ALTER TABLE "organizations" ADD COLUMN "sprs_score" integer;
+DO $$ BEGIN ALTER TABLE "control_records" ADD COLUMN "sprs_31311_condition" varchar(20); EXCEPTION WHEN duplicate_column THEN NULL; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "organizations" ADD COLUMN "sprs_score" integer; EXCEPTION WHEN duplicate_column THEN NULL; END $$;

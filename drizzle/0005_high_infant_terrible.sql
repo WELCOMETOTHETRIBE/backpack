@@ -1,1 +1,1 @@
-ALTER TYPE "public"."implementation_status" ADD VALUE 'inherited';
+DO $$ BEGIN ALTER TYPE "public"."implementation_status" ADD VALUE 'inherited'; EXCEPTION WHEN duplicate_object THEN NULL; END $$;

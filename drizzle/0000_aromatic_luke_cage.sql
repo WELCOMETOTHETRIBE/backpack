@@ -1,3 +1,5 @@
+-- Reduce NOTICE volume to avoid Railway log rate limit (42P06/42P07 "already exists, skipping")
+SET client_min_messages = 'warning';
 -- Idempotent: create enums only if not present (avoids 42710 on redeploy when type already exists)
 DO $$ BEGIN CREATE TYPE "public"."attestation_type" AS ENUM('control_attestation', 'evidence_review', 'poam_closure', 'document_approval'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
 DO $$ BEGIN CREATE TYPE "public"."cmmc_level" AS ENUM('Level1', 'Level2', 'Level3'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
