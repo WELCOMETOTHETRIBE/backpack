@@ -1,9 +1,9 @@
-CREATE TYPE "public"."governance_control_classification" AS ENUM('PURE_GOV', 'HYBRID_GOV', 'TECHNICAL');--> statement-breakpoint
-CREATE TYPE "public"."governance_control_link_type" AS ENUM('document', 'register_entry', 'evidence');--> statement-breakpoint
-CREATE TYPE "public"."governance_doc_status" AS ENUM('DRAFT', 'SUBMITTED', 'APPROVED', 'REJECTED', 'RETIRED');--> statement-breakpoint
-CREATE TYPE "public"."governance_doc_type" AS ENUM('POLICY', 'SOP', 'PLAN', 'STANDARD', 'CHARTER', 'PROCEDURE', 'TEMPLATE');--> statement-breakpoint
-CREATE TYPE "public"."governance_evidence_type" AS ENUM('screenshot', 'export_file', 'log_snippet', 'config_baseline', 'policy_export', 'ticket', 'training_record', 'incident_report', 'risk_report', 'other');--> statement-breakpoint
-ALTER TYPE "public"."implementation_status" ADD VALUE 'not_applicable';--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."governance_control_classification" AS ENUM('PURE_GOV', 'HYBRID_GOV', 'TECHNICAL'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."governance_control_link_type" AS ENUM('document', 'register_entry', 'evidence'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."governance_doc_status" AS ENUM('DRAFT', 'SUBMITTED', 'APPROVED', 'REJECTED', 'RETIRED'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."governance_doc_type" AS ENUM('POLICY', 'SOP', 'PLAN', 'STANDARD', 'CHARTER', 'PROCEDURE', 'TEMPLATE'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."governance_evidence_type" AS ENUM('screenshot', 'export_file', 'log_snippet', 'config_baseline', 'policy_export', 'ticket', 'training_record', 'incident_report', 'risk_report', 'other'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TYPE "public"."implementation_status" ADD VALUE 'not_applicable'; EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
 CREATE TABLE "governance_control_links" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"control_record_id" uuid NOT NULL,

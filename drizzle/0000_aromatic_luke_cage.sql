@@ -1,17 +1,18 @@
-CREATE TYPE "public"."attestation_type" AS ENUM('control_attestation', 'evidence_review', 'poam_closure', 'document_approval');--> statement-breakpoint
-CREATE TYPE "public"."cmmc_level" AS ENUM('Level1', 'Level2', 'Level3');--> statement-breakpoint
-CREATE TYPE "public"."control_status" AS ENUM('Not Started', 'Implemented', 'Partial', 'POA&M', 'Inherited', 'Not Applicable');--> statement-breakpoint
-CREATE TYPE "public"."document_type" AS ENUM('ssp', 'policy', 'asset', 'data_flow');--> statement-breakpoint
-CREATE TYPE "public"."evidence_type" AS ENUM('screenshot', 'config_file', 'scan_result', 'log_file');--> statement-breakpoint
-CREATE TYPE "public"."evidence_validation_status" AS ENUM('Valid', 'Expired');--> statement-breakpoint
-CREATE TYPE "public"."implementation_status" AS ENUM('not_started', 'in_progress', 'implemented', 'assessed');--> statement-breakpoint
-CREATE TYPE "public"."monitoring_cadence" AS ENUM('Quarterly', 'Monthly', 'Annual');--> statement-breakpoint
-CREATE TYPE "public"."poam_entry_status" AS ENUM('open', 'closed');--> statement-breakpoint
-CREATE TYPE "public"."poam_status" AS ENUM('Open', 'In Progress', 'Pending Closure', 'Closed');--> statement-breakpoint
-CREATE TYPE "public"."review_frequency" AS ENUM('Monthly', 'Quarterly', 'Semiannual', 'Annual');--> statement-breakpoint
-CREATE TYPE "public"."risk_severity" AS ENUM('Low', 'Medium', 'High', 'Critical');--> statement-breakpoint
-CREATE TYPE "public"."subcontractor_relationship_status" AS ENUM('Pending', 'Active', 'Suspended');--> statement-breakpoint
-CREATE TYPE "public"."user_role" AS ENUM('Admin', 'Compliance', 'Assessor');--> statement-breakpoint
+-- Idempotent: create enums only if not present (avoids 42710 on redeploy when type already exists)
+DO $$ BEGIN CREATE TYPE "public"."attestation_type" AS ENUM('control_attestation', 'evidence_review', 'poam_closure', 'document_approval'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."cmmc_level" AS ENUM('Level1', 'Level2', 'Level3'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."control_status" AS ENUM('Not Started', 'Implemented', 'Partial', 'POA&M', 'Inherited', 'Not Applicable'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."document_type" AS ENUM('ssp', 'policy', 'asset', 'data_flow'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."evidence_type" AS ENUM('screenshot', 'config_file', 'scan_result', 'log_file'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."evidence_validation_status" AS ENUM('Valid', 'Expired'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."implementation_status" AS ENUM('not_started', 'in_progress', 'implemented', 'assessed'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."monitoring_cadence" AS ENUM('Quarterly', 'Monthly', 'Annual'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."poam_entry_status" AS ENUM('open', 'closed'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."poam_status" AS ENUM('Open', 'In Progress', 'Pending Closure', 'Closed'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."review_frequency" AS ENUM('Monthly', 'Quarterly', 'Semiannual', 'Annual'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."risk_severity" AS ENUM('Low', 'Medium', 'High', 'Critical'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."subcontractor_relationship_status" AS ENUM('Pending', 'Active', 'Suspended'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."user_role" AS ENUM('Admin', 'Compliance', 'Assessor'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
 CREATE TABLE "artifacts" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"organization_id" uuid NOT NULL,

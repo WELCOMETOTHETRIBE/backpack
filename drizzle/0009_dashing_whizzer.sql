@@ -1,6 +1,6 @@
-CREATE TYPE "public"."flowdown_response_type" AS ENUM('linked_workspace', 'manual_attestation');--> statement-breakpoint
-CREATE TYPE "public"."mock_assessment_score" AS ENUM('Met', 'Partially Met', 'Not Met');--> statement-breakpoint
-CREATE TYPE "public"."mock_assessment_status" AS ENUM('in_progress', 'completed');--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."flowdown_response_type" AS ENUM('linked_workspace', 'manual_attestation'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."mock_assessment_score" AS ENUM('Met', 'Partially Met', 'Not Met'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."mock_assessment_status" AS ENUM('in_progress', 'completed'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
 CREATE TABLE "mock_assessment_responses" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"mock_assessment_id" uuid NOT NULL,
