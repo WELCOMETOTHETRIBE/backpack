@@ -1,7 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import Link from "next/link";
+import { ChevronDown, ChevronUp, FileText } from "lucide-react";
+import { cleanDisplayText, parseAssessmentGuideSections, type GuideSection } from "@/app/dashboard/controls/assessment-guide-sections";
+import { getOptimizedByControlId, type SctmOptimizedControl } from "@/lib/sctm-optimized-types";
 
 type Record = {
   id: string;
@@ -23,6 +26,30 @@ type Nist = { nistExactText: string | null; nistDiscussionGuidance: string | nul
 type LinkItem = { id: string; linkType: string; linkId: string };
 type AuditItem = { id: string; action: string; resourceType: string; details: unknown; createdAt: string; userEmail: string | null; userName: string | null };
 
+function GuideSectionBlock({ section, defaultOpen = false }: { section: GuideSection; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-gray-50)]/50 overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center justify-between gap-2 px-3 py-2 text-left text-sm font-medium text-[var(--color-gray-800)] hover:bg-[var(--color-gray-100)]/50"
+      >
+        <span className="flex items-center gap-2">
+          <FileText className="h-3.5 w-3.5 text-[var(--color-gray-400)]" />
+          {section.label}
+        </span>
+        {open ? <ChevronUp className="h-4 w-4 text-[var(--color-gray-400)]" /> : <ChevronDown className="h-4 w-4 text-[var(--color-gray-400)]" />}
+      </button>
+      {open && (
+        <div className="px-3 py-2 pt-0 border-t border-[var(--color-border)]/50">
+          <p className="whitespace-pre-wrap text-sm text-[var(--color-gray-700)] leading-relaxed">{section.body}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ControlDetailClient({ controlId }: { controlId: string }) {
   const [data, setData] = useState<{
     record: Record;
@@ -41,6 +68,13 @@ export default function ControlDetailClient({ controlId }: { controlId: string }
   const [linkOptionsLoading, setLinkOptionsLoading] = useState(false);
   const [linkError, setLinkError] = useState<string | null>(null);
   const [unlinkingId, setUnlinkingId] = useState<string | null>(null);
+  const [sctmOptimizedList, setSctmOptimizedList] = useState<SctmOptimizedControl[]>([]);
+
+  const sctmOptimized = useMemo(() => {
+    if (sctmOptimizedList.length === 0) return null;
+    const byId = getOptimizedByControlId(sctmOptimizedList);
+    return byId[controlId] ?? null;
+  }, [sctmOptimizedList, controlId]);
 
   const refetch = useCallback(() => {
     fetch(`/api/governance/controls/${encodeURIComponent(controlId)}`)
@@ -64,6 +98,16 @@ export default function ControlDetailClient({ controlId }: { controlId: string }
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, [controlId]);
+
+  useEffect(() => {
+    Promise.all([
+      fetch("/CMMC_SCTM_Ultimate_Onboarding_Data.json").catch(() => null),
+      fetch("/CMMC_SCTM_UI_Optimized.json").catch(() => null),
+    ]).then(([ultimateRes, fallbackRes]) => {
+      const promise = ultimateRes?.ok ? ultimateRes.json() : fallbackRes?.ok ? fallbackRes.json() : null;
+      if (promise) promise.then((arr: unknown) => Array.isArray(arr) && arr.length > 0 && setSctmOptimizedList(arr));
+    });
+  }, []);
 
   const handleSave = () => {
     setSaving(true);
@@ -191,29 +235,84 @@ export default function ControlDetailClient({ controlId }: { controlId: string }
         />
       </div>
 
-      {nist?.nistExactText && (
-        <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm">
-          <h3 className="text-sm font-semibold text-[var(--color-navy-primary)]">NIST 800-171</h3>
-          <p className="mt-2 whitespace-pre-wrap text-sm text-[var(--color-gray-700)]">{nist.nistExactText}</p>
+      {(nist?.nistExactText || nist?.nistDiscussionGuidance) && (
+        <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm space-y-4">
+          <h3 className="text-sm font-semibold text-[var(--color-navy-primary)]">NIST 800-171 &amp; assessment guide</h3>
+          {nist.nistExactText && (
+            <div>
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1">Requirement</h4>
+              <p className="whitespace-pre-wrap text-sm text-[var(--color-gray-700)] leading-relaxed">{cleanDisplayText(nist.nistExactText)}</p>
+            </div>
+          )}
+          {nist.nistDiscussionGuidance && (() => {
+            const guideSections = parseAssessmentGuideSections(nist.nistDiscussionGuidance);
+            if (guideSections.length > 0) {
+              return (
+                <div>
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-2">Assessment guide</h4>
+                  <div className="space-y-1">
+                    {guideSections.map((section, i) => (
+                      <GuideSectionBlock key={`${section.label}-${i}`} section={section} defaultOpen={i < 2} />
+                    ))}
+                  </div>
+                </div>
+              );
+            }
+            return (
+              <div>
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1">Discussion &amp; guidance</h4>
+                <p className="whitespace-pre-wrap text-sm text-[var(--color-gray-700)] leading-relaxed">{cleanDisplayText(nist.nistDiscussionGuidance)}</p>
+              </div>
+            );
+          })()}
         </div>
       )}
 
       <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm">
         <h3 className="text-sm font-semibold text-[var(--color-navy-primary)]">Required artifacts</h3>
-        <ul className="mt-2 list-inside list-disc text-sm text-[var(--color-gray-700)]">
-          {(metadata?.requiredDocuments ?? []).length > 0 && (
-            <li>Documents: {(metadata!.requiredDocuments as string[]).join(", ") || "—"}</li>
-          )}
-          {(metadata?.requiredRegisters ?? []).length > 0 && (
-            <li>Registers: {(metadata!.requiredRegisters as string[]).join(", ") || "—"}</li>
-          )}
-          {(metadata?.requiredHybridEvidenceTypes ?? []).length > 0 && (
-            <li>Evidence types: {(metadata!.requiredHybridEvidenceTypes as string[]).join(", ") || "—"}</li>
-          )}
-          {(!metadata?.requiredDocuments?.length && !metadata?.requiredRegisters?.length && !metadata?.requiredHybridEvidenceTypes?.length) && (
-            <li>None specified</li>
-          )}
-        </ul>
+        {(() => {
+          const hasMetaArtifacts =
+            (metadata?.requiredDocuments ?? []).length > 0 ||
+            (metadata?.requiredRegisters ?? []).length > 0 ||
+            (metadata?.requiredHybridEvidenceTypes ?? []).length > 0;
+          const sctmArtifacts = sctmOptimized?.compliance_meta?.required_artifacts ?? [];
+          const hasSctmArtifacts = sctmArtifacts.length > 0;
+          return (
+            <>
+              {hasMetaArtifacts && metadata && (
+                <ul className="mt-2 list-inside list-disc text-sm text-[var(--color-gray-700)]">
+                  {(metadata.requiredDocuments ?? []).length > 0 && (
+                    <li>Documents: {(metadata.requiredDocuments as string[]).join(", ") || "—"}</li>
+                  )}
+                  {(metadata.requiredRegisters ?? []).length > 0 && (
+                    <li>Registers: {(metadata.requiredRegisters as string[]).join(", ") || "—"}</li>
+                  )}
+                  {(metadata.requiredHybridEvidenceTypes ?? []).length > 0 && (
+                    <li>Evidence types: {(metadata.requiredHybridEvidenceTypes as string[]).join(", ") || "—"}</li>
+                  )}
+                </ul>
+              )}
+              {hasSctmArtifacts && (
+                <div className="mt-2">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)]">
+                    {hasMetaArtifacts ? "From assessment guide" : "Expected artifacts (from assessment guide)"}
+                  </p>
+                  <ul className="mt-1.5 space-y-1 text-sm text-[var(--color-gray-700)]">
+                    {sctmArtifacts.map((a, i) => (
+                      <li key={i} className="flex items-center gap-2">
+                        <span className="font-medium">{a.name}</span>
+                        {a.handling && <span className="text-[var(--color-gray-500)]">({a.handling})</span>}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {!hasMetaArtifacts && !hasSctmArtifacts && (
+                <p className="mt-2 text-sm text-[var(--color-gray-500)]">None specified</p>
+              )}
+            </>
+          );
+        })()}
         <p className="mt-2 text-sm text-[var(--color-gray-500)]">
           Linked: {docLinks.length} document(s), {registerLinks.length} register entry(ies), {evidenceLinks.length} evidence item(s).
         </p>
