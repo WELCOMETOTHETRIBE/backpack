@@ -67,6 +67,10 @@ export const evidenceControlTechnicalStatus = pgTable(
     missingFiles: jsonb("missing_files").notNull().default([]),
     presentFiles: jsonb("present_files").notNull().default([]),
     computedAt: timestamp("computed_at", { withTimezone: true }).notNull().defaultNow(),
+    /** When run is tied to an OS asset (system_id = os_asset.id). */
+    osAssetId: uuid("os_asset_id"),
+    /** Baseline profile used to evaluate this run (from os_asset). */
+    baselineProfileId: uuid("baseline_profile_id"),
   },
   (t) => ({
     pk: primaryKey({ columns: [t.evidenceRunId, t.controlId] }),

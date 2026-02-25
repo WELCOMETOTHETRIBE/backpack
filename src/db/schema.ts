@@ -114,6 +114,23 @@ export const governanceControlLinkTypeEnum = pgEnum("governance_control_link_typ
   "evidence",
 ]);
 
+// ============== OS Baselines (technical implementation plane) ==============
+export const osFamilyEnum = pgEnum("os_family", [
+  "windows_server",
+  "windows_client",
+  "linux",
+]);
+export const osAssetRoleEnum = pgEnum("os_asset_role", [
+  "member_server",
+  "domain_controller",
+  "workstation",
+]);
+export const baselineControlApplicabilityEnum = pgEnum("baseline_control_applicability", [
+  "required",
+  "conditional",
+  "na_by_default",
+]);
+
 export const roles = pgTable("roles", {
   id: uuid("id").primaryKey().defaultRandom(),
   organizationId: uuid("organization_id").references(() => organizations.id).notNull(),
@@ -263,6 +280,85 @@ export const boundaryProfiles = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   }
 );
+
+/** CUI enclave / segment (OS Baselines pillar). */
+export const boundaries = pgTable("boundary", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id")
+    .references(() => organizations.id, { onDelete: "cascade" })
+    .notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+/** Baseline template for an OS type/role (e.g. Windows Server 2025 Member Server). */
+export const osBaselineProfiles = pgTable("baseline_profile", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: varchar("name", { length: 255 }).notNull(),
+  version: varchar("version", { length: 50 }).notNull(),
+  osFamily: osFamilyEnum("os_family").notNull(),
+  osVersion: varchar("os_version", { length: 50 }).notNull(),
+  role: osAssetRoleEnum("role").notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+/** Which controls apply to a baseline. */
+export const baselineControls = pgTable(
+  "baseline_control",
+  {
+    baselineProfileId: uuid("baseline_profile_id")
+      .notNull()
+      .references(() => osBaselineProfiles.id, { onDelete: "cascade" }),
+    controlId: text("control_id").notNull(),
+    applicability: baselineControlApplicabilityEnum("applicability").notNull(),
+    rationale: text("rationale"),
+  },
+  (t) => [primaryKey({ columns: [t.baselineProfileId, t.controlId] })]
+);
+
+/** Per-check expected setting and evidence (within a baseline). */
+export const baselineChecks = pgTable(
+  "baseline_check",
+  {
+    baselineProfileId: uuid("baseline_profile_id")
+      .notNull()
+      .references(() => osBaselineProfiles.id, { onDelete: "cascade" }),
+    checkId: varchar("check_id", { length: 120 }).notNull(),
+    controlId: text("control_id").notNull(),
+    expectedSetting: text("expected_setting").notNull(),
+    evidenceRequiredFiles: jsonb("evidence_required_files").$type<string[]>().notNull().default([]),
+    validation: jsonb("validation"), // regex/threshold/value rules
+    remediationGuidance: text("remediation_guidance"),
+    manualCommands: jsonb("manual_commands").$type<string[]>(),
+  },
+  (t) => [uniqueIndex("baseline_check_profile_check_idx").on(t.baselineProfileId, t.checkId)]
+);
+
+/** Host inside a boundary (OS Baselines pillar). */
+export const osAssets = pgTable("os_asset", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id")
+    .references(() => organizations.id, { onDelete: "cascade" })
+    .notNull(),
+  boundaryId: uuid("boundary_id")
+    .references(() => boundaries.id, { onDelete: "cascade" })
+    .notNull(),
+  hostname: varchar("hostname", { length: 255 }).notNull(),
+  osFamily: osFamilyEnum("os_family").notNull(),
+  osVersion: varchar("os_version", { length: 50 }).notNull(),
+  role: osAssetRoleEnum("role").notNull(),
+  baselineProfileId: uuid("baseline_profile_id").references(() => osBaselineProfiles.id, {
+    onDelete: "set null",
+  }),
+  owner: varchar("owner", { length: 255 }),
+  tags: jsonb("tags").$type<string[]>(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -781,10 +877,37 @@ export const organizationsRelations = relations(organizations, ({ one, many }) =
   governanceDocuments: many(governanceDocuments),
   governanceRegisters: many(governanceRegisters),
   governanceEvidenceItems: many(governanceEvidenceItems),
+  boundaries: many(boundaries),
+  osAssets: many(osAssets),
 }));
 
 export const boundaryProfilesRelations = relations(boundaryProfiles, ({ one }) => ({
   organization: one(organizations),
+}));
+
+export const boundariesRelations = relations(boundaries, ({ one, many }) => ({
+  organization: one(organizations),
+  osAssets: many(osAssets),
+}));
+
+export const osBaselineProfilesRelations = relations(osBaselineProfiles, ({ many }) => ({
+  baselineControls: many(baselineControls),
+  baselineChecks: many(baselineChecks),
+  osAssets: many(osAssets),
+}));
+
+export const baselineControlsRelations = relations(baselineControls, ({ one }) => ({
+  baselineProfile: one(osBaselineProfiles),
+}));
+
+export const baselineChecksRelations = relations(baselineChecks, ({ one }) => ({
+  baselineProfile: one(osBaselineProfiles),
+}));
+
+export const osAssetsRelations = relations(osAssets, ({ one }) => ({
+  organization: one(organizations),
+  boundary: one(boundaries),
+  baselineProfile: one(osBaselineProfiles),
 }));
 
 export const usersRelations = relations(users, ({ one, many }) => ({

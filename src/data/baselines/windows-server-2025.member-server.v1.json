@@ -1,0 +1,165 @@
+{
+  "schema": "os-baseline.v1",
+  "profile": {
+    "name": "Windows Server 2025 CUI Baseline",
+    "version": "1",
+    "os_family": "windows_server",
+    "os_version": "2025",
+    "role": "member_server",
+    "description": "High-value technical controls for Windows Server 2025 member servers in a CUI boundary (account policy, audit, firewall, BitLocker, Defender, AppLocker, crypto)."
+  },
+  "controls": [
+    { "control_id": "AC.L2-3.1.1", "applicability": "required", "rationale": "Authorized access control; local accounts and policy evidence." },
+    { "control_id": "AC.L2-3.1.10", "applicability": "required", "rationale": "Concurrent session control; policy and logon evidence." },
+    { "control_id": "AC.L2-3.1.11", "applicability": "required", "rationale": "Session lock; screen saver and policy." },
+    { "control_id": "AC.L2-3.1.12", "applicability": "required", "rationale": "Remote access control; RDP and policy." },
+    { "control_id": "AC.L2-3.1.13", "applicability": "required", "rationale": "Remote access monitoring; audit and policy." },
+    { "control_id": "AC.L2-3.1.15", "applicability": "required", "rationale": "Wireless access; restrict or disable." },
+    { "control_id": "AC.L2-3.1.2", "applicability": "required", "rationale": "Transaction/function control; least privilege." },
+    { "control_id": "AC.L2-3.1.5", "applicability": "required", "rationale": "Concurrent session limits." },
+    { "control_id": "AC.L2-3.1.6", "applicability": "required", "rationale": "Session lock on inactivity." },
+    { "control_id": "AC.L2-3.1.7", "applicability": "required", "rationale": "Remote session disconnect." },
+    { "control_id": "AC.L2-3.1.8", "applicability": "required", "rationale": "Session encryption (RDP/TLS)." },
+    { "control_id": "AC.L2-3.1.9", "applicability": "required", "rationale": "Remote access disconnect." },
+    { "control_id": "IA.L2-3.5.1", "applicability": "required", "rationale": "Identifier management; local accounts." },
+    { "control_id": "IA.L2-3.5.2", "applicability": "required", "rationale": "Authenticator management; password policy." },
+    { "control_id": "IA.L2-3.5.3", "applicability": "required", "rationale": "Federation; N/A or MFA evidence." },
+    { "control_id": "IA.L2-3.5.7", "applicability": "required", "rationale": "Replay-resistant authentication." },
+    { "control_id": "AU.L2-3.3.1", "applicability": "required", "rationale": "Audit record creation; audit policy." },
+    { "control_id": "AU.L2-3.3.2", "applicability": "required", "rationale": "Audit events; categories enabled." },
+    { "control_id": "AU.L2-3.3.3", "applicability": "required", "rationale": "Audit record content." },
+    { "control_id": "AU.L2-3.3.4", "applicability": "required", "rationale": "Audit storage capacity." },
+    { "control_id": "AU.L2-3.3.10", "applicability": "required", "rationale": "Audit review and failure handling." },
+    { "control_id": "SC.L2-3.13.1", "applicability": "required", "rationale": "Network boundary protection; firewall." },
+    { "control_id": "SC.L2-3.13.2", "applicability": "required", "rationale": "Application partitioning; firewall rules." },
+    { "control_id": "SC.L2-3.13.11", "applicability": "required", "rationale": "FIPS-validated crypto; FIPS/TLS evidence." },
+    { "control_id": "MP.L2-3.8.1", "applicability": "required", "rationale": "Media access; BitLocker and access control." },
+    { "control_id": "MP.L2-3.8.2", "applicability": "required", "rationale": "Media mark and disposal." },
+    { "control_id": "SI.L2-3.14.1", "applicability": "required", "rationale": "Flaw remediation; patch and Defender." },
+    { "control_id": "SI.L2-3.14.2", "applicability": "required", "rationale": "Malicious code protection; Defender." },
+    { "control_id": "CM.L2-3.4.1", "applicability": "required", "rationale": "Baseline config; AppLocker/config." },
+    { "control_id": "CM.L2-3.4.2", "applicability": "required", "rationale": "Change control; change management." }
+  ],
+  "checks": [
+    {
+      "check_id": "ac-ia-password-policy",
+      "control_id": "IA.L2-3.5.2",
+      "expected_setting": "Minimum password length >= 14; account lockout threshold and duration configured; password complexity enabled.",
+      "evidence_required_files": ["policy/secpol.cfg", "policy/gpresult.html"],
+      "validation": { "type": "file_presence", "hint": "PasswordPolicy and LockoutPolicy in secpol or RSOP" },
+      "remediation_guidance": "Configure via GPO or Local Security Policy: Computer Configuration > Windows Settings > Security Settings > Account Policies. Set minimum password length, lockout threshold (e.g. 5), lockout duration (e.g. 15 min), and enable complexity.",
+      "manual_commands": [
+        "net accounts",
+        "secedit /export /cfg C:\\Temp\\secpol.cfg",
+        "gpresult /h C:\\Temp\\gpresult.html /f",
+        "gpresult /x C:\\Temp\\rsop.xml /f"
+      ]
+    },
+    {
+      "check_id": "ac-ia-deny-logon",
+      "control_id": "AC.L2-3.1.1",
+      "expected_setting": "Deny logon locally and Deny access from network restricted to authorized accounts; local admin group minimized.",
+      "evidence_required_files": ["policy/secpol.cfg", "policy/local-admins.txt", "policy/gpresult-computer.txt"],
+      "validation": { "type": "file_presence" },
+      "remediation_guidance": "Restrict 'Deny logon locally' and 'Allow logon through Remote Desktop Services' via GPO. Limit local Administrators group; use LAPS or equivalent for local admin passwords.",
+      "manual_commands": [
+        "secedit /export /cfg C:\\Temp\\secpol.cfg",
+        "Get-LocalGroupMember -SID S-1-5-32-544 | Out-File C:\\Temp\\local-admins.txt",
+        "gpresult /h C:\\Temp\\gpresult.html /f"
+      ]
+    },
+    {
+      "check_id": "au-audit-policy",
+      "control_id": "AU.L2-3.3.1",
+      "expected_setting": "Audit policy categories enabled for success and failure where required (logon, account logon, object access, policy change, privilege use, system).",
+      "evidence_required_files": ["audit/auditpol.txt", "audit/auditpol-subcategories.txt"],
+      "validation": { "type": "file_presence" },
+      "remediation_guidance": "Enable required audit subcategories via GPO or auditpol. At minimum: Account Logon, Logon, Object Access (where used), Policy Change, Privilege Use, System.",
+      "manual_commands": [
+        "auditpol /get /category:*",
+        "auditpol /get /subcategory:* /r"
+      ]
+    },
+    {
+      "check_id": "au-log-acl",
+      "control_id": "AU.L2-3.3.10",
+      "expected_setting": "Security event log ACL restricted; only SYSTEM and authorized accounts have write/delete; backup operators may have read where required.",
+      "evidence_required_files": ["audit/security-evtx-acl.txt"],
+      "validation": { "type": "file_presence" },
+      "remediation_guidance": "Restrict permissions on %windir%\\System32\\winevt\\Logs\\Security.evtx. Ensure only SYSTEM and designated audit role have full control; remove unnecessary write for non-SYSTEM.",
+      "manual_commands": [
+        "icacls \"$env:windir\\System32\\winevt\\Logs\\Security.evtx\""
+      ]
+    },
+    {
+      "check_id": "sc-firewall-profiles",
+      "control_id": "SC.L2-3.13.1",
+      "expected_setting": "All firewall profiles (Domain, Private, Public) enabled; default inbound action Block; default outbound Allow; logging enabled for allowed and blocked.",
+      "evidence_required_files": ["network/firewall-profiles.txt", "network/firewall-rules.txt"],
+      "validation": { "type": "file_presence" },
+      "remediation_guidance": "Enable Windows Firewall for all profiles. Set default inbound to Block. Enable logging: Set-NetFirewallProfile -LogAllowed True -LogBlocked True.",
+      "manual_commands": [
+        "Get-NetFirewallProfile | Format-List Name, Enabled, DefaultInboundAction, DefaultOutboundAction, LogAllowed, LogBlocked",
+        "Get-NetFirewallRule | Select-Object DisplayName, Enabled, Direction, Action, Profile | Export-Csv C:\\Temp\\firewall-rules.csv -NoTypeInformation"
+      ]
+    },
+    {
+      "check_id": "sc-listening-ports",
+      "control_id": "SC.L2-3.13.2",
+      "expected_setting": "Only required listening ports; no unnecessary services bound to 0.0.0.0 or all interfaces.",
+      "evidence_required_files": ["network/listening-ports.txt"],
+      "validation": { "type": "file_presence" },
+      "remediation_guidance": "Disable or firewall unused services. Review Get-NetTCPConnection -State Listen and remove or restrict unneeded listeners.",
+      "manual_commands": [
+        "Get-NetTCPConnection -State Listen | Select-Object LocalAddress, LocalPort, OwningProcess | Sort-Object LocalPort"
+      ]
+    },
+    {
+      "check_id": "mp-bitlocker",
+      "control_id": "MP.L2-3.8.1",
+      "expected_setting": "OS drive (C:) encrypted with BitLocker; protection on; encryption method AES-256 or XTS-AES; recovery key escrowed per policy.",
+      "evidence_required_files": ["storage/bitlocker-status.txt"],
+      "validation": { "type": "file_presence" },
+      "remediation_guidance": "Enable BitLocker on OS volume: Enable-BitLocker -MountPoint C: -EncryptionMethod XtsAes256 -RecoveryPasswordProtector. Back up recovery key to AD or secure store per policy.",
+      "manual_commands": [
+        "manage-bde -status C:",
+        "Get-BitLockerVolume | Select MountPoint, VolumeStatus, ProtectionStatus, EncryptionPercentage, EncryptionMethod"
+      ]
+    },
+    {
+      "check_id": "si-defender-realtime",
+      "control_id": "SI.L2-3.14.2",
+      "expected_setting": "Windows Defender real-time protection enabled; tamper protection on where supported; signatures up to date.",
+      "evidence_required_files": ["defender/defender-status.txt", "defender/defender-preferences.txt"],
+      "validation": { "type": "file_presence" },
+      "remediation_guidance": "Enable real-time protection and keep definitions current. Enable tamper protection (Set-MpPreference -DisableTamperProtection $false) to prevent disabling by non-admin.",
+      "manual_commands": [
+        "Get-MpComputerStatus",
+        "Get-MpPreference"
+      ]
+    },
+    {
+      "check_id": "cm-applocker",
+      "control_id": "CM.L2-3.4.1",
+      "expected_setting": "AppLocker or WDAC policy enforced; executable and script rules limit execution to approved paths.",
+      "evidence_required_files": ["apps/applocker-policy.txt"],
+      "validation": { "type": "file_presence" },
+      "remediation_guidance": "Deploy AppLocker or WDAC policy via GPO. Enforce rules for EXE, script, and optionally MSI. Default deny with explicit allow for Program Files and approved paths.",
+      "manual_commands": [
+        "Get-AppLockerPolicy -Effective -Xml | Out-File C:\\Temp\\applocker.xml"
+      ]
+    },
+    {
+      "check_id": "sc-fips-tls",
+      "control_id": "SC.L2-3.13.11",
+      "expected_setting": "FIPS mode enabled if required (HKLM Lsa FipsAlgorithmPolicy = 1); TLS 1.0/1.1 disabled; TLS 1.2 and 1.3 enabled for Schannel.",
+      "evidence_required_files": ["crypto/fips.txt"],
+      "validation": { "type": "file_presence" },
+      "remediation_guidance": "If FIPS required: set FipsAlgorithmPolicy Enabled = 1. Disable TLS 1.0/1.1 and enable TLS 1.2/1.3 via registry or GPO under SCHANNEL.",
+      "manual_commands": [
+        "Get-ItemProperty -Path 'HKLM:\\System\\CurrentControlSet\\Control\\Lsa\\FipsAlgorithmPolicy' | Select Enabled",
+        "reg query 'HKLM\\SYSTEM\\CurrentControlSet\\Control\\SecurityProviders\\SCHANNEL\\Protocols' /s"
+      ]
+    }
+  ]
+}

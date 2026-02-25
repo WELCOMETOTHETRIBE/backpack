@@ -1,7 +1,12 @@
 "use client";
 
 import React from "react";
-import type { ComplianceMetrics } from "./useComplianceMetrics";
+
+export type ComplianceMetrics = {
+  completedControls: number;
+  totalControls: number;
+  domainMetrics: Record<string, { total: number; completed: number }>;
+};
 
 interface SCTMMetricsPanelProps {
   metrics: ComplianceMetrics;

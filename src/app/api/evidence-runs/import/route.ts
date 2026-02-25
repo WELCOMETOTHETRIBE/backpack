@@ -4,8 +4,11 @@ import {
   evidenceRuns,
   evidenceFiles,
   evidenceControlTechnicalStatus,
+  osAssets,
 } from "@/db/schema";
+import { eq, and } from "drizzle-orm";
 import { getPortalControlSchema } from "@/lib/compliance/schemas";
+import { resolveApplicableControls } from "@/lib/os-baselines/resolver";
 
 type ImportBody = {
   organization_id: string;
@@ -22,6 +25,8 @@ type ImportBody = {
 /**
  * POST /api/evidence-runs/import
  * Metadata-only import. No artifact upload.
+ * When system_id matches an OS asset with a baseline profile, evaluates only
+ * baseline-applicable controls and sets os_asset_id/baseline_profile_id on status rows.
  */
 export async function POST(req: Request) {
   const body = (await req.json()) as ImportBody;
@@ -61,36 +66,83 @@ export async function POST(req: Request) {
     }))
   );
 
-  const portal = getPortalControlSchema();
   const present = new Set<string>(
     body.files.map((f) => (f.path || "").replaceAll("\\", "/"))
   );
 
-  const statuses: Array<{
+  type StatusRow = {
     evidenceRunId: string;
     controlId: string;
     technicalOk: boolean;
     missingFiles: string[];
     presentFiles: string[];
-  }> = [];
-  const controls = (portal.controls ?? []) as Array<{
-    control_id: string;
-    technical_validation?: { required_files?: string[] };
-  }>;
-  for (const c of controls) {
-    const requiredFiles: string[] = c?.technical_validation?.required_files ?? [];
-    if (!requiredFiles.length) continue;
+    osAssetId?: string | null;
+    baselineProfileId?: string | null;
+  };
 
-    const missing = requiredFiles.filter((p) => !present.has(p));
-    const ok = missing.length === 0;
+  const statuses: StatusRow[] = [];
 
-    statuses.push({
-      evidenceRunId: run.id,
-      controlId: c.control_id,
-      technicalOk: ok,
-      missingFiles: missing,
-      presentFiles: requiredFiles.filter((p) => present.has(p)),
+  // Check if system_id is an OS asset in this org (for baseline-aware scoring)
+  const [osAssetRow] = await db
+    .select({ id: osAssets.id, baselineProfileId: osAssets.baselineProfileId })
+    .from(osAssets)
+    .where(
+      and(
+        eq(osAssets.id, body.system_id),
+        eq(osAssets.organizationId, body.organization_id)
+      )
+    );
+
+  if (osAssetRow?.baselineProfileId) {
+    const { controls, checksByControlId } = await resolveApplicableControls({
+      id: osAssetRow.id,
+      baselineProfileId: osAssetRow.baselineProfileId,
     });
+
+    for (const c of controls) {
+      const checks = checksByControlId[c.controlId] ?? [];
+      const requiredFiles = Array.from(
+        new Set(checks.flatMap((ch) => ch.evidenceRequiredFiles ?? []))
+      );
+      if (requiredFiles.length === 0) continue;
+
+      const missing = requiredFiles.filter((p) => !present.has(p));
+      const ok = missing.length === 0;
+
+      statuses.push({
+        evidenceRunId: run.id,
+        controlId: c.controlId,
+        technicalOk: ok,
+        missingFiles: missing,
+        presentFiles: requiredFiles.filter((p) => present.has(p)),
+        osAssetId: osAssetRow.id,
+        baselineProfileId: osAssetRow.baselineProfileId,
+      });
+    }
+  }
+
+  if (statuses.length === 0) {
+    // Fallback: use portal schema for all controls with technical_validation (legacy / non-baseline runs)
+    const portal = getPortalControlSchema();
+    const portalControls = (portal?.controls ?? []) as Array<{
+      control_id: string;
+      technical_validation?: { required_files?: string[] };
+    }>;
+    for (const c of portalControls) {
+      const requiredFiles: string[] = c?.technical_validation?.required_files ?? [];
+      if (!requiredFiles.length) continue;
+
+      const missing = requiredFiles.filter((p) => !present.has(p));
+      const ok = missing.length === 0;
+
+      statuses.push({
+        evidenceRunId: run.id,
+        controlId: c.control_id,
+        technicalOk: ok,
+        missingFiles: missing,
+        presentFiles: requiredFiles.filter((p) => present.has(p)),
+      });
+    }
   }
 
   if (statuses.length) {
