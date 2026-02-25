@@ -7,12 +7,15 @@ export function FileUploadWidget({
   artifactLabel,
   onUploaded,
   technicalEvidencePayload,
+  compact = false,
 }: {
   controlRecordId: string;
   artifactLabel: string;
   onUploaded?: () => void;
   /** When set, uploads to /api/technical-evidence with requirementId and evidenceType instead of artifacts. */
   technicalEvidencePayload?: { requirementId: string; evidenceType: string };
+  /** Single-row layout with smaller inputs for use in detail panels. */
+  compact?: boolean;
 }) {
   const [version, setVersion] = useState("");
   const [approvalDate, setApprovalDate] = useState("");
@@ -65,6 +68,46 @@ export function FileUploadWidget({
     } finally {
       setUploading(false);
     }
+  }
+
+  if (compact) {
+    return (
+      <form onSubmit={handleSubmit} className="flex flex-wrap items-center gap-2">
+        <input
+          ref={inputRef}
+          type="file"
+          className="block max-w-[200px] text-xs text-[var(--color-gray-600)] file:mr-2 file:rounded file:border-0 file:bg-[var(--color-gray-800)] file:px-2 file:py-1 file:text-white file:text-xs"
+          disabled={uploading}
+        />
+        {!isTechnical && (
+          <>
+            <input
+              type="text"
+              value={version}
+              onChange={(e) => setVersion(e.target.value)}
+              placeholder="Version"
+              className="w-20 rounded border border-[var(--color-border)] px-2 py-1 text-xs"
+              disabled={uploading}
+            />
+            <input
+              type="date"
+              value={approvalDate}
+              onChange={(e) => setApprovalDate(e.target.value)}
+              className="rounded border border-[var(--color-border)] px-2 py-1 text-xs"
+              disabled={uploading}
+            />
+          </>
+        )}
+        <button
+          type="submit"
+          disabled={uploading}
+          className="rounded-lg bg-[var(--color-gray-800)] px-3 py-1.5 text-xs font-medium text-white hover:bg-[var(--color-gray-900)] disabled:opacity-50"
+        >
+          {uploading ? "…" : "Upload"}
+        </button>
+        {error && <span className="text-xs text-red-600">{error}</span>}
+      </form>
+    );
   }
 
   return (

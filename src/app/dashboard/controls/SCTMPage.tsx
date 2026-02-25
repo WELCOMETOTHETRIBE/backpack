@@ -5,8 +5,10 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { getSpecForControl } from "@/lib/artifact-guide";
 import { CONTROL_FAMILIES } from "@/components/governance-wizard/constants";
 import { StatusBadge } from "@/components/governance-wizard/StatusBadge";
-import { SCTMFilters, type SCTMRecord } from "./SCTMFilters";
+import { type SCTMRecord } from "./SCTMFilters";
 import { SCTMControlDetail, type NistRow } from "./SCTMControlDetail";
+
+const ADJUDICATED = ["implemented", "assessed", "inherited", "not_applicable"];
 
 export function SCTMPage() {
   const router = useRouter();
@@ -68,6 +70,17 @@ export function SCTMPage() {
   );
   const selectedNist = selectedRecord ? nistByControlId[selectedRecord.controlId] : undefined;
 
+  const familyStats = useMemo(() => {
+    return CONTROL_FAMILIES.map((f) => {
+      const inFamily = records.filter((r) => r.controlId.startsWith(f.controlPrefix));
+      const adj = inFamily.filter((r) => ADJUDICATED.includes(r.implementationStatus)).length;
+      return { code: f.code, plainName: f.plainName, name: f.name, total: inFamily.length, adjudicated: adj };
+    });
+  }, [records]);
+
+  const adjudicatedCount = records.filter((r) => ADJUDICATED.includes(r.implementationStatus)).length;
+  const outstandingCount = records.length - adjudicatedCount;
+
   function setFamily(code: string | null) {
     const u = new URLSearchParams(searchParams.toString());
     if (code) u.set("family", code);
@@ -88,115 +101,93 @@ export function SCTMPage() {
     router.replace(`/dashboard/controls?${u.toString()}`, { scroll: false });
   }
 
-  const familyStats = useMemo(() => {
-    const ADJUDICATED = ["implemented", "assessed", "inherited", "not_applicable"];
-    return CONTROL_FAMILIES.map((f) => {
-      const inFamily = records.filter((r) => r.controlId.startsWith(f.controlPrefix));
-      const adj = inFamily.filter((r) => ADJUDICATED.includes(r.implementationStatus)).length;
-      return { code: f.code, plainName: f.plainName, name: f.name, total: inFamily.length, adjudicated: adj };
-    });
-  }, [records]);
-
   if (loading && records.length === 0) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center">
-        <p className="text-sm text-[var(--color-gray-600)]">Loading controls…</p>
+        <p className="text-sm text-[var(--color-gray-500)]">Loading controls…</p>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-4">
-      {/* Top: control family chips for filtering / tallying */}
-      <section
-        className="flex flex-wrap items-center gap-2 rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 shadow-sm"
-        aria-label="Control families"
-      >
-        <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">
-          Family
-        </span>
-        {familyStats.map((f) => {
-          const isActive = family === f.code;
-          return (
+    <div className="flex min-h-0 flex-1 flex-col">
+      {/* Single top bar: family chips + type + counts */}
+      <div className="flex flex-wrap items-center gap-4 border-b border-[var(--color-border)]/60 bg-white/80 px-6 py-4">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-medium uppercase tracking-wider text-[var(--color-gray-400)]">Family</span>
+          {familyStats.map((f) => {
+            const isActive = family === f.code;
+            return (
+              <button
+                key={f.code}
+                type="button"
+                onClick={() => setFamily(isActive ? null : f.code)}
+                title={`${f.name}: ${f.adjudicated}/${f.total}`}
+                className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                  isActive ? "bg-[var(--color-primary)] text-white" : "text-[var(--color-gray-600)] hover:bg-[var(--color-gray-100)]"
+                }`}
+              >
+                {f.code} <span className="tabular-nums opacity-80">{f.adjudicated}/{f.total}</span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="h-4 w-px bg-[var(--color-border)]" aria-hidden />
+        <div className="flex items-center gap-1">
+          {(["all", "configuration", "governance"] as const).map((t) => (
             <button
-              key={f.code}
+              key={t}
               type="button"
-              onClick={() => setFamily(isActive ? null : f.code)}
-              title={`${f.name}: ${f.adjudicated}/${f.total} adjudicated`}
-              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2 ${
-                isActive
-                  ? "bg-[var(--color-primary)] text-white"
-                  : "bg-[var(--color-gray-100)] text-[var(--color-gray-700)] hover:bg-[var(--color-gray-200)]"
+              onClick={() => setType(t)}
+              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                type === t ? "bg-[var(--color-gray-900)] text-white" : "text-[var(--color-gray-600)] hover:bg-[var(--color-gray-100)]"
               }`}
             >
-              <span className="font-mono text-xs opacity-90">{f.code}</span>
-              <span className="max-w-[8rem] truncate">{f.plainName}</span>
-              <span className="rounded bg-black/10 px-1.5 py-0.5 text-xs tabular-nums">
-                {f.adjudicated}/{f.total}
-              </span>
+              {t === "all" ? "All" : t === "configuration" ? "Configuration" : "Governance"}
             </button>
-          );
-        })}
-      </section>
+          ))}
+        </div>
+        <div className="ml-auto flex items-center gap-4 text-xs text-[var(--color-gray-500)]">
+          <span><strong className="text-[var(--color-gray-800)]">{adjudicatedCount}</strong> adjudicated</span>
+          <span><strong className="text-[var(--color-gray-800)]">{outstandingCount}</strong> outstanding</span>
+        </div>
+      </div>
 
-      <div className="flex min-h-0 flex-1 gap-6">
-      {/* Left: type & status filters */}
-      <aside className="w-56 shrink-0 space-y-4 rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4 shadow-sm">
-        <SCTMFilters
-          records={records}
-          family={family}
-          type={type}
-          onFamilyChange={setFamily}
-          onTypeChange={setType}
-          hideFamilyList
-        />
-      </aside>
-
-      <div className="min-w-0 flex-1 flex gap-6">
-        {/* Center: control list */}
-        <div className="w-80 shrink-0 flex flex-col rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm">
-          <div className="border-b border-[var(--color-border)] px-4 py-3">
-            <h2 className="text-sm font-semibold text-[var(--color-navy-primary)]">Controls</h2>
-            <p className="text-xs text-[var(--color-gray-500)]">{filteredRecords.length} shown</p>
+      <div className="flex min-h-0 flex-1 min-w-0">
+        {/* Control list — minimal, clean */}
+        <aside className="w-64 shrink-0 flex flex-col border-r border-[var(--color-border)]/60 bg-[var(--color-gray-50)]/50">
+          <div className="px-4 py-3 border-b border-[var(--color-border)]/60">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)]">Controls</h2>
+            <p className="mt-0.5 text-sm text-[var(--color-gray-600)]">{filteredRecords.length} shown</p>
           </div>
-          <ul className="flex-1 overflow-y-auto p-2" role="list">
+          <ul className="flex-1 overflow-y-auto p-2 space-y-0.5" role="list">
             {filteredRecords.map((r) => {
               const nist = nistByControlId[r.controlId];
               const title = nist?.title ?? r.controlId;
-              const description = nist?.nistExactText ?? null;
-              const hasGuide = Boolean(nist?.nistDiscussionGuidance);
               const isSelected = r.controlId === controlId;
               return (
-                <li key={r.id} className="mb-1.5 last:mb-0">
+                <li key={r.id}>
                   <button
                     type="button"
                     onClick={() => setControl(isSelected ? null : r.controlId)}
-                    className={`w-full rounded-2xl px-4 py-3.5 text-left transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2 ${
-                      isSelected
-                        ? "bg-white shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-[var(--color-border)] border-l-4 border-l-[var(--color-primary)]"
-                        : "border border-transparent hover:bg-white/80 hover:shadow-[0_1px_4px_rgba(0,0,0,0.04)] hover:border-[var(--color-border)]/60"
+                    className={`w-full rounded-lg px-3 py-2.5 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-1 ${
+                      isSelected ? "bg-white shadow-sm text-[var(--color-gray-900)]" : "text-[var(--color-gray-700)] hover:bg-white/70"
                     }`}
                   >
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-mono text-xs font-semibold tracking-tight text-[var(--color-navy-primary)]">{r.controlId}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs font-semibold text-[var(--color-navy-primary)]">{r.controlId}</span>
                       <StatusBadge status={r.implementationStatus} />
                     </div>
-                    <p className="mt-1.5 text-[15px] font-semibold leading-snug text-[var(--color-gray-900)] line-clamp-2">{title}</p>
-                    {description && (
-                      <p className="mt-1 line-clamp-2 text-[13px] leading-relaxed text-[var(--color-gray-600)]">{description}</p>
-                    )}
-                    {hasGuide && (
-                      <p className="mt-1 text-[12px] text-[var(--color-gray-400)]">Assessment guide available</p>
-                    )}
+                    <p className="mt-1 text-xs text-[var(--color-gray-600)] line-clamp-2 leading-snug">{title}</p>
                   </button>
                 </li>
               );
             })}
           </ul>
-        </div>
+        </aside>
 
-        {/* Right: detail (multi-card) */}
-        <div className="min-w-0 flex-1 overflow-y-auto">
+        {/* Detail — full width, scrollable */}
+        <main className="min-w-0 flex-1 overflow-y-auto bg-[var(--color-gray-50)]/30">
           {selectedRecord ? (
             <SCTMControlDetail
               record={selectedRecord}
@@ -205,18 +196,11 @@ export function SCTMPage() {
               onSaved={fetchData}
             />
           ) : (
-            <div className="flex flex-col items-center justify-center min-h-[420px] rounded-3xl border border-[var(--color-border)]/60 bg-white/60 p-16 text-center shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
-              <div className="w-16 h-16 rounded-2xl bg-[var(--color-gray-100)] flex items-center justify-center mb-5">
-                <span className="text-2xl text-[var(--color-gray-400)]" aria-hidden>◇</span>
-              </div>
-              <h3 className="text-lg font-semibold text-[var(--color-gray-800)] tracking-tight">Select a control</h3>
-              <p className="mt-2 max-w-sm text-[15px] leading-relaxed text-[var(--color-gray-500)]">
-                Choose a control from the list to view the requirement, full assessment guide, evidence, and adjudication.
-              </p>
+            <div className="flex flex-col items-center justify-center min-h-[360px] text-center px-6">
+              <p className="text-[15px] text-[var(--color-gray-500)]">Select a control to view the requirement, assessment guide, evidence, and adjudication.</p>
             </div>
           )}
-        </div>
-      </div>
+        </main>
       </div>
     </div>
   );
