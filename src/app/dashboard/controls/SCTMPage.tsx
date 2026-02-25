@@ -88,14 +88,6 @@ export function SCTMPage() {
     router.replace(`/dashboard/controls?${u.toString()}`, { scroll: false });
   }
 
-  if (loading && records.length === 0) {
-    return (
-      <div className="flex min-h-[40vh] items-center justify-center">
-        <p className="text-sm text-[var(--color-gray-600)]">Loading controls…</p>
-      </div>
-    );
-  }
-
   const familyStats = useMemo(() => {
     const ADJUDICATED = ["implemented", "assessed", "inherited", "not_applicable"];
     return CONTROL_FAMILIES.map((f) => {
@@ -104,6 +96,14 @@ export function SCTMPage() {
       return { code: f.code, plainName: f.plainName, name: f.name, total: inFamily.length, adjudicated: adj };
     });
   }, [records]);
+
+  if (loading && records.length === 0) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center">
+        <p className="text-sm text-[var(--color-gray-600)]">Loading controls…</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4">
