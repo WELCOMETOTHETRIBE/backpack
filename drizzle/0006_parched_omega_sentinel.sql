@@ -15,6 +15,6 @@ CREATE TABLE IF NOT EXISTS "poam_entry_milestones" (
 	"order_index" integer DEFAULT 0 NOT NULL
 );
 --> statement-breakpoint
-ALTER TABLE "poam_entry_closure_approvals" ADD CONSTRAINT "poam_entry_closure_approvals_poam_entry_id_poam_entries_id_fk" FOREIGN KEY ("poam_entry_id") REFERENCES "public"."poam_entries"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "poam_entry_closure_approvals" ADD CONSTRAINT "poam_entry_closure_approvals_approver_id_users_id_fk" FOREIGN KEY ("approver_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "poam_entry_milestones" ADD CONSTRAINT "poam_entry_milestones_poam_entry_id_poam_entries_id_fk" FOREIGN KEY ("poam_entry_id") REFERENCES "public"."poam_entries"("id") ON DELETE cascade ON UPDATE no action;
+DO $$ BEGIN ALTER TABLE "poam_entry_closure_approvals" ADD CONSTRAINT "poam_entry_closure_approvals_poam_entry_id_poam_entries_id_fk" FOREIGN KEY ("poam_entry_id") REFERENCES "public"."poam_entries"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "poam_entry_closure_approvals" ADD CONSTRAINT "poam_entry_closure_approvals_approver_id_users_id_fk" FOREIGN KEY ("approver_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN NULL; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "poam_entry_milestones" ADD CONSTRAINT "poam_entry_milestones_poam_entry_id_poam_entries_id_fk" FOREIGN KEY ("poam_entry_id") REFERENCES "public"."poam_entries"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
