@@ -4,8 +4,11 @@ import { db } from "@/db";
 import { boundaries, osAssets, osBaselineProfiles } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import Link from "next/link";
-import { Server, ChevronRight, PlusCircle } from "lucide-react";
+import { Server, ChevronRight, Upload } from "lucide-react";
 import { AddAssetForm } from "../../AddAssetForm";
+import { EditBoundaryForm } from "./EditBoundaryForm";
+import { DeleteBoundaryButton } from "./DeleteBoundaryButton";
+import { DeleteAssetButton } from "./DeleteAssetButton";
 
 export default async function BoundaryDetailPage({
   params,
@@ -45,6 +48,9 @@ export default async function BoundaryDetailPage({
     profileMap = Object.fromEntries(profiles.filter((p) => profileIds.includes(p.id)).map((p) => [p.id, p.name]));
   }
 
+  const singleSystemEnclave =
+    assets.length === 1 && assets[0].baselineProfileId != null;
+
   const cardClass =
     "rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm";
 
@@ -59,16 +65,44 @@ export default async function BoundaryDetailPage({
           <span className="text-[var(--color-gray-700)]">{boundary.name}</span>
         </div>
 
-        <div>
-          <h1 className="text-3xl font-bold text-[var(--color-gray-900)]">
-            {boundary.name}
-          </h1>
-          {boundary.description && (
-            <p className="mt-2 text-[var(--color-gray-600)]">
-              {boundary.description}
-            </p>
-          )}
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-[var(--color-gray-900)]">
+              {boundary.name}
+            </h1>
+            {boundary.description && (
+              <p className="mt-2 text-[var(--color-gray-600)]">
+                {boundary.description}
+              </p>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <EditBoundaryForm
+              boundaryId={id}
+              initialName={boundary.name}
+              initialDescription={boundary.description}
+            />
+            <DeleteBoundaryButton boundaryId={id} boundaryName={boundary.name} />
+          </div>
         </div>
+
+        {singleSystemEnclave && (
+          <section className={cardClass}>
+            <p className="text-sm font-medium text-[var(--color-navy-primary)]">
+              Single-system enclave
+            </p>
+            <p className="mt-0.5 text-sm text-[var(--color-gray-600)]">
+              Evidence from the listed system drives full technical control adjudication here.
+            </p>
+            <Link
+              href="/dashboard/technical/upload"
+              className="mt-2 inline-flex items-center gap-2 text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
+            >
+              <Upload className="h-4 w-4" />
+              Upload evidence for this system
+            </Link>
+          </section>
+        )}
 
         <section className={cardClass}>
           <h2 className="text-lg font-semibold text-[var(--color-gray-800)]">
@@ -82,13 +116,16 @@ export default async function BoundaryDetailPage({
           ) : (
             <ul className="mt-4 space-y-3">
               {assets.map((a) => (
-                <li key={a.id}>
+                <li
+                  key={a.id}
+                  className="flex items-center gap-3 rounded-lg border border-[var(--color-border)] p-4 transition-colors hover:bg-[var(--color-gray-50)]"
+                >
                   <Link
                     href={`/dashboard/os-baselines/assets/${a.id}`}
-                    className="flex items-center gap-3 rounded-lg border border-[var(--color-border)] p-4 transition-colors hover:bg-[var(--color-gray-50)]"
+                    className="flex min-w-0 flex-1 items-center gap-3"
                   >
-                    <Server className="h-5 w-5 text-[var(--color-gray-500)]" />
-                    <div className="flex-1">
+                    <Server className="h-5 w-5 shrink-0 text-[var(--color-gray-500)]" />
+                    <div className="min-w-0 flex-1">
                       <span className="font-medium text-[var(--color-gray-900)]">
                         {a.hostname}
                       </span>
@@ -101,8 +138,9 @@ export default async function BoundaryDetailPage({
                         </p>
                       )}
                     </div>
-                    <ChevronRight className="h-4 w-4 text-[var(--color-gray-400)]" />
+                    <ChevronRight className="h-4 w-4 shrink-0 text-[var(--color-gray-400)]" />
                   </Link>
+                  <DeleteAssetButton assetId={a.id} hostname={a.hostname} />
                 </li>
               ))}
             </ul>

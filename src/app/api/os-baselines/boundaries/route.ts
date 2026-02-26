@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
-import { boundaries } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { boundaries, osAssets } from "@/db/schema";
+import { eq, and, inArray } from "drizzle-orm";
 
 /**
- * GET /api/os-baselines/boundaries — list boundaries for the current org.
+ * GET /api/os-baselines/boundaries — list boundaries for the current org
+ * with assetCount and assetsWithBaselineCount per boundary.
  */
 export async function GET() {
   const session = await auth();
@@ -17,7 +18,37 @@ export async function GET() {
     .select()
     .from(boundaries)
     .where(eq(boundaries.organizationId, orgId));
-  return NextResponse.json(list);
+
+  if (list.length === 0) return NextResponse.json(list);
+
+  const boundaryIds = list.map((b) => b.id);
+  const assets = await db
+    .select({
+      boundaryId: osAssets.boundaryId,
+      baselineProfileId: osAssets.baselineProfileId,
+    })
+    .from(osAssets)
+    .where(
+      and(eq(osAssets.organizationId, orgId), inArray(osAssets.boundaryId, boundaryIds))
+    );
+
+  const countByBoundary = new Map<string, { assetCount: number; assetsWithBaselineCount: number }>();
+  for (const bId of boundaryIds) {
+    countByBoundary.set(bId, { assetCount: 0, assetsWithBaselineCount: 0 });
+  }
+  for (const a of assets) {
+    const c = countByBoundary.get(a.boundaryId)!;
+    c.assetCount++;
+    if (a.baselineProfileId) c.assetsWithBaselineCount++;
+  }
+
+  const withCounts = list.map((b) => ({
+    ...b,
+    assetCount: countByBoundary.get(b.id)?.assetCount ?? 0,
+    assetsWithBaselineCount: countByBoundary.get(b.id)?.assetsWithBaselineCount ?? 0,
+  }));
+
+  return NextResponse.json(withCounts);
 }
 
 /**

@@ -4,12 +4,15 @@ import { db } from "@/db";
 import { osAssets, osBaselineProfiles, boundaries } from "@/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import Link from "next/link";
-import { ChevronRight, CheckCircle2, XCircle, FileText, Terminal } from "lucide-react";
+import { ChevronRight, CheckCircle2, XCircle, FileText, Terminal, Upload } from "lucide-react";
 import { resolveApplicableControls } from "@/lib/os-baselines/resolver";
 import {
   evidenceRuns,
   evidenceControlTechnicalStatus,
 } from "@/db/schema";
+import { AssignBaselineForm } from "./AssignBaselineForm";
+import { EditAssetForm } from "./EditAssetForm";
+import { DeleteAssetButton } from "./DeleteAssetButton";
 
 export default async function AssetDetailPage({
   params,
@@ -32,6 +35,14 @@ export default async function AssetDetailPage({
     .select({ id: boundaries.id, name: boundaries.name })
     .from(boundaries)
     .where(eq(boundaries.id, asset.boundaryId));
+
+  const assetsInBoundary = await db
+    .select({ id: osAssets.id })
+    .from(osAssets)
+    .where(eq(osAssets.boundaryId, asset.boundaryId));
+  const singleSystemEnclave =
+    assetsInBoundary.length === 1 && asset.baselineProfileId != null;
+
   const [baselineProfile] = asset.baselineProfileId
     ? await db
         .select({ id: osBaselineProfiles.id, name: osBaselineProfiles.name, version: osBaselineProfiles.version })
@@ -82,17 +93,52 @@ export default async function AssetDetailPage({
           <span className="text-[var(--color-gray-700)]">{asset.hostname}</span>
         </div>
 
-        <div>
-          <h1 className="text-3xl font-bold text-[var(--color-gray-900)]">
-            {asset.hostname}
-          </h1>
-          <p className="mt-2 text-[var(--color-gray-600)]">
-            {asset.osFamily} {asset.osVersion} · {asset.role}
-            {baselineProfile && (
-              <> · Baseline: {baselineProfile.name} v{baselineProfile.version}</>
-            )}
-          </p>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-[var(--color-gray-900)]">
+              {asset.hostname}
+            </h1>
+            <p className="mt-2 text-[var(--color-gray-600)]">
+              {asset.osFamily} {asset.osVersion} · {asset.role}
+              {baselineProfile && (
+                <> · Baseline: {baselineProfile.name} v{baselineProfile.version}</>
+              )}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <EditAssetForm
+              assetId={asset.id}
+              initialHostname={asset.hostname}
+              initialOsFamily={asset.osFamily}
+              initialOsVersion={asset.osVersion}
+              initialRole={asset.role}
+              initialBaselineProfileId={asset.baselineProfileId}
+            />
+            <DeleteAssetButton
+              assetId={asset.id}
+              hostname={asset.hostname}
+              boundaryId={asset.boundaryId}
+            />
+          </div>
         </div>
+
+        {singleSystemEnclave && (
+          <section className={cardClass}>
+            <p className="text-sm font-medium text-[var(--color-navy-primary)]">
+              This is the only system in this enclave
+            </p>
+            <p className="mt-0.5 text-sm text-[var(--color-gray-600)]">
+              Evidence you upload for this system (in Technical onboarding) is used to fully adjudicate technical controls for this boundary.
+            </p>
+            <Link
+              href="/dashboard/technical/upload"
+              className="mt-2 inline-flex items-center gap-2 text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
+            >
+              <Upload className="h-4 w-4" />
+              Upload evidence for this system
+            </Link>
+          </section>
+        )}
 
         {latestRun && (
           <section className={cardClass}>
@@ -114,10 +160,21 @@ export default async function AssetDetailPage({
             Applicable technical controls
           </h2>
           {controls.length === 0 ? (
-            <p className="mt-4 text-sm text-[var(--color-gray-500)]">
-              No baseline assigned, or this baseline has no required controls.
-              Assign a baseline profile to this asset to see controls and checks.
-            </p>
+            <div className="mt-4 space-y-4">
+              <p className="text-sm text-[var(--color-gray-500)]">
+                {asset.baselineProfileId
+                  ? "This baseline has no required controls."
+                  : "Assign a baseline profile so evidence bundles can be scored against the right controls."}
+              </p>
+              {!asset.baselineProfileId && (
+                <AssignBaselineForm
+                  assetId={asset.id}
+                  osFamily={asset.osFamily}
+                  osVersion={asset.osVersion}
+                  role={asset.role}
+                />
+              )}
+            </div>
           ) : (
             <ul className="mt-4 space-y-6">
               {controls.map((c) => {

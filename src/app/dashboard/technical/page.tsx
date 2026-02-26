@@ -1,16 +1,42 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { db } from "@/db";
+import { osAssets } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { TechnicalDashboardClient } from "./TechnicalDashboardClient";
 
 export default async function TechnicalOnboardingPage() {
   const session = await auth();
   const user = session?.user as { organizationId?: string } | undefined;
-  if (!user?.organizationId) redirect("/auth/signin");
+  const orgId = user?.organizationId;
+  if (!orgId) redirect("/auth/signin");
+
+  const assetCount = await db
+    .select({ id: osAssets.id })
+    .from(osAssets)
+    .where(eq(osAssets.organizationId, orgId));
+  const hasAssets = assetCount.length > 0;
 
   return (
     <div className="min-h-0">
       <div className="mx-auto max-w-5xl space-y-6">
+        {!hasAssets && (
+          <section className="rounded-[var(--radius-xl)] border border-[var(--color-status-amber)]/50 bg-[var(--color-status-amber)]/5 p-4">
+            <p className="text-sm font-medium text-[var(--color-gray-800)]">
+              Map your enclave and systems in OS Baselines first.
+            </p>
+            <p className="mt-1 text-sm text-[var(--color-gray-600)]">
+              Add a boundary and OS assets with baseline profiles so evidence bundles can be scored against the right controls.
+            </p>
+            <Link
+              href="/dashboard/os-baselines"
+              className="mt-2 inline-block text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
+            >
+              Go to OS Baselines →
+            </Link>
+          </section>
+        )}
         <section className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--color-gray-600)]">
             Technical control onboarding
