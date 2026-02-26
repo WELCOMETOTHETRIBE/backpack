@@ -9,9 +9,10 @@ import {
 import { eq, and } from "drizzle-orm";
 import { getPortalControlSchema } from "@/lib/compliance/schemas";
 import { resolveApplicableControls } from "@/lib/os-baselines/resolver";
+import { requireOrg, requireRole } from "@/lib/auth";
 
 type ImportBody = {
-  organization_id: string;
+  organization_id?: string; // optional; server fills from session when absent
   system_id: string;
   run_id: string;
   collected_at: string; // ISO
@@ -27,12 +28,22 @@ type ImportBody = {
  * Metadata-only import. No artifact upload.
  * When system_id matches an OS asset with a baseline profile, evaluates only
  * baseline-applicable controls and sets os_asset_id/baseline_profile_id on status rows.
+ * Requires Admin, Compliance, or Assessor. organization_id is taken from session if omitted.
  */
 export async function POST(req: Request) {
-  const body = (await req.json()) as ImportBody;
+  let orgId: string;
+  try {
+    orgId = await requireOrg();
+    await requireRole(["Admin", "Compliance", "Assessor"]);
+  } catch {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
-  if (!body.organization_id || !body.system_id || !body.run_id || !body.collected_at) {
-    return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+  const body = (await req.json()) as ImportBody;
+  const organization_id = body.organization_id ?? orgId;
+
+  if (!organization_id || !body.system_id || !body.run_id || !body.collected_at) {
+    return NextResponse.json({ error: "Missing required fields: system_id, run_id, collected_at" }, { status: 400 });
   }
   if (!Array.isArray(body.files) || body.files.length === 0) {
     return NextResponse.json({ error: "files[] required" }, { status: 400 });
@@ -41,7 +52,7 @@ export async function POST(req: Request) {
   const [run] = await db
     .insert(evidenceRuns)
     .values({
-      organizationId: body.organization_id,
+      organizationId: organization_id,
       systemId: body.system_id,
       runId: body.run_id,
       collectedAt: new Date(body.collected_at),
@@ -89,7 +100,7 @@ export async function POST(req: Request) {
     .where(
       and(
         eq(osAssets.id, body.system_id),
-        eq(osAssets.organizationId, body.organization_id)
+        eq(osAssets.organizationId, organization_id)
       )
     );
 
