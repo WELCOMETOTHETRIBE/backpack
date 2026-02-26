@@ -24,16 +24,16 @@ export default async function TechnicalOnboardingPage() {
         {!hasAssets && (
           <section className="rounded-[var(--radius-xl)] border border-[var(--color-status-amber)]/50 bg-[var(--color-status-amber)]/5 p-4">
             <p className="text-sm font-medium text-[var(--color-gray-800)]">
-              Map your enclave and systems in OS Baselines first.
+              Define your boundary and add endpoints in System Boundary first.
             </p>
             <p className="mt-1 text-sm text-[var(--color-gray-600)]">
-              Add a boundary and OS assets with baseline profiles so evidence bundles can be scored against the right controls.
+              Add a boundary and endpoints with baseline profiles so evidence bundles can be scored against the right controls.
             </p>
             <Link
               href="/dashboard/os-baselines"
               className="mt-2 inline-block text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
             >
-              Go to OS Baselines →
+              Go to System Boundary →
             </Link>
           </section>
         )}
@@ -59,7 +59,7 @@ export default async function TechnicalOnboardingPage() {
               href="/dashboard/os-baselines"
               className="inline-flex items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-sm font-medium text-[var(--color-gray-700)] transition-colors hover:bg-[var(--color-gray-50)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2"
             >
-              OS Baselines (assets)
+              System Boundary (endpoints)
             </Link>
           </div>
         </div>

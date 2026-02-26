@@ -80,7 +80,7 @@ export default async function AssetDetailPage({
       <div className="mx-auto max-w-4xl space-y-6">
         <div className="flex items-center gap-2 text-sm text-[var(--color-gray-500)]">
           <Link href="/dashboard/os-baselines" className="hover:underline">
-            OS Baselines
+            System Boundary
           </Link>
           <ChevronRight className="h-4 w-4" />
           <Link

@@ -16,6 +16,7 @@ const ROUTE_TITLES: Record<string, string> = {
   "/dashboard/governance/evidence": "Evidence Library",
   "/dashboard/governance/export": "Assessor Package Export",
   "/dashboard/documents": "Documents",
+  "/dashboard/os-baselines": "System Boundary",
   "/dashboard/adjudication": "Adjudication",
   "/dashboard/poam": "POA&M",
   "/dashboard/evidence": "Evidence",

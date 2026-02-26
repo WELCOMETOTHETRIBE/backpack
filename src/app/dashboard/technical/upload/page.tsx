@@ -136,13 +136,13 @@ export default function TechnicalUploadPage() {
                 No OS assets found
               </p>
               <p className="mt-1 text-sm text-[var(--color-gray-600)]">
-                Add an OS asset and assign a baseline profile under OS Baselines so evidence runs can be evaluated.
+                Add an endpoint in System Boundary and assign a baseline so evidence runs can be evaluated.
               </p>
               <Link
                 href="/dashboard/os-baselines"
                 className="mt-2 inline-block text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
               >
-                Go to OS Baselines →
+                Go to System Boundary →
               </Link>
             </div>
           ) : (
