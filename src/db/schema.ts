@@ -7,6 +7,7 @@ import {
   integer,
   jsonb,
   uniqueIndex,
+  index,
   primaryKey,
   varchar,
   date,
@@ -281,6 +282,68 @@ export const boundaryProfiles = pgTable(
   }
 );
 
+// ============== Boundary Engine: one boundary per account (organization) ==============
+/** One row per organization: current boundary input and last allocation hash. */
+export const accountBoundary = pgTable(
+  "account_boundary",
+  {
+    accountId: uuid("account_id")
+      .primaryKey()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    boundaryId: text("boundary_id").notNull(),
+    providerKey: text("provider_key").notNull(),
+    environmentKey: text("environment_key").notNull(),
+    hostingModel: text("hosting_model").notNull(),
+    boundaryInputJson: jsonb("boundary_input_json").$type<Record<string, unknown>>().notNull(),
+    allocationHashCurrent: text("allocation_hash_current"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [index("account_boundary_provider_env_idx").on(t.providerKey, t.environmentKey)]
+);
+
+/** Append-only allocation snapshots per account. */
+export const boundarySnapshots = pgTable(
+  "boundary_snapshots",
+  {
+    snapshotId: text("snapshot_id").primaryKey(),
+    accountId: uuid("account_id")
+      .references(() => accountBoundary.accountId, { onDelete: "cascade" })
+      .notNull(),
+    boundaryId: text("boundary_id").notNull(),
+    allocationHash: text("allocation_hash").notNull(),
+    registryVersion: text("registry_version").notNull().default(""),
+    snapshotMetadataJson: jsonb("snapshot_metadata_json").$type<Record<string, unknown>>().notNull(),
+    snapshotJson: jsonb("snapshot_json").$type<Record<string, unknown>>().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    snapshotSignature: text("snapshot_signature"),
+    evidenceRunFingerprints: jsonb("evidence_run_fingerprints").$type<string[]>(),
+  },
+  (t) => [
+    index("boundary_snapshots_account_created_idx").on(t.accountId, t.createdAt),
+    index("boundary_snapshots_snapshot_signature_idx").on(t.snapshotSignature),
+  ]
+);
+
+/** Drift and allocation-change events per boundary (CONMON). */
+export const boundaryEvents = pgTable(
+  "boundary_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    accountId: uuid("account_id")
+      .references(() => accountBoundary.accountId, { onDelete: "cascade" })
+      .notNull(),
+    boundaryId: text("boundary_id").notNull(),
+    eventType: text("event_type").notNull(),
+    payload: jsonb("payload").$type<Record<string, unknown>>(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    index("boundary_events_account_created_idx").on(t.accountId, t.createdAt),
+    index("boundary_events_boundary_id_idx").on(t.boundaryId),
+  ]
+);
+
 /** CUI enclave / segment (OS Baselines pillar). */
 export const boundaries = pgTable("boundary", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -289,6 +352,10 @@ export const boundaries = pgTable("boundary", {
     .notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
+  /** In-scope components: microsoft_office, windows_server_vm, azure_cloud. */
+  scopeComponents: jsonb("scope_components").$type<string[]>(),
+  /** When azure_cloud is in scope_components: gov | commercial. */
+  azureEnvironment: varchar("azure_environment", { length: 32 }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
@@ -853,6 +920,7 @@ export const governanceControlLinks = pgTable(
 
 // ============== Relations ==============
 export const organizationsRelations = relations(organizations, ({ one, many }) => ({
+  accountBoundary: one(accountBoundary),
   boundaryProfile: one(boundaryProfiles),
   users: many(users),
   userInvitations: many(userInvitations),
@@ -883,6 +951,21 @@ export const organizationsRelations = relations(organizations, ({ one, many }) =
 
 export const boundaryProfilesRelations = relations(boundaryProfiles, ({ one }) => ({
   organization: one(organizations),
+}));
+
+export const accountBoundaryRelations = relations(accountBoundary, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [accountBoundary.accountId],
+    references: [organizations.id],
+  }),
+  snapshots: many(boundarySnapshots),
+}));
+
+export const boundarySnapshotsRelations = relations(boundarySnapshots, ({ one }) => ({
+  accountBoundary: one(accountBoundary, {
+    fields: [boundarySnapshots.accountId],
+    references: [accountBoundary.accountId],
+  }),
 }));
 
 export const boundariesRelations = relations(boundaries, ({ one, many }) => ({

@@ -113,6 +113,41 @@
       "when": 1772011190071,
       "tag": "0015_os_baselines",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1772213953336,
+      "tag": "0016_broken_black_widow",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1772228705578,
+      "tag": "0017_clammy_guardian",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1772229755804,
+      "tag": "0018_aromatic_red_hulk",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1772230000000,
+      "tag": "0019_snapshot_attestation_chain",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1772230100000,
+      "tag": "0020_boundary_events",
+      "breakpoints": true
     }
   ]
 }

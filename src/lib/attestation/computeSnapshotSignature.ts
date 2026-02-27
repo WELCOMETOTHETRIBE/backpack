@@ -1,0 +1,39 @@
+import { createHash } from "crypto";
+
+export interface SnapshotAttestationInput {
+  boundaryId: string;
+  allocationHash: string;
+  registryVersion: string;
+  providerProfileId: string;
+  catalogId: string;
+  evidenceRunFingerprints: string[];
+}
+
+export function computeSnapshotSignature(input: SnapshotAttestationInput): string {
+  const ev = [...input.evidenceRunFingerprints].sort();
+
+  const payload = {
+    boundaryId: input.boundaryId,
+    allocationHash: input.allocationHash,
+    registryVersion: input.registryVersion ?? "",
+    providerProfileId: input.providerProfileId,
+    catalogId: input.catalogId,
+    evidenceRunFingerprints: ev,
+  };
+
+  const stableStringify = (obj: unknown): string => {
+    if (obj === null || typeof obj !== "object") return JSON.stringify(obj);
+    if (Array.isArray(obj)) return "[" + obj.map(stableStringify).join(",") + "]";
+    const keys = Object.keys(obj as Record<string, unknown>).sort();
+    return (
+      "{" +
+      keys
+        .map((k) => JSON.stringify(k) + ":" + stableStringify((obj as Record<string, unknown>)[k]))
+        .join(",") +
+      "}"
+    );
+  };
+
+  const canonical = stableStringify(payload);
+  return createHash("sha256").update(canonical).digest("hex");
+}
