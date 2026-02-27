@@ -4,11 +4,12 @@ import { db } from "@/db";
 import { osAssets, osBaselineProfiles, boundaries } from "@/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import Link from "next/link";
-import { ChevronRight, CheckCircle2, XCircle, FileText, Terminal, Upload } from "lucide-react";
+import { ChevronRight, CheckCircle2, XCircle, FileText, Terminal, Upload, AlertCircle } from "lucide-react";
 import { resolveApplicableControls } from "@/lib/os-baselines/resolver";
 import {
   evidenceRuns,
   evidenceControlTechnicalStatus,
+  evidenceFindings,
 } from "@/db/schema";
 import { AssignBaselineForm } from "./AssignBaselineForm";
 import { EditAssetForm } from "./EditAssetForm";
@@ -64,12 +65,41 @@ export default async function AssetDetailPage({
     .limit(1);
 
   let statusByControl: Record<string, boolean> = {};
+  let partialByControl: Record<string, boolean> = {};
+  let findingCount = 0;
+  let partialCount = 0;
   if (latestRun) {
-    const rows = await db
-      .select({ controlId: evidenceControlTechnicalStatus.controlId, technicalOk: evidenceControlTechnicalStatus.technicalOk })
-      .from(evidenceControlTechnicalStatus)
-      .where(eq(evidenceControlTechnicalStatus.evidenceRunId, latestRun.id));
-    statusByControl = Object.fromEntries(rows.map((r) => [r.controlId, r.technicalOk]));
+    const findingRows = await db
+      .select({
+        controlId: evidenceFindings.controlId,
+        pass: evidenceFindings.pass,
+        partial: evidenceFindings.partial,
+      })
+      .from(evidenceFindings)
+      .where(eq(evidenceFindings.evidenceRunId, latestRun.id));
+    findingCount = findingRows.length;
+    if (findingRows.length > 0) {
+      const map: Record<string, boolean> = {};
+      const partialMap: Record<string, boolean> = {};
+      for (const r of findingRows) {
+        map[r.controlId] = r.pass;
+        partialMap[r.controlId] = r.partial;
+        const shortId = r.controlId.replace(/^[A-Z]+\.L2-/, "");
+        if (shortId !== r.controlId) {
+          map[shortId] = r.pass;
+          partialMap[shortId] = r.partial;
+        }
+        if (r.partial) partialCount++;
+      }
+      statusByControl = map;
+      partialByControl = partialMap;
+    } else {
+      const rows = await db
+        .select({ controlId: evidenceControlTechnicalStatus.controlId, technicalOk: evidenceControlTechnicalStatus.technicalOk })
+        .from(evidenceControlTechnicalStatus)
+        .where(eq(evidenceControlTechnicalStatus.evidenceRunId, latestRun.id));
+      statusByControl = Object.fromEntries(rows.map((r) => [r.controlId, r.technicalOk]));
+    }
   }
 
   const cardClass =
@@ -131,7 +161,7 @@ export default async function AssetDetailPage({
               Evidence you upload for this system (in Technical onboarding) is used to fully adjudicate technical controls for this boundary.
             </p>
             <Link
-              href="/dashboard/technical/upload"
+              href={`/dashboard/technical/upload?assetId=${asset.id}`}
               className="mt-2 inline-flex items-center gap-2 text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
             >
               <Upload className="h-4 w-4" />
@@ -152,6 +182,14 @@ export default async function AssetDetailPage({
               {" · "}
               Collector: {latestRun.collectorName}
             </p>
+            {findingCount === 73 && (
+              <p className="mt-2 text-sm text-[var(--color-gray-700)]">
+                All 73 enclave controls evaluated.
+                {partialCount > 0 && (
+                  <> {partialCount} control{partialCount !== 1 ? "s" : ""} partial (accompanying gov docs, logs, or records required).</>
+                )}
+              </p>
+            )}
           </section>
         )}
 
@@ -180,6 +218,7 @@ export default async function AssetDetailPage({
               {controls.map((c) => {
                 const checks = checksByControlId[c.controlId] ?? [];
                 const status = statusByControl[c.controlId];
+                const partial = partialByControl[c.controlId];
                 return (
                   <li
                     key={c.controlId}
@@ -190,13 +229,18 @@ export default async function AssetDetailPage({
                         {c.controlId}
                       </span>
                       {status !== undefined && (
-                        status ? (
+                        partial ? (
+                          <span className="inline-flex items-center gap-1 text-sm text-amber-700" title="Accompanying governance documentation, logs, or records required.">
+                            <AlertCircle className="h-4 w-4" />
+                            Partial
+                          </span>
+                        ) : status ? (
                           <span className="inline-flex items-center gap-1 text-sm text-green-600">
                             <CheckCircle2 className="h-4 w-4" />
                             Pass
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-sm text-amber-600">
+                          <span className="inline-flex items-center gap-1 text-sm text-red-600">
                             <XCircle className="h-4 w-4" />
                             Fail
                           </span>

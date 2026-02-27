@@ -28,6 +28,7 @@ export async function GET() {
       .select({
         controlId: evidenceFindings.controlId,
         pass: evidenceFindings.pass,
+        partial: evidenceFindings.partial,
         observed: evidenceFindings.observed,
         expected: evidenceFindings.expected,
         evidenceHint: evidenceFindings.evidenceHint,

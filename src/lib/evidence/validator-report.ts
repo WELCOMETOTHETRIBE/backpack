@@ -6,6 +6,8 @@
 export type ValidatorReportCheck = {
   control: string;
   pass: boolean;
+  /** True when OS evidence is present but control requires accompanying gov docs, logs, or records (manifest support_level PARTIAL). */
+  partial?: boolean;
   observed: string;
   expected: string;
   evidence_hint: string;
@@ -36,6 +38,8 @@ export function isValidatorReport(r: unknown): r is ValidatorReport {
     if (poc !== "provider" && poc !== "customer" && poc !== "shared") return false;
     const efu = (c as Record<string, unknown>).evidence_files_used;
     if (!Array.isArray(efu)) return false;
+    const partial = (c as Record<string, unknown>).partial;
+    if (partial !== undefined && typeof partial !== "boolean") return false;
   }
   return true;
 }

@@ -36,6 +36,7 @@ export async function GET(req: Request) {
         id: evidenceFindings.evidenceRunId,
         controlId: evidenceFindings.controlId,
         pass: evidenceFindings.pass,
+        partial: evidenceFindings.partial,
         observed: evidenceFindings.observed,
         expected: evidenceFindings.expected,
         evidenceHint: evidenceFindings.evidenceHint,

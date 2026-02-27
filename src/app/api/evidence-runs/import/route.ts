@@ -7,9 +7,12 @@ import {
   evidenceFindings,
   accountBoundary,
   osAssets,
+  controlRecords,
+  poamEntries,
 } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { getPortalControlSchema } from "@/lib/compliance/schemas";
+import { getEnclaveControls } from "@/lib/compliance/os-evidence-manifest";
 import { resolveApplicableControls } from "@/lib/os-baselines/resolver";
 import { requireOrg, requireRole } from "@/lib/auth";
 import {
@@ -20,6 +23,13 @@ import {
   isValidatorReport,
   type ValidatorReport,
 } from "@/lib/evidence/validator-report";
+import { computeAndPersistSprsScore } from "@/lib/sprs";
+
+/** Normalize report control_id (e.g. AC.L2-3.1.1) to NIST form (3.1.1) for control_records lookup. */
+function controlIdToNist(controlId: string): string {
+  const stripped = controlId.replace(/^[A-Z]+\.L2-/, "");
+  return stripped || controlId;
+}
 
 const EVIDENCE_SOURCES = ["azure_entra", "windows_server_hardening"] as const;
 type EvidenceSource = (typeof EVIDENCE_SOURCES)[number];
@@ -112,6 +122,7 @@ async function handleReportImport(
     evidenceRunId: run.id,
     controlId: c.control,
     pass: c.pass,
+    partial: Boolean((c as { partial?: boolean }).partial),
     observed: String(c.observed ?? ""),
     expected: String(c.expected ?? ""),
     evidenceHint: String(c.evidence_hint ?? ""),
@@ -134,6 +145,86 @@ async function handleReportImport(
         sizeBytes: Number(f.size ?? 0) || 0,
       }))
     );
+  }
+
+  // POAM entries for failed checks
+  const failedChecks = report.checks.filter((c) => !c.pass);
+  for (const c of failedChecks) {
+    const nistId = controlIdToNist(c.control);
+    const [record] = await db
+      .select({ id: controlRecords.id })
+      .from(controlRecords)
+      .where(
+        and(
+          eq(controlRecords.organizationId, organization_id),
+          eq(controlRecords.controlId, nistId)
+        )
+      )
+      .limit(1);
+    if (!record) continue;
+    const [existing] = await db
+      .select({ id: poamEntries.id })
+      .from(poamEntries)
+      .where(
+        and(
+          eq(poamEntries.organizationId, organization_id),
+          eq(poamEntries.controlRecordId, record.id)
+        )
+      )
+      .limit(1);
+    const weakness = [c.observed, c.expected].filter(Boolean).join(" | ");
+    if (existing) {
+      await db
+        .update(poamEntries)
+        .set({
+          weaknessDescription: weakness || undefined,
+          updatedAt: new Date(),
+        })
+        .where(eq(poamEntries.id, existing.id));
+    } else {
+      await db.insert(poamEntries).values({
+        organizationId: organization_id,
+        controlRecordId: record.id,
+        weaknessDescription: weakness || null,
+        remediationPlan: null,
+        scheduledCompletionDate: null,
+        responsibleRoleId: null,
+      });
+    }
+  }
+
+  // When 73 checks and all pass: set control_records to "implemented" for non-partial; leave partial as in_progress
+  const allPass =
+    report.checks.length === 73 && report.checks.every((c) => c.pass);
+  if (allPass) {
+    const statusesToUpdate = ["not_started", "in_progress"] as const;
+    for (const c of report.checks) {
+      const partial = Boolean((c as { partial?: boolean }).partial);
+      if (partial) continue; // leave partial controls as-is (in_progress)
+      const nistId = controlIdToNist(c.control);
+      const [record] = await db
+        .select({ id: controlRecords.id, implementationStatus: controlRecords.implementationStatus })
+        .from(controlRecords)
+        .where(
+          and(
+            eq(controlRecords.organizationId, organization_id),
+            eq(controlRecords.controlId, nistId)
+          )
+        )
+        .limit(1);
+      if (!record) continue;
+      if (!statusesToUpdate.includes(record.implementationStatus as (typeof statusesToUpdate)[number]))
+        continue; // do not override assessed / inherited / not_applicable
+      await db
+        .update(controlRecords)
+        .set({
+          implementationStatus: "implemented",
+          lastValidationDate: new Date(body.collected_at),
+          updatedAt: new Date(),
+        })
+        .where(eq(controlRecords.id, record.id));
+    }
+    await computeAndPersistSprsScore(organization_id);
   }
 
   return NextResponse.json({
@@ -330,10 +421,39 @@ export async function POST(req: Request) {
     await db.insert(evidenceControlTechnicalStatus).values(statuses);
   }
 
+  // 73/73 OS evidence: when this run is for an OS asset, create evidenceFindings from canonical manifest
+  // so control-status and asset page show clean pass/fail for all 73 enclave controls.
+  if (osAssetRow && boundaryId) {
+    const enclaveControls = getEnclaveControls();
+    const findings73 = enclaveControls.map((c) => {
+      const required = c.evidence_files ?? [];
+      const missing = required.filter((p) => !present.has(p));
+      const pass = missing.length === 0;
+      const presentList = required.filter((p) => present.has(p));
+      return {
+        evidenceRunId: run.id,
+        controlId: c.control_id,
+        pass,
+        observed: pass
+          ? `All ${required.length} required files present.`
+          : `Missing: ${missing.join(", ")}`,
+        expected: "All required files present per 73/73 OS evidence manifest.",
+        evidenceHint: "73/73 OS evidence manifest",
+        evidenceFilesUsed: presentList,
+        providerOrCustomer: "customer",
+        layer: null,
+      };
+    });
+    if (findings73.length > 0) {
+      await db.insert(evidenceFindings).values(findings73);
+    }
+  }
+
   return NextResponse.json({
     ok: true,
     evidence_run_id: run.id,
     run_id: body.run_id,
     technical_controls_evaluated: statuses.length,
+    findings_73_created: osAssetRow && boundaryId ? getEnclaveControls().length : 0,
   });
 }

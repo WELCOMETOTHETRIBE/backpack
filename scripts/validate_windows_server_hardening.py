@@ -17,9 +17,13 @@ import zipfile
 from pathlib import Path
 from typing import Any
 
-VERSION = "1.1.0"
+VERSION = "2.0.0"
 VALIDATOR_NAME = "validate_windows_server_hardening"
 MAX_READ_BYTES = 512 * 1024  # 512 KiB per file
+
+# Default path to 73-control OS evidence manifest (relative to repo root)
+DEFAULT_MANIFEST_PATH = "src/data/os-evidence-nist-manifest.json"
+PARTIAL_NOTE = "Accompanying governance documentation, logs, or records required."
 
 # Ontology layer IDs (must match layers_ontology.v1.json exactly)
 ONTOLOGY_LAYER_IDS = frozenset({
@@ -298,6 +302,129 @@ def _build_inputs_manifest(artifact_dir: Path, files_used: set[str]) -> list[dic
     return inputs_list
 
 
+def _load_manifest(manifest_path: str | Path) -> list[dict[str, Any]]:
+    """Load 73-control OS evidence manifest. Returns list of {control_id, evidence_files, support_level}."""
+    path = Path(manifest_path)
+    if not path.is_file():
+        # Try relative to script's repo root (parent of scripts/)
+        repo_root = Path(__file__).resolve().parent.parent
+        path = repo_root / manifest_path
+    if not path.is_file():
+        return []
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        controls = data.get("controls") if isinstance(data, dict) else []
+        return list(controls) if isinstance(controls, list) else []
+    except (json.JSONDecodeError, OSError, TypeError):
+        return []
+
+
+def _normalize_evidence_paths(used: list[str], manifest_files: list[str]) -> list[str]:
+    """Convert evidence_files_used to full relative paths (forward slashes) using manifest list."""
+    result: list[str] = []
+    for p in used:
+        p = p.replace("\\", "/").strip()
+        if "/" in p:
+            result.append(p)
+        else:
+            # Basename: find in manifest full paths
+            match = next((m for m in manifest_files if m.endswith("/" + p) or m == p), None)
+            result.append(match if match else p)
+    return sorted(set(result))
+
+
+def _build_73_checks(
+    artifact_dir: Path,
+    manifest_controls: list[dict[str, Any]],
+    content_checks: list[dict[str, Any]],
+    files_used: set[str],
+) -> list[dict[str, Any]]:
+    """Build exactly one check per manifest control (73 total). Content checks merged; rest file-presence."""
+    artifact_dir = Path(artifact_dir)
+    # Index content checks by control_id
+    by_control: dict[str, list[dict[str, Any]]] = {}
+    for c in content_checks:
+        cid = c.get("control") or ""
+        if cid and cid != "BUNDLE.INTEGRITY":
+            by_control.setdefault(cid, []).append(c)
+    # Set of relative paths present under artifact_dir
+    present_paths: set[str] = set()
+    for rel in files_used:
+        if (artifact_dir / rel.replace("\\", "/")).is_file():
+            present_paths.add(rel.replace("\\", "/"))
+    # Also scan manifest evidence_files for file-presence
+    all_manifest_paths: list[str] = []
+    for entry in manifest_controls:
+        for f in entry.get("evidence_files") or []:
+            f = f.replace("\\", "/")
+            all_manifest_paths.append(f)
+            if (artifact_dir / f).is_file():
+                present_paths.add(f)
+
+    checks: list[dict[str, Any]] = []
+    for entry in manifest_controls:
+        control_id = entry.get("control_id") or ""
+        evidence_files: list[str] = [x.replace("\\", "/") for x in (entry.get("evidence_files") or [])]
+        support_level: str = (entry.get("support_level") or "STRONG").upper()
+        is_partial_support = support_level == "PARTIAL"
+
+        if control_id in by_control:
+            # Merge content checks for this control
+            content_list = by_control[control_id]
+            all_pass = all(c.get("pass", False) for c in content_list)
+            observed_parts = [c.get("observed", "") for c in content_list]
+            expected_parts = [c.get("expected", "") for c in content_list]
+            used: list[str] = []
+            for c in content_list:
+                for u in c.get("evidence_files_used") or []:
+                    used.append(u)
+            full_paths = _normalize_evidence_paths(used, all_manifest_paths)
+            observed = " | ".join(observed_parts)[:2000] if observed_parts else "No content checks"
+            expected = " | ".join(expected_parts)[:1000] if expected_parts else "All required evidence present per 73/73 OS evidence manifest."
+            hint = content_list[0].get("evidence_hint", "73/73 OS evidence manifest") if content_list else "73/73 OS evidence manifest"
+            partial = is_partial_support and all_pass
+            if partial:
+                observed = observed + ". " + PARTIAL_NOTE
+                hint = hint + ". " + PARTIAL_NOTE
+            check = _make_check(
+                control_id,
+                all_pass,
+                observed,
+                expected,
+                hint,
+                full_paths,
+                _resolve_layer(control_id, None),
+                None,
+                partial=partial,
+            )
+        else:
+            # File-presence only
+            missing = [f for f in evidence_files if f not in present_paths]
+            pass_ = len(missing) == 0
+            present_list = [f for f in evidence_files if f in present_paths]
+            if pass_:
+                observed = f"All {len(evidence_files)} required files present."
+            else:
+                observed = f"Missing: {', '.join(sorted(missing)[:20])}" + ("..." if len(missing) > 20 else "")
+            expected = "All required files present per 73/73 OS evidence manifest."
+            partial = is_partial_support and pass_
+            if partial:
+                observed = observed + " " + PARTIAL_NOTE
+            check = _make_check(
+                control_id,
+                pass_,
+                observed,
+                expected,
+                "73/73 OS evidence manifest",
+                present_list,
+                _resolve_layer(control_id, None),
+                None,
+                partial=partial,
+            )
+        checks.append(check)
+    return checks
+
+
 def _resolve_layer(control_id: str, fallback: str | None) -> str | None:
     layer = CONTROL_TO_LAYER.get(control_id, fallback)
     if layer is not None and layer not in ONTOLOGY_LAYER_IDS:
@@ -318,9 +445,10 @@ def _make_check(
     evidence_files_used: list[str],
     layer: str | None = None,
     details: dict[str, Any] | None = None,
+    partial: bool = False,
 ) -> dict[str, Any]:
     layer = _resolve_layer(control_id, layer)
-    return {
+    out: dict[str, Any] = {
         "control": control_id,
         "pass": pass_,
         "observed": observed[:2000] if len(observed) > 2000 else observed,
@@ -331,6 +459,9 @@ def _make_check(
         "layer": layer,
         **({"details": details} if details else {}),
     }
+    if partial:
+        out["partial"] = True
+    return out
 
 
 def run_crypto_checks(artifact_dir: Path, files_used: set[str]) -> list[dict[str, Any]]:
@@ -620,9 +751,10 @@ def run_all_checks(artifact_dir: Path) -> tuple[list[dict[str, Any]], set[str]]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate Windows Server hardening evidence bundle")
+    parser = argparse.ArgumentParser(description="Validate Windows Server hardening evidence bundle (73/73 controls)")
     parser.add_argument("artifact_dir", nargs="?", help="Path to extracted evidence bundle root")
     parser.add_argument("--artifact-dir", dest="artifact_dir_opt", help="Path to extracted evidence bundle root")
+    parser.add_argument("--manifest", default=DEFAULT_MANIFEST_PATH, help="Path to 73-control OS evidence manifest JSON")
     parser.add_argument("--zip", help="Path to ZIP; extract to temp and run")
     parser.add_argument("--fail-on-fail", action="store_true", help="Exit 1 if any check fails")
     parser.add_argument("-o", "--output-dir", default=".", help="Directory for output reports (default: cwd)")
@@ -641,11 +773,15 @@ def main() -> int:
         parser.print_help(sys.stderr)
         print("error: artifact_dir required (or use --zip)", file=sys.stderr)
         return 2
+    manifest_controls = _load_manifest(args.manifest)
+    if len(manifest_controls) != 73:
+        print("warning: manifest has", len(manifest_controls), "controls (expected 73); using as-is", file=sys.stderr)
     try:
         artifact_path = Path(artifact_dir)
-        integrity_check = run_bundle_integrity_check(artifact_path)
-        checks, files_used = run_all_checks(artifact_path)
-        checks = [integrity_check] + checks
+        # Run content checks (no BUNDLE.INTEGRITY in 73-check output)
+        content_checks, files_used = run_all_checks(artifact_path)
+        # Build exactly 73 checks from manifest + content results
+        checks = _build_73_checks(artifact_path, manifest_controls, content_checks, files_used)
         inputs = _build_inputs_manifest(artifact_path, files_used)
         report = {
             "validator": {
@@ -663,17 +799,21 @@ def main() -> int:
         with open(json_path, "w", encoding="utf-8") as f:
             json.dump(report, f, indent=2)
         passed = sum(1 for c in checks if c.get("pass"))
+        partial_count = sum(1 for c in checks if c.get("partial"))
         failed = len(checks) - passed
         lines = [
-            "Windows Server Hardening Validation Report",
+            "Windows Server Hardening Validation Report (73/73 controls)",
             "Validator: " + VALIDATOR_NAME + " " + VERSION,
             "Total checks: " + str(len(checks)),
             "Passed: " + str(passed),
+            "Partial (needs accompanying docs): " + str(partial_count),
             "Failed: " + str(failed),
             "",
         ]
         for c in checks:
             status = "PASS" if c.get("pass") else "FAIL"
+            if c.get("partial"):
+                status = "PARTIAL"
             lines.append(f"  [{status}] {c.get('control', '')} - {c.get('observed', '')[:80]}")
         with open(txt_path, "w", encoding="utf-8") as f:
             f.write("\n".join(lines))

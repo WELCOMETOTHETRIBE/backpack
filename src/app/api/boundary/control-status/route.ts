@@ -111,6 +111,7 @@ export async function GET() {
         .select({
           controlId: evidenceFindings.controlId,
           pass: evidenceFindings.pass,
+          partial: evidenceFindings.partial,
           layer: evidenceFindings.layer,
           collectedAt: evidenceRuns.collectedAt,
         })

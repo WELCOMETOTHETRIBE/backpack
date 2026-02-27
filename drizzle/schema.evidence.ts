@@ -106,6 +106,8 @@ export const evidenceFindings = pgTable(
     providerOrCustomer: text("provider_or_customer").notNull(), // provider | customer | shared
     layer: text("layer"),
     details: jsonb("details").$type<Record<string, unknown>>(),
+    /** True when OS evidence is present but control requires accompanying gov docs, logs, or records (manifest support_level PARTIAL). */
+    partial: boolean("partial").notNull().default(false),
   },
   (t) => ({
     pk: primaryKey({ columns: [t.evidenceRunId, t.controlId] }),
