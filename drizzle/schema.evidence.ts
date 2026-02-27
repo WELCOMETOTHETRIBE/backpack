@@ -8,6 +8,7 @@ import {
   primaryKey,
   jsonb,
   index,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 
 /**
@@ -28,12 +29,24 @@ export const evidenceRuns = pgTable(
     bundleRoot: text("bundle_root").notNull(), // e.g. "<RunId>/"
     manifest: jsonb("manifest").notNull(), // meta/manifest.json (metadata only)
     hashAlgorithm: text("hash_algorithm").notNull().default("sha256"),
+    /** Evidence source: azure_entra | windows_server_hardening | legacy */
+    source: text("source").notNull().default("legacy"),
+    /** Account boundary id (from account_boundary); set on import for boundary-scoped runs */
+    boundaryId: text("boundary_id"),
+    /** Fingerprint for idempotency: sha256(source|validator_sha256|inputs_manifest_sha256) */
+    runFingerprint: text("run_fingerprint").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({
     orgIdx: index("evidence_run_org_idx").on(t.organizationId),
     systemIdx: index("evidence_run_system_idx").on(t.systemId),
     runIdIdx: index("evidence_run_runid_idx").on(t.runId),
+    boundaryIdx: index("evidence_run_boundary_idx").on(t.boundaryId),
+    fingerprintIdx: index("evidence_run_fingerprint_idx").on(t.runFingerprint),
+    orgFingerprintUnique: uniqueIndex("evidence_run_org_fingerprint_unique").on(
+      t.organizationId,
+      t.runFingerprint
+    ),
   })
 );
 
@@ -74,5 +87,28 @@ export const evidenceControlTechnicalStatus = pgTable(
   },
   (t) => ({
     pk: primaryKey({ columns: [t.evidenceRunId, t.controlId] }),
+  })
+);
+
+/** Per-check findings from validator reports (azure_entra, windows_server_hardening). */
+export const evidenceFindings = pgTable(
+  "evidence_finding",
+  {
+    evidenceRunId: uuid("evidence_run_id")
+      .notNull()
+      .references(() => evidenceRuns.id, { onDelete: "cascade" }),
+    controlId: text("control_id").notNull(),
+    pass: boolean("pass").notNull(),
+    observed: text("observed").notNull(),
+    expected: text("expected").notNull(),
+    evidenceHint: text("evidence_hint").notNull(),
+    evidenceFilesUsed: jsonb("evidence_files_used").$type<string[]>().notNull().default([]),
+    providerOrCustomer: text("provider_or_customer").notNull(), // provider | customer | shared
+    layer: text("layer"),
+    details: jsonb("details").$type<Record<string, unknown>>(),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.evidenceRunId, t.controlId] }),
+    controlIdx: index("evidence_finding_control_idx").on(t.controlId),
   })
 );

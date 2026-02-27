@@ -23,12 +23,22 @@ All tenant data is partitioned by `organization_id`. The system does not pull ev
    - `NEXTAUTH_URL` — App URL (e.g. `http://localhost:3000`)
 
 2. **Install and DB**
+   - Create the PostgreSQL database if it doesn’t exist (default name: `control_plane`):
+     ```bash
+     createdb control_plane
+     ```
+     If that fails (e.g. permission or wrong user), try:
+     ```bash
+     psql postgres -c "CREATE DATABASE control_plane;"
+     ```
+   - Push schema and seed:
    ```bash
    npm install   # if this fails (e.g. ENOTEMPTY), remove node_modules and run again
-   npx drizzle-kit push   # or: npm run db:push
+   npm run db:push   # create/update tables
+   npx tsx src/scripts/seed-baseline-windows-server-2025.ts   # optional: OS Baselines (Windows Server 2025) controls + checks
    ```
 
-3. **Seed**
+3. **Seed** (main app: controls, org, admin user)
    - From repo root so TRUST_CODEX path is correct: `cd control-plane && npm run seed`
    - Optional env: `SEED_ORG_SLUG`, `SEED_USER_EMAIL`, `SEED_USER_PASSWORD` (default: admin@example.com / changeme)
    - Seeds 110 NIST SP 800-171 Rev 2 controls and a default org + admin user.

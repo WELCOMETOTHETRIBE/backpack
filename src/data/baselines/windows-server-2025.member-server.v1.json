@@ -6,16 +6,15 @@
     "os_family": "windows_server",
     "os_version": "2025",
     "role": "member_server",
-    "description": "High-value technical controls for Windows Server 2025 member servers in a CUI boundary (account policy, audit, firewall, BitLocker, Defender, AppLocker, crypto)."
+    "description": "Technical controls for Windows Server 2025 member servers in a CUI boundary; aligned with OS-Evidence-to-NIST-Control-Manifest-73-73 (enclave configuration). Only controls in the 73/73 manifest are included."
   },
   "controls": [
     { "control_id": "AC.L2-3.1.1", "applicability": "required", "rationale": "Authorized access control; local accounts and policy evidence." },
     { "control_id": "AC.L2-3.1.10", "applicability": "required", "rationale": "Concurrent session control; policy and logon evidence." },
     { "control_id": "AC.L2-3.1.11", "applicability": "required", "rationale": "Session lock; screen saver and policy." },
     { "control_id": "AC.L2-3.1.12", "applicability": "required", "rationale": "Remote access control; RDP and policy." },
-    { "control_id": "AC.L2-3.1.13", "applicability": "required", "rationale": "Remote access monitoring; audit and policy." },
-    { "control_id": "AC.L2-3.1.15", "applicability": "required", "rationale": "Wireless access; restrict or disable." },
-    { "control_id": "AC.L2-3.1.2", "applicability": "required", "rationale": "Transaction/function control; least privilege." },
+    { "control_id": "AC.L2-3.1.13", "applicability": "required", "rationale": "Cryptographic remote access; firewall and crypto evidence." },
+    { "control_id": "AC.L2-3.1.2", "applicability": "required", "rationale": "Transaction/function control; AppLocker." },
     { "control_id": "AC.L2-3.1.5", "applicability": "required", "rationale": "Concurrent session limits." },
     { "control_id": "AC.L2-3.1.6", "applicability": "required", "rationale": "Session lock on inactivity." },
     { "control_id": "AC.L2-3.1.7", "applicability": "required", "rationale": "Remote session disconnect." },
@@ -26,11 +25,10 @@
     { "control_id": "IA.L2-3.5.3", "applicability": "required", "rationale": "Federation; N/A or MFA evidence." },
     { "control_id": "IA.L2-3.5.7", "applicability": "required", "rationale": "Replay-resistant authentication." },
     { "control_id": "AU.L2-3.3.1", "applicability": "required", "rationale": "Audit record creation; audit policy." },
-    { "control_id": "AU.L2-3.3.2", "applicability": "required", "rationale": "Audit events; categories enabled." },
-    { "control_id": "AU.L2-3.3.3", "applicability": "required", "rationale": "Audit record content." },
-    { "control_id": "AU.L2-3.3.4", "applicability": "required", "rationale": "Audit storage capacity." },
-    { "control_id": "AU.L2-3.3.10", "applicability": "required", "rationale": "Audit review and failure handling." },
-    { "control_id": "SC.L2-3.13.1", "applicability": "required", "rationale": "Network boundary protection; firewall." },
+    { "control_id": "AU.L2-3.3.2", "applicability": "required", "rationale": "Unique user traceability; audit subcategories." },
+    { "control_id": "AU.L2-3.3.4", "applicability": "required", "rationale": "Alert on audit logging failure; auditpol and Security log." },
+    { "control_id": "AU.L2-3.3.8", "applicability": "required", "rationale": "Protect audit information; Security evtx ACL." },
+    { "control_id": "SC.L2-3.13.1", "applicability": "required", "rationale": "Monitor/control/protect communications; firewall." },
     { "control_id": "SC.L2-3.13.2", "applicability": "required", "rationale": "Application partitioning; firewall rules." },
     { "control_id": "SC.L2-3.13.11", "applicability": "required", "rationale": "FIPS-validated crypto; FIPS/TLS evidence." },
     { "control_id": "MP.L2-3.8.1", "applicability": "required", "rationale": "Media access; BitLocker and access control." },
@@ -82,8 +80,8 @@
     },
     {
       "check_id": "au-log-acl",
-      "control_id": "AU.L2-3.3.10",
-      "expected_setting": "Security event log ACL restricted; only SYSTEM and authorized accounts have write/delete; backup operators may have read where required.",
+      "control_id": "AU.L2-3.3.8",
+      "expected_setting": "Protect audit information; Security event log ACL restricted; only SYSTEM and authorized accounts have write/delete.",
       "evidence_required_files": ["audit/security-evtx-acl.txt"],
       "validation": { "type": "file_presence" },
       "remediation_guidance": "Restrict permissions on %windir%\\System32\\winevt\\Logs\\Security.evtx. Ensure only SYSTEM and designated audit role have full control; remove unnecessary write for non-SYSTEM.",
@@ -159,6 +157,57 @@
       "manual_commands": [
         "Get-ItemProperty -Path 'HKLM:\\System\\CurrentControlSet\\Control\\Lsa\\FipsAlgorithmPolicy' | Select Enabled",
         "reg query 'HKLM\\SYSTEM\\CurrentControlSet\\Control\\SecurityProviders\\SCHANNEL\\Protocols' /s"
+      ]
+    },
+    {
+      "check_id": "ac-concurrent-session",
+      "control_id": "AC.L2-3.1.10",
+      "expected_setting": "Concurrent session limits defined and enforced (e.g. RDP max connections, Terminal Services); policy evidence.",
+      "evidence_required_files": ["policy/secpol.cfg", "policy/gpresult-computer.txt", "policy/rdp-session-limits.txt"],
+      "validation": { "type": "file_presence" },
+      "remediation_guidance": "Configure RDP/Terminal Services session limits via GPO: Computer Configuration > Administrative Templates > Windows Components > Remote Desktop Services. Set 'Limit number of connections' and document in policy.",
+      "manual_commands": [
+        "secedit /export /cfg C:\\Temp\\secpol.cfg",
+        "gpresult /h C:\\Temp\\gpresult.html /f",
+        "Get-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server' -ErrorAction SilentlyContinue | Select MaxInstanceCount"
+      ]
+    },
+    {
+      "check_id": "ac-session-lock",
+      "control_id": "AC.L2-3.1.11",
+      "expected_setting": "Screen saver and lock policy: enabled with timeout; password on resume; secure desktop.",
+      "evidence_required_files": ["policy/secpol.cfg", "policy/gpresult-computer.txt", "policy/screen-saver.txt"],
+      "validation": { "type": "file_presence" },
+      "remediation_guidance": "Configure via GPO: Screen saver timeout (e.g. 15 min), 'On resume display logon screen', 'Password protect the screen saver'. Use Interactive logon: Machine inactivity limit if supported.",
+      "manual_commands": [
+        "secedit /export /cfg C:\\Temp\\secpol.cfg",
+        "gpresult /h C:\\Temp\\gpresult.html /f",
+        "Get-ItemProperty -Path 'HKCU:\\Control Panel\\Desktop' -ErrorAction SilentlyContinue | Select ScreenSaveActive,ScreenSaveTimeout"
+      ]
+    },
+    {
+      "check_id": "ac-remote-access-rdp",
+      "control_id": "AC.L2-3.1.12",
+      "expected_setting": "Remote access controlled; RDP restricted to authorized users; NLA enabled; policy documented.",
+      "evidence_required_files": ["policy/secpol.cfg", "policy/gpresult-computer.txt", "policy/rdp-settings.txt"],
+      "validation": { "type": "file_presence" },
+      "remediation_guidance": "Enable NLA for RDP (User authentication required). Restrict 'Allow logon through Remote Desktop Services' via GPO. Use firewall to limit RDP (3389) to management VLAN.",
+      "manual_commands": [
+        "secedit /export /cfg C:\\Temp\\secpol.cfg",
+        "gpresult /h C:\\Temp\\gpresult.html /f",
+        "Get-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server' -ErrorAction SilentlyContinue | Select UserAuthentication"
+      ]
+    },
+    {
+      "check_id": "ac-remote-access-monitor",
+      "control_id": "AC.L2-3.1.13",
+      "expected_setting": "Remote access sessions monitored and logged; audit policy includes logon events; evidence of review.",
+      "evidence_required_files": ["audit/auditpol.txt", "audit/security-evtx-sample.txt", "policy/gpresult-computer.txt"],
+      "validation": { "type": "file_presence" },
+      "remediation_guidance": "Enable audit: Logon (success/failure), Account Logon. Retain and review Security event log for remote logons (Event ID 4624 Type 10).",
+      "manual_commands": [
+        "auditpol /get /category:*",
+        "wevtutil qe Security /c:5 /f:text /q:*[System[(EventID=4624)]]"
       ]
     }
   ]

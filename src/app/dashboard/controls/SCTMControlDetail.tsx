@@ -69,6 +69,7 @@ const SECTION_ICONS: Record<string, React.ComponentType<{ className?: string }>>
   "Key references": Link2,
   "Overview": FileText,
   "More": FileText,
+  "What assessors do": ListChecks,
 };
 
 /** Renders guide/JSON body with [SELECT FROM: a; b; c] as a readable list; rest as paragraphs. Use bold to support **bold** in text. */
@@ -237,9 +238,9 @@ export function SCTMControlDetail({
 
   return (
     <div className="mx-auto max-w-5xl w-full px-0 py-0">
-      {/* One-line header */}
-      <div className="flex flex-wrap items-center gap-2 mb-4">
-        <span className="font-mono text-lg font-semibold text-[var(--color-navy-primary)]">{record.controlId}</span>
+      {/* Compact header: ID and meta (title is under Requirement below) */}
+      <div className="flex flex-wrap items-center gap-2 mb-3">
+        <span className="font-mono text-sm font-semibold text-[var(--color-navy-primary)]">{record.controlId}</span>
         <StatusBadge status={record.implementationStatus} />
         {familyCode && (
           <span className="text-xs font-medium text-[var(--color-gray-500)]">{familyCode}</span>
@@ -298,56 +299,47 @@ export function SCTMControlDetail({
       )}
 
       {sctmOptimized?.onboarding_tips && (
-        <section className="mb-4">
+        <section className="mb-4 overflow-visible">
           <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1">Onboarding tips</h2>
-          <div className="rounded-lg border border-white/30 bg-white/70 backdrop-blur-sm px-4 py-3">
-            <p className="text-[15px] leading-relaxed text-[var(--color-gray-700)] whitespace-pre-wrap">{sctmOptimized.onboarding_tips}</p>
+          <div className="rounded-lg border border-white/30 bg-white/70 backdrop-blur-sm px-4 py-3 overflow-visible">
+            <p className="text-[15px] leading-relaxed text-[var(--color-gray-700)] whitespace-pre-wrap break-words min-h-0">
+              {sctmOptimized.onboarding_tips}
+            </p>
           </div>
         </section>
       )}
 
-      {sctmOptimized?.assessor_interrogation && (sctmOptimized.assessor_interrogation.assessor_questions || sctmOptimized.assessor_interrogation.examine_criteria || sctmOptimized.assessor_interrogation.test_procedures) && (
-        <section className="mb-4">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">What assessors do</h2>
-          <div className="rounded-lg border border-white/30 bg-white/70 backdrop-blur-sm overflow-hidden">
-            {sctmOptimized.assessor_interrogation.assessor_questions && (
-              <div className="px-4 py-3 border-b border-white/30">
-                <h3 className="text-sm font-semibold text-[var(--color-gray-800)] mb-1.5">Interview</h3>
-                <div className="text-[15px] leading-[1.65] text-[var(--color-gray-700)]">
-                  <FormattedGuideBody text={sctmOptimized.assessor_interrogation.assessor_questions} bold />
-                </div>
-              </div>
-            )}
-            {sctmOptimized.assessor_interrogation.examine_criteria && (
-              <div className="px-4 py-3 border-b border-white/30">
-                <h3 className="text-sm font-semibold text-[var(--color-gray-800)] mb-1.5">Examine</h3>
-                <div className="text-[15px] leading-[1.65] text-[var(--color-gray-700)]">
-                  <FormattedGuideBody text={sctmOptimized.assessor_interrogation.examine_criteria} bold />
-                </div>
-              </div>
-            )}
-            {sctmOptimized.assessor_interrogation.test_procedures && (
-              <div className="px-4 py-3">
-                <h3 className="text-sm font-semibold text-[var(--color-gray-800)] mb-1.5">Test</h3>
-                <div className="text-[15px] leading-[1.65] text-[var(--color-gray-700)]">
-                  <FormattedGuideBody text={sctmOptimized.assessor_interrogation.test_procedures} bold />
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
-      )}
+      {(() => {
+        const hasAssessorContent =
+          sctmOptimized?.assessor_interrogation &&
+          (sctmOptimized.assessor_interrogation.assessor_questions ||
+            sctmOptimized.assessor_interrogation.examine_criteria ||
+            sctmOptimized.assessor_interrogation.test_procedures);
+        const assessorSectionBody = hasAssessorContent
+          ? [
+              sctmOptimized!.assessor_interrogation!.assessor_questions && `**Interview**\n\n${sctmOptimized!.assessor_interrogation!.assessor_questions}`,
+              sctmOptimized!.assessor_interrogation!.examine_criteria && `**Examine**\n\n${sctmOptimized!.assessor_interrogation!.examine_criteria}`,
+              sctmOptimized!.assessor_interrogation!.test_procedures && `**Test**\n\n${sctmOptimized!.assessor_interrogation!.test_procedures}`,
+            ]
+              .filter(Boolean)
+              .join("\n\n")
+          : "";
+        const assessorSection: GuideSection | null =
+          assessorSectionBody.trim() ? { label: "What assessors do", body: assessorSectionBody.trim() } : null;
+        const allSections: GuideSection[] = assessorSection ? [assessorSection, ...guideSections] : guideSections;
 
-      {guideSections.length > 0 && (
-        <section className="mb-4">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">Assessment guide</h2>
-          <div className="space-y-1">
-            {guideSections.map((section, i) => (
-              <CollapsibleSection key={`${section.label}-${i}`} section={section} defaultOpen={i < 2} />
-            ))}
-          </div>
-        </section>
-      )}
+        if (allSections.length === 0) return null;
+        return (
+          <section className="mb-4">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">Assessment guide</h2>
+            <div className="space-y-1">
+              {allSections.map((section, i) => (
+                <CollapsibleSection key={`${section.label}-${i}`} section={section} defaultOpen={i < 2} />
+              ))}
+            </div>
+          </section>
+        );
+      })()}
 
       {/* Fallback when no sections parsed */}
       {(!nist?.nistDiscussionGuidance || guideSections.length === 0) && nist?.nistDiscussionGuidance && (

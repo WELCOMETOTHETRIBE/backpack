@@ -51,9 +51,12 @@ export async function GET() {
   return NextResponse.json(withCounts);
 }
 
+const SCOPE_COMPONENT_VALUES = ["microsoft_office", "windows_server_vm", "azure_cloud"] as const;
+const AZURE_ENV_VALUES = ["gov", "commercial"] as const;
+
 /**
  * POST /api/os-baselines/boundaries — create a boundary.
- * Body: { name: string; description?: string }
+ * Body: { name: string; description?: string; scope_components?: string[]; azure_environment?: "gov" | "commercial" }
  */
 export async function POST(req: Request) {
   const session = await auth();
@@ -61,10 +64,27 @@ export async function POST(req: Request) {
   const orgId = user?.organizationId;
   if (!orgId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const body = (await req.json()) as { name?: string; description?: string };
+  const body = (await req.json()) as {
+    name?: string;
+    description?: string;
+    scope_components?: string[];
+    azure_environment?: string;
+  };
   if (!body.name?.trim()) {
     return NextResponse.json({ error: "name is required" }, { status: 400 });
   }
+
+  const scopeComponents =
+    Array.isArray(body.scope_components) &&
+    body.scope_components.every((s) => SCOPE_COMPONENT_VALUES.includes(s as (typeof SCOPE_COMPONENT_VALUES)[number]))
+      ? body.scope_components
+      : null;
+
+  const hasAzure = scopeComponents?.includes("azure_cloud");
+  const azureEnvironment =
+    hasAzure && body.azure_environment && AZURE_ENV_VALUES.includes(body.azure_environment as (typeof AZURE_ENV_VALUES)[number])
+      ? body.azure_environment
+      : null;
 
   const [row] = await db
     .insert(boundaries)
@@ -72,6 +92,8 @@ export async function POST(req: Request) {
       organizationId: orgId,
       name: body.name.trim(),
       description: body.description?.trim() || null,
+      scopeComponents: scopeComponents ?? null,
+      azureEnvironment,
     })
     .returning();
 

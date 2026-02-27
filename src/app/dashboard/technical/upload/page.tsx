@@ -123,7 +123,7 @@ export default function TechnicalUploadPage() {
             Upload evidence bundle
           </h1>
           <p className="mt-1 text-sm text-[var(--color-gray-600)]">
-            Provide manifest metadata and a JSON manifest file listing files in the bundle (path, sha256, size_bytes). The system will create a run and adjudicate controls for the selected asset.
+            Provide manifest metadata and a JSON manifest file listing files in the bundle (path, sha256, size_bytes). Use the manifest from your evidence run—e.g. inside the run folder, <code className="rounded bg-[var(--color-gray-100)] px-1">meta/manifest.json</code>. Do not upload the zip; upload that .json file. The system will create a run and adjudicate controls for the selected asset.
           </p>
         </div>
 
@@ -203,7 +203,7 @@ export default function TechnicalUploadPage() {
                   Manifest JSON file
                 </label>
                 <p className="mt-0.5 text-xs text-[var(--color-gray-500)]">
-                  JSON with <code className="rounded bg-[var(--color-gray-100)] px-1">files</code> array: {"[{ path, sha256, size_bytes }, ...]"}
+                  Choose the <strong>manifest.json</strong> from your evidence run (e.g. <code className="rounded bg-[var(--color-gray-100)] px-1">meta/manifest.json</code>). JSON must have a <code className="rounded bg-[var(--color-gray-100)] px-1">files</code> array: {"[{ path, sha256, size_bytes }, ...]"}
                 </p>
                 <input
                   id="manifest"

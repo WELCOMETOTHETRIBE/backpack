@@ -4,7 +4,14 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { PlusCircle } from "lucide-react";
 
-type BaselineProfile = { id: string; name: string; version: string; role: string };
+type BaselineProfile = {
+  id: string;
+  name: string;
+  version: string;
+  role: string;
+  osFamily: string;
+  osVersion: string;
+};
 
 export function AddAssetForm({ boundaryId }: { boundaryId: string }) {
   const router = useRouter();
@@ -20,11 +27,19 @@ export function AddAssetForm({ boundaryId }: { boundaryId: string }) {
   useEffect(() => {
     fetch("/api/os-baselines/baseline-profiles")
       .then((r) => (r.ok ? r.json() : []))
-      .then((list: Array<{ id: string; name: string; version: string; role: string }>) =>
+      .then((list: BaselineProfile[]) =>
         setProfiles(Array.isArray(list) ? list : [])
       )
       .catch(() => {});
   }, []);
+
+  // Only show baseline profiles that match this asset's OS family, version, and role
+  const matchingProfiles = profiles.filter(
+    (p) =>
+      p.osFamily === osFamily &&
+      p.osVersion === osVersion &&
+      p.role === role
+  );
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -138,20 +153,29 @@ export function AddAssetForm({ boundaryId }: { boundaryId: string }) {
               </div>
               <div>
                 <label className="block text-sm font-medium text-[var(--color-gray-700)]">
-                  Baseline profile (optional)
+                  Baseline profile (recommended for evidence adjudication)
                 </label>
+                <p className="mt-0.5 text-xs text-[var(--color-gray-500)]">
+                  Required for scoring evidence bundles against controls. Select a profile that matches this OS and role.
+                </p>
                 <select
-                  value={baselineProfileId}
+                  value={matchingProfiles.some((p) => p.id === baselineProfileId) ? baselineProfileId : ""}
                   onChange={(e) => setBaselineProfileId(e.target.value)}
                   className="mt-1 w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm"
                 >
                   <option value="">— None —</option>
-                  {profiles.map((p) => (
+                  {matchingProfiles.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.name} v{p.version}
                     </option>
                   ))}
                 </select>
+                {matchingProfiles.length === 0 && (
+                  <p className="mt-1.5 text-xs text-amber-600">
+                    No baseline for this OS/role. Seed one with:{" "}
+                    <code className="rounded bg-amber-50 px-1">npx tsx src/scripts/seed-baseline-windows-server-2025.ts</code>
+                  </p>
+                )}
               </div>
               <div className="flex justify-end gap-2">
                 <button

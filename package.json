@@ -15,7 +15,8 @@
     "seed": "tsx src/scripts/seed.ts",
     "db:apply-governance": "tsx src/scripts/apply-governance-migration.ts",
     "parse-controls": "tsx src/scripts/parse-controls-from-guide.ts",
-    "seed-controls-from-json": "tsx src/scripts/seed-controls-from-parsed-json.ts"
+    "seed-controls-from-json": "tsx src/scripts/seed-controls-from-parsed-json.ts",
+    "validate-os-evidence-manifest": "tsx src/scripts/validate-os-evidence-manifest.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.995.0",

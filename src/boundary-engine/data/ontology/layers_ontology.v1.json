@@ -1,0 +1,431 @@
+{
+  "ontology_id": "wttt-boundary-layers-v1",
+  "version": "1.0.0",
+  "description": "Canonical layer ontology used by boundary engine. All control.layer values and provider coverage_layers must be in this enum.",
+  "layers": [
+    {
+      "id": "Physical",
+      "domain": "Provider",
+      "description": "Physical security controls for facilities, access control, and physical media handling at datacenter.",
+      "examples": [
+        "Datacenter access badges",
+        "CCTV",
+        "Visitor escort",
+        "Rack controls"
+      ]
+    },
+    {
+      "id": "Facility/Environmental",
+      "domain": "Provider",
+      "description": "Environmental protections (power, HVAC, fire suppression) supporting availability and physical safeguards.",
+      "examples": [
+        "UPS/generators",
+        "Fire suppression"
+      ]
+    },
+    {
+      "id": "Infrastructure/Hardware",
+      "domain": "Provider",
+      "description": "Underlying compute/storage hardware protections (supply chain, secure handling, lifecycle controls).",
+      "examples": [
+        "Server hardware lifecycle",
+        "Disk handling"
+      ]
+    },
+    {
+      "id": "Infrastructure/Hypervisor",
+      "domain": "Provider",
+      "description": "Virtualization layer security controls (hypervisor patching, isolation, host hardening).",
+      "examples": [
+        "Host OS patching",
+        "VM isolation enforcement"
+      ]
+    },
+    {
+      "id": "Provider/Backbone-Network",
+      "domain": "Provider",
+      "description": "Provider-managed network backbone protections (core routing, peering, inter-DC links).",
+      "examples": [
+        "Backbone encryption",
+        "Provider routing protections"
+      ]
+    },
+    {
+      "id": "Network/Boundary",
+      "domain": "Shared",
+      "description": "Perimeter/boundary enforcement points controlling ingress/egress between boundary and external networks.",
+      "examples": [
+        "Azure Firewall",
+        "Gateway appliance",
+        "NSG boundary rules"
+      ]
+    },
+    {
+      "id": "Network/Firewall",
+      "domain": "Shared",
+      "description": "Stateful and/or L7 firewall rule enforcement for least-privilege communications.",
+      "examples": [
+        "Azure Firewall rules",
+        "Network appliance rules"
+      ]
+    },
+    {
+      "id": "Network/Egress-Control",
+      "domain": "Shared",
+      "description": "Outbound traffic restriction and monitoring to reduce exfiltration risk.",
+      "examples": [
+        "Egress allow-listing",
+        "Forced tunneling",
+        "DNS egress controls"
+      ]
+    },
+    {
+      "id": "Network/Segmentation",
+      "domain": "Shared",
+      "description": "Logical segmentation (subnets/VNETs) separating public components from internal resources.",
+      "examples": [
+        "DMZ subnet",
+        "Private subnet isolation"
+      ]
+    },
+    {
+      "id": "Network/Private-Connectivity",
+      "domain": "Shared",
+      "description": "Private connectivity paths reducing exposure to public internet.",
+      "examples": [
+        "ExpressRoute",
+        "Private peering"
+      ]
+    },
+    {
+      "id": "Network/Remote-Access",
+      "domain": "Shared",
+      "description": "Remote access path controls and their protection mechanisms.",
+      "examples": [
+        "Bastion",
+        "VPN Gateway",
+        "Conditional access to management plane"
+      ]
+    },
+    {
+      "id": "Network/Configuration",
+      "domain": "Customer",
+      "description": "Network configuration decisions and policy (subnets, routing, DNS).",
+      "examples": [
+        "VNET/subnet design",
+        "DNS and routing configuration"
+      ]
+    },
+    {
+      "id": "Identity/AuthN",
+      "domain": "Shared",
+      "description": "Identity authentication mechanisms and identity provider-backed login flows.",
+      "examples": [
+        "Entra sign-in",
+        "Kerberos/AD auth backed by IdP"
+      ]
+    },
+    {
+      "id": "Identity/MFA",
+      "domain": "Shared",
+      "description": "Multi-factor authentication enforcement for privileged and/or user access.",
+      "examples": [
+        "Conditional Access MFA",
+        "PIM step-up"
+      ]
+    },
+    {
+      "id": "Identity/Conditional-Access",
+      "domain": "Shared",
+      "description": "Policy-based access restrictions (device compliance, geo, risk, network location).",
+      "examples": [
+        "Conditional Access policies",
+        "Require compliant device"
+      ]
+    },
+    {
+      "id": "Identity/Role-Governance",
+      "domain": "Shared",
+      "description": "Privileged role management, just-in-time elevation, approval workflows.",
+      "examples": [
+        "PIM",
+        "Access reviews"
+      ]
+    },
+    {
+      "id": "Identity/Configuration",
+      "domain": "Customer",
+      "description": "Identity system configuration and tenant/account configuration decisions.",
+      "examples": [
+        "Tenant settings",
+        "Account lifecycle configuration"
+      ]
+    },
+    {
+      "id": "Identity/Account-Lifecycle",
+      "domain": "Customer",
+      "description": "Provisioning/deprovisioning processes and HR-triggered identity lifecycle.",
+      "examples": [
+        "Joiner/mover/leaver procedures"
+      ]
+    },
+    {
+      "id": "Logging/Collection",
+      "domain": "Shared",
+      "description": "Collection pipelines for platform/OS/app logs.",
+      "examples": [
+        "Azure Monitor agent",
+        "Diagnostic settings"
+      ]
+    },
+    {
+      "id": "Logging/Monitoring",
+      "domain": "Shared",
+      "description": "Alerting/health monitoring for logging pipeline and security telemetry.",
+      "examples": [
+        "Log ingestion alerts",
+        "Agent heartbeat rules"
+      ]
+    },
+    {
+      "id": "Logging/Analytics",
+      "domain": "Shared",
+      "description": "Search/correlation/report generation capabilities over collected logs.",
+      "examples": [
+        "KQL queries",
+        "Workbooks",
+        "Scheduled queries"
+      ]
+    },
+    {
+      "id": "Vulnerability-Mgmt",
+      "domain": "Shared",
+      "description": "Vulnerability discovery, scanning, and prioritization pipeline.",
+      "examples": [
+        "Defender vuln assessment",
+        "Scanning cadence + triage"
+      ]
+    },
+    {
+      "id": "Continuous-Monitoring",
+      "domain": "Shared",
+      "description": "Ongoing monitoring of security posture and control effectiveness signals.",
+      "examples": [
+        "Defender recommendations review",
+        "Secure score trends"
+      ]
+    },
+    {
+      "id": "Monitoring/Detection",
+      "domain": "Shared",
+      "description": "Threat detection signals and alerting for indicators of attack.",
+      "examples": [
+        "Defender alerts",
+        "NSG flow anomaly detection"
+      ]
+    },
+    {
+      "id": "Posture/Compliance-Mapping",
+      "domain": "Shared",
+      "description": "Security posture and compliance standards mapping (e.g. Defender Regulatory Compliance).",
+      "examples": [
+        "Defender Regulatory Compliance dashboard",
+        "Compliance score and standards mapping"
+      ]
+    },
+    {
+      "id": "Crypto/Transit",
+      "domain": "Shared",
+      "description": "Encryption in transit for sessions/flows carrying CUI.",
+      "examples": [
+        "TLS 1.2/1.3 enforced",
+        "SSH encryption"
+      ]
+    },
+    {
+      "id": "Crypto/At Rest",
+      "domain": "Shared",
+      "description": "Encryption at rest for storage resources containing CUI.",
+      "examples": [
+        "Disk encryption",
+        "Storage service encryption"
+      ]
+    },
+    {
+      "id": "Crypto/FIPS",
+      "domain": "Shared",
+      "description": "Use of FIPS-validated cryptographic modules where required.",
+      "examples": [
+        "FIPS mode for Windows",
+        "FIPS-capable HSM backing"
+      ]
+    },
+    {
+      "id": "Crypto/Key-Mgmt",
+      "domain": "Shared",
+      "description": "Key lifecycle: creation, storage, rotation, access control, auditing.",
+      "examples": [
+        "Key Vault keys",
+        "Rotation policy + audit logs"
+      ]
+    },
+    {
+      "id": "Crypto/Secrets-Management",
+      "domain": "Shared",
+      "description": "Secrets lifecycle: storage and retrieval protections for credentials/tokens/certs.",
+      "examples": [
+        "Key Vault secrets",
+        "Managed identities"
+      ]
+    },
+    {
+      "id": "Backup/Recovery",
+      "domain": "Shared",
+      "description": "Backup scheduling, recovery points, restore ability evidence.",
+      "examples": [
+        "Azure Backup vault",
+        "Recovery Services Vault"
+      ]
+    },
+    {
+      "id": "Backup/Storage-Protection",
+      "domain": "Shared",
+      "description": "Protection of backup data (immutability, encryption, access restrictions).",
+      "examples": [
+        "Soft delete",
+        "Vault RBAC",
+        "Encryption"
+      ]
+    },
+    {
+      "id": "GuestOS/Hardening",
+      "domain": "Customer",
+      "description": "Guest OS configuration baseline/hardening (GPO, local policies, services).",
+      "examples": [
+        "CIS/STIG hardening",
+        "Disable SMBv1"
+      ]
+    },
+    {
+      "id": "GuestOS/Logging-Config",
+      "domain": "Customer",
+      "description": "Guest OS audit policy enabling and event configuration.",
+      "examples": [
+        "Windows Advanced Audit Policy",
+        "Sysmon config"
+      ]
+    },
+    {
+      "id": "GuestOS/Patching",
+      "domain": "Customer",
+      "description": "Guest OS patch and update management practices.",
+      "examples": [
+        "Windows Update rings",
+        "Maintenance windows"
+      ]
+    },
+    {
+      "id": "GuestOS/Endpoint-Protection-Config",
+      "domain": "Customer",
+      "description": "Endpoint protection settings inside guest OS (EDR/AV configuration).",
+      "examples": [
+        "Defender AV policy",
+        "Tamper protection"
+      ]
+    },
+    {
+      "id": "Application/Config",
+      "domain": "Customer",
+      "description": "Application configuration, access rules, secure settings, and SDLC practices.",
+      "examples": [
+        "App auth settings",
+        "Secure config management"
+      ]
+    },
+    {
+      "id": "Application/Logging",
+      "domain": "Customer",
+      "description": "Application audit events and logging content decisions.",
+      "examples": [
+        "Who did what logs",
+        "API audit trails"
+      ]
+    },
+    {
+      "id": "Governance/Policy",
+      "domain": "Customer",
+      "description": "Written policies/standards/procedures.",
+      "examples": [
+        "Access control policy",
+        "Audit policy"
+      ]
+    },
+    {
+      "id": "Governance/Training",
+      "domain": "Customer",
+      "description": "Security awareness and role-based training program.",
+      "examples": [
+        "Annual training completion",
+        "Role training for admins"
+      ]
+    },
+    {
+      "id": "Governance/IR",
+      "domain": "Customer",
+      "description": "Incident response plan, execution, and testing.",
+      "examples": [
+        "IRP",
+        "Tabletop exercises"
+      ]
+    },
+    {
+      "id": "Governance/Risk",
+      "domain": "Customer",
+      "description": "Risk assessments and risk treatment decisions.",
+      "examples": [
+        "Risk register",
+        "Risk assessment cadence"
+      ]
+    },
+    {
+      "id": "Governance/SSP",
+      "domain": "Customer",
+      "description": "System Security Plan maintenance describing boundary and controls.",
+      "examples": [
+        "SSP sections",
+        "Boundary diagram"
+      ]
+    },
+    {
+      "id": "Governance/POAM",
+      "domain": "Customer",
+      "description": "POA&M creation and tracking.",
+      "examples": [
+        "POA&M entries",
+        "Remediation tracking"
+      ]
+    },
+    {
+      "id": "Governance/HR",
+      "domain": "Customer",
+      "description": "Personnel screening and termination/transfer procedures.",
+      "examples": [
+        "Background checks",
+        "Offboarding checklist"
+      ]
+    },
+    {
+      "id": "Data/Classification-Handling",
+      "domain": "Customer",
+      "description": "CUI marking, handling, dissemination, and data governance practices.",
+      "examples": [
+        "CUI marking rules",
+        "Handling procedures"
+      ]
+    }
+  ],
+  "rules": {
+    "layer_id_format": "Exact string match required; case-sensitive.",
+    "unknown_layer_behavior": "Reject control record / provider profile referencing unknown layer id."
+  }
+}

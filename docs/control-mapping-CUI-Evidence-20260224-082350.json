@@ -1,0 +1,571 @@
+{
+  "run_id": "CUI-Evidence-20260224-082350",
+  "bundle_root": "CUI-Evidence-20260224-082350/",
+  "generated_utc": "2026-02-24T00:00:00Z",
+  "mapping": [
+    {
+      "control": "AC.L2-3.1.1",
+      "title": "Authorized Access Control",
+      "coverage": "hybrid",
+      "evidence_files": [
+        "policy/local-accounts.txt",
+        "policy/local-groups.txt",
+        "policy/local-admins.txt",
+        "policy/gpresult-computer.txt",
+        "policy/gpresult-user.txt"
+      ],
+      "notes": "Host shows local identities & group membership; full closure requires documented access authorization + account management process in governance portal."
+    },
+    {
+      "control": "AC.L2-3.1.2",
+      "title": "Transaction & Function Control",
+      "coverage": "governance_only",
+      "evidence_files": [],
+      "notes": "Typically requires application/system-specific role/permission model and procedures; not provable from OS evidence alone."
+    },
+    {
+      "control": "AC.L2-3.1.5",
+      "title": "Least Privilege",
+      "coverage": "host_evidence",
+      "evidence_files": [
+        "policy/local-admins.txt",
+        "policy/uac-policy.txt",
+        "policy/secpol.cfg",
+        "policy/user-rights-assignments.txt",
+        "host/whoami-all.txt",
+        "policy/gpresult.html",
+        "policy/rsop.xml"
+      ],
+      "notes": "Use secpol user-rights and admin group membership to show least-privilege enforcement; RSOP demonstrates enforcement via policy."
+    },
+    {
+      "control": "AC.L2-3.1.6",
+      "title": "Non-Privileged Account Use",
+      "coverage": "hybrid",
+      "evidence_files": [
+        "policy/local-admins.txt",
+        "policy/secpol.cfg",
+        "policy/user-rights-assignments.txt",
+        "host/whoami-all.txt"
+      ],
+      "notes": "Host evidence shows privilege boundaries; closure also needs policy/procedure requiring non-privileged use for routine tasks."
+    },
+    {
+      "control": "AC.L2-3.1.7",
+      "title": "Privileged Functions",
+      "coverage": "host_evidence",
+      "evidence_files": [
+        "policy/user-rights-assignments.txt",
+        "policy/secpol.cfg",
+        "host/whoami-all.txt",
+        "policy/local-admins.txt"
+      ],
+      "notes": "User Rights Assignment (Se* rights) + admin membership demonstrate restriction of privileged functions."
+    },
+    {
+      "control": "AC.L2-3.1.8",
+      "title": "Unsuccessful Logon Attempts",
+      "coverage": "host_evidence",
+      "evidence_files": [
+        "policy/account-policy.txt",
+        "audit/eventlog-4625-failed-logons.txt",
+        "audit/eventlog-security.txt"
+      ],
+      "notes": "Account lockout policy + failed logon events support enforcement."
+    },
+    {
+      "control": "AC.L2-3.1.9",
+      "title": "Privacy & Security Notices",
+      "coverage": "host_evidence",
+      "evidence_files": [
+        "policy/interactive-logon-notice.txt",
+        "policy/gpresult.html",
+        "policy/rsop.xml"
+      ],
+      "notes": "Interactive logon legal notice settings (and RSOP) show notice configured."
+    },
+    {
+      "control": "AC.L2-3.1.10",
+      "title": "Session Lock",
+      "coverage": "host_evidence",
+      "evidence_files": [
+        "policy/machine-inactivity-limit.txt",
+        "policy/screensaver-policy.txt",
+        "policy/gpresult.html",
+        "policy/rsop.xml"
+      ],
+      "notes": "Machine inactivity timeout / screen saver lock evidence."
+    },
+    {
+      "control": "AC.L2-3.1.11",
+      "title": "Session Termination",
+      "coverage": "hybrid",
+      "evidence_files": [
+        "policy/machine-inactivity-limit.txt",
+        "policy/screensaver-policy.txt"
+      ],
+      "notes": "OS evidence supports automatic lock; full termination details depend on system/app session management expectations."
+    },
+    {
+      "control": "AC.L2-3.1.12",
+      "title": "Control Remote Access",
+      "coverage": "hybrid",
+      "evidence_files": [
+        "network/rdp-policy.txt",
+        "network/rdp-tcp.txt",
+        "host/services-remote.txt",
+        "network/firewall-rules-summary.txt",
+        "network/firewall.txt"
+      ],
+      "notes": "Host shows RDP/remote services posture and firewall; full closure needs org-approved remote access methods + MFA/IdP configuration evidence."
+    },
+    {
+      "control": "AC.L2-3.1.13",
+      "title": "Remote Access Confidentiality",
+      "coverage": "hybrid",
+      "evidence_files": [
+        "network/rdp-tcp.txt",
+        "crypto/schannel-protocols.txt",
+        "crypto/tls-ciphersuites.txt"
+      ],
+      "notes": "Partial: shows TLS posture for Windows; confidentiality of remote access typically requires VPN/TLS config evidence and policy."
+    },
+    {
+      "control": "AC.L2-3.1.14",
+      "title": "Remote Access Routing",
+      "coverage": "governance_only",
+      "evidence_files": [],
+      "notes": "Typically network architecture/boundary routing control; not host-provable from single Windows VM."
+    },
+    {
+      "control": "AC.L2-3.1.15",
+      "title": "Privileged Remote Access",
+      "coverage": "hybrid",
+      "evidence_files": [
+        "policy/local-admins.txt",
+        "network/rdp-policy.txt",
+        "network/rdp-tcp.txt",
+        "policy/account-policy.txt"
+      ],
+      "notes": "Host shows privileged group membership + remote access settings; closure requires MFA and privileged access management evidence."
+    },
+    {
+      "control": "AU.L2-3.3.1",
+      "title": "Audit Record Creation & Retention",
+      "coverage": "host_evidence",
+      "evidence_files": [
+        "audit/eventlog-security.txt",
+        "audit/eventlog-system.txt",
+        "audit/eventlog-application.txt",
+        "audit/auditpol.txt"
+      ],
+      "notes": "Event log configuration + audit policy shows audit records are created; retention relies on log size/retention settings in wevtutil outputs."
+    },
+    {
+      "control": "AU.L2-3.3.2",
+      "title": "Audit Record Content / Traceability",
+      "coverage": "host_evidence",
+      "evidence_files": [
+        "audit/eventlog-security-sample.txt",
+        "audit/auditpol.txt",
+        "host/whoami-all.txt"
+      ],
+      "notes": "Samples show user-linked events; audit policy shows categories enabled."
+    },
+    {
+      "control": "AU.L2-3.3.3",
+      "title": "Review and Update Logged Events",
+      "coverage": "hybrid",
+      "evidence_files": [
+        "audit/auditpol.txt",
+        "policy/gpresult.html",
+        "policy/rsop.xml"
+      ],
+      "notes": "Host shows what is logged; closure requires governance record of periodic review/update decisions."
+    },
+    {
+      "control": "AU.L2-3.3.4",
+      "title": "Audit Log Review/Analysis/Reporting",
+      "coverage": "governance_only",
+      "evidence_files": [],
+      "notes": "Requires documented process + review records/tickets; not provable from config snapshot alone."
+    },
+    {
+      "control": "AU.L2-3.3.5",
+      "title": "Audit Log Correlation",
+      "coverage": "governance_only",
+      "evidence_files": [],
+      "notes": "Typically SIEM/central log correlation evidence."
+    },
+    {
+      "control": "AU.L2-3.3.6",
+      "title": "Audit Reduction and Report Generation",
+      "coverage": "governance_only",
+      "evidence_files": [],
+      "notes": "Typically SIEM tooling evidence; not from host snapshot."
+    },
+    {
+      "control": "AU.L2-3.3.7",
+      "title": "Time Stamps",
+      "coverage": "host_evidence",
+      "evidence_files": [
+        "host/time-sync.txt",
+        "audit/eventlog-security-sample.txt"
+      ],
+      "notes": "W32Time configuration and event timestamps evidence."
+    },
+    {
+      "control": "AU.L2-3.3.8",
+      "title": "Protect Audit Information",
+      "coverage": "host_evidence",
+      "evidence_files": [
+        "audit/security-evtx-acl.txt",
+        "audit/eventlog-security.txt"
+      ],
+      "notes": "Security.evtx ACL + log config supports protection."
+    },
+    {
+      "control": "AU.L2-3.3.9",
+      "title": "Audit Management Restricted",
+      "coverage": "host_evidence",
+      "evidence_files": [
+        "audit/security-evtx-acl.txt",
+        "policy/local-admins.txt",
+        "policy/user-rights-assignments.txt"
+      ],
+      "notes": "ACLs and privilege assignments indicate restricted management; verify Event Log service permissions."
+    },
+    {
+      "control": "AU.L2-3.3.10",
+      "title": "Audit Failure Alert",
+      "coverage": "hybrid",
+      "evidence_files": [
+        "audit/eventlog-system-sample.txt",
+        "audit/eventlog-system.txt"
+      ],
+      "notes": "Host evidence can show logging service status; closure typically requires monitoring/alerting evidence (SIEM/EDR)."
+    },
+    {
+      "control": "CM.L2-3.4.1",
+      "title": "Baseline Configuration & Inventory",
+      "coverage": "host_evidence",
+      "evidence_files": [
+        "host/systeminfo.txt",
+        "host/computerinfo.txt",
+        "host/installed-software.txt",
+        "host/installed-roles-features.txt",
+        "host/services-security-relevant.txt",
+        "network/listening-ports.txt"
+      ],
+      "notes": "Provides current-state inventory/baseline snapshot; governance portal should store approved baseline + change history."
+    },
+    {
+      "control": "CM.L2-3.4.2",
+      "title": "Security Configuration Settings",
+      "coverage": "host_evidence",
+      "evidence_files": [
+        "policy/secpol.cfg",
+        "policy/uac-policy.txt",
+        "policy/lsa.txt",
+        "policy/ntlm-policy.txt",
+        "network/firewall.txt",
+        "audit/auditpol.txt",
+        "crypto/schannel-protocols.txt",
+        "defender/defender-preferences.txt",
+        "policy/gpresult.html",
+        "policy/rsop.xml"
+      ],
+      "notes": "Shows enforceable security settings and RSOP proof."
+    },
+    {
+      "control": "CM.L2-3.4.3",
+      "title": "Change Control",
+      "coverage": "governance_only",
+      "evidence_files": [],
+      "notes": "Requires change tickets/approvals/logs; implement in governance portal."
+    },
+    {
+      "control": "CM.L2-3.4.4",
+      "title": "Security Impact Analysis",
+      "coverage": "governance_only",
+      "evidence_files": [],
+      "notes": "Requires documented assessment/approval records."
+    },
+    {
+      "control": "CM.L2-3.4.5",
+      "title": "Least Functionality",
+      "coverage": "host_evidence",
+      "evidence_files": [
+        "host/services-security-relevant.txt",
+        "host/services-remote.txt",
+        "host/installed-roles-features.txt",
+        "network/listening-ports.txt"
+      ],
+      "notes": "Evidence of installed roles/services and listening ports supports least functionality discussions."
+    },
+    {
+      "control": "CM.L2-3.4.6",
+      "title": "Configuration Settings for User-Installed Software",
+      "coverage": "hybrid",
+      "evidence_files": [
+        "apps/applocker-policy.txt",
+        "policy/user-rights-assignments.txt",
+        "policy/local-admins.txt",
+        "host/installed-software.txt"
+      ],
+      "notes": "AppLocker + privilege restrictions can enforce; closure may require governance policy on allowed software."
+    },
+    {
+      "control": "CM.L2-3.4.7",
+      "title": "Whitelisting / Restrict Executable Code",
+      "coverage": "host_evidence",
+      "evidence_files": [
+        "apps/applocker-policy.txt"
+      ],
+      "notes": "If AppLocker is enabled and enforced; verify effective policy content within this file."
+    },
+    {
+      "control": "CM.L2-3.4.8",
+      "title": "Install Only Authorized Software",
+      "coverage": "hybrid",
+      "evidence_files": [
+        "host/installed-software.txt",
+        "apps/applocker-policy.txt"
+      ],
+      "notes": "Inventory supports; closure needs approved software list + enforcement story."
+    },
+    {
+      "control": "CM.L2-3.4.9",
+      "title": "Control and Monitor User-Installed Software",
+      "coverage": "hybrid",
+      "evidence_files": [
+        "host/installed-software.txt",
+        "policy/user-rights-assignments.txt",
+        "policy/local-admins.txt"
+      ],
+      "notes": "Supports restriction via privileges and inventory; closure needs monitoring process evidence."
+    },
+    {
+      "control": "IA.L2-3.5.1",
+      "title": "Identify Users/Processes/Devices",
+      "coverage": "host_evidence",
+      "evidence_files": [
+        "policy/local-accounts.txt",
+        "host/whoami-all.txt"
+      ],
+      "notes": "Unique local identities and domain join status."
+    },
+    {
+      "control": "IA.L2-3.5.2",
+      "title": "Authenticate Users/Processes/Devices",
+      "coverage": "hybrid",
+      "evidence_files": [
+        "policy/account-policy.txt",
+        "policy/lsa.txt",
+        "policy/ntlm-policy.txt"
+      ],
+      "notes": "OS auth configuration evidence; full closure includes IdP/MFA and authentication methods policy."
+    },
+    {
+      "control": "IA.L2-3.5.3",
+      "title": "Multi-factor Authentication for Network Access",
+      "coverage": "governance_only",
+      "evidence_files": [],
+      "notes": "Requires IdP/Entra Conditional Access, VPN/RDP gateway MFA evidence (outside host)."
+    },
+    {
+      "control": "IA.L2-3.5.4",
+      "title": "Replay-Resistant Authentication",
+      "coverage": "governance_only",
+      "evidence_files": [],
+      "notes": "Typically smart card/cert-based auth; needs IdP/device auth evidence."
+    },
+    {
+      "control": "IA.L2-3.5.5",
+      "title": "Use of PKI Certificates",
+      "coverage": "governance_only",
+      "evidence_files": [],
+      "notes": "Needs certificate infrastructure evidence."
+    },
+    {
+      "control": "IA.L2-3.5.6",
+      "title": "Password Complexity & Change",
+      "coverage": "host_evidence",
+      "evidence_files": [
+        "policy/account-policy.txt",
+        "policy/secpol.cfg",
+        "policy/gpresult.html",
+        "policy/rsop.xml"
+      ],
+      "notes": "net accounts + secpol export show password policy; RSOP ties to policy enforcement."
+    },
+    {
+      "control": "IA.L2-3.5.7",
+      "title": "Password Reuse Restriction",
+      "coverage": "host_evidence",
+      "evidence_files": [
+        "policy/account-policy.txt",
+        "policy/secpol.cfg"
+      ],
+      "notes": "Password history settings in account policy/secpol."
+    },
+    {
+      "control": "IA.L2-3.5.8",
+      "title": "Temporary Passwords",
+      "coverage": "governance_only",
+      "evidence_files": [],
+      "notes": "Procedural requirement (one-time/temporary password handling)."
+    },
+    {
+      "control": "IA.L2-3.5.9",
+      "title": "Disable/Lock Inactive Accounts",
+      "coverage": "hybrid",
+      "evidence_files": [
+        "policy/local-accounts.txt"
+      ],
+      "notes": "Host can show enabled/disabled + last logon; closure requires account lifecycle process evidence."
+    },
+    {
+      "control": "IA.L2-3.5.10",
+      "title": "Password Maximum/Minimum Age",
+      "coverage": "host_evidence",
+      "evidence_files": [
+        "policy/account-policy.txt",
+        "policy/secpol.cfg"
+      ],
+      "notes": "Account policy fields for min/max age."
+    },
+    {
+      "control": "IA.L2-3.5.11",
+      "title": "Obscure Authenticator Feedback",
+      "coverage": "host_evidence",
+      "evidence_files": [
+        "policy/auth-ux-policy.txt"
+      ],
+      "notes": "Windows auth UX settings evidence (best-effort); assessors often accept OS default behavior + policy reference."
+    },
+    {
+      "control": "SC.L2-3.13.1",
+      "title": "Boundary Protection",
+      "coverage": "hybrid",
+      "evidence_files": [
+        "network/firewall.txt",
+        "network/firewall-rules-summary.txt",
+        "network/listening-ports.txt",
+        "network/listening-processes.txt"
+      ],
+      "notes": "Host firewall evidence supports; full boundary story typically includes network firewall/NSG exports."
+    },
+    {
+      "control": "SC.L2-3.13.5",
+      "title": "Public Access Separation",
+      "coverage": "governance_only",
+      "evidence_files": [],
+      "notes": "Requires network architecture and segmentation evidence."
+    },
+    {
+      "control": "SC.L2-3.13.6",
+      "title": "Cryptographic Protection",
+      "coverage": "hybrid",
+      "evidence_files": [
+        "crypto/schannel-protocols.txt",
+        "crypto/tls-ciphersuites.txt",
+        "crypto/fips.txt"
+      ],
+      "notes": "Shows TLS and FIPS posture; full closure includes system/application crypto usage decisions."
+    },
+    {
+      "control": "SC.L2-3.13.8",
+      "title": "Transmission Confidentiality/Integrity",
+      "coverage": "hybrid",
+      "evidence_files": [
+        "crypto/schannel-protocols.txt",
+        "crypto/tls-ciphersuites.txt"
+      ],
+      "notes": "Partial from OS; depends on protocols/services used."
+    },
+    {
+      "control": "SC.L2-3.13.11",
+      "title": "FIPS-Validated Cryptography",
+      "coverage": "host_evidence",
+      "evidence_files": [
+        "crypto/fips.txt"
+      ],
+      "notes": "Shows Windows FIPS policy enabled (note: validate module boundary in governance narrative)."
+    },
+    {
+      "control": "SC.L2-3.13.16",
+      "title": "Protect CUI at Rest",
+      "coverage": "host_evidence",
+      "evidence_files": [
+        "storage/bitlocker-status.txt"
+      ],
+      "notes": "BitLocker status supports confidentiality of data at rest."
+    },
+    {
+      "control": "SI.L2-3.14.1",
+      "title": "Flaw Remediation",
+      "coverage": "hybrid",
+      "evidence_files": [
+        "host/hotfixes.txt",
+        "host/windows-update-policy.txt",
+        "host/windows-update-services.txt"
+      ],
+      "notes": "Host patch level evidence; closure needs vuln/patch management process records."
+    },
+    {
+      "control": "SI.L2-3.14.2",
+      "title": "Malicious Code Protection",
+      "coverage": "host_evidence",
+      "evidence_files": [
+        "defender/defender-status.txt",
+        "defender/defender-preferences.txt"
+      ],
+      "notes": "Defender enabled + preferences."
+    },
+    {
+      "control": "SI.L2-3.14.3",
+      "title": "Security Alerts/Advisories",
+      "coverage": "governance_only",
+      "evidence_files": [],
+      "notes": "Requires process evidence for monitoring advisories and acting on them."
+    },
+    {
+      "control": "SI.L2-3.14.4",
+      "title": "Update Malicious Code Protection",
+      "coverage": "host_evidence",
+      "evidence_files": [
+        "defender/defender-status.txt",
+        "defender/defender-scan-ages.txt"
+      ],
+      "notes": "Signature age supports updates."
+    },
+    {
+      "control": "SI.L2-3.14.5",
+      "title": "Periodic Scanning",
+      "coverage": "host_evidence",
+      "evidence_files": [
+        "defender/defender-scan-ages.txt"
+      ],
+      "notes": "Scan age shows scans run; pair with policy for cadence if needed."
+    },
+    {
+      "control": "SI.L2-3.14.6",
+      "title": "Monitor Communications for Attacks",
+      "coverage": "governance_only",
+      "evidence_files": [],
+      "notes": "Usually IDS/IPS/EDR/SIEM evidence."
+    },
+    {
+      "control": "SI.L2-3.14.7",
+      "title": "Identify Unauthorized Use",
+      "coverage": "hybrid",
+      "evidence_files": [
+        "audit/eventlog-security-sample.txt",
+        "defender/defender-threat-detections.txt",
+        "audit/auditpol.txt"
+      ],
+      "notes": "Host telemetry supports detection; closure requires monitoring and response workflow records."
+    }
+  ]
+}

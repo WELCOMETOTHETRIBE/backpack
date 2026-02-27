@@ -9,12 +9,17 @@ export const PURE_GOV_CONTROL_IDS = [
   "3.12.1", "3.12.2", "3.12.3", "3.12.4",
 ];
 
+/**
+ * 17 controls that require both enclave (OS) evidence and governance adjudication.
+ * Reconciled with OS-Evidence-to-NIST-Control-Manifest-73-73: all 17 are in the 73 enclave manifest.
+ * (Replaced 3.10.1, 3.10.2, 3.10.3, 3.8.3, 3.8.4 — not in 73 — with 3.4.5, 3.13.2, 3.13.3, 3.14.3, 3.7.5.)
+ */
 export const HYBRID_GOV_CONTROL_IDS = [
   "3.1.1", "3.1.2", "3.1.3", "3.1.5", "3.1.6", "3.1.7",
   "3.5.1", "3.5.2", "3.5.3", "3.5.7",
-  "3.10.1", "3.10.2", "3.10.3",
-  "3.8.3", "3.8.4",
-  "3.13.8", "3.13.11",
+  "3.4.5", "3.7.5",
+  "3.13.2", "3.13.3", "3.13.8", "3.13.11",
+  "3.14.3",
 ];
 
 export type ControlMetadataSeed = {
