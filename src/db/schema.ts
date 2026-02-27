@@ -1204,4 +1204,9 @@ export const poamEntriesRelations = relations(poamEntries, ({ one, many }) => ({
 }));
 
 // ============== Evidence runs (metadata-only) ==============
-export * from "../../drizzle/schema.evidence";
+export {
+  evidenceRuns,
+  evidenceFiles,
+  evidenceControlTechnicalStatus,
+  evidenceFindings,
+} from "../../drizzle/schema.evidence";
