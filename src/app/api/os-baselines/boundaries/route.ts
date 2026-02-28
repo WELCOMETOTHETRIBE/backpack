@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { boundaries, osAssets } from "@/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
+import { syncOrgAzureInheritedControls } from "@/lib/compliance/azure-inherited-controls";
 
 /**
  * GET /api/os-baselines/boundaries — list boundaries for the current org
@@ -108,5 +109,6 @@ export async function POST(req: Request) {
     .returning();
 
   if (!row) return NextResponse.json({ error: "Insert failed" }, { status: 500 });
+  await syncOrgAzureInheritedControls(db, orgId);
   return NextResponse.json(row);
 }

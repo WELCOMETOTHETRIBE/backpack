@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { boundaries } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
+import { syncOrgAzureInheritedControls } from "@/lib/compliance/azure-inherited-controls";
 
 /**
  * GET /api/os-baselines/boundaries/[id]
@@ -87,6 +88,7 @@ export async function PATCH(
     .set(updates)
     .where(eq(boundaries.id, id))
     .returning();
+  await syncOrgAzureInheritedControls(db, orgId);
   return NextResponse.json(row);
 }
 
@@ -110,5 +112,6 @@ export async function DELETE(
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   await db.delete(boundaries).where(eq(boundaries.id, id));
+  await syncOrgAzureInheritedControls(db, orgId);
   return NextResponse.json({ ok: true });
 }

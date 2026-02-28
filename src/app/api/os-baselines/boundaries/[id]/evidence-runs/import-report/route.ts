@@ -232,7 +232,7 @@ export async function POST(
 
     await db
       .update(controlRecords)
-      .set({ implementationStatus: "Partial", updatedAt: new Date() })
+      .set({ implementationStatus: "in_progress", updatedAt: new Date() })
       .where(eq(controlRecords.id, record.id));
   }
 

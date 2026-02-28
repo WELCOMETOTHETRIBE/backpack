@@ -1,13 +1,15 @@
 import { auth } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import { db } from "@/db";
-import { boundaries, osAssets, osBaselineProfiles } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { boundaries, controlRecords, osAssets, osBaselineProfiles } from "@/db/schema";
+import { eq, and, inArray } from "drizzle-orm";
 import Link from "next/link";
 import { Server, ChevronRight, Upload } from "lucide-react";
+import { LIKELY_NA_CONTROL_IDS } from "@/lib/compliance/likely-na-controls";
 import { AddAssetForm } from "../../AddAssetForm";
 import { EditBoundaryForm } from "./EditBoundaryForm";
 import { CloudHostingCard } from "./CloudHostingCard";
+import { LikelyNaQuestionnaire } from "./LikelyNaQuestionnaire";
 import { DeleteBoundaryButton } from "./DeleteBoundaryButton";
 import { DeleteAssetButton } from "./DeleteAssetButton";
 
@@ -51,6 +53,20 @@ export default async function BoundaryDetailPage({
 
   const singleSystemEnclave =
     assets.length === 1 && assets[0].baselineProfileId != null;
+
+  const likelyNaRecords = await db
+    .select({
+      controlId: controlRecords.controlId,
+      implementationStatus: controlRecords.implementationStatus,
+      governanceNarrative: controlRecords.governanceNarrative,
+    })
+    .from(controlRecords)
+    .where(
+      and(
+        eq(controlRecords.organizationId, orgId),
+        inArray(controlRecords.controlId, [...LIKELY_NA_CONTROL_IDS])
+      )
+    );
 
   const cardClass =
     "rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm";
@@ -111,6 +127,11 @@ export default async function BoundaryDetailPage({
           boundaryId={id}
           cloudProvider={boundary.cloudProvider}
           azureEnvironment={boundary.azureEnvironment}
+        />
+
+        <LikelyNaQuestionnaire
+          boundaryId={id}
+          initialRecords={likelyNaRecords}
         />
 
         <section className={cardClass}>
