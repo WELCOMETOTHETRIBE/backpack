@@ -237,27 +237,28 @@ export default async function AssetDetailPage({
               )}
             </div>
           ) : (
-            {latestRunEvidenceFiles.length > 0 && (
-              <div className="mb-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-gray-50)] p-4">
-                <h3 className="text-sm font-semibold text-[var(--color-gray-800)]">
-                  Latest run evidence files (path, sha256)
-                </h3>
-                <ul className="mt-2 max-h-48 overflow-y-auto space-y-1 text-xs font-mono">
-                  {latestRunEvidenceFiles.map((f, i) => (
-                    <li key={i} className="flex flex-wrap gap-x-2 gap-y-0.5 break-all">
-                      <span className="text-[var(--color-gray-600)]">{f.path}</span>
-                      <span className="text-[var(--color-gray-500)]" title={f.sha256}>
-                        {f.sha256.slice(0, 16)}…
-                      </span>
-                      {f.sizeBytes > 0 && (
-                        <span className="text-[var(--color-gray-400)]">({f.sizeBytes} B)</span>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            <ul className="mt-4 space-y-6">
+            <>
+              {latestRunEvidenceFiles.length > 0 && (
+                <div className="mb-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-gray-50)] p-4">
+                  <h3 className="text-sm font-semibold text-[var(--color-gray-800)]">
+                    Latest run evidence files (path, sha256)
+                  </h3>
+                  <ul className="mt-2 max-h-48 overflow-y-auto space-y-1 text-xs font-mono">
+                    {latestRunEvidenceFiles.map((f, i) => (
+                      <li key={i} className="flex flex-wrap gap-x-2 gap-y-0.5 break-all">
+                        <span className="text-[var(--color-gray-600)]">{f.path}</span>
+                        <span className="text-[var(--color-gray-500)]" title={f.sha256}>
+                          {f.sha256.slice(0, 16)}…
+                        </span>
+                        {f.sizeBytes > 0 && (
+                          <span className="text-[var(--color-gray-400)]">({f.sizeBytes} B)</span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <ul className="mt-4 space-y-6">
               {controls.map((c) => {
                 const checks = checksByControlId[c.controlId] ?? [];
                 const status = statusByControl[c.controlId];
@@ -363,6 +364,7 @@ export default async function AssetDetailPage({
                 );
               })}
             </ul>
+            </>
           )}
         </section>
       </div>
