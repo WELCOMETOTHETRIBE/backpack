@@ -19,20 +19,20 @@ export function BoundaryDiagramModal() {
       </button>
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-2 sm:p-4"
           onClick={() => setOpen(false)}
           role="dialog"
           aria-modal="true"
           aria-labelledby="boundary-diagram-modal-title"
         >
           <div
-            className="flex max-h-[90vh] w-full max-w-4xl flex-col rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-xl"
+            className="flex h-[95vh] w-full max-w-[min(96vw,88rem)] flex-col rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex shrink-0 items-center justify-between border-b border-[var(--color-border)] px-6 py-4">
+            <div className="flex shrink-0 items-center justify-between border-b border-[var(--color-border)] px-4 py-3 sm:px-6 sm:py-4">
               <h2
                 id="boundary-diagram-modal-title"
-                className="text-xl font-semibold text-[var(--color-navy-primary)]"
+                className="text-lg font-semibold text-[var(--color-navy-primary)] sm:text-xl"
               >
                 CUI boundary diagram (Mermaid)
               </h2>
@@ -45,7 +45,7 @@ export function BoundaryDiagramModal() {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="min-h-0 overflow-y-auto p-6">
+            <div className="min-h-0 flex-1 overflow-y-auto overflow-x-auto p-4 sm:p-6">
               <BoundaryDiagramCreator />
             </div>
           </div>
