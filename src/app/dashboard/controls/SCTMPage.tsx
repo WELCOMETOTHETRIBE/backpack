@@ -38,7 +38,7 @@ export function SCTMPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const family = searchParams.get("family");
-  const type = (searchParams.get("type") as "all" | "configuration" | "governance") || "all";
+  const type = (searchParams.get("type") as "all" | "configuration" | "governance" | "partial") || "all";
   const controlId = searchParams.get("control");
 
   const [records, setRecords] = useState<SCTMRecord[]>([]);
@@ -90,17 +90,23 @@ export function SCTMPage() {
   const nistByControlId = useMemo(() => Object.fromEntries(nistList.map((n) => [n.controlId, n])), [nistList]);
 
   const filteredRecords = useMemo(() => {
-    if (!family) return [];
     let list = records;
-    const fam = CONTROL_FAMILIES.find((f) => f.code === family);
-    if (fam) list = list.filter((r) => getControlFamilyPrefix(r.controlId) === fam.controlPrefix);
+    if (!family && type !== "partial") return [];
+    if (family) {
+      const fam = CONTROL_FAMILIES.find((f) => f.code === family);
+      if (fam) list = list.filter((r) => getControlFamilyPrefix(r.controlId) === fam.controlPrefix);
+    }
     if (type !== "all") {
-      list = list.filter((r) => {
-        const spec = getSpecForControl(r.controlId);
-        if (!spec) return type === "configuration";
-        if (type === "governance") return spec.satisfactionType === "Governance-Centric";
-        return spec.satisfactionType === "Technical-Centric" || spec.satisfactionType === "Hybrid";
-      });
+      if (type === "partial") {
+        list = list.filter((r) => r.evidencePartial === true);
+      } else {
+        list = list.filter((r) => {
+          const spec = getSpecForControl(r.controlId);
+          if (!spec) return type === "configuration";
+          if (type === "governance") return spec.satisfactionType === "Governance-Centric";
+          return spec.satisfactionType === "Technical-Centric" || spec.satisfactionType === "Hybrid";
+        });
+      }
     }
     const byControlId = new Map<string, SCTMRecord>();
     for (const r of list) {
@@ -153,8 +159,13 @@ export function SCTMPage() {
     () => new Set(records.filter((r) => ADJUDICATED.includes(r.implementationStatus)).map((r) => r.controlId)),
     [records]
   );
+  const partialControlIds = useMemo(
+    () => new Set(records.filter((r) => r.evidencePartial === true).map((r) => r.controlId)),
+    [records]
+  );
   const adjudicatedCount = adjudicatedControlIds.size;
-  const outstandingCount = 110 - adjudicatedCount;
+  const partialCount = partialControlIds.size;
+  const outstandingCount = Math.max(0, 110 - adjudicatedCount - partialCount);
 
   function setFamily(code: string | null) {
     const u = new URLSearchParams(searchParams.toString());
@@ -163,7 +174,7 @@ export function SCTMPage() {
     u.delete("control");
     router.replace(`/dashboard/controls?${u.toString()}`, { scroll: false });
   }
-  function setType(t: "all" | "configuration" | "governance") {
+  function setType(t: "all" | "configuration" | "governance" | "partial") {
     const u = new URLSearchParams(searchParams.toString());
     u.set("type", t);
     u.delete("control");
@@ -225,12 +236,18 @@ export function SCTMPage() {
           <div className="flex flex-wrap items-center gap-3">
             <span className="text-xs text-[var(--color-gray-500)]">
               <strong className="text-[var(--color-gray-800)]">{adjudicatedCount}</strong> adjudicated
+              {partialCount > 0 && (
+                <>
+                  <span className="mx-1.5 text-[var(--color-gray-300)]">·</span>
+                  <strong className="text-amber-700">{partialCount}</strong> partial
+                </>
+              )}
               <span className="mx-1.5 text-[var(--color-gray-300)]">·</span>
               <strong className="text-[var(--color-gray-800)]">{outstandingCount}</strong> outstanding
             </span>
             <div className="h-3 w-px bg-[var(--color-border)]/60" aria-hidden />
             <div className="flex items-center gap-1">
-              {(["all", "configuration", "governance"] as const).map((t) => (
+              {(["all", "configuration", "governance", "partial"] as const).map((t) => (
                 <button
                   key={t}
                   type="button"
@@ -239,7 +256,7 @@ export function SCTMPage() {
                     type === t ? "bg-[var(--color-gray-900)] text-white" : "text-[var(--color-gray-600)] hover:bg-[var(--color-gray-100)]"
                   }`}
                 >
-                  {t === "all" ? "All" : t === "configuration" ? "Configuration" : "Governance"}
+                  {t === "all" ? "All" : t === "configuration" ? "Configuration" : t === "governance" ? "Governance" : "Partial"}
                 </button>
               ))}
             </div>
@@ -287,7 +304,7 @@ export function SCTMPage() {
             <h2 className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-gray-500)]">Controls</h2>
             <span className="text-[10px] text-[var(--color-gray-500)] tabular-nums">{family ? filteredRecords.length : "—"}</span>
           </div>
-          {!family ? (
+          {!family && type !== "partial" ? (
             <div className="flex-1 flex items-center justify-center px-3 py-6 text-center">
               <p className="text-xs text-[var(--color-gray-500)] leading-snug">Select a control family above to view controls.</p>
             </div>
@@ -315,9 +332,14 @@ export function SCTMPage() {
                         : "bg-white/50 border-white/40 hover:bg-white/70 backdrop-blur-sm"
                     }`}
                   >
-                    <div className="flex items-center gap-1.5 min-w-0">
+                    <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
                       <span className="font-mono text-xs font-semibold text-[var(--color-navy-primary)] shrink-0">{r.controlId}</span>
                       <StatusBadge status={r.implementationStatus} />
+                      {r.evidencePartial && (
+                        <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-800" title="Technical evidence passed; accompanying gov docs, logs, or records required.">
+                          Partial
+                        </span>
+                      )}
                     </div>
                     <p className="mt-0.5 font-medium text-[var(--color-gray-900)] leading-tight line-clamp-2 text-xs min-w-0">
                       {title}

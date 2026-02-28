@@ -12,6 +12,8 @@ export type SCTMRecord = {
   responsibleRoleId: string | null;
   roleName: string | null;
   artifactCount: number;
+  /** True when latest 73-check run has this control as partial (evidence passed, gov docs needed). */
+  evidencePartial?: boolean;
 };
 
 export function SCTMFilters({

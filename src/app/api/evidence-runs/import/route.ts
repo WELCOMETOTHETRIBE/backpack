@@ -193,14 +193,14 @@ async function handleReportImport(
     }
   }
 
-  // When 73 checks and all pass: set control_records to "implemented" for non-partial; leave partial as in_progress
+  // When 73 checks and all pass: set "implemented" for non-partial; set lastValidationDate for all (including partial)
   const allPass =
     report.checks.length === 73 && report.checks.every((c) => c.pass);
+  const collectedAt = new Date(body.collected_at);
   if (allPass) {
     const statusesToUpdate = ["not_started", "in_progress"] as const;
     for (const c of report.checks) {
       const partial = Boolean((c as { partial?: boolean }).partial);
-      if (partial) continue; // leave partial controls as-is (in_progress)
       const nistId = controlIdToNist(c.control);
       const [record] = await db
         .select({ id: controlRecords.id, implementationStatus: controlRecords.implementationStatus })
@@ -213,13 +213,21 @@ async function handleReportImport(
         )
         .limit(1);
       if (!record) continue;
+      if (partial) {
+        // Leave status as-is (in_progress); set lastValidationDate so ConMon and SCTM know this run applied
+        await db
+          .update(controlRecords)
+          .set({ lastValidationDate: collectedAt, updatedAt: new Date() })
+          .where(eq(controlRecords.id, record.id));
+        continue;
+      }
       if (!statusesToUpdate.includes(record.implementationStatus as (typeof statusesToUpdate)[number]))
         continue; // do not override assessed / inherited / not_applicable
       await db
         .update(controlRecords)
         .set({
           implementationStatus: "implemented",
-          lastValidationDate: new Date(body.collected_at),
+          lastValidationDate: collectedAt,
           updatedAt: new Date(),
         })
         .where(eq(controlRecords.id, record.id));

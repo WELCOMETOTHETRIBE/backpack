@@ -11,6 +11,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import sys
 import tempfile
 import zipfile
@@ -485,7 +486,17 @@ def run_crypto_checks(artifact_dir: Path, files_used: set[str]) -> list[dict[str
     files_used.add("crypto/schannel-protocols.txt")
     schannel_content = _read_text(schannel)
     tls_ok = "TLS 1.2" in schannel_content or "TLS 1.3" in schannel_content
-    weak = "SSL 2.0" in schannel_content or "SSL 3.0" in schannel_content or "TLS 1.0" in schannel_content
+    # Weak = a weak protocol (SSL 2.0, SSL 3.0, TLS 1.0) has Enabled : 1 in its section (not just mentioned in path)
+    weak_enabled = False
+    for proto in ["SSL 2.0", "SSL 3.0", "TLS 1.0"]:
+        idx = schannel_content.find(proto)
+        if idx == -1:
+            continue
+        chunk = schannel_content[idx : idx + 500]
+        if re.search(r"Enabled\s*:\s*1\b", chunk):
+            weak_enabled = True
+            break
+    weak = weak_enabled
     checks.append(_make_check(
         "AC.L2-3.1.13",
         tls_ok and not weak,
@@ -783,11 +794,25 @@ def main() -> int:
         # Build exactly 73 checks from manifest + content results
         checks = _build_73_checks(artifact_path, manifest_controls, content_checks, files_used)
         inputs = _build_inputs_manifest(artifact_path, files_used)
+        passed = sum(1 for c in checks if c.get("pass"))
+        partial_count = sum(1 for c in checks if c.get("partial"))
+        failed = len(checks) - passed
         report = {
             "validator": {
                 "name": VALIDATOR_NAME,
                 "version": VERSION,
                 "sha256": _validator_sha256(),
+            },
+            "manifest_metadata": {
+                "path": str(args.manifest),
+                "control_count": len(manifest_controls),
+                "schema": "os-evidence-nist-manifest.v1",
+            },
+            "summary": {
+                "total_controls": len(checks),
+                "passed": passed,
+                "partial": partial_count,
+                "failed": failed,
             },
             "inputs": inputs,
             "checks": checks,
@@ -798,9 +823,6 @@ def main() -> int:
         txt_path = out_dir / "validation-report-windows-hardening.txt"
         with open(json_path, "w", encoding="utf-8") as f:
             json.dump(report, f, indent=2)
-        passed = sum(1 for c in checks if c.get("pass"))
-        partial_count = sum(1 for c in checks if c.get("partial"))
-        failed = len(checks) - passed
         lines = [
             "Windows Server Hardening Validation Report (73/73 controls)",
             "Validator: " + VALIDATOR_NAME + " " + VERSION,

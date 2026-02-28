@@ -4,10 +4,14 @@ import Link from "next/link";
 import { FileText, Calculator } from "lucide-react";
 import { db } from "@/db";
 import { getSprsScore, sprsScoringData } from "@/lib/sprs";
-import { controlImplementations } from "@/db/schema";
+import { controlRecords } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 
 const cardClass = "rounded-xl border border-slate-200 bg-white p-6 shadow-sm";
+
+const TOTAL_CONTROLS = ALL_CONTROL_IDS.length;
+const ADJUDICATED_STATUSES = ["implemented", "assessed", "inherited", "not_applicable"] as const;
 
 const sprs5 = sprsScoringData.filter((c) => c.value === 5).length;
 const sprs3 = sprsScoringData.filter((c) => c.value === 3).length;
@@ -21,13 +25,15 @@ export default async function ReadinessPage() {
 
   const sprsScore = await getSprsScore(orgId);
 
-  const impls = await db
-    .select({ status: controlImplementations.status })
-    .from(controlImplementations)
-    .where(eq(controlImplementations.organizationId, orgId));
+  const records = await db
+    .select({ implementationStatus: controlRecords.implementationStatus })
+    .from(controlRecords)
+    .where(eq(controlRecords.organizationId, orgId));
 
-  const total = impls.length;
-  const implemented = impls.filter((i) => i.status === "Implemented").length;
+  const implemented = records.filter((r) =>
+    ADJUDICATED_STATUSES.includes(r.implementationStatus as (typeof ADJUDICATED_STATUSES)[number])
+  ).length;
+  const total = records.length || TOTAL_CONTROLS;
   const compliancePct = total > 0 ? Math.round((implemented / total) * 100) : 0;
 
   const sprsPct = Math.round((sprsScore / 110) * 100);
@@ -51,7 +57,7 @@ export default async function ReadinessPage() {
           <div className="h-3 w-full overflow-hidden rounded-full bg-gray-100">
             <div
               className="h-full rounded-full bg-[#3B82F6] transition-all duration-500"
-              style={{ width: `${sprsPct}%` }}
+              style={{ width: `${Math.max(0, Math.min(100, sprsPct))}%` }}
             />
           </div>
           <div className="mt-2 flex justify-between text-sm">
