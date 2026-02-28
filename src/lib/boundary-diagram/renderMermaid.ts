@@ -100,8 +100,11 @@ export function renderMermaid(spec: DiagramSpec): string {
     const from = safeId(e.from);
     const to = safeId(e.to);
     if (!nodesById.has(e.from) || !nodesById.has(e.to)) continue;
+    const displayLabel = e.data_type
+      ? `${e.data_type}: ${e.label}`
+      : e.label;
     const enc = e.encrypted ? "|TLS|" : "";
-    const label = escapeLabel(e.label);
+    const label = escapeLabel(displayLabel);
     const edgeStr = enc ? `${from} -->|"${label} ${enc}"| ${to}` : `${from} -->|"${label}"| ${to}`;
     lines.push("    " + edgeStr);
   }

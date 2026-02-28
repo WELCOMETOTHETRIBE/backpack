@@ -91,6 +91,59 @@ describe("generateDiagramSpec", () => {
       expect(entra!.label).toMatch(/IA|AC/);
       expect(windows!.label).toMatch(/CM|SI|AU|AC/);
     });
+
+    it("when assumption_confirmations missing, spec.creditable is false and not_creditable_reasons populated", () => {
+      const spec = generateDiagramSpec({
+        boundary: azureGovBoundaryFull,
+        environment: "government",
+        mode: "assessor",
+      });
+      expect(spec.creditable).toBe(false);
+      expect(spec.not_creditable_reasons).toBeDefined();
+      expect(spec.not_creditable_reasons!.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it("when assumption_confirmations all yes, spec.creditable is true", () => {
+      const boundaryWithConfirmations = {
+        ...azureGovBoundaryFull,
+        assumption_confirmations: {
+          assume_admin_path_bastion: "yes",
+          assume_no_public_rdp: "yes",
+          assume_logs_forwarded_to_monitor: "yes",
+        } as Record<string, "yes" | "no">,
+      };
+      const spec = generateDiagramSpec({
+        boundary: boundaryWithConfirmations,
+        environment: "government",
+        mode: "assessor",
+      });
+      expect(spec.creditable).toBe(true);
+      expect(spec.not_creditable_reasons).toBeUndefined();
+    });
+
+    it("external connections have data_type and at least one is Mgmt", () => {
+      const spec = generateDiagramSpec({
+        boundary: azureGovBoundaryFull,
+        environment: "government",
+        mode: "assessor",
+      });
+      expect(spec.external_connections.length).toBeGreaterThan(0);
+      const withMgmt = spec.external_connections.filter(
+        (r) => r.data_type === "Mgmt"
+      );
+      expect(withMgmt.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it("by default no external connection has cui_crosses_boundary true", () => {
+      const spec = generateDiagramSpec({
+        boundary: azureGovBoundaryFull,
+        environment: "government",
+        mode: "assessor",
+      });
+      for (const row of spec.external_connections) {
+        expect(row.cui_crosses_boundary).toBe(false);
+      }
+    });
   });
 
   describe("executive mode", () => {

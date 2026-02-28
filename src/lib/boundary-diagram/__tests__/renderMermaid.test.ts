@@ -74,4 +74,14 @@ describe("renderMermaid", () => {
       expect(out).toContain("stroke-width");
     }
   });
+
+  it("assessor mode edge labels include data type prefix (e.g. Mgmt:)", () => {
+    const spec = generateDiagramSpec({
+      boundary: azureGovBoundaryFull,
+      environment: "government",
+      mode: "assessor",
+    });
+    const out = renderMermaid(spec);
+    expect(out).toContain("Mgmt:");
+  });
 });

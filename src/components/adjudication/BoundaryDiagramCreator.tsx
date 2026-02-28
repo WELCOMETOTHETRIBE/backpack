@@ -333,6 +333,14 @@ export function BoundaryDiagramCreator() {
               </p>
             </div>
           )}
+          {diagramMode === "assessor" && spec && spec.creditable === false && (
+            <div className="mb-3 flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-100/90 px-3 py-2 text-xs font-medium text-amber-900">
+              <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+              <p>
+                Assessor diagram not creditable until required assumptions are confirmed.
+              </p>
+            </div>
+          )}
           {diagramLoading ? (
             <div className="min-h-[280px] flex items-center justify-center rounded-xl border border-slate-200 bg-slate-50/50">
               <p className="text-sm text-slate-600">Loading diagram…</p>
@@ -355,22 +363,68 @@ export function BoundaryDiagramCreator() {
               className="min-h-[280px] rounded-xl border border-slate-200 bg-gradient-to-b from-slate-50/80 to-white p-5 [&_.mermaid]:flex [&_.mermaid]:justify-center [&_.mermaid_svg]:max-w-full"
             />
           )}
+          {diagramMode === "assessor" && spec && spec.scope_strip && (
+            <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50/50 p-4">
+              <h3 className="mb-3 text-sm font-semibold text-slate-800">
+                Scope
+              </h3>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <p className="mb-1.5 text-xs font-medium text-slate-600">
+                    In Scope
+                  </p>
+                  <ul className="list-inside list-disc space-y-0.5 text-xs text-slate-700">
+                    {spec.scope_strip.in_scope.map((item, i) => (
+                      <li key={i}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <p className="mb-1.5 text-xs font-medium text-slate-600">
+                    Out of Scope
+                  </p>
+                  <ul className="list-inside list-disc space-y-0.5 text-xs text-slate-700">
+                    {spec.scope_strip.out_of_scope.map((item, i) => (
+                      <li key={i}>{item}</li>
+                    ))}
+                  </ul>
+                  {spec.scope_strip.explicit_exclusions &&
+                    spec.scope_strip.explicit_exclusions.length > 0 && (
+                      <div className="mt-2 rounded border border-amber-200 bg-amber-50/80 px-2 py-1.5">
+                        <p className="text-xs font-semibold text-amber-900">
+                          Explicit exclusions
+                        </p>
+                        <ul className="mt-0.5 list-inside list-disc text-xs text-amber-800">
+                          {spec.scope_strip.explicit_exclusions.map(
+                            (item, i) => (
+                              <li key={i}>{item}</li>
+                            )
+                          )}
+                        </ul>
+                      </div>
+                    )}
+                </div>
+              </div>
+            </div>
+          )}
           {diagramMode === "assessor" && spec && spec.external_connections.length > 0 && (
             <div className="mt-4">
               <h3 className="mb-2 text-sm font-semibold text-slate-800">
                 External connections
               </h3>
               <div className="overflow-x-auto rounded-lg border border-slate-200">
-                <table className="w-full min-w-[640px] text-left text-xs">
+                <table className="w-full min-w-[720px] text-left text-xs">
                   <thead>
                     <tr className="border-b border-slate-200 bg-slate-50">
                       <th className="px-3 py-2 font-medium text-slate-700">Source</th>
                       <th className="px-3 py-2 font-medium text-slate-700">Destination</th>
                       <th className="px-3 py-2 font-medium text-slate-700">Purpose</th>
+                      <th className="px-3 py-2 font-medium text-slate-700">Data Type</th>
                       <th className="px-3 py-2 font-medium text-slate-700">Protocol / Ports</th>
                       <th className="px-3 py-2 font-medium text-slate-700">Encryption</th>
                       <th className="px-3 py-2 font-medium text-slate-700">Auth</th>
                       <th className="px-3 py-2 font-medium text-slate-700">Approval</th>
+                      <th className="px-3 py-2 font-medium text-slate-700">CUI leaves boundary?</th>
                       <th className="px-3 py-2 font-medium text-slate-700">Controls hint</th>
                     </tr>
                   </thead>
@@ -380,11 +434,21 @@ export function BoundaryDiagramCreator() {
                         <td className="px-3 py-2 text-slate-600">{row.source_zone}</td>
                         <td className="px-3 py-2 text-slate-600">{row.dest_zone}</td>
                         <td className="px-3 py-2 text-slate-700">{row.purpose}</td>
+                        <td className="px-3 py-2 text-slate-600">
+                          {row.data_type ?? "—"}
+                        </td>
                         <td className="px-3 py-2 text-slate-600">{row.protocol_ports}</td>
                         <td className="px-3 py-2 text-slate-600">{row.encryption}</td>
                         <td className="px-3 py-2 text-slate-600">{row.auth}</td>
                         <td className="px-3 py-2 text-slate-600">
                           {row.approval_required ? "Yes" : "No"}
+                        </td>
+                        <td className="px-3 py-2">
+                          {row.cui_crosses_boundary ? (
+                            <span className="font-medium text-amber-700">YES</span>
+                          ) : (
+                            <span className="text-slate-600">NO</span>
+                          )}
                         </td>
                         <td className="px-3 py-2 text-slate-600">
                           {row.controls_hint.join(", ")}
@@ -396,7 +460,36 @@ export function BoundaryDiagramCreator() {
               </div>
             </div>
           )}
-          {diagramMode === "assessor" && spec && spec.assumptions.length > 0 && (
+          {diagramMode === "assessor" && spec && spec.assumption_checks && spec.assumption_checks.length > 0 && (
+            <div className="mt-4">
+              <h3 className="mb-2 text-sm font-semibold text-slate-800">
+                Assumptions
+              </h3>
+              <p className="mb-2 text-xs text-slate-500">
+                Confirm assumptions on /boundary by updating boundaryInput.assumption_confirmations.
+              </p>
+              <div className="space-y-2">
+                {spec.assumption_checks.map((check) => (
+                  <div
+                    key={check.id}
+                    className="flex items-start justify-between gap-2 rounded border border-slate-200 bg-white px-3 py-2 text-xs"
+                  >
+                    <span className="text-slate-700">{check.statement}</span>
+                    <span
+                      className={
+                        check.confirmed
+                          ? "shrink-0 font-medium text-emerald-600"
+                          : "shrink-0 font-medium text-slate-500"
+                      }
+                    >
+                      {check.confirmed ? "Confirmed Yes" : "No"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {diagramMode === "assessor" && spec && !spec.assumption_checks?.length && spec.assumptions.length > 0 && (
             <div className="mt-4">
               <h3 className="mb-2 text-sm font-semibold text-slate-800">
                 Assumptions

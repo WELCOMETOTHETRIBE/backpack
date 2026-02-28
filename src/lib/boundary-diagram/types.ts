@@ -51,6 +51,14 @@ export interface DiagramEdge {
   notes?: string[];
 }
 
+export type DataTypeLabel =
+  | "CUI"
+  | "Auth"
+  | "Logs"
+  | "Keys"
+  | "Backups"
+  | "Mgmt";
+
 export interface ExternalConnectionRow {
   connection_id: string;
   source_zone: TrustZone;
@@ -61,6 +69,21 @@ export interface ExternalConnectionRow {
   auth: string;
   approval_required: boolean;
   controls_hint: string[];
+  data_type?: DataTypeLabel;
+  cui_crosses_boundary: boolean;
+}
+
+export interface ScopeStrip {
+  in_scope: string[];
+  out_of_scope: string[];
+  explicit_exclusions?: string[];
+}
+
+export interface AssumptionCheck {
+  id: string;
+  statement: string;
+  required: boolean;
+  confirmed: boolean;
 }
 
 export interface DiagramSpec {
@@ -69,6 +92,10 @@ export interface DiagramSpec {
   boundary_label: string;
   /** Assessor mode: Azure platform subgraph label (FedRAMP / Commercial). */
   azure_platform_label?: string;
+  scope_strip?: ScopeStrip;
+  assumption_checks?: AssumptionCheck[];
+  creditable?: boolean;
+  not_creditable_reasons?: string[];
   nodes: DiagramNode[];
   edges: DiagramEdge[];
   external_connections: ExternalConnectionRow[];

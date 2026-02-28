@@ -10,6 +10,8 @@ import type {
   DiagramNode,
   DiagramEdge,
   ExternalConnectionRow,
+  ScopeStrip,
+  AssumptionCheck,
   TrustZone,
   Responsibility,
 } from "./types";
@@ -313,6 +315,8 @@ function buildAssessorSpec(
     auth: "Entra ID + MFA",
     approval_required: false,
     controls_hint: ["AC.L2-3.1.12", "SC.L2-3.13.5"],
+    data_type: "Mgmt",
+    cui_crosses_boundary: false,
   });
 
   // Azure Control Plane -> VNet (Mgmt provisioning)
@@ -344,6 +348,8 @@ function buildAssessorSpec(
       auth: "MFA",
       approval_required: false,
       controls_hint: ["IA.L2-3.5.1", "IA.L2-3.5.2", "AC.L2-3.1.12"],
+      data_type: "Auth",
+      cui_crosses_boundary: false,
     });
   }
 
@@ -366,6 +372,8 @@ function buildAssessorSpec(
     auth: "Entra ID + MFA",
     approval_required: false,
     controls_hint: ["AC.L2-3.1.12", "SC.L2-3.13.5"],
+    data_type: "Mgmt",
+    cui_crosses_boundary: false,
   });
 
   // Bastion -> Windows Server
@@ -415,6 +423,8 @@ function buildAssessorSpec(
       auth: "Managed identity / Service principal",
       approval_required: false,
       controls_hint: ["AU.L2-3.3.1", "AU.L2-3.3.2", "SC.L2-3.13.5"],
+      data_type: "Logs",
+      cui_crosses_boundary: false,
     });
   }
 
@@ -437,6 +447,8 @@ function buildAssessorSpec(
       auth: "Managed identity",
       approval_required: false,
       controls_hint: ["IR.L2-3.7.1", "SC.L2-3.13.5"],
+      data_type: "Logs",
+      cui_crosses_boundary: false,
     });
   }
 
@@ -459,6 +471,8 @@ function buildAssessorSpec(
       auth: "Managed identity",
       approval_required: false,
       controls_hint: ["CP.L2-3.8.1", "SC.L2-3.13.5"],
+      data_type: "Backups",
+      cui_crosses_boundary: false,
     });
   }
 
@@ -482,12 +496,90 @@ function buildAssessorSpec(
       auth: "Managed identity",
       approval_required: false,
       controls_hint: ["SC.L2-3.13.16", "SC.L2-3.13.5"],
+      data_type: "Keys",
+      cui_crosses_boundary: false,
     });
   }
 
   const azure_platform_label = isGov
     ? "Azure Government (FedRAMP High Authorized Boundary — Inherited Controls)"
     : "Azure Commercial (Assurance must be explicitly selected — Inherited Platform Controls)";
+
+  const in_scope: string[] = [
+    "Azure IaaS Windows Server VM(s) within Customer CUI Enclave",
+    "CUI Data Store (OS/Data Disks)",
+    "Boundary logging/monitoring agents and configuration",
+    "Customer-managed guest OS hardening and patching",
+  ];
+  if (boundary.boundary_inclusions?.length) {
+    for (const item of boundary.boundary_inclusions) {
+      in_scope.push("Explicit inclusion: " + item);
+    }
+  }
+  const out_of_scope: string[] = [
+    "User endpoints not inside enclave (admin workstation/laptops)",
+    "Azure platform/hypervisor (inherited FedRAMP boundary)",
+    "Public Internet",
+    "Any corporate SaaS not explicitly declared in boundary",
+  ];
+  let explicit_exclusions: string[] | undefined;
+  if (boundary.boundary_exclusions?.length) {
+    explicit_exclusions = boundary.boundary_exclusions;
+    for (const item of boundary.boundary_exclusions) {
+      out_of_scope.push("Explicit exclusion: " + item);
+    }
+  }
+  const scope_strip: ScopeStrip = {
+    in_scope,
+    out_of_scope,
+    explicit_exclusions,
+  };
+
+  const assumption_checks: AssumptionCheck[] = [
+    {
+      id: "assume_admin_path_bastion",
+      statement:
+        "Assumed administrative access uses Azure Bastion; adjust if VPN/ExpressRoute is used.",
+      required: true,
+      confirmed:
+        boundary.assumption_confirmations?.assume_admin_path_bastion === "yes",
+    },
+    {
+      id: "assume_no_public_rdp",
+      statement:
+        "No public RDP to CUI enclave; administrative access via Bastion or VPN only.",
+      required: true,
+      confirmed:
+        boundary.assumption_confirmations?.assume_no_public_rdp === "yes",
+    },
+  ];
+  if (hasMonitor) {
+    assumption_checks.push({
+      id: "assume_logs_forwarded_to_monitor",
+      statement:
+        "Logs from enclave are forwarded to Azure Monitor / Log Analytics.",
+      required: true,
+      confirmed:
+        boundary.assumption_confirmations?.assume_logs_forwarded_to_monitor ===
+        "yes",
+    });
+  }
+  let creditable = assumption_checks
+    .filter((c) => c.required)
+    .every((c) => c.confirmed);
+  let not_creditable_reasons: string[] | undefined = creditable
+    ? undefined
+    : assumption_checks
+        .filter((c) => c.required && !c.confirmed)
+        .map((c) => c.statement);
+  const anyCuiCrosses = externalConnections.some((r) => r.cui_crosses_boundary);
+  if (anyCuiCrosses) {
+    creditable = false;
+    not_creditable_reasons = [
+      ...(not_creditable_reasons ?? []),
+      "CUI leaves enclave boundary: review SC/AC controls and approvals.",
+    ];
+  }
 
   if (overlay) {
     for (const node of nodes) {
@@ -503,6 +595,10 @@ function buildAssessorSpec(
     title,
     boundary_label: "CUI Processing Environment (In Scope)",
     azure_platform_label,
+    scope_strip,
+    assumption_checks,
+    creditable,
+    not_creditable_reasons,
     nodes,
     edges,
     external_connections: externalConnections,

@@ -90,5 +90,8 @@ export function validateBoundaryInput(
     os: boundary.os,
     services_enabled: boundary.services_enabled ?? {},
     gate_answers: boundary.gate_answers ?? {},
+    boundary_exclusions: boundary.boundary_exclusions ?? undefined,
+    boundary_inclusions: boundary.boundary_inclusions ?? undefined,
+    assumption_confirmations: boundary.assumption_confirmations ?? undefined,
   };
 }

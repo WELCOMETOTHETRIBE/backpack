@@ -149,6 +149,12 @@ export interface BoundaryInput {
   os?: string;
   services_enabled: Record<string, boolean>;
   gate_answers: Record<string, GateAnswer>;
+  /** Optional explicit exclusions from scope (e.g. "Corporate SSO"). */
+  boundary_exclusions?: string[];
+  /** Optional explicit inclusions in scope. */
+  boundary_inclusions?: string[];
+  /** Confirmations for diagram assumption checks (e.g. assume_admin_path_bastion: "yes"). */
+  assumption_confirmations?: Record<string, "yes" | "no">;
 }
 
 /** Ontology JSON shape (layers_ontology.v1.json). */
