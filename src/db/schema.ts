@@ -200,6 +200,26 @@ export const artifacts = pgTable("artifacts", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+/** Non-upload governance artifact completion (REFERENCE, ATTESTATION, SYSTEM_POINTER). UPLOAD is stored in artifacts. */
+export const governanceArtifactCompletions = pgTable(
+  "governance_artifact_completions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id").references(() => organizations.id, { onDelete: "cascade" }).notNull(),
+    controlRecordId: uuid("control_record_id").references(() => controlRecords.id, { onDelete: "cascade" }).notNull(),
+    artifactLabel: varchar("artifact_label", { length: 255 }).notNull(),
+    artifactType: varchar("artifact_type", { length: 32 }).notNull(), // REFERENCE | ATTESTATION | SYSTEM_POINTER
+    valueText: text("value_text"),
+    attestedBy: uuid("attested_by").references(() => users.id),
+    attestedAt: timestamp("attested_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    uniqueIndex("governance_artifact_completions_record_label").on(t.controlRecordId, t.artifactLabel),
+  ]
+);
+
 export const technicalEvidence = pgTable("technical_evidence", {
   id: uuid("id").primaryKey().defaultRandom(),
   organizationId: uuid("organization_id").references(() => organizations.id).notNull(),
@@ -1115,6 +1135,7 @@ export const controlRecordsRelations = relations(controlRecords, ({ one, many })
   responsibleRole: one(roles),
   assessor: one(users),
   artifacts: many(artifacts),
+  governanceArtifactCompletions: many(governanceArtifactCompletions),
   technicalEvidence: many(technicalEvidence),
   poamEntries: many(poamEntries),
   history: many(controlRecordHistory),
@@ -1178,6 +1199,12 @@ export const artifactsRelations = relations(artifacts, ({ one }) => ({
   organization: one(organizations),
   controlRecord: one(controlRecords),
   uploadedByUser: one(users),
+}));
+
+export const governanceArtifactCompletionsRelations = relations(governanceArtifactCompletions, ({ one }) => ({
+  organization: one(organizations),
+  controlRecord: one(controlRecords),
+  attestedByUser: one(users, { fields: [governanceArtifactCompletions.attestedBy], references: [users.id] }),
 }));
 
 export const technicalEvidenceRelations = relations(technicalEvidence, ({ one }) => ({

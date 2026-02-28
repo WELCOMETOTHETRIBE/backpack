@@ -4,11 +4,7 @@ import { controlRecords, artifacts, roles, evidenceRuns, evidenceFindings } from
 import { eq, and, like, desc } from "drizzle-orm";
 import { requireOrg, requireRole } from "@/lib/auth";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
-
-/** Normalize report control_id (e.g. AC.L2-3.1.1) to NIST form (3.1.1). */
-function controlIdToNist(controlId: string): string {
-  return controlId.replace(/^[A-Z]+\.L2-/, "") || controlId;
-}
+import { controlIdToNist } from "@/lib/compliance/controlId";
 
 const CONTROL_FAMILY_PREFIX: Record<string, string> = {
   AC: "3.1",

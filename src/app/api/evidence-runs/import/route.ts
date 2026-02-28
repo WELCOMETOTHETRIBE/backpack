@@ -24,12 +24,7 @@ import {
   type ValidatorReport,
 } from "@/lib/evidence/validator-report";
 import { computeAndPersistSprsScore } from "@/lib/sprs";
-
-/** Normalize report control_id (e.g. AC.L2-3.1.1) to NIST form (3.1.1) for control_records lookup. */
-function controlIdToNist(controlId: string): string {
-  const stripped = controlId.replace(/^[A-Z]+\.L2-/, "");
-  return stripped || controlId;
-}
+import { controlIdToNist } from "@/lib/compliance/controlId";
 
 const EVIDENCE_SOURCES = ["azure_entra", "windows_server_hardening"] as const;
 type EvidenceSource = (typeof EVIDENCE_SOURCES)[number];

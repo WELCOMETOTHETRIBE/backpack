@@ -3,13 +3,21 @@
  * Source: docs/cmmc_unified_artifact_guide.md. Do not hardcode artifact names elsewhere.
  */
 
+import { PARTIAL_DOCS_TO_CLOSE } from "./compliance/partialDocsToClose";
+
 export type SatisfactionType = "Governance-Centric" | "Hybrid" | "Technical-Centric";
 
-export type ArtifactHandling = "UPLOAD" | "REFERENCE" | "NATIVE" | "N/A";
+export type ArtifactHandling = "UPLOAD" | "REFERENCE" | "NATIVE" | "N/A" | "ATTESTATION" | "SYSTEM_POINTER";
 
 export interface ArtifactSpec {
   label: string;
   handling: ArtifactHandling;
+}
+
+/** Required artifact for governance completion (label + type). Used for completion checks and UI. */
+export interface RequiredArtifactSpec {
+  label: string;
+  type: ArtifactHandling;
 }
 
 export interface ControlArtifactSpec {
@@ -129,7 +137,7 @@ export const CMMC_ARTIFACT_SPECS: ControlArtifactSpec[] = [
   { controlId: "3.4.2", satisfactionType: "Governance-Centric", artifacts: [
     { label: "Procedures for Configuration Change Control", handling: "UPLOAD" }, { label: "Records of configuration change control activities", handling: "REFERENCE" },
   ]},
-  { controlId: "3.4.3", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
+  { controlId: "3.4.3", satisfactionType: "Hybrid", artifacts: (PARTIAL_DOCS_TO_CLOSE["3.4.3"] ?? []).map((a) => ({ label: a.label, handling: a.type as ArtifactHandling })) },
   { controlId: "3.4.4", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
   { controlId: "3.4.5", satisfactionType: "Governance-Centric", artifacts: [
     { label: "Procedures for Access Restrictions for Changes", handling: "UPLOAD" }, { label: "Access authorization records for change control", handling: "REFERENCE" },
@@ -145,8 +153,8 @@ export const CMMC_ARTIFACT_SPECS: ControlArtifactSpec[] = [
     { label: "Identification and Authentication Policy", handling: "UPLOAD" }, { label: "Procedures for User Identification and Authentication", handling: "UPLOAD" },
   ]},
   { controlId: "3.5.2", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
-  { controlId: "3.5.3", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
-  { controlId: "3.5.4", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
+  { controlId: "3.5.3", satisfactionType: "Hybrid", artifacts: (PARTIAL_DOCS_TO_CLOSE["3.5.3"] ?? []).map((a) => ({ label: a.label, handling: a.type as ArtifactHandling })) },
+  { controlId: "3.5.4", satisfactionType: "Hybrid", artifacts: (PARTIAL_DOCS_TO_CLOSE["3.5.4"] ?? []).map((a) => ({ label: a.label, handling: a.type as ArtifactHandling })) },
   { controlId: "3.5.5", satisfactionType: "Governance-Centric", artifacts: [
     { label: "Procedures for Identifier Management", handling: "UPLOAD" }, { label: "Definition of the period for which identifiers cannot be reused", handling: "UPLOAD" },
   ]},
@@ -155,9 +163,9 @@ export const CMMC_ARTIFACT_SPECS: ControlArtifactSpec[] = [
     { label: "Procedures for Authenticator Management", handling: "UPLOAD" }, { label: "Definition of authenticator strength requirements", handling: "UPLOAD" },
   ]},
   { controlId: "3.5.8", satisfactionType: "Governance-Centric", artifacts: [{ label: "Definition of password complexity, change frequency, and reuse rules", handling: "UPLOAD" }] },
-  { controlId: "3.5.9", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
+  { controlId: "3.5.9", satisfactionType: "Hybrid", artifacts: (PARTIAL_DOCS_TO_CLOSE["3.5.9"] ?? []).map((a) => ({ label: a.label, handling: a.type as ArtifactHandling })) },
   { controlId: "3.5.10", satisfactionType: "Governance-Centric", artifacts: [{ label: "Procedures for establishing, changing, and revoking authenticators", handling: "UPLOAD" }] },
-  { controlId: "3.5.11", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
+  { controlId: "3.5.11", satisfactionType: "Hybrid", artifacts: (PARTIAL_DOCS_TO_CLOSE["3.5.11"] ?? []).map((a) => ({ label: a.label, handling: a.type as ArtifactHandling })) },
   // IR
   { controlId: "3.6.1", satisfactionType: "Governance-Centric", artifacts: [
     { label: "Incident Response Policy", handling: "UPLOAD" }, { label: "Incident Response Plan", handling: "REFERENCE" }, { label: "Procedures for Incident Handling", handling: "REFERENCE" },
@@ -255,23 +263,23 @@ export const CMMC_ARTIFACT_SPECS: ControlArtifactSpec[] = [
   { controlId: "3.13.2", satisfactionType: "Governance-Centric", artifacts: [
     { label: "Procedures for Security Engineering Principles", handling: "UPLOAD" }, { label: "Security architecture documentation", handling: "REFERENCE" },
   ]},
-  { controlId: "3.13.3", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
-  { controlId: "3.13.4", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
-  { controlId: "3.13.5", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
+  { controlId: "3.13.3", satisfactionType: "Hybrid", artifacts: (PARTIAL_DOCS_TO_CLOSE["3.13.3"] ?? []).map((a) => ({ label: a.label, handling: a.type as ArtifactHandling })) },
+  { controlId: "3.13.4", satisfactionType: "Hybrid", artifacts: (PARTIAL_DOCS_TO_CLOSE["3.13.4"] ?? []).map((a) => ({ label: a.label, handling: a.type as ArtifactHandling })) },
+  { controlId: "3.13.5", satisfactionType: "Hybrid", artifacts: (PARTIAL_DOCS_TO_CLOSE["3.13.5"] ?? []).map((a) => ({ label: a.label, handling: a.type as ArtifactHandling })) },
   { controlId: "3.13.6", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
   { controlId: "3.13.7", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
   { controlId: "3.13.8", satisfactionType: "Hybrid", artifacts: [
     { label: "Procedures for Transmission Confidentiality", handling: "UPLOAD" }, { label: "List of alternative physical safeguards", handling: "UPLOAD" },
   ]},
-  { controlId: "3.13.9", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
+  { controlId: "3.13.9", satisfactionType: "Hybrid", artifacts: (PARTIAL_DOCS_TO_CLOSE["3.13.9"] ?? []).map((a) => ({ label: a.label, handling: a.type as ArtifactHandling })) },
   { controlId: "3.13.10", satisfactionType: "Governance-Centric", artifacts: [
     { label: "Procedures for Cryptographic Key Management", handling: "UPLOAD" }, { label: "Cryptographic key management plan", handling: "REFERENCE" },
   ]},
   { controlId: "3.13.11", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
-  { controlId: "3.13.12", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
-  { controlId: "3.13.13", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
+  { controlId: "3.13.12", satisfactionType: "Hybrid", artifacts: (PARTIAL_DOCS_TO_CLOSE["3.13.12"] ?? []).map((a) => ({ label: a.label, handling: a.type as ArtifactHandling })) },
+  { controlId: "3.13.13", satisfactionType: "Hybrid", artifacts: (PARTIAL_DOCS_TO_CLOSE["3.13.13"] ?? []).map((a) => ({ label: a.label, handling: a.type as ArtifactHandling })) },
   { controlId: "3.13.14", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
-  { controlId: "3.13.15", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
+  { controlId: "3.13.15", satisfactionType: "Hybrid", artifacts: (PARTIAL_DOCS_TO_CLOSE["3.13.15"] ?? []).map((a) => ({ label: a.label, handling: a.type as ArtifactHandling })) },
   { controlId: "3.13.16", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
   // SI
   { controlId: "3.14.1", satisfactionType: "Governance-Centric", artifacts: [
@@ -280,13 +288,13 @@ export const CMMC_ARTIFACT_SPECS: ControlArtifactSpec[] = [
   { controlId: "3.14.2", satisfactionType: "Governance-Centric", artifacts: [
     { label: "Procedures for Malicious Code Protection", handling: "UPLOAD" }, { label: "Records of malicious code protection activities", handling: "REFERENCE" },
   ]},
-  { controlId: "3.14.3", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
+  { controlId: "3.14.3", satisfactionType: "Hybrid", artifacts: (PARTIAL_DOCS_TO_CLOSE["3.14.3"] ?? []).map((a) => ({ label: a.label, handling: a.type as ArtifactHandling })) },
   { controlId: "3.14.4", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
   { controlId: "3.14.5", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
   { controlId: "3.14.6", satisfactionType: "Hybrid", artifacts: [
     { label: "Procedures for System Monitoring", handling: "UPLOAD" }, { label: "System monitoring records", handling: "REFERENCE" }, { label: "Records of actions taken in response to monitoring", handling: "REFERENCE" },
   ]},
-  { controlId: "3.14.7", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
+  { controlId: "3.14.7", satisfactionType: "Hybrid", artifacts: (PARTIAL_DOCS_TO_CLOSE["3.14.7"] ?? []).map((a) => ({ label: a.label, handling: a.type as ArtifactHandling })) },
 ];
 
 const specByControlId = new Map<string, ControlArtifactSpec>(
@@ -295,6 +303,15 @@ const specByControlId = new Map<string, ControlArtifactSpec>(
 
 export function getSpecForControl(controlId: string): ControlArtifactSpec | undefined {
   return specByControlId.get(controlId);
+}
+
+/** All required artifacts for a control (excludes N/A). Used for governance completion and UI. */
+export function getRequiredArtifactSpecs(controlId: string): RequiredArtifactSpec[] {
+  const spec = specByControlId.get(controlId);
+  if (!spec) return [];
+  return spec.artifacts
+    .filter((a) => a.handling !== "N/A")
+    .map((a) => ({ label: a.label, type: a.handling }));
 }
 
 /** Artifact labels that require upload (UPLOAD or NATIVE) for implementation status. N/A and REFERENCE-only are excluded from required-upload count where appropriate. */

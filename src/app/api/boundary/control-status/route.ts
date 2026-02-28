@@ -8,6 +8,8 @@ import {
   type AllocationSummary,
   type EvidenceFindingSummary,
 } from "@/lib/evidence/controlStatus";
+import { isEnclaveMappedControl } from "@/lib/compliance/enclaveManifest";
+import { hasPassingFreshEnclaveFinding } from "@/lib/evidence/hasPassingFreshFinding";
 import fs from "fs";
 import path from "path";
 
@@ -168,6 +170,34 @@ export async function GET() {
       });
     });
 
+    const rowsWithRationale = await Promise.all(
+      rows.map(async (row) => {
+        if (!isEnclaveMappedControl(row.control_id)) {
+          return { ...row, technical_rationale: undefined };
+        }
+        const res = await hasPassingFreshEnclaveFinding({
+          db,
+          organizationId: accountId,
+          controlNistId: row.control_id,
+          layer: row.allocation_layer,
+        });
+        return {
+          ...row,
+          technical_rationale: {
+            satisfied_by: "evidenceFinding" as const,
+            source: res.source,
+            run_collected_at: res.runCollectedAt,
+            run_fingerprint: res.runFingerprint,
+            freshness_status: res.freshness_status,
+            freshness_days: res.freshness_days,
+            freshness_cutoff_utc: res.freshness_cutoff_utc,
+            ok: res.ok,
+            reason: res.reason,
+          },
+        };
+      })
+    );
+
     return NextResponse.json({
       boundary_id: boundaryRow.boundaryId,
       allocation_hash_current: boundaryRow.allocationHashCurrent,
@@ -178,7 +208,7 @@ export async function GET() {
         run_fingerprint: v.runFingerprint,
         created_at: v.createdAt,
       })),
-      rows,
+      rows: rowsWithRationale,
     });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Failed to get control status";
