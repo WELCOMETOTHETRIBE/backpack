@@ -23,16 +23,19 @@ export function EditBoundaryForm({
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(initialName);
   const [description, setDescription] = useState(initialDescription ?? "");
-  const [cloudProvider, setCloudProvider] = useState<CloudProvider>(
-    (initialCloudProvider && ["none", "microsoft", "google", "azure"].includes(initialCloudProvider)
-      ? initialCloudProvider
-      : ""
-  );
-  const [azureEnvironment, setAzureEnvironment] = useState<"gov" | "commercial" | "">(
+
+  const initialCloud: CloudProvider =
+    initialCloudProvider && ["none", "microsoft", "google", "azure"].includes(initialCloudProvider)
+      ? (initialCloudProvider as CloudProvider)
+      : "";
+  const [cloudProvider, setCloudProvider] = useState<CloudProvider>(initialCloud);
+
+  const initialAzure: "gov" | "commercial" | "" =
     initialAzureEnvironment === "gov" || initialAzureEnvironment === "commercial"
       ? initialAzureEnvironment
-      : ""
-  );
+      : "";
+  const [azureEnvironment, setAzureEnvironment] = useState<"gov" | "commercial" | "">(initialAzure);
+
   const [saving, setSaving] = useState(false);
 
   const showAzureEnv = cloudProvider === "microsoft" || cloudProvider === "azure";
