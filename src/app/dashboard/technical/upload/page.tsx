@@ -73,18 +73,19 @@ export default function TechnicalUploadPage() {
 
       if (isValidationReport(parsed)) {
         // 73-check validation report: POST as report import
+        const report: Record<string, unknown> = {
+          validator: parsed.validator,
+          inputs: parsed.inputs ?? [],
+          checks: parsed.checks,
+        };
+        if (parsed.manifest_metadata != null) report.manifest_metadata = parsed.manifest_metadata;
+        if (parsed.summary != null) report.summary = parsed.summary;
         body = {
           system_id: systemId.trim(),
           run_id: runId.trim(),
           collected_at: collectedAt.trim(),
           source: "windows_server_hardening",
-          report: {
-            validator: parsed.validator,
-            inputs: parsed.inputs ?? [],
-            checks: parsed.checks,
-            ...(parsed.manifest_metadata && { manifest_metadata: parsed.manifest_metadata }),
-            ...(parsed.summary && { summary: parsed.summary }),
-          },
+          report,
         };
       } else {
         // Legacy manifest: require files array
