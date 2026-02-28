@@ -3,8 +3,10 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { BOUNDARY_TECHNOLOGY_OPTIONS } from "@/lib/compliance/technical_evidence_requirements";
+import { generateMermaidSource } from "@/lib/compliance/diagram-generator";
 import type { DiagramSpec } from "@/lib/boundary-diagram/types";
-import { Check, Copy, Download, Sparkles, AlertTriangle } from "lucide-react";
+import { CUI_VAULT_MACTECH_PRESET } from "@/data/boundary-presets";
+import { Check, Copy, Download, Sparkles, AlertTriangle, ExternalLink } from "lucide-react";
 
 type DiagramMode = "executive" | "assessor";
 
@@ -23,6 +25,14 @@ export function BoundaryDiagramCreator() {
     error?: string;
   } | null>(null);
   const [diagramLoading, setDiagramLoading] = useState(true);
+  /** When set, show this full-stack diagram (preset or custom) instead of profile or account. */
+  const [fullStackPreview, setFullStackPreview] = useState<{
+    mermaid: string;
+    spec: DiagramSpec | null;
+  } | null>(null);
+  const [fullStackLoading, setFullStackLoading] = useState(false);
+  const [fullStackSaveLoading, setFullStackSaveLoading] = useState(false);
+  const [fullStackError, setFullStackError] = useState<string | null>(null);
   const diagramRef = useRef<HTMLDivElement>(null);
 
   const fetchProfile = useCallback(async () => {
@@ -60,9 +70,14 @@ export function BoundaryDiagramCreator() {
     fetchProfile();
   }, [fetchProfile]);
 
+  // Only fetch account-boundary diagram when no technologies are selected (diagram reflects profile when user has selections).
   useEffect(() => {
-    fetchDiagram();
-  }, [fetchDiagram]);
+    if (selectedTechnologies.length === 0) fetchDiagram();
+  }, [selectedTechnologies.length, fetchDiagram]);
+
+  useEffect(() => {
+    setFullStackPreview(null);
+  }, [diagramMode, controlOverlay]);
 
   const persistProfile = useCallback(async (tech: string[]) => {
     setSaving(true);
@@ -108,9 +123,72 @@ export function BoundaryDiagramCreator() {
     persistProfile([...set]);
   }
 
-  const mermaidSource = diagramData?.mermaid ?? "";
-  const spec = diagramData?.spec ?? null;
-  const noBoundary = spec === null && diagramData !== null;
+  // Diagram source priority: full-stack preview > profile (selected techs) > account boundary.
+  const useProfileDiagram = selectedTechnologies.length > 0 && !fullStackPreview;
+  const mermaidSource = fullStackPreview
+    ? fullStackPreview.mermaid
+    : useProfileDiagram
+      ? generateMermaidSource(selectedTechnologies)
+      : (diagramData?.mermaid ?? "");
+  const spec = fullStackPreview
+    ? fullStackPreview.spec
+    : useProfileDiagram
+      ? null
+      : (diagramData?.spec ?? null);
+  const noBoundary =
+    !fullStackPreview && !useProfileDiagram && spec === null && diagramData !== null;
+
+  const previewFullStack = useCallback(async () => {
+    setFullStackLoading(true);
+    setFullStackPreview(null);
+    setFullStackError(null);
+    try {
+      const res = await fetch("/api/boundary/diagram", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          boundary: CUI_VAULT_MACTECH_PRESET,
+          mode: diagramMode,
+          overlay: controlOverlay,
+        }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        setFullStackError(data.error);
+        return;
+      }
+      setFullStackPreview({ mermaid: data.mermaid ?? "", spec: data.spec ?? null });
+    } finally {
+      setFullStackLoading(false);
+    }
+  }, [diagramMode, controlOverlay]);
+
+  const loadFullStackIntoAccount = useCallback(async () => {
+    setFullStackSaveLoading(true);
+    setFullStackError(null);
+    try {
+      const res = await fetch("/api/boundary", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ boundary: CUI_VAULT_MACTECH_PRESET }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        setFullStackError(data.error);
+        return;
+      }
+      setFullStackPreview(null);
+      await persistProfile([]);
+      await fetchDiagram();
+    } finally {
+      setFullStackSaveLoading(false);
+    }
+  }, [persistProfile, fetchDiagram]);
+
+  const clearFullStackPreview = useCallback(() => {
+    setFullStackPreview(null);
+    setFullStackError(null);
+  }, []);
 
   useEffect(() => {
     if (!diagramRef.current || !mermaidSource) return;
@@ -173,7 +251,7 @@ export function BoundaryDiagramCreator() {
               CUI Boundary Diagram Creator
             </h2>
             <p className="text-xs text-slate-500">
-              Describe your environment or pick technologies to define your CUI boundary. The diagram is generated from your account boundary (Boundary page).
+              Describe your environment or pick technologies to define your CUI boundary. The diagram updates from your selected technologies above; when none are selected, it uses the saved boundary from the Boundary page.
             </p>
           </div>
         </div>
@@ -234,6 +312,51 @@ export function BoundaryDiagramCreator() {
             </div>
             {saving && (
               <p className="mt-2 text-xs text-slate-500">Saving…</p>
+            )}
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-3">
+            <p className="mb-2 text-xs font-medium uppercase tracking-wider text-slate-500">
+              Full stack (CUI-Vault or modified)
+            </p>
+            <p className="mb-2 text-xs text-slate-600">
+              Build the full C3PAO diagram from the CUI-Vault preset or your saved boundary. Modify on the Boundary page and return to see the updated diagram.
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={previewFullStack}
+                disabled={fullStackLoading}
+                className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+              >
+                {fullStackLoading ? "Loading…" : "Preview full stack (CUI-Vault)"}
+              </button>
+              <button
+                type="button"
+                onClick={loadFullStackIntoAccount}
+                disabled={fullStackSaveLoading}
+                className="rounded-lg bg-slate-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-700 disabled:opacity-50"
+              >
+                {fullStackSaveLoading ? "Saving…" : "Load full stack into account"}
+              </button>
+              {fullStackPreview && (
+                <button
+                  type="button"
+                  onClick={clearFullStackPreview}
+                  className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50"
+                >
+                  Clear preview
+                </button>
+              )}
+              <Link
+                href="/boundary"
+                className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+                Edit boundary (modify)
+              </Link>
+            </div>
+            {fullStackError && (
+              <p className="mt-2 text-xs text-red-600">{fullStackError}</p>
             )}
           </div>
         </div>
