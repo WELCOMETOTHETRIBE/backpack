@@ -5,6 +5,7 @@ import { eq, and, like, desc, inArray } from "drizzle-orm";
 import { requireOrg, requireRole } from "@/lib/auth";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { controlIdToNist } from "@/lib/compliance/controlId";
+import { syncOrgAzureInheritedControls } from "@/lib/compliance/azure-inherited-controls";
 
 const CONTROL_FAMILY_PREFIX: Record<string, string> = {
   AC: "3.1",
@@ -31,6 +32,9 @@ export async function GET(req: Request) {
   try {
     const orgId = await requireOrg();
     await requireRole(["Admin", "Compliance", "Assessor"]);
+
+    // Ensure 3.10.1–3.10.5 inherited status is in sync with any Azure boundary
+    await syncOrgAzureInheritedControls(db, orgId);
 
     const { searchParams } = new URL(req.url);
     const family = searchParams.get("family");

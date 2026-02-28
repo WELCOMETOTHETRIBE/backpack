@@ -85,6 +85,30 @@ export async function POST(
     inputs_manifest_sha256: inputsSha,
   });
 
+  const [existingRun] = await db
+    .select({ id: evidenceRuns.id, runId: evidenceRuns.runId, collectedAt: evidenceRuns.collectedAt })
+    .from(evidenceRuns)
+    .where(
+      and(
+        eq(evidenceRuns.organizationId, orgId),
+        eq(evidenceRuns.runFingerprint, runFingerprint)
+      )
+    )
+    .limit(1);
+
+  if (existingRun) {
+    return NextResponse.json(
+      {
+        error: "This report has already been imported for this organization.",
+        already_imported: true,
+        existing_run_id: existingRun.id,
+        existing_run_id_display: existingRun.runId,
+        existing_collected_at: existingRun.collectedAt,
+      },
+      { status: 409 }
+    );
+  }
+
   const [run] = await db
     .insert(evidenceRuns)
     .values({
