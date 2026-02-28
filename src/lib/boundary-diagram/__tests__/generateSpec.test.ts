@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { BoundaryInput } from "@/boundary-engine";
 import { generateDiagramSpec } from "../generateSpec";
+import { CUI_VAULT_MACTECH_PRESET } from "@/data/boundary-presets";
 
 const azureGovBoundaryFull: BoundaryInput = {
   hosting_model: "IaaS",
@@ -171,6 +172,25 @@ describe("generateDiagramSpec", () => {
       for (const row of spec.external_connections) {
         expect(row.cui_crosses_boundary).toBe(false);
       }
+    });
+
+    it("CUI-Vault by MacTech preset produces full assessor diagram with sentinel and creditable true", () => {
+      const spec = generateDiagramSpec({
+        boundary: CUI_VAULT_MACTECH_PRESET,
+        environment: "government",
+        mode: "assessor",
+      });
+      expect(spec.mode).toBe("assessor");
+      const ids = new Set(spec.nodes.map((n) => n.id));
+      expect(ids.has("entra_id")).toBe(true);
+      expect(ids.has("conditional_access")).toBe(true);
+      expect(ids.has("azure_monitor")).toBe(true);
+      expect(ids.has("sentinel")).toBe(true);
+      expect(ids.has("defender")).toBe(true);
+      expect(ids.has("key_vault")).toBe(true);
+      expect(ids.has("backup_vault")).toBe(true);
+      expect(spec.creditable).toBe(true);
+      expect(spec.not_creditable_reasons).toBeUndefined();
     });
   });
 

@@ -119,6 +119,20 @@
       }
     },
     {
+      "service_key": "logging_sentinel",
+      "display_name": "Microsoft Sentinel (SIEM)",
+      "type": "optional",
+      "coverage_layers": [
+        "Logging/Analytics",
+        "Monitoring/Detection"
+      ],
+      "allocation_effect": "Shared",
+      "ui": {
+        "category": "Logging",
+        "default_enabled": false
+      }
+    },
+    {
       "service_key": "crypto_azure_key_vault",
       "display_name": "Azure Key Vault",
       "type": "optional",

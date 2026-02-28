@@ -169,6 +169,46 @@
       ]
     },
     {
+      "service_key": "logging_sentinel",
+      "required_gates": [
+        "sentinel_workspace_configured"
+      ],
+      "optional_gates": [
+        "sentinel_analytics_rules",
+        "sentinel_incident_workflow"
+      ],
+      "gates": [
+        {
+          "gate_id": "sentinel_workspace_configured",
+          "prompt": "Is Microsoft Sentinel deployed and connected to the Log Analytics workspace used for in-scope resources?",
+          "type": "boolean",
+          "evidence_examples": [
+            "Sentinel workspace resource",
+            "Data connector configuration",
+            "Log Analytics link"
+          ]
+        },
+        {
+          "gate_id": "sentinel_analytics_rules",
+          "prompt": "Are analytics rules (or detection rules) configured for key security events?",
+          "type": "boolean",
+          "evidence_examples": [
+            "Analytics rule list",
+            "Scheduled/detection rule config"
+          ]
+        },
+        {
+          "gate_id": "sentinel_incident_workflow",
+          "prompt": "Is incident management/workflow defined for Sentinel incidents?",
+          "type": "boolean",
+          "evidence_examples": [
+            "Automation rules",
+            "Incident handling runbook reference"
+          ]
+        }
+      ]
+    },
+    {
       "service_key": "crypto_azure_key_vault",
       "required_gates": [
         "key_vault_exists",

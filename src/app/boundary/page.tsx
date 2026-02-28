@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { CUI_VAULT_MACTECH_PRESET } from "@/data/boundary-presets";
 
 const DEFAULT_BOUNDARY_JSON = `{
   "hosting_model": "IaaS",
@@ -394,6 +395,24 @@ export default function BoundaryPage() {
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700">Load preset</label>
+            <select
+              className="mt-1 block w-full max-w-md rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
+              value=""
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === "cui_vault_mactech") {
+                  setTextarea(JSON.stringify(CUI_VAULT_MACTECH_PRESET, null, 2));
+                }
+                e.target.value = "";
+              }}
+            >
+              <option value="">— None —</option>
+              <option value="cui_vault_mactech">CUI-Vault by MacTech (Windows Server 2025, Azure Gov, full stack)</option>
+            </select>
+            <p className="mt-1 text-xs text-slate-500">Loads preset into the JSON below; click Save to persist.</p>
+          </div>
           <div>
             <label className="block text-sm font-medium text-slate-700">Boundary JSON</label>
             <textarea

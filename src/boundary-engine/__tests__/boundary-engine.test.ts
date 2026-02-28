@@ -22,6 +22,7 @@ import {
 } from "../index";
 import { ValidationError } from "../types";
 import type { ControlRegistryItem, BoundaryInput } from "../types";
+import { CUI_VAULT_MACTECH_PRESET } from "@/data/boundary-presets";
 
 const DATA_DIR = path.join(
   process.cwd(),
@@ -194,6 +195,20 @@ describe("Boundary Engine", () => {
       const gates = loadGateChecklist();
       const validated = validateBoundaryInput(exampleBoundaryRaw, catalog, gates);
       expect(validated.hosting_model).toBe("iaas");
+    });
+
+    it("CUI-Vault by MacTech preset validates with Azure Gov catalog and gate checklist", () => {
+      const catalog = loadAzureGovServiceCatalog();
+      const gates = loadGateChecklist();
+      const validated = validateBoundaryInput(
+        CUI_VAULT_MACTECH_PRESET as Parameters<typeof validateBoundaryInput>[0],
+        catalog,
+        gates
+      );
+      expect(validated).toBeDefined();
+      expect(validated.provider).toBe("Azure");
+      expect(validated.environment).toBe("Government");
+      expect(validated.services_enabled?.logging_sentinel).toBe(true);
     });
 
     it("backup_azure_backup is not active when restore_tested is no", () => {
