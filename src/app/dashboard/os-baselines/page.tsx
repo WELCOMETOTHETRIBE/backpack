@@ -7,6 +7,7 @@ import Link from "next/link";
 import { PlusCircle, LayoutGrid, Server, Upload } from "lucide-react";
 import { CreateBoundaryButton } from "./CreateBoundaryButton";
 import { BoundaryDiagramModal } from "./BoundaryDiagramModal";
+import { DeleteBoundaryButton } from "./boundaries/[id]/DeleteBoundaryButton";
 
 const cardClass =
   "rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm";
@@ -124,7 +125,7 @@ export default async function OSBaselinesPage() {
             </h2>
             <div className="flex items-center gap-2">
               <BoundaryDiagramModal />
-              <CreateBoundaryButton />
+              <CreateBoundaryButton disabled={list.length >= 1} />
             </div>
           </div>
           {list.length === 0 ? (
@@ -134,10 +135,13 @@ export default async function OSBaselinesPage() {
           ) : (
             <ul className="mt-4 space-y-3">
               {withCounts.map((b) => (
-                <li key={b.id}>
+                <li
+                  key={b.id}
+                  className="flex items-center gap-3 rounded-lg border border-[var(--color-border)] p-4 transition-colors hover:bg-[var(--color-gray-50)]"
+                >
                   <Link
                     href={`/dashboard/os-baselines/boundaries/${b.id}`}
-                    className="flex items-center gap-3 rounded-lg border border-[var(--color-border)] p-4 transition-colors hover:bg-[var(--color-gray-50)]"
+                    className="flex min-w-0 flex-1 items-center gap-3"
                   >
                     <LayoutGrid className="h-5 w-5 shrink-0 text-[var(--color-gray-500)]" />
                     <div className="min-w-0 flex-1">
@@ -158,6 +162,7 @@ export default async function OSBaselinesPage() {
                       </p>
                     </div>
                   </Link>
+                  <DeleteBoundaryButton boundaryId={b.id} boundaryName={b.name} />
                 </li>
               ))}
             </ul>

@@ -47,6 +47,9 @@ export function DeleteBoundaryButton({
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-lg font-semibold text-[var(--color-gray-900)]">Delete boundary</h3>
+            <p className="mt-2 text-sm font-medium text-[var(--color-gray-900)]">
+              Are you sure you want to delete this boundary?
+            </p>
             <p className="mt-2 text-sm text-[var(--color-gray-600)]">
               This will delete the boundary &quot;{boundaryName}&quot; and all its OS assets. Evidence runs already imported for those systems will remain but will no longer be tied to an asset in this boundary.
             </p>
