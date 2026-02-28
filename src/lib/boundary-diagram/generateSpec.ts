@@ -172,17 +172,25 @@ function buildAssessorSpec(
     in_scope: false,
   });
 
-  // Entra ID
-  if (hasEntra) {
-    nodes.push({
-      id: "entra_id",
-      label: "Microsoft Entra ID",
-      zone: "External_Services_OutOfScope",
-      kind: "identity",
-      responsibility: "Shared",
-      in_scope: false,
-    });
-  }
+  // Entra ID (always in assessor for C3PAO identity path visibility)
+  nodes.push({
+    id: "entra_id",
+    label: "Entra ID (Identity Provider)",
+    zone: "External_Services_OutOfScope",
+    kind: "identity_provider",
+    responsibility: "Shared",
+    in_scope: false,
+  });
+
+  // Conditional Access / MFA
+  nodes.push({
+    id: "conditional_access",
+    label: "Conditional Access / MFA",
+    zone: "External_Services_OutOfScope",
+    kind: "mfa_policy",
+    responsibility: "Shared",
+    in_scope: false,
+  });
 
   // Azure Control Plane (Inherited)
   nodes.push({
@@ -260,7 +268,18 @@ function buildAssessorSpec(
       id: "azure_monitor",
       label: "Azure Monitor / Log Analytics",
       zone: "External_Services_OutOfScope",
-      kind: "logging_siem",
+      kind: "log_destination",
+      responsibility: "Shared",
+      in_scope: false,
+    });
+  }
+  const hasSentinel = isServiceEnabled(boundary, "logging_sentinel");
+  if (hasMonitor && hasSentinel) {
+    nodes.push({
+      id: "sentinel",
+      label: "Microsoft Sentinel (SIEM)",
+      zone: "External_Services_OutOfScope",
+      kind: "siem",
       responsibility: "Shared",
       in_scope: false,
     });
@@ -328,12 +347,12 @@ function buildAssessorSpec(
     boundary_crossing: false,
   });
 
-  // Edges: Admin -> Entra (Auth)
+  // Edges: Admin -> Entra (Auth); Entra -> Control Plane, Entra -> Bastion (Auth)
   if (hasEntra) {
     edges.push({
       from: "admin_workstation",
       to: "entra_id",
-      label: "MFA / Auth",
+      label: "Sign-in / MFA",
       data_type: "Auth",
       encrypted: true,
       boundary_crossing: true,
@@ -346,6 +365,48 @@ function buildAssessorSpec(
       protocol_ports: "HTTPS 443",
       encryption: "TLS 1.2+",
       auth: "MFA",
+      approval_required: false,
+      controls_hint: ["IA.L2-3.5.1", "IA.L2-3.5.2", "AC.L2-3.1.12"],
+      data_type: "Auth",
+      cui_crosses_boundary: false,
+    });
+    edges.push({
+      from: "entra_id",
+      to: "azure_control_plane",
+      label: "Token issuance",
+      data_type: "Auth",
+      encrypted: true,
+      boundary_crossing: true,
+    });
+    externalConnections.push({
+      connection_id: nextConnId(),
+      source_zone: "External_Services_OutOfScope",
+      dest_zone: "Azure_Control_Plane",
+      purpose: "Token issuance for portal/API",
+      protocol_ports: "HTTPS 443",
+      encryption: "TLS 1.2+",
+      auth: "Entra ID",
+      approval_required: false,
+      controls_hint: ["IA.L2-3.5.1", "AC.L2-3.1.12"],
+      data_type: "Auth",
+      cui_crosses_boundary: false,
+    });
+    edges.push({
+      from: "entra_id",
+      to: "bastion",
+      label: "MFA required",
+      data_type: "Auth",
+      encrypted: true,
+      boundary_crossing: true,
+    });
+    externalConnections.push({
+      connection_id: nextConnId(),
+      source_zone: "External_Services_OutOfScope",
+      dest_zone: "Azure_VNet_Boundary",
+      purpose: "MFA for Bastion access",
+      protocol_ports: "HTTPS 443",
+      encryption: "TLS 1.2+",
+      auth: "Entra ID + MFA",
       approval_required: false,
       controls_hint: ["IA.L2-3.5.1", "IA.L2-3.5.2", "AC.L2-3.1.12"],
       data_type: "Auth",
@@ -423,6 +484,52 @@ function buildAssessorSpec(
       auth: "Managed identity / Service principal",
       approval_required: false,
       controls_hint: ["AU.L2-3.3.1", "AU.L2-3.3.2", "SC.L2-3.13.5"],
+      data_type: "Logs",
+      cui_crosses_boundary: false,
+    });
+  }
+  if (hasMonitor && hasSentinel) {
+    edges.push({
+      from: "azure_monitor",
+      to: "sentinel",
+      label: "Logs / alerts",
+      data_type: "Logs",
+      encrypted: true,
+      boundary_crossing: true,
+    });
+    externalConnections.push({
+      connection_id: nextConnId(),
+      source_zone: "External_Services_OutOfScope",
+      dest_zone: "External_Services_OutOfScope",
+      purpose: "Log Analytics to Sentinel",
+      protocol_ports: "HTTPS 443",
+      encryption: "TLS 1.2+",
+      auth: "Azure RBAC",
+      approval_required: false,
+      controls_hint: ["AU.L2-3.3.1", "SC.L2-3.13.5"],
+      data_type: "Logs",
+      cui_crosses_boundary: false,
+    });
+  }
+  if (hasDefender && hasMonitor) {
+    edges.push({
+      from: "defender",
+      to: "azure_monitor",
+      label: "Alerts / telemetry",
+      data_type: "Logs",
+      encrypted: true,
+      boundary_crossing: true,
+    });
+    externalConnections.push({
+      connection_id: nextConnId(),
+      source_zone: "External_Services_OutOfScope",
+      dest_zone: "External_Services_OutOfScope",
+      purpose: "Defender alerts/telemetry to Log Analytics",
+      protocol_ports: "HTTPS 443",
+      encryption: "TLS 1.2+",
+      auth: "Azure RBAC",
+      approval_required: false,
+      controls_hint: ["IR.L2-3.7.1", "AU.L2-3.3.1", "SC.L2-3.13.5"],
       data_type: "Logs",
       cui_crosses_boundary: false,
     });
@@ -552,6 +659,22 @@ function buildAssessorSpec(
       confirmed:
         boundary.assumption_confirmations?.assume_no_public_rdp === "yes",
     },
+    {
+      id: "assume_mfa_for_admin_portal",
+      statement:
+        "MFA is enforced for admin access to Azure Portal/API.",
+      required: true,
+      confirmed:
+        boundary.assumption_confirmations?.assume_mfa_for_admin_portal === "yes",
+    },
+    {
+      id: "assume_mfa_for_bastion_access",
+      statement:
+        "MFA is enforced for Bastion access.",
+      required: true,
+      confirmed:
+        boundary.assumption_confirmations?.assume_mfa_for_bastion_access === "yes",
+    },
   ];
   if (hasMonitor) {
     assumption_checks.push({
@@ -590,6 +713,14 @@ function buildAssessorSpec(
     }
   }
 
+  const sortedExternalConnections = [...externalConnections].sort(
+    (a, b) =>
+      (a.data_type ?? "").localeCompare(b.data_type ?? "") ||
+      a.source_zone.localeCompare(b.source_zone) ||
+      a.dest_zone.localeCompare(b.dest_zone) ||
+      a.connection_id.localeCompare(b.connection_id)
+  );
+
   return {
     mode: "assessor",
     title,
@@ -601,7 +732,7 @@ function buildAssessorSpec(
     not_creditable_reasons,
     nodes,
     edges,
-    external_connections: externalConnections,
+    external_connections: sortedExternalConnections,
     generated_at_utc: new Date().toISOString(),
     assumptions,
   };

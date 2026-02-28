@@ -47,7 +47,30 @@ describe("renderMermaid", () => {
     expect(out).toContain("classDef inherited");
     expect(out).toContain("classDef shared");
     expect(out).toContain("classDef customer");
+    expect(out).toContain("classDef inscope");
     expect(out).toContain("classDef outscope");
+  });
+
+  it("assessor mode output contains Entra ID and Azure Monitor / Log Analytics", () => {
+    const spec = generateDiagramSpec({
+      boundary: azureGovBoundaryFull,
+      environment: "government",
+      mode: "assessor",
+    });
+    const out = renderMermaid(spec);
+    expect(out).toMatch(/Entra ID/);
+    expect(out).toMatch(/Azure Monitor|Log Analytics/);
+  });
+
+  it("assessor mode edge labels include Auth: and Logs: prefixes", () => {
+    const spec = generateDiagramSpec({
+      boundary: azureGovBoundaryFull,
+      environment: "government",
+      mode: "assessor",
+    });
+    const out = renderMermaid(spec);
+    expect(out).toContain("Auth:");
+    expect(out).toContain("Logs:");
   });
 
   it("is deterministic for executive mode", () => {

@@ -86,8 +86,13 @@ export function renderMermaid(spec: DiagramSpec): string {
   }
 
   const sortedEdges = [...spec.edges].sort((a, b) => {
-    const c = a.from.localeCompare(b.from);
-    return c !== 0 ? c : a.to.localeCompare(b.to);
+    const from = a.from.localeCompare(b.from);
+    if (from !== 0) return from;
+    const to = a.to.localeCompare(b.to);
+    if (to !== 0) return to;
+    const labelA = (a.data_type ? `${a.data_type}: ${a.label}` : a.label);
+    const labelB = (b.data_type ? `${b.data_type}: ${b.label}` : b.label);
+    return labelA.localeCompare(labelB);
   });
 
   const boundaryCrossingIndices: number[] = [];
@@ -113,23 +118,16 @@ export function renderMermaid(spec: DiagramSpec): string {
   lines.push("    classDef inherited fill:#e8f4ea,stroke:#2e7d32");
   lines.push("    classDef shared fill:#e3f2fd,stroke:#1565c0");
   lines.push("    classDef customer fill:#fff3e0,stroke:#ef6c00");
-  lines.push("    classDef outscope fill:#f5f5f5,stroke:#9e9e9e");
+  lines.push("    classDef inscope fill:#fff,stroke:#111,stroke-width:2px");
+  lines.push("    classDef outscope fill:#f8f8f8,stroke:#bbb,stroke-width:1px");
   lines.push("");
 
   for (const n of sortedNodes) {
     const sid = safeId(n.id);
-    const cls =
-      n.responsibility === "Inherited"
-        ? "inherited"
-        : n.responsibility === "Shared"
-          ? "shared"
-          : n.responsibility === "Customer"
-            ? "customer"
-            : "outscope";
     if (!n.in_scope) {
       lines.push(`    class ${sid} outscope`);
     } else {
-      lines.push(`    class ${sid} ${cls}`);
+      lines.push(`    class ${sid} inscope`);
     }
   }
 
@@ -139,9 +137,11 @@ export function renderMermaid(spec: DiagramSpec): string {
 
   lines.push("");
   lines.push('    subgraph Legend["Legend"]');
-  const legendText =
+  lines.push('        LegendScope["In Scope: thick border; Out of Scope: light border"]');
+  lines.push('        LegendTypes["Data types: Mgmt, Auth, Logs"]');
+  const legendCui =
     "CUI at Rest: data at rest in the CUI processing environment; encryption at rest required.";
-  lines.push(`        LegendCUI["${escapeLabel(legendText)}"]`);
+  lines.push(`        LegendCUI["${escapeLabel(legendCui)}"]`);
   lines.push("    end");
 
   return lines.join("\n");

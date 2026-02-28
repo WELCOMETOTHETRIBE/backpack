@@ -34,6 +34,7 @@ describe("generateDiagramSpec", () => {
       expect(ids.has("admin_workstation")).toBe(true);
       expect(ids.has("user")).toBe(true);
       expect(ids.has("entra_id")).toBe(true);
+      expect(ids.has("conditional_access")).toBe(true);
       expect(ids.has("azure_control_plane")).toBe(true);
       expect(ids.has("azure_data_plane")).toBe(true);
       expect(ids.has("vnet_nsg")).toBe(true);
@@ -103,13 +104,32 @@ describe("generateDiagramSpec", () => {
       expect(spec.not_creditable_reasons!.length).toBeGreaterThanOrEqual(1);
     });
 
-    it("when assumption_confirmations all yes, spec.creditable is true", () => {
+    it("assumption_checks include MFA ids and not_creditable_reasons mention MFA when unconfirmed", () => {
+      const spec = generateDiagramSpec({
+        boundary: azureGovBoundaryFull,
+        environment: "government",
+        mode: "assessor",
+      });
+      const ids = (spec.assumption_checks ?? []).map((c) => c.id);
+      expect(ids).toContain("assume_mfa_for_admin_portal");
+      expect(ids).toContain("assume_mfa_for_bastion_access");
+      expect(spec.creditable).toBe(false);
+      const reasons = spec.not_creditable_reasons ?? [];
+      const mfaMention = reasons.some(
+        (r) => r.toLowerCase().includes("mfa") || r.toLowerCase().includes("admin access") || r.toLowerCase().includes("bastion access")
+      );
+      expect(mfaMention).toBe(true);
+    });
+
+    it("when assumption_confirmations all yes (including MFA), spec.creditable is true", () => {
       const boundaryWithConfirmations = {
         ...azureGovBoundaryFull,
         assumption_confirmations: {
           assume_admin_path_bastion: "yes",
           assume_no_public_rdp: "yes",
           assume_logs_forwarded_to_monitor: "yes",
+          assume_mfa_for_admin_portal: "yes",
+          assume_mfa_for_bastion_access: "yes",
         } as Record<string, "yes" | "no">,
       };
       const spec = generateDiagramSpec({
@@ -121,7 +141,7 @@ describe("generateDiagramSpec", () => {
       expect(spec.not_creditable_reasons).toBeUndefined();
     });
 
-    it("external connections have data_type and at least one is Mgmt", () => {
+    it("external connections have data_type; at least one Mgmt, one Auth, one Logs", () => {
       const spec = generateDiagramSpec({
         boundary: azureGovBoundaryFull,
         environment: "government",
@@ -131,7 +151,15 @@ describe("generateDiagramSpec", () => {
       const withMgmt = spec.external_connections.filter(
         (r) => r.data_type === "Mgmt"
       );
+      const withAuth = spec.external_connections.filter(
+        (r) => r.data_type === "Auth"
+      );
+      const withLogs = spec.external_connections.filter(
+        (r) => r.data_type === "Logs"
+      );
       expect(withMgmt.length).toBeGreaterThanOrEqual(1);
+      expect(withAuth.length).toBeGreaterThanOrEqual(1);
+      expect(withLogs.length).toBeGreaterThanOrEqual(1);
     });
 
     it("by default no external connection has cui_crosses_boundary true", () => {
