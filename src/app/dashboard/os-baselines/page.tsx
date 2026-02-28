@@ -6,6 +6,7 @@ import { eq, inArray } from "drizzle-orm";
 import Link from "next/link";
 import { PlusCircle, LayoutGrid, Server, Upload } from "lucide-react";
 import { CreateBoundaryButton } from "./CreateBoundaryButton";
+import { BoundaryDiagramModal } from "./BoundaryDiagramModal";
 
 const cardClass =
   "rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm";
@@ -117,11 +118,14 @@ export default async function OSBaselinesPage() {
         )}
 
         <section className={cardClass}>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-lg font-semibold text-[var(--color-gray-800)]">
               Boundaries (CUI enclaves)
             </h2>
-            <CreateBoundaryButton />
+            <div className="flex items-center gap-2">
+              <BoundaryDiagramModal />
+              <CreateBoundaryButton />
+            </div>
           </div>
           {list.length === 0 ? (
             <p className="mt-4 text-sm text-[var(--color-gray-500)]">
