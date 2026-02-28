@@ -3,15 +3,40 @@ import { db } from "@/db";
 import { governanceRegisters, governanceRegisterEntries } from "@/db/schema";
 import { eq, desc, sql } from "drizzle-orm";
 import { requireOrg, requireRole } from "@/lib/auth";
+import { REGISTER_DEFINITIONS } from "@/lib/governance/seed-data";
 
 /**
  * GET /api/governance/registers — list register definitions for org.
- * If org has no registers, copy from templates (organizationId null) so org has its own set.
+ * If no org-null templates exist, bootstrap them from REGISTER_DEFINITIONS.
+ * If org has no registers, copy from templates so org has its own set.
  */
 export async function GET() {
   try {
     const orgId = await requireOrg();
     await requireRole(["Admin", "Compliance", "Assessor"]);
+
+    let templates = await db
+      .select()
+      .from(governanceRegisters)
+      .where(sql`${governanceRegisters.organizationId} IS NULL`);
+
+    if (templates.length === 0) {
+      for (const def of REGISTER_DEFINITIONS) {
+        await db.insert(governanceRegisters).values({
+          organizationId: null,
+          projectId: null,
+          registerKey: def.registerKey,
+          name: def.name,
+          description: def.description ?? null,
+          requiredColumns: def.requiredColumns,
+          retainForDays: def.retainForDays ?? null,
+        });
+      }
+      templates = await db
+        .select()
+        .from(governanceRegisters)
+        .where(sql`${governanceRegisters.organizationId} IS NULL`);
+    }
 
     let orgRegisters = await db
       .select()
@@ -19,10 +44,6 @@ export async function GET() {
       .where(eq(governanceRegisters.organizationId, orgId));
 
     if (orgRegisters.length === 0) {
-      const templates = await db
-        .select()
-        .from(governanceRegisters)
-        .where(sql`${governanceRegisters.organizationId} IS NULL`);
       for (const t of templates) {
         await db.insert(governanceRegisters).values({
           organizationId: orgId,

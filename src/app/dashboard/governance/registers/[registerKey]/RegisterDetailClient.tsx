@@ -87,22 +87,33 @@ export default function RegisterDetailClient({ registerKey }: { registerKey: str
         {register.description && (
           <p className="mt-2 text-sm text-[var(--color-gray-600)]">{register.description}</p>
         )}
-        <a
-          href={`/api/governance/registers/${encodeURIComponent(registerKey)}/export`}
-          className="mt-3 inline-block text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
-        >
-          Export CSV
-        </a>
+        <div className="mt-3 flex gap-4">
+          <a
+            href={`/api/governance/registers/${encodeURIComponent(registerKey)}/export`}
+            className="text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
+          >
+            Export CSV
+          </a>
+          <a
+            href={`/api/governance/registers/${encodeURIComponent(registerKey)}/export?template=1`}
+            className="text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
+          >
+            Download template CSV
+          </a>
+        </div>
       </div>
 
       <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm">
         <h3 className="text-sm font-semibold text-[var(--color-navy-primary)]">Create entry</h3>
+        {register.description && (
+          <p className="mt-1 text-sm text-[var(--color-gray-600)]">{register.description}</p>
+        )}
         <form onSubmit={handleSubmit} className="mt-3 space-y-3">
           {columns.map((col) => (
             <div key={col.key}>
               <label className="block text-sm font-medium text-[var(--color-gray-700)]">{col.label || col.key}</label>
               <input
-                type="text"
+                type={col.type === "date" ? "date" : "text"}
                 value={formData[col.key] ?? ""}
                 onChange={(e) => setFormData((prev) => ({ ...prev, [col.key]: e.target.value }))}
                 className="mt-1 w-full max-w-md rounded-[var(--radius-md)] border border-[var(--color-border)] px-3 py-2 text-sm"

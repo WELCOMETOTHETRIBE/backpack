@@ -11,7 +11,7 @@ function csvEscape(s: string | null | undefined): string {
   return t;
 }
 
-/** GET /api/governance/registers/[registerKey]/export — CSV of entries */
+/** GET /api/governance/registers/[registerKey]/export — CSV of entries. ?template=1 returns header-only CSV. */
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ registerKey: string }> }
@@ -21,6 +21,9 @@ export async function GET(
     await requireRole(["Admin", "Compliance", "Assessor"]);
     const { registerKey } = await params;
     if (!registerKey) return NextResponse.json({ error: "registerKey required" }, { status: 400 });
+
+    const url = new URL(req.url);
+    const templateOnly = url.searchParams.get("template") === "1";
 
     const [register] = await db
       .select()
@@ -34,15 +37,26 @@ export async function GET(
 
     if (!register) return NextResponse.json({ error: "Register not found" }, { status: 404 });
 
+    const columns = (register.requiredColumns as { key: string; label: string }[]) ?? [];
+    const keys = columns.map((c) => c.key);
+    const header = ["id", "created_at", "hold", ...keys];
+
+    if (templateOnly) {
+      const csv = header.join(",") + "\n";
+      return new NextResponse(csv, {
+        headers: {
+          "Content-Type": "text/csv",
+          "Content-Disposition": `attachment; filename="${registerKey}-template.csv"`,
+        },
+      });
+    }
+
     const entries = await db
       .select()
       .from(governanceRegisterEntries)
       .where(eq(governanceRegisterEntries.registerId, register.id))
       .orderBy(desc(governanceRegisterEntries.createdAt));
 
-    const columns = (register.requiredColumns as { key: string; label: string }[]) ?? [];
-    const keys = columns.map((c) => c.key);
-    const header = ["id", "created_at", "hold", ...keys];
     const rows = entries.map((e) => {
       const data = (e.entryData ?? {}) as Record<string, unknown>;
       return [
