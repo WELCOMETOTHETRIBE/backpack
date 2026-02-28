@@ -10,6 +10,7 @@ import {
   evidenceRuns,
   evidenceControlTechnicalStatus,
   evidenceFindings,
+  evidenceFiles,
 } from "@/db/schema";
 import { AssignBaselineForm } from "./AssignBaselineForm";
 import { EditAssetForm } from "./EditAssetForm";
@@ -66,6 +67,9 @@ export default async function AssetDetailPage({
 
   let statusByControl: Record<string, boolean> = {};
   let partialByControl: Record<string, boolean> = {};
+  type FindingDetail = { observed: string; expected: string; evidenceHint: string; evidenceFilesUsed: string[] };
+  let findingDetailByControl: Record<string, FindingDetail> = {};
+  let latestRunEvidenceFiles: Array<{ path: string; sha256: string; sizeBytes: number }> = [];
   let findingCount = 0;
   let partialCount = 0;
   if (latestRun) {
@@ -74,6 +78,10 @@ export default async function AssetDetailPage({
         controlId: evidenceFindings.controlId,
         pass: evidenceFindings.pass,
         partial: evidenceFindings.partial,
+        observed: evidenceFindings.observed,
+        expected: evidenceFindings.expected,
+        evidenceHint: evidenceFindings.evidenceHint,
+        evidenceFilesUsed: evidenceFindings.evidenceFilesUsed,
       })
       .from(evidenceFindings)
       .where(eq(evidenceFindings.evidenceRunId, latestRun.id));
@@ -81,18 +89,33 @@ export default async function AssetDetailPage({
     if (findingRows.length > 0) {
       const map: Record<string, boolean> = {};
       const partialMap: Record<string, boolean> = {};
+      const detailMap: Record<string, FindingDetail> = {};
       for (const r of findingRows) {
         map[r.controlId] = r.pass;
         partialMap[r.controlId] = r.partial;
+        const detail: FindingDetail = {
+          observed: r.observed ?? "",
+          expected: r.expected ?? "",
+          evidenceHint: r.evidenceHint ?? "",
+          evidenceFilesUsed: Array.isArray(r.evidenceFilesUsed) ? r.evidenceFilesUsed : [],
+        };
+        detailMap[r.controlId] = detail;
         const shortId = r.controlId.replace(/^[A-Z]+\.L2-/, "");
         if (shortId !== r.controlId) {
           map[shortId] = r.pass;
           partialMap[shortId] = r.partial;
+          detailMap[shortId] = detail;
         }
         if (r.partial) partialCount++;
       }
       statusByControl = map;
       partialByControl = partialMap;
+      findingDetailByControl = detailMap;
+      const runFiles = await db
+        .select({ path: evidenceFiles.path, sha256: evidenceFiles.sha256, sizeBytes: evidenceFiles.sizeBytes })
+        .from(evidenceFiles)
+        .where(eq(evidenceFiles.evidenceRunId, latestRun.id));
+      latestRunEvidenceFiles = runFiles;
     } else {
       const rows = await db
         .select({ controlId: evidenceControlTechnicalStatus.controlId, technicalOk: evidenceControlTechnicalStatus.technicalOk })
@@ -214,11 +237,32 @@ export default async function AssetDetailPage({
               )}
             </div>
           ) : (
+            {latestRunEvidenceFiles.length > 0 && (
+              <div className="mb-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-gray-50)] p-4">
+                <h3 className="text-sm font-semibold text-[var(--color-gray-800)]">
+                  Latest run evidence files (path, sha256)
+                </h3>
+                <ul className="mt-2 max-h-48 overflow-y-auto space-y-1 text-xs font-mono">
+                  {latestRunEvidenceFiles.map((f, i) => (
+                    <li key={i} className="flex flex-wrap gap-x-2 gap-y-0.5 break-all">
+                      <span className="text-[var(--color-gray-600)]">{f.path}</span>
+                      <span className="text-[var(--color-gray-500)]" title={f.sha256}>
+                        {f.sha256.slice(0, 16)}…
+                      </span>
+                      {f.sizeBytes > 0 && (
+                        <span className="text-[var(--color-gray-400)]">({f.sizeBytes} B)</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <ul className="mt-4 space-y-6">
               {controls.map((c) => {
                 const checks = checksByControlId[c.controlId] ?? [];
                 const status = statusByControl[c.controlId];
                 const partial = partialByControl[c.controlId];
+                const detail = findingDetailByControl[c.controlId];
                 return (
                   <li
                     key={c.controlId}
@@ -251,6 +295,38 @@ export default async function AssetDetailPage({
                       <p className="mt-1 text-sm text-[var(--color-gray-500)]">
                         {c.rationale}
                       </p>
+                    )}
+                    {detail && (detail.observed || detail.expected || detail.evidenceFilesUsed.length > 0) && (
+                      <div className="mt-3 rounded border border-[var(--color-border)] bg-[var(--color-gray-50)] p-3 text-sm">
+                        {detail.observed && (
+                          <p className="mt-1 first:mt-0">
+                            <span className="font-medium text-[var(--color-gray-700)]">Observed (from run):</span>{" "}
+                            <span className="text-[var(--color-gray-600)]">{detail.observed}</span>
+                          </p>
+                        )}
+                        {detail.expected && (
+                          <p className="mt-1 first:mt-0">
+                            <span className="font-medium text-[var(--color-gray-700)]">Expected (validator):</span>{" "}
+                            <span className="text-[var(--color-gray-600)]">{detail.expected}</span>
+                          </p>
+                        )}
+                        {detail.evidenceFilesUsed.length > 0 && (
+                          <div className="mt-2 flex items-start gap-2">
+                            <FileText className="h-4 w-4 shrink-0 text-[var(--color-gray-500)]" />
+                            <div>
+                              <span className="font-medium text-[var(--color-gray-700)]">Evidence files used: </span>
+                              <code className="rounded bg-[var(--color-gray-100)] px-1 text-xs">
+                                {detail.evidenceFilesUsed.join(", ")}
+                              </code>
+                            </div>
+                          </div>
+                        )}
+                        {detail.evidenceHint && (
+                          <p className="mt-1 text-[var(--color-gray-500)]">
+                            <span className="font-medium">Hint:</span> {detail.evidenceHint}
+                          </p>
+                        )}
+                      </div>
                     )}
                     {checks.map((ch) => (
                       <div key={ch.checkId} className="mt-4 border-t border-[var(--color-border)] pt-4">
