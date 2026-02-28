@@ -20,6 +20,7 @@ type RunItem = {
   hostname: string | null;
   totalControls: number;
   passed: number;
+  partial?: number;
 };
 
 type DriftItem = {
@@ -38,25 +39,26 @@ const cardClass =
 export function TechnicalDashboardClient() {
   const [runs, setRuns] = useState<RunItem[]>([]);
   const [totalRuns, setTotalRuns] = useState(0);
+  const [assetsWithRuns, setAssetsWithRuns] = useState(0);
   const [drift, setDrift] = useState<DriftItem[]>([]);
   const [totalRegressions, setTotalRegressions] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/evidence-runs?limit=10").then((r) => (r.ok ? r.json() : { items: [], total: 0 })),
+      fetch("/api/evidence-runs?limit=10").then((r) => (r.ok ? r.json() : { items: [], total: 0, assetsWithRuns: 0 })),
       fetch("/api/evidence-runs/drift").then((r) => (r.ok ? r.json() : { items: [], totalRegressions: 0 })),
     ])
       .then(([runsRes, driftRes]) => {
         setRuns(runsRes.items ?? []);
         setTotalRuns(runsRes.total ?? 0);
+        setAssetsWithRuns(runsRes.assetsWithRuns ?? 0);
         setDrift(driftRes.items ?? []);
         setTotalRegressions(driftRes.totalRegressions ?? 0);
       })
       .finally(() => setLoading(false));
   }, []);
 
-  const assetsWithRuns = new Set(runs.map((r) => r.systemId)).size;
   const latestRun = runs[0];
 
   if (loading) {
@@ -87,9 +89,14 @@ export function TechnicalDashboardClient() {
         <div className={cardClass}>
           <p className="text-sm font-medium text-[var(--color-gray-600)]">Latest run</p>
           {latestRun ? (
-            <p className="mt-1 text-2xl font-semibold text-[var(--color-navy-primary)]">
-              {latestRun.passed} <span className="font-normal text-[var(--color-gray-600)]">/ {latestRun.totalControls}</span> passed
-            </p>
+            <>
+              <p className="mt-1 text-2xl font-semibold text-[var(--color-navy-primary)]">
+                {latestRun.passed} <span className="font-normal text-[var(--color-gray-600)]">/ {latestRun.totalControls}</span> passed
+              </p>
+              {(latestRun.partial ?? 0) > 0 && (
+                <p className="mt-0.5 text-sm font-medium text-amber-700">{latestRun.partial} partial</p>
+              )}
+            </>
           ) : (
             <p className="mt-1 text-sm text-[var(--color-gray-500)]">No runs yet</p>
           )}
@@ -180,6 +187,9 @@ export function TechnicalDashboardClient() {
                       {run.passed}
                     </span>
                     <span className="text-sm text-[var(--color-gray-500)]">/ {run.totalControls}</span>
+                    {(run.partial ?? 0) > 0 && (
+                      <span className="text-sm font-medium text-amber-700">· {run.partial} partial</span>
+                    )}
                     <ChevronRight className="h-4 w-4 text-[var(--color-gray-400)]" />
                   </div>
                 </Link>

@@ -3,6 +3,7 @@ import { db } from "@/db";
 import {
   evidenceRuns,
   evidenceControlTechnicalStatus,
+  evidenceFindings,
   osAssets,
 } from "@/db/schema";
 import { eq, desc, and, sql, inArray } from "drizzle-orm";
@@ -56,6 +57,15 @@ export async function GET(req: Request) {
     .where(withSystem);
   const total = countResult[0]?.count ?? 0;
 
+  const assetsWithRunsResult = await db
+    .select({
+      count: sql<number>`count(distinct ${evidenceRuns.systemId})::int`,
+    })
+    .from(evidenceRuns)
+    .innerJoin(osAssets, and(eq(osAssets.id, evidenceRuns.systemId), eq(osAssets.organizationId, evidenceRuns.organizationId)))
+    .where(eq(evidenceRuns.organizationId, orgId));
+  const assetsWithRuns = assetsWithRunsResult[0]?.count ?? 0;
+
   const assetIds = [...new Set(list.map((r) => r.systemId))];
   const assets =
     assetIds.length > 0
@@ -73,6 +83,25 @@ export async function GET(req: Request) {
 
   const withSummary = await Promise.all(
     list.map(async (run) => {
+      const findings = await db
+        .select({
+          pass: evidenceFindings.pass,
+          partial: evidenceFindings.partial,
+        })
+        .from(evidenceFindings)
+        .where(eq(evidenceFindings.evidenceRunId, run.id));
+      if (findings.length > 0) {
+        const totalControls = findings.length;
+        const passed = findings.filter((f) => f.pass && !f.partial).length;
+        const partial = findings.filter((f) => f.partial).length;
+        return {
+          ...run,
+          hostname: assetMap.get(run.systemId) ?? null,
+          totalControls,
+          passed,
+          partial,
+        };
+      }
       const rows = await db
         .select({
           technicalOk: evidenceControlTechnicalStatus.technicalOk,
@@ -86,6 +115,7 @@ export async function GET(req: Request) {
         hostname: assetMap.get(run.systemId) ?? null,
         totalControls,
         passed,
+        partial: 0,
       };
     })
   );
@@ -95,5 +125,6 @@ export async function GET(req: Request) {
     total,
     limit,
     page,
+    assetsWithRuns,
   });
 }
