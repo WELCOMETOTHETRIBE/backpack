@@ -41,6 +41,7 @@ export async function GET(req: Request) {
       collectedAt: evidenceRuns.collectedAt,
       collectorName: evidenceRuns.collectorName,
       collectorVersion: evidenceRuns.collectorVersion,
+      source: evidenceRuns.source,
     })
     .from(evidenceRuns)
     .where(withSystem)

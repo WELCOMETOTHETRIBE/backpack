@@ -46,9 +46,10 @@ export async function POST(
     });
 
     if (order >= REQUIRED_APPROVALS) {
+      const now = new Date();
       await db
         .update(poamEntries)
-        .set({ status: "closed", updatedAt: new Date() })
+        .set({ status: "closed", closedAt: now, updatedAt: now })
         .where(eq(poamEntries.id, id));
     }
 

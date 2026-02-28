@@ -30,6 +30,8 @@ type Entry = {
   remediationPlan: string | null;
   scheduledCompletionDate: string | null;
   responsibleRoleId: string | null;
+  closedAt: string | Date | null;
+  closeoutEvidence: string | null;
   milestones: Milestone[];
   closureApprovals: Approval[];
 };
@@ -276,7 +278,22 @@ export function PoamEntryClient({
           <p className="mt-2 text-xs text-zinc-500">You have approved. One more approval required to close.</p>
         )}
         {entry.status === "closed" && (
-          <p className="mt-2 text-sm font-medium text-green-700">Closed (dual sign-off complete).</p>
+          <>
+            <p className="mt-2 text-sm font-medium text-green-700">
+              {entry.closeoutEvidence ? "Closed (attestation uploaded)." : "Closed (dual sign-off complete)."}
+            </p>
+            {entry.closeoutEvidence && (
+              <div className="mt-2 rounded border border-zinc-200 bg-zinc-50 p-3">
+                <p className="text-xs font-medium text-zinc-600">Closeout evidence</p>
+                <p className="mt-1 text-sm text-zinc-700">{entry.closeoutEvidence}</p>
+                {entry.closedAt && (
+                  <p className="mt-1 text-xs text-zinc-500">
+                    Closed {new Date(entry.closedAt).toLocaleString()}
+                  </p>
+                )}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

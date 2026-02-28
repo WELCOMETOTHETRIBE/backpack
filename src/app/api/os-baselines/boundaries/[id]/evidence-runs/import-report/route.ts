@@ -174,9 +174,10 @@ export async function POST(
     const nistId = controlIdToNist(c.control);
     if (!nistId) continue;
     const failed = !c.pass;
+    const partial = Boolean(c.partial);
     const attestationOnly =
       c.pass && (c.mfa_in_path_source === "attestation");
-    if (failed || attestationOnly) controlIdsNeedingPoam.add(nistId);
+    if (failed || attestationOnly || partial) controlIdsNeedingPoam.add(nistId);
   }
 
   let poamCreated = 0;

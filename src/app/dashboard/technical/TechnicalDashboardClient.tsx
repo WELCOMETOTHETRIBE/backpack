@@ -21,6 +21,7 @@ type RunItem = {
   totalControls: number;
   passed: number;
   partial?: number;
+  source?: string;
 };
 
 type DriftItem = {
@@ -163,39 +164,68 @@ export function TechnicalDashboardClient() {
             No evidence runs yet. Upload an evidence bundle to get started.
           </p>
         ) : (
-          <ul className="mt-4 divide-y divide-[var(--color-border)]">
-            {runs.map((run) => (
-              <li key={run.id}>
-                <Link
-                  href={`/dashboard/technical/runs/${run.id}`}
-                  className="flex flex-wrap items-center justify-between gap-3 py-4 transition-colors hover:bg-[var(--color-gray-50)]"
-                >
-                  <div className="min-w-0">
-                    <span className="font-mono text-sm font-medium text-[var(--color-gray-800)]">
-                      {run.runId}
-                    </span>
-                    <span className="ml-2 text-sm text-[var(--color-gray-600)]">
-                      {run.hostname ?? run.systemId}
-                    </span>
-                    <p className="mt-0.5 text-xs text-[var(--color-gray-500)]">
-                      {new Date(run.collectedAt).toLocaleString()} · {run.collectorName}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1 text-sm text-green-600">
-                      <CheckCircle2 className="h-4 w-4" />
-                      {run.passed}
-                    </span>
-                    <span className="text-sm text-[var(--color-gray-500)]">/ {run.totalControls}</span>
-                    {(run.partial ?? 0) > 0 && (
-                      <span className="text-sm font-medium text-amber-700">· {run.partial} partial</span>
-                    )}
-                    <ChevronRight className="h-4 w-4 text-[var(--color-gray-400)]" />
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <>
+            {(() => {
+              const cloudRuns = runs.filter((r) => r.source === "azure_entra");
+              const osRuns = runs.filter((r) => r.source !== "azure_entra");
+              const runRow = (run: RunItem) => (
+                <li key={run.id}>
+                  <Link
+                    href={`/dashboard/technical/runs/${run.id}`}
+                    className="flex flex-wrap items-center justify-between gap-3 py-4 transition-colors hover:bg-[var(--color-gray-50)]"
+                  >
+                    <div className="min-w-0">
+                      <span className="font-mono text-sm font-medium text-[var(--color-gray-800)]">
+                        {run.runId}
+                      </span>
+                      <span className="ml-2 text-sm text-[var(--color-gray-600)]">
+                        {run.hostname ?? run.systemId}
+                      </span>
+                      <p className="mt-0.5 text-xs text-[var(--color-gray-500)]">
+                        {new Date(run.collectedAt).toLocaleString()}
+                        {run.source ? ` · ${run.source === "azure_entra" ? "Azure/Entra" : run.collectorName}` : ` · ${run.collectorName}`}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center gap-1 text-sm text-green-600">
+                        <CheckCircle2 className="h-4 w-4" />
+                        {run.passed}
+                      </span>
+                      <span className="text-sm text-[var(--color-gray-500)]">/ {run.totalControls}</span>
+                      {(run.partial ?? 0) > 0 && (
+                        <span className="text-sm font-medium text-amber-700">· {run.partial} partial</span>
+                      )}
+                      <ChevronRight className="h-4 w-4 text-[var(--color-gray-400)]" />
+                    </div>
+                  </Link>
+                </li>
+              );
+              return (
+                <div className="mt-4 space-y-6">
+                  {cloudRuns.length > 0 && (
+                    <div>
+                      <h3 className="text-xs font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">
+                        Cloud (Azure evidence runs)
+                      </h3>
+                      <ul className="mt-2 divide-y divide-[var(--color-border)]">
+                        {cloudRuns.map(runRow)}
+                      </ul>
+                    </div>
+                  )}
+                  {osRuns.length > 0 && (
+                    <div>
+                      <h3 className="text-xs font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">
+                        OS (Windows validation runs)
+                      </h3>
+                      <ul className="mt-2 divide-y divide-[var(--color-border)]">
+                        {osRuns.map(runRow)}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+          </>
         )}
         {totalRuns > 10 && (
           <p className="mt-2 text-sm text-[var(--color-gray-500)]">

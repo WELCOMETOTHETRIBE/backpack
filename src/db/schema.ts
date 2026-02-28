@@ -245,6 +245,10 @@ export const poamEntries = pgTable("poam_entries", {
   remediationPlan: text("remediation_plan"),
   scheduledCompletionDate: date("scheduled_completion_date"),
   responsibleRoleId: uuid("responsible_role_id").references(() => roles.id),
+  /** Set when status becomes closed (manual or auto-close). */
+  closedAt: timestamp("closed_at", { withTimezone: true }),
+  /** Explanation for closure; e.g. "User uploaded required attestation to Governance > Evidence (title)." */
+  closeoutEvidence: text("closeout_evidence"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
