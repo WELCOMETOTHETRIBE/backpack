@@ -22,7 +22,7 @@ export interface RunFindingEntry {
  * sort by controlIdRaw asc, then prefer fail over pass (first fail wins; else first pass).
  */
 export async function getRunFindingsByControl(params: {
-  db: NodePgDatabase<any>;
+  db: any;
   organizationId: string;
   evidenceRunId: string;
 }): Promise<Map<string, RunFindingEntry>> {

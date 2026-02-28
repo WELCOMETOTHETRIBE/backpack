@@ -267,14 +267,28 @@ export async function PUT(req: Request) {
       source: coverageSource,
     });
 
+    type CoverageTotals = {
+      enclave_controls: number;
+      pass_fresh: number;
+      pass_stale: number;
+      pass_unknown_layer: number;
+      fail: number;
+      no_finding: number;
+    };
+    type CoverageTopGaps = {
+      unknown_layer: string[];
+      stale: string[];
+      failed: string[];
+      no_finding: string[];
+    };
     let coveragePayload: {
       coverageSource: string | null;
       coverageEvidenceRunId: string | null;
       coverageRunFingerprint: string | null;
       coverageCollectedAt: Date | null;
       coverageHash: string | null;
-      coverageTotals: Record<string, unknown> | null;
-      coverageTopGaps: Record<string, unknown> | null;
+      coverageTotals: CoverageTotals | null;
+      coverageTopGaps: CoverageTopGaps | null;
     } = {
       coverageSource: null,
       coverageEvidenceRunId: null,
@@ -353,13 +367,13 @@ export async function PUT(req: Request) {
       snapshotJson: snapshot_json as unknown as Record<string, unknown>,
       snapshotSignature: snapshot_signature,
       evidenceRunFingerprints,
-      coverageSource: coveragePayload.coverageSource,
-      coverageEvidenceRunId: coveragePayload.coverageEvidenceRunId,
-      coverageRunFingerprint: coveragePayload.coverageRunFingerprint,
-      coverageCollectedAt: coveragePayload.coverageCollectedAt,
-      coverageHash: coveragePayload.coverageHash,
-      coverageTotals: coveragePayload.coverageTotals,
-      coverageTopGaps: coveragePayload.coverageTopGaps,
+      ...(coveragePayload.coverageSource != null && { coverageSource: coveragePayload.coverageSource }),
+      ...(coveragePayload.coverageEvidenceRunId != null && { coverageEvidenceRunId: coveragePayload.coverageEvidenceRunId }),
+      ...(coveragePayload.coverageRunFingerprint != null && { coverageRunFingerprint: coveragePayload.coverageRunFingerprint }),
+      ...(coveragePayload.coverageCollectedAt != null && { coverageCollectedAt: coveragePayload.coverageCollectedAt }),
+      ...(coveragePayload.coverageHash != null && { coverageHash: coveragePayload.coverageHash }),
+      ...(coveragePayload.coverageTotals != null && { coverageTotals: coveragePayload.coverageTotals }),
+      ...(coveragePayload.coverageTopGaps != null && { coverageTopGaps: coveragePayload.coverageTopGaps }),
     });
 
     const configured_but_not_creditable_risks = (() => {
