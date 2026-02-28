@@ -107,6 +107,7 @@ export const governanceEvidenceTypeEnum = pgEnum("governance_evidence_type", [
   "training_record",
   "incident_report",
   "risk_report",
+  "attestation",
   "other",
 ]);
 export const governanceControlLinkTypeEnum = pgEnum("governance_control_link_type", [

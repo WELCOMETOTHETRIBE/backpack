@@ -11,7 +11,7 @@ export default function GovernanceEvidencePage() {
           </Link>
           <h2 className="mt-1 text-xl font-semibold text-[var(--color-navy-primary)]">Evidence library</h2>
           <p className="mt-0.5 text-sm text-[var(--color-gray-600)]">
-            Evidence items for hybrid controls; filter by type and view stale items.
+            Evidence items for hybrid controls, including attestations (e.g. MFA-in-path for Azure/Entra); filter by type and view stale items.
           </p>
         </div>
         <Link

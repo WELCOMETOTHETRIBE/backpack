@@ -21,7 +21,7 @@ export async function GET(req: Request) {
     const offset = (page - 1) * limit;
 
     const conditions = [eq(governanceEvidenceItems.organizationId, orgId)];
-    if (evidenceType) conditions.push(eq(governanceEvidenceItems.evidenceType, evidenceType as "screenshot" | "export_file" | "log_snippet" | "config_baseline" | "policy_export" | "ticket" | "training_record" | "incident_report" | "risk_report" | "other"));
+    if (evidenceType) conditions.push(eq(governanceEvidenceItems.evidenceType, evidenceType as "screenshot" | "export_file" | "log_snippet" | "config_baseline" | "policy_export" | "ticket" | "training_record" | "incident_report" | "risk_report" | "attestation" | "other"));
 
     if (controlId) {
       const records = await db.select({ id: controlRecords.id }).from(controlRecords).where(and(eq(controlRecords.organizationId, orgId), eq(controlRecords.controlId, controlId)));
@@ -123,7 +123,7 @@ export async function POST(req: Request) {
 
     const validTypes = [
       "screenshot", "export_file", "log_snippet", "config_baseline", "policy_export",
-      "ticket", "training_record", "incident_report", "risk_report", "other",
+      "ticket", "training_record", "incident_report", "risk_report", "attestation", "other",
     ];
     if (!validTypes.includes(evidenceType)) {
       return NextResponse.json({ error: "Invalid evidenceType" }, { status: 400 });
@@ -134,7 +134,7 @@ export async function POST(req: Request) {
       .values({
         organizationId: orgId,
         title: title.trim(),
-        evidenceType: evidenceType as "screenshot" | "export_file" | "log_snippet" | "config_baseline" | "policy_export" | "ticket" | "training_record" | "incident_report" | "risk_report" | "other",
+        evidenceType: evidenceType as "screenshot" | "export_file" | "log_snippet" | "config_baseline" | "policy_export" | "ticket" | "training_record" | "incident_report" | "risk_report" | "attestation" | "other",
         sourceSystem: (body.sourceSystem as string) || null,
         collectedById: (body.collectedById as string) || user.id || null,
         collectedAt: body.collectedAt ? new Date(body.collectedAt) : new Date(),
