@@ -21,6 +21,10 @@ interface BoundaryResponse {
     counts: { inherited: number; shared: number; customer: number; notApplicable: number } | null;
     assurance_context: { provider_assurance_target?: string; customer_must_confirm_scope?: boolean } | null;
     warnings: { sensitivity_warnings: unknown[]; secondary_layer_warnings: unknown[] };
+    coverage_hash?: string | null;
+    coverage_run_fingerprint?: string | null;
+    coverage_collected_at?: string | null;
+    snapshot_signature?: string | null;
   } | null;
   provider_capability_matrix: {
     inherited_layer_count: number;
@@ -195,6 +199,13 @@ export default function BoundaryPage() {
   const [coverageError, setCoverageError] = useState<string | null>(null);
   const [selectedCoverageRunId, setSelectedCoverageRunId] = useState<string | null>(null);
   const [windowsRuns, setWindowsRuns] = useState<Array<{ evidence_run_id: string; collected_at: string; run_fingerprint: string }>>([]);
+  const [verifyResult, setVerifyResult] = useState<{
+    ok: boolean;
+    reason?: string;
+    stored?: { coverageHash: string };
+    computed?: { coverageHash: string };
+  } | null>(null);
+  const [verifyLoading, setVerifyLoading] = useState(false);
 
   useEffect(() => {
     fetch("/api/boundary")
@@ -559,6 +570,70 @@ export default function BoundaryPage() {
                 / {coverageSummary.totals.enclave_controls} controls have findings. Run:{" "}
                 {new Date(coverageSummary.collected_at).toLocaleString()}
               </p>
+              {(() => {
+                const snap = data?.latest_snapshot;
+                const attestedRun =
+                  snap?.coverage_hash &&
+                  snap?.coverage_run_fingerprint != null &&
+                  snap?.coverage_collected_at != null &&
+                  coverageSummary.run_fingerprint === snap.coverage_run_fingerprint &&
+                  coverageSummary.collected_at === snap.coverage_collected_at;
+                return (
+                  <div className="flex flex-wrap items-center gap-3 text-sm">
+                    {attestedRun ? (
+                      <>
+                        <span className="font-medium text-green-700">Attested in latest snapshot</span>
+                        {snap.coverage_hash && (
+                          <span className="font-mono text-slate-600" title={snap.coverage_hash}>
+                            coverage_hash: {snap.coverage_hash.slice(0, 16)}…
+                          </span>
+                        )}
+                        {snap.snapshot_signature && (
+                          <span className="font-mono text-slate-600" title={snap.snapshot_signature}>
+                            signature: {snap.snapshot_signature.slice(0, 16)}…
+                          </span>
+                        )}
+                        <button
+                          type="button"
+                          className="rounded border border-slate-300 bg-white px-2 py-1 text-slate-700 hover:bg-slate-50"
+                          onClick={() => {
+                            if (snap.coverage_hash) {
+                              navigator.clipboard.writeText(snap.coverage_hash);
+                            }
+                          }}
+                        >
+                          Copy hash
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-amber-700">Not attested (coverage differs from snapshot)</span>
+                        <button
+                          type="button"
+                          disabled={verifyLoading}
+                          className="rounded bg-slate-700 px-2 py-1 text-white hover:bg-slate-600 disabled:opacity-50"
+                          onClick={() => {
+                            setVerifyLoading(true);
+                            setVerifyResult(null);
+                            fetch("/api/boundary/snapshot/verify-latest")
+                              .then((r) => r.json())
+                              .then((d) => setVerifyResult(d))
+                              .catch(() => setVerifyResult({ ok: false, reason: "request_failed" }))
+                              .finally(() => setVerifyLoading(false));
+                          }}
+                        >
+                          {verifyLoading ? "Verifying…" : "Verify"}
+                        </button>
+                      </>
+                    )}
+                  </div>
+                );
+              })()}
+              {verifyResult != null && (
+                <p className={`text-sm ${verifyResult.ok ? "text-green-700" : "text-amber-700"}`}>
+                  Verify: {verifyResult.reason ?? (verifyResult.ok ? "verified" : "failed")}
+                </p>
+              )}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <h3 className="text-sm font-medium text-slate-700">Unknown layer mapping</h3>

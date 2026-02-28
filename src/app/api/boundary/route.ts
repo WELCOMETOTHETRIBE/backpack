@@ -4,6 +4,9 @@ import { accountBoundary, boundarySnapshots, boundaryEvents, evidenceRuns } from
 import { eq, desc, and } from "drizzle-orm";
 import { computeSnapshotSignature } from "@/lib/attestation/computeSnapshotSignature";
 import { requireOrg, requireRole } from "@/lib/auth";
+import { getLatestRunForSource } from "@/lib/evidence/getLatestRun";
+import { computeEnclaveCoverage } from "@/lib/evidence/enclaveCoverage";
+import { computeCoverageHash } from "@/lib/evidence/coverageHash";
 import {
   validateSingleProviderBoundary,
   exportAllocationSnapshot,
@@ -80,6 +83,14 @@ export async function GET() {
               (latestSnapshot.snapshotJson as { secondary_layer_warnings?: unknown })
                 ?.secondary_layer_warnings ?? [],
           },
+          coverage_hash: latestSnapshot.coverageHash ?? null,
+          coverage_run_fingerprint: latestSnapshot.coverageRunFingerprint ?? null,
+          coverage_collected_at: latestSnapshot.coverageCollectedAt
+            ? (latestSnapshot.coverageCollectedAt instanceof Date
+                ? latestSnapshot.coverageCollectedAt.toISOString()
+                : String(latestSnapshot.coverageCollectedAt))
+            : null,
+          snapshot_signature: latestSnapshot.snapshotSignature ?? null,
         }
       : null;
 
@@ -248,6 +259,73 @@ export async function PUT(req: Request) {
     }
     evidenceRunFingerprints.sort();
 
+    const coverageSource = "windows_server_hardening";
+    const latestCoverageRun = await getLatestRunForSource({
+      db,
+      organizationId: accountId,
+      boundaryId: boundary_id,
+      source: coverageSource,
+    });
+
+    let coveragePayload: {
+      coverageSource: string | null;
+      coverageEvidenceRunId: string | null;
+      coverageRunFingerprint: string | null;
+      coverageCollectedAt: Date | null;
+      coverageHash: string | null;
+      coverageTotals: Record<string, unknown> | null;
+      coverageTopGaps: Record<string, unknown> | null;
+    } = {
+      coverageSource: null,
+      coverageEvidenceRunId: null,
+      coverageRunFingerprint: null,
+      coverageCollectedAt: null,
+      coverageHash: null,
+      coverageTotals: null,
+      coverageTopGaps: null,
+    };
+    let coverageResponse: {
+      source: string;
+      run_fingerprint: string;
+      collected_at: string;
+      coverage_hash: string;
+      totals: Record<string, unknown>;
+      top_gaps: Record<string, unknown>;
+    } | null = null;
+    let coverageWarning: string | undefined;
+
+    if (!latestCoverageRun) {
+      coverageWarning = "No coverage run found";
+    } else {
+      const summary = await computeEnclaveCoverage({
+        db,
+        organizationId: accountId,
+        accountId,
+        boundaryId: boundary_id,
+        evidenceRunId: latestCoverageRun.evidenceRunId,
+        source: coverageSource,
+        nowUtc: now.toISOString(),
+      });
+      const coverageHash = computeCoverageHash(summary);
+      coveragePayload = {
+        coverageSource,
+        coverageEvidenceRunId: latestCoverageRun.evidenceRunId,
+        coverageRunFingerprint: latestCoverageRun.runFingerprint,
+        coverageCollectedAt: new Date(latestCoverageRun.collectedAt),
+        coverageHash,
+        coverageTotals: summary.totals,
+        coverageTopGaps: summary.top_gaps,
+      };
+      coverageResponse = {
+        source: coverageSource,
+        run_fingerprint: latestCoverageRun.runFingerprint,
+        collected_at: latestCoverageRun.collectedAt,
+        coverage_hash: coverageHash,
+        totals: summary.totals,
+        top_gaps: summary.top_gaps,
+      };
+    }
+
     const snapshot_signature = computeSnapshotSignature({
       boundaryId: boundary_id,
       allocationHash: allocation_hash,
@@ -255,6 +333,14 @@ export async function PUT(req: Request) {
       providerProfileId: (snapshot_metadata as { provider_profile_id?: string }).provider_profile_id ?? "",
       catalogId: (snapshot_metadata as { catalog_id?: string }).catalog_id ?? "",
       evidenceRunFingerprints,
+      coverage:
+        coveragePayload.coverageHash != null
+          ? {
+              coverageHash: coveragePayload.coverageHash,
+              runFingerprint: coveragePayload.coverageRunFingerprint ?? "",
+              collectedAt: latestCoverageRun!.collectedAt,
+            }
+          : undefined,
     });
 
     await db.insert(boundarySnapshots).values({
@@ -267,6 +353,13 @@ export async function PUT(req: Request) {
       snapshotJson: snapshot_json as unknown as Record<string, unknown>,
       snapshotSignature: snapshot_signature,
       evidenceRunFingerprints,
+      coverageSource: coveragePayload.coverageSource,
+      coverageEvidenceRunId: coveragePayload.coverageEvidenceRunId,
+      coverageRunFingerprint: coveragePayload.coverageRunFingerprint,
+      coverageCollectedAt: coveragePayload.coverageCollectedAt,
+      coverageHash: coveragePayload.coverageHash,
+      coverageTotals: coveragePayload.coverageTotals,
+      coverageTopGaps: coveragePayload.coverageTopGaps,
     });
 
     const configured_but_not_creditable_risks = (() => {
@@ -285,7 +378,7 @@ export async function PUT(req: Request) {
       }
     })();
 
-    return NextResponse.json({
+    const res: Record<string, unknown> = {
       boundary_id,
       allocation_hash,
       assurance_context: snapshot_json.assurance_context,
@@ -294,7 +387,10 @@ export async function PUT(req: Request) {
       secondary_layer_warnings: snapshot_json.secondary_layer_warnings ?? [],
       configured_but_not_creditable_risks,
       drift: { drifted: drift.drifted, reason: drift.reason },
-    });
+      coverage: coverageResponse,
+    };
+    if (coverageWarning) res.warning = coverageWarning;
+    return NextResponse.json(res);
   } catch (e) {
     const err = e as { code?: string; message?: string };
     const message = err?.message ?? "Failed to save boundary";

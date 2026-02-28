@@ -338,10 +338,31 @@ export const boundarySnapshots = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     snapshotSignature: text("snapshot_signature"),
     evidenceRunFingerprints: jsonb("evidence_run_fingerprints").$type<string[]>(),
+    coverageSource: text("coverage_source"),
+    coverageEvidenceRunId: text("coverage_evidence_run_id"),
+    coverageRunFingerprint: text("coverage_run_fingerprint"),
+    coverageCollectedAt: timestamp("coverage_collected_at", { withTimezone: true }),
+    coverageHash: text("coverage_hash"),
+    coverageTotals: jsonb("coverage_totals").$type<{
+      enclave_controls: number;
+      pass_fresh: number;
+      pass_stale: number;
+      pass_unknown_layer: number;
+      fail: number;
+      no_finding: number;
+    }>(),
+    coverageTopGaps: jsonb("coverage_top_gaps").$type<{
+      unknown_layer: string[];
+      stale: string[];
+      failed: string[];
+      no_finding: string[];
+    }>(),
   },
   (t) => [
     index("boundary_snapshots_account_created_idx").on(t.accountId, t.createdAt),
     index("boundary_snapshots_snapshot_signature_idx").on(t.snapshotSignature),
+    index("boundary_snapshots_coverage_hash_idx").on(t.coverageHash),
+    index("boundary_snapshots_coverage_run_fp_idx").on(t.coverageRunFingerprint),
   ]
 );
 

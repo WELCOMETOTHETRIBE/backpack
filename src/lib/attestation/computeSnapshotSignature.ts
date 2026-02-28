@@ -7,12 +7,21 @@ export interface SnapshotAttestationInput {
   providerProfileId: string;
   catalogId: string;
   evidenceRunFingerprints: string[];
+  coverage?: {
+    coverageHash: string;
+    runFingerprint: string;
+    collectedAt: string;
+  };
 }
 
 export function computeSnapshotSignature(input: SnapshotAttestationInput): string {
   const ev = [...input.evidenceRunFingerprints].sort();
 
-  const payload = {
+  const coverageHash = input.coverage?.coverageHash ?? "";
+  const runFingerprint = input.coverage?.runFingerprint ?? "";
+  const collectedAt = input.coverage?.collectedAt ?? "";
+  const hasCoverage = coverageHash !== "" || runFingerprint !== "" || collectedAt !== "";
+  const payload: Record<string, unknown> = {
     boundaryId: input.boundaryId,
     allocationHash: input.allocationHash,
     registryVersion: input.registryVersion ?? "",
@@ -20,6 +29,9 @@ export function computeSnapshotSignature(input: SnapshotAttestationInput): strin
     catalogId: input.catalogId,
     evidenceRunFingerprints: ev,
   };
+  if (hasCoverage) {
+    payload.coverage = { coverageHash, runFingerprint, collectedAt };
+  }
 
   const stableStringify = (obj: unknown): string => {
     if (obj === null || typeof obj !== "object") return JSON.stringify(obj);
