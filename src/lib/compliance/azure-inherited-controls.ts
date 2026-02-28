@@ -15,6 +15,15 @@ export const AZURE_INHERITED_3_10_CONTROL_IDS = [
   "3.10.5",
 ] as const;
 
+/** Display list for the Cloud hosting card (control ID + title). */
+export const AZURE_INHERITED_3_10_BASELINE: { controlId: string; title: string }[] = [
+  { controlId: "3.10.1", title: "Physical Access Authorizations" },
+  { controlId: "3.10.2", title: "Physical Access Control" },
+  { controlId: "3.10.3", title: "Escort of Visitors / Visitor Access Records" },
+  { controlId: "3.10.4", title: "Visitor Physical Access" },
+  { controlId: "3.10.5", title: "Physical Access Monitoring" },
+];
+
 /**
  * Applies or clears inherited status for controls 3.10.1–3.10.5 based on
  * whether any boundary in the org has Microsoft or Azure cloud hosting.

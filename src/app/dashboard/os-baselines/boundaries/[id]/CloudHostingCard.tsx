@@ -2,8 +2,18 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Cloud, Shield, PlusCircle, Building2, ChevronDown, ChevronRight, Upload } from "lucide-react";
 import { AZURE_ENTRA_BASELINE } from "@/lib/compliance/azure-entra-controls";
+import { AZURE_INHERITED_3_10_BASELINE } from "@/lib/compliance/azure-inherited-controls";
+
+type ImportResult = {
+  findings_count: number;
+  passed_count: number;
+  failed_count: number;
+  poam_entries_created: number;
+  controls_marked_partial: number;
+} | null;
 
 function AzureEntraBulkUpload({ boundaryId }: { boundaryId: string }) {
   const router = useRouter();
@@ -12,10 +22,12 @@ function AzureEntraBulkUpload({ boundaryId }: { boundaryId: string }) {
   const [collectedAt, setCollectedAt] = useState("");
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<ImportResult>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setResult(null);
     if (!file || !runId.trim() || !collectedAt.trim()) {
       setError("Run ID, collected date, and report file are required.");
       return;
@@ -42,6 +54,13 @@ function AzureEntraBulkUpload({ boundaryId }: { boundaryId: string }) {
         setError(data.error ?? "Upload failed");
         return;
       }
+      setResult({
+        findings_count: data.findings_count ?? 0,
+        passed_count: data.passed_count ?? 0,
+        failed_count: data.failed_count ?? 0,
+        poam_entries_created: data.poam_entries_created ?? 0,
+        controls_marked_partial: data.controls_marked_partial ?? 0,
+      });
       setFile(null);
       setRunId("");
       setCollectedAt("");
@@ -107,6 +126,64 @@ function AzureEntraBulkUpload({ boundaryId }: { boundaryId: string }) {
         </button>
       </form>
       {error && <p className="mt-2 text-sm text-[var(--color-status-red)]">{error}</p>}
+      {result && (
+        <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-4">
+          <p className="font-medium text-green-800">Report imported successfully</p>
+          <p className="mt-1 text-sm text-green-700">
+            {result.findings_count} check{result.findings_count !== 1 ? "s" : ""} processed:{" "}
+            <span className="font-medium">{result.passed_count} passed</span>
+            {result.failed_count > 0 && (
+              <>, <span className="font-medium text-amber-700">{result.failed_count} failed</span></>
+            )}
+            .
+          </p>
+          {result.poam_entries_created > 0 && (
+            <p className="mt-2 text-sm text-green-700">
+              {result.poam_entries_created} POA&M entr{result.poam_entries_created === 1 ? "y" : "ies"} created for controls that failed or are satisfied only by attestation.
+              <Link
+                href="/dashboard/poam"
+                className="ml-1 font-medium text-green-800 underline hover:no-underline"
+              >
+                View POA&M
+              </Link>
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AzureInheritedCollapsible() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="mt-4">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center gap-2 rounded-lg border border-[var(--color-border-muted)] bg-[var(--color-gray-50)]/50 px-3 py-2 text-left text-sm font-medium text-[var(--color-gray-700)] hover:bg-[var(--color-gray-100)]/50"
+      >
+        {open ? (
+          <ChevronDown className="h-4 w-4 shrink-0" aria-hidden />
+        ) : (
+          <ChevronRight className="h-4 w-4 shrink-0" aria-hidden />
+        )}
+        <Shield className="h-4 w-4 text-[var(--color-blue-accent)]" aria-hidden />
+        Azure Inherited (5) controls
+      </button>
+      {open && (
+        <ul className="mt-2 space-y-2 border-t border-[var(--color-border-muted)] pt-2" role="list">
+          {AZURE_INHERITED_3_10_BASELINE.map((entry) => (
+            <li
+              key={entry.controlId}
+              className="rounded-lg border border-[var(--color-border-muted)] bg-[var(--color-gray-50)]/50 px-3 py-2 text-sm"
+            >
+              <span className="font-medium text-[var(--color-gray-700)]">{entry.controlId}</span>
+              <span className="ml-2 text-[var(--color-gray-600)]">{entry.title}</span>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
@@ -219,6 +296,7 @@ export function CloudHostingCard({
         </p>
         {(cloudProvider === "microsoft" || cloudProvider === "azure") && (
           <>
+            <AzureInheritedCollapsible />
             <AzureControlsCollapsible />
             <AzureEntraBulkUpload boundaryId={boundaryId} />
           </>

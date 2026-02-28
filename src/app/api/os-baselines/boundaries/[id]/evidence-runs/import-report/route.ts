@@ -142,6 +142,9 @@ export async function POST(
     );
   }
 
+  const passedCount = checks.filter((c) => c.pass).length;
+  const failedCount = checks.filter((c) => !c.pass).length;
+
   const controlIdsNeedingPoam = new Set<string>();
   for (const c of checks) {
     const nistId = controlIdToNist(c.control);
@@ -241,6 +244,8 @@ export async function POST(
     evidence_run_id: run.id,
     run_id: body.run_id,
     findings_count: checks.length,
+    passed_count: passedCount,
+    failed_count: failedCount,
     poam_entries_created: poamCreated,
     controls_marked_partial: controlIdsNeedingPoam.size,
   });
