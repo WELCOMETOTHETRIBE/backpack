@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, Diagram } from "lucide-react";
+import { X, Network } from "lucide-react";
 import { BoundaryDiagramCreator } from "@/components/adjudication/BoundaryDiagramCreator";
 
 export function BoundaryDiagramModal() {
@@ -14,7 +14,7 @@ export function BoundaryDiagramModal() {
         onClick={() => setOpen(true)}
         className="inline-flex items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 text-sm font-medium text-[var(--color-gray-700)] shadow-sm hover:bg-[var(--color-gray-50)]"
       >
-        <Diagram className="h-4 w-4" />
+        <Network className="h-4 w-4" />
         Create boundary diagram (Mermaid)
       </button>
       {open && (
