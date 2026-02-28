@@ -19,8 +19,8 @@ import {
   validateBoundaryInput,
   isServiceActive,
   allocateControls,
-  ValidationError,
 } from "../index";
+import { ValidationError } from "../types";
 import type { ControlRegistryItem, BoundaryInput } from "../types";
 
 const DATA_DIR = path.join(

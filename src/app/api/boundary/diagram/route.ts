@@ -1,32 +1,64 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { boundaryProfiles } from "@/db/schema";
+import { accountBoundary } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireOrg, requireRole } from "@/lib/auth";
-import { generateMermaidSource } from "@/lib/compliance/diagram-generator";
+import type { BoundaryInput } from "@/boundary-engine";
+import { generateDiagramSpec } from "@/lib/boundary-diagram/generateSpec";
+import { renderMermaid } from "@/lib/boundary-diagram/renderMermaid";
+import type { DiagramMode } from "@/lib/boundary-diagram/types";
+
+function normalizeEnvironmentKey(environment: string | undefined): "government" | "commercial" {
+  const env = (environment ?? "").toLowerCase();
+  if (env.includes("gov") || env.includes("government")) return "government";
+  return "commercial";
+}
 
 /**
- * GET /api/boundary/diagram
- * Returns Mermaid source for the current org's boundary profile.
+ * GET /api/boundary/diagram?mode=executive|assessor
+ * Returns diagram spec and Mermaid source from the account's BoundaryInput.
  * Client renders with mermaid package (no server-side SVG).
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const orgId = await requireOrg();
     await requireRole(["Admin", "Compliance", "Assessor"]);
 
+    const { searchParams } = new URL(request.url);
+    const modeParam = searchParams.get("mode") ?? "executive";
+    const mode: DiagramMode =
+      modeParam === "assessor" ? "assessor" : "executive";
+    const overlay = searchParams.get("overlay") === "on";
+
     const [row] = await db
-      .select({ selectedTechnologies: boundaryProfiles.selectedTechnologies })
-      .from(boundaryProfiles)
-      .where(eq(boundaryProfiles.organizationId, orgId))
+      .select({ boundaryInputJson: accountBoundary.boundaryInputJson })
+      .from(accountBoundary)
+      .where(eq(accountBoundary.accountId, orgId))
       .limit(1);
 
-    const profile = (row?.selectedTechnologies ?? []) as string[];
-    const mermaidSource = generateMermaidSource(profile);
+    if (!row) {
+      return NextResponse.json({
+        spec: null,
+        mermaid: "",
+        error: "No boundary defined",
+      });
+    }
 
-    return NextResponse.json({ mermaidSource });
+    const boundary = row.boundaryInputJson as unknown as BoundaryInput;
+    const environment = normalizeEnvironmentKey(boundary.environment);
+
+    const spec = generateDiagramSpec({
+      boundary,
+      environment,
+      mode,
+      overlay,
+    });
+    const mermaid = renderMermaid(spec);
+
+    return NextResponse.json({ spec, mermaid });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Failed to get diagram";
-    return NextResponse.json({ error: message }, { status: 401 });
+    const status = e instanceof Error && "code" in e ? 400 : 401;
+    return NextResponse.json({ error: message, spec: null, mermaid: "" }, { status });
   }
 }

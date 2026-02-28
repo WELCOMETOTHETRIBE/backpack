@@ -1,9 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { generateMermaidSource } from "@/lib/compliance/diagram-generator";
+import Link from "next/link";
 import { BOUNDARY_TECHNOLOGY_OPTIONS } from "@/lib/compliance/technical_evidence_requirements";
-import { Check, Copy, Sparkles } from "lucide-react";
+import type { DiagramSpec } from "@/lib/boundary-diagram/types";
+import { Check, Copy, Download, Sparkles, AlertTriangle } from "lucide-react";
+
+type DiagramMode = "executive" | "assessor";
 
 export function BoundaryDiagramCreator() {
   const [selectedTechnologies, setSelectedTechnologies] = useState<string[]>([]);
@@ -12,6 +15,14 @@ export function BoundaryDiagramCreator() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [diagramMode, setDiagramMode] = useState<DiagramMode>("executive");
+  const [controlOverlay, setControlOverlay] = useState(false);
+  const [diagramData, setDiagramData] = useState<{
+    spec: DiagramSpec | null;
+    mermaid: string;
+    error?: string;
+  } | null>(null);
+  const [diagramLoading, setDiagramLoading] = useState(true);
   const diagramRef = useRef<HTMLDivElement>(null);
 
   const fetchProfile = useCallback(async () => {
@@ -27,9 +38,31 @@ export function BoundaryDiagramCreator() {
     }
   }, []);
 
+  const fetchDiagram = useCallback(async () => {
+    setDiagramLoading(true);
+    try {
+      const overlayParam = controlOverlay ? "&overlay=on" : "";
+      const res = await fetch(
+        `/api/boundary/diagram?mode=${diagramMode}${overlayParam}`
+      );
+      const data = await res.json();
+      setDiagramData({
+        spec: data.spec ?? null,
+        mermaid: data.mermaid ?? "",
+        error: data.error,
+      });
+    } finally {
+      setDiagramLoading(false);
+    }
+  }, [diagramMode, controlOverlay]);
+
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
+
+  useEffect(() => {
+    fetchDiagram();
+  }, [fetchDiagram]);
 
   const persistProfile = useCallback(async (tech: string[]) => {
     setSaving(true);
@@ -75,7 +108,9 @@ export function BoundaryDiagramCreator() {
     persistProfile([...set]);
   }
 
-  const mermaidSource = generateMermaidSource(selectedTechnologies);
+  const mermaidSource = diagramData?.mermaid ?? "";
+  const spec = diagramData?.spec ?? null;
+  const noBoundary = spec === null && diagramData !== null;
 
   useEffect(() => {
     if (!diagramRef.current || !mermaidSource) return;
@@ -105,6 +140,19 @@ export function BoundaryDiagramCreator() {
     });
   }, [mermaidSource]);
 
+  const downloadJson = useCallback(() => {
+    if (!spec) return;
+    const blob = new Blob([JSON.stringify(spec, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "boundary-diagram-spec.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [spec]);
+
   if (loading) {
     return (
       <div className="flex min-h-[200px] items-center justify-center rounded-xl border border-slate-200 bg-white p-6">
@@ -125,7 +173,7 @@ export function BoundaryDiagramCreator() {
               CUI Boundary Diagram Creator
             </h2>
             <p className="text-xs text-slate-500">
-              Describe your environment or pick technologies to define your CUI boundary. The diagram updates as you select.
+              Describe your environment or pick technologies to define your CUI boundary. The diagram is generated from your account boundary (Boundary page).
             </p>
           </div>
         </div>
@@ -190,24 +238,176 @@ export function BoundaryDiagramCreator() {
           </div>
         </div>
         <div className="flex flex-col">
-          <div className="mb-2 flex items-center justify-between">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
             <p className="text-xs font-medium uppercase tracking-wider text-slate-500">
               CUI boundary diagram
             </p>
-            <button
-              type="button"
-              onClick={copyMermaidToClipboard}
-              disabled={!mermaidSource}
-              className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-600 hover:bg-slate-50 disabled:opacity-50"
-            >
-              <Copy className="h-3.5 w-3.5" />
-              {copySuccess ? "Copied" : "Copy Mermaid"}
-            </button>
+            <div className="flex items-center gap-2">
+              <div
+                className="inline-flex rounded-lg border border-slate-200 bg-slate-50/80 p-0.5"
+                role="tablist"
+                aria-label="Diagram mode"
+              >
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={diagramMode === "executive"}
+                  onClick={() => setDiagramMode("executive")}
+                  className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
+                    diagramMode === "executive"
+                      ? "bg-white text-slate-800 shadow-sm"
+                      : "text-slate-600 hover:text-slate-800"
+                  }`}
+                >
+                  Executive
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={diagramMode === "assessor"}
+                  onClick={() => setDiagramMode("assessor")}
+                  className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
+                    diagramMode === "assessor"
+                      ? "bg-white text-slate-800 shadow-sm"
+                      : "text-slate-600 hover:text-slate-800"
+                  }`}
+                >
+                  Assessor
+                </button>
+              </div>
+              <div
+                className="inline-flex rounded-lg border border-slate-200 bg-slate-50/80 p-0.5"
+                role="group"
+                aria-label="Control overlay"
+              >
+                <button
+                  type="button"
+                  onClick={() => setControlOverlay(false)}
+                  className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
+                    !controlOverlay
+                      ? "bg-white text-slate-800 shadow-sm"
+                      : "text-slate-600 hover:text-slate-800"
+                  }`}
+                >
+                  Overlay: Off
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setControlOverlay(true)}
+                  className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
+                    controlOverlay
+                      ? "bg-white text-slate-800 shadow-sm"
+                      : "text-slate-600 hover:text-slate-800"
+                  }`}
+                >
+                  Overlay: On
+                </button>
+              </div>
+              <div className="flex gap-1">
+                <button
+                  type="button"
+                  onClick={copyMermaidToClipboard}
+                  disabled={!mermaidSource}
+                  className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                  {copySuccess ? "Copied" : "Copy Mermaid"}
+                </button>
+                <button
+                  type="button"
+                  onClick={downloadJson}
+                  disabled={!spec}
+                  className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  Download JSON
+                </button>
+              </div>
+            </div>
           </div>
-          <div
-            ref={diagramRef}
-            className="min-h-[280px] rounded-xl border border-slate-200 bg-gradient-to-b from-slate-50/80 to-white p-5 [&_.mermaid]:flex [&_.mermaid]:justify-center [&_.mermaid_svg]:max-w-full"
-          />
+          {diagramMode === "assessor" && spec && (
+            <div className="mb-3 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50/80 px-3 py-2 text-xs text-amber-900">
+              <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+              <p>
+                This diagram is generated from boundary inputs and assumptions. Confirm administrative path and external connections.
+              </p>
+            </div>
+          )}
+          {diagramLoading ? (
+            <div className="min-h-[280px] flex items-center justify-center rounded-xl border border-slate-200 bg-slate-50/50">
+              <p className="text-sm text-slate-600">Loading diagram…</p>
+            </div>
+          ) : noBoundary ? (
+            <div className="min-h-[280px] flex flex-col items-center justify-center gap-3 rounded-xl border border-slate-200 bg-slate-50/50 p-6 text-center">
+              <p className="text-sm text-slate-600">
+                Define your boundary on the Boundary page to generate the diagram.
+              </p>
+              <Link
+                href="/boundary"
+                className="text-sm font-medium text-slate-800 underline hover:no-underline"
+              >
+                Go to Boundary page
+              </Link>
+            </div>
+          ) : (
+            <div
+              ref={diagramRef}
+              className="min-h-[280px] rounded-xl border border-slate-200 bg-gradient-to-b from-slate-50/80 to-white p-5 [&_.mermaid]:flex [&_.mermaid]:justify-center [&_.mermaid_svg]:max-w-full"
+            />
+          )}
+          {diagramMode === "assessor" && spec && spec.external_connections.length > 0 && (
+            <div className="mt-4">
+              <h3 className="mb-2 text-sm font-semibold text-slate-800">
+                External connections
+              </h3>
+              <div className="overflow-x-auto rounded-lg border border-slate-200">
+                <table className="w-full min-w-[640px] text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-slate-200 bg-slate-50">
+                      <th className="px-3 py-2 font-medium text-slate-700">Source</th>
+                      <th className="px-3 py-2 font-medium text-slate-700">Destination</th>
+                      <th className="px-3 py-2 font-medium text-slate-700">Purpose</th>
+                      <th className="px-3 py-2 font-medium text-slate-700">Protocol / Ports</th>
+                      <th className="px-3 py-2 font-medium text-slate-700">Encryption</th>
+                      <th className="px-3 py-2 font-medium text-slate-700">Auth</th>
+                      <th className="px-3 py-2 font-medium text-slate-700">Approval</th>
+                      <th className="px-3 py-2 font-medium text-slate-700">Controls hint</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {spec.external_connections.map((row) => (
+                      <tr key={row.connection_id} className="border-b border-slate-100">
+                        <td className="px-3 py-2 text-slate-600">{row.source_zone}</td>
+                        <td className="px-3 py-2 text-slate-600">{row.dest_zone}</td>
+                        <td className="px-3 py-2 text-slate-700">{row.purpose}</td>
+                        <td className="px-3 py-2 text-slate-600">{row.protocol_ports}</td>
+                        <td className="px-3 py-2 text-slate-600">{row.encryption}</td>
+                        <td className="px-3 py-2 text-slate-600">{row.auth}</td>
+                        <td className="px-3 py-2 text-slate-600">
+                          {row.approval_required ? "Yes" : "No"}
+                        </td>
+                        <td className="px-3 py-2 text-slate-600">
+                          {row.controls_hint.join(", ")}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+          {diagramMode === "assessor" && spec && spec.assumptions.length > 0 && (
+            <div className="mt-4">
+              <h3 className="mb-2 text-sm font-semibold text-slate-800">
+                Assumptions
+              </h3>
+              <ul className="list-inside list-disc space-y-1 text-xs text-slate-600">
+                {spec.assumptions.map((a, i) => (
+                  <li key={i}>{a}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       </div>
     </div>
