@@ -10,7 +10,6 @@ import { EditBoundaryForm } from "./EditBoundaryForm";
 import { CloudHostingCard } from "./CloudHostingCard";
 import { DeleteBoundaryButton } from "./DeleteBoundaryButton";
 import { DeleteAssetButton } from "./DeleteAssetButton";
-import { AzureEntraEvidenceCard } from "./AzureEntraEvidenceCard";
 
 export default async function BoundaryDetailPage({
   params,
@@ -113,10 +112,6 @@ export default async function BoundaryDetailPage({
           cloudProvider={boundary.cloudProvider}
           azureEnvironment={boundary.azureEnvironment}
         />
-
-        {(boundary.cloudProvider === "microsoft" || boundary.cloudProvider === "azure") && (
-          <AzureEntraEvidenceCard boundaryId={id} />
-        )}
 
         <section className={cardClass}>
           <h2 className="text-lg font-semibold text-[var(--color-gray-800)]">

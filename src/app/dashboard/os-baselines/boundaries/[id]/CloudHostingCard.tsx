@@ -2,8 +2,148 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Cloud, Shield, PlusCircle, Building2 } from "lucide-react";
+import { Cloud, Shield, PlusCircle, Building2, ChevronDown, ChevronRight, Upload } from "lucide-react";
 import { AZURE_ENTRA_BASELINE } from "@/lib/compliance/azure-entra-controls";
+
+function AzureEntraBulkUpload({ boundaryId }: { boundaryId: string }) {
+  const router = useRouter();
+  const [file, setFile] = useState<File | null>(null);
+  const [runId, setRunId] = useState("");
+  const [collectedAt, setCollectedAt] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    if (!file || !runId.trim() || !collectedAt.trim()) {
+      setError("Run ID, collected date, and report file are required.");
+      return;
+    }
+    setUploading(true);
+    try {
+      const text = await file.text();
+      const report = JSON.parse(text) as unknown;
+      if (!report || typeof report !== "object" || !(report as Record<string, unknown>).validator || !Array.isArray((report as Record<string, unknown>).checks)) {
+        setError("File must be a validation report JSON (validator + checks).");
+        return;
+      }
+      const res = await fetch(`/api/os-baselines/boundaries/${boundaryId}/evidence-runs/import-report`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          run_id: runId.trim(),
+          collected_at: collectedAt.trim(),
+          report,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error ?? "Upload failed");
+        return;
+      }
+      setFile(null);
+      setRunId("");
+      setCollectedAt("");
+      if (typeof document !== "undefined" && document.getElementById("azure-entra-report-file")) {
+        (document.getElementById("azure-entra-report-file") as HTMLInputElement).value = "";
+      }
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  return (
+    <div className="mt-4 rounded-lg border border-[var(--color-border-muted)] bg-[var(--color-gray-50)]/30 p-4">
+      <p className="flex items-center gap-2 text-sm font-medium text-[var(--color-gray-700)]">
+        <Upload className="h-4 w-4" aria-hidden />
+        Upload validation report
+      </p>
+      <p className="mt-0.5 text-xs text-[var(--color-gray-600)]">
+        Upload <code className="rounded bg-[var(--color-gray-200)] px-1">validation-report-azure-entra.json</code> from the validator for bulk ingest.
+      </p>
+      <form onSubmit={handleSubmit} className="mt-3 flex flex-wrap items-end gap-3">
+        <div className="min-w-[180px]">
+          <label className="block text-xs font-medium text-[var(--color-gray-600)]">Report file (JSON)</label>
+          <input
+            id="azure-entra-report-file"
+            type="file"
+            accept=".json,application/json"
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            className="mt-1 block w-full text-sm text-[var(--color-gray-600)] file:mr-2 file:rounded file:border-0 file:bg-[var(--color-gray-800)] file:px-3 file:py-1 file:text-white file:text-xs"
+            disabled={uploading}
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-[var(--color-gray-600)]">Run ID</label>
+          <input
+            type="text"
+            value={runId}
+            onChange={(e) => setRunId(e.target.value)}
+            placeholder="e.g. AzureEntra-20260214-210217"
+            className="mt-1 w-48 rounded border border-[var(--color-border)] px-2 py-1.5 text-sm"
+            disabled={uploading}
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-[var(--color-gray-600)]">Collected at</label>
+          <input
+            type="datetime-local"
+            value={collectedAt}
+            onChange={(e) => setCollectedAt(e.target.value)}
+            className="mt-1 rounded border border-[var(--color-border)] px-2 py-1.5 text-sm"
+            disabled={uploading}
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={uploading || !file || !runId.trim() || !collectedAt.trim()}
+          className="rounded-lg bg-[var(--color-blue-accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+        >
+          {uploading ? "Uploading…" : "Upload"}
+        </button>
+      </form>
+      {error && <p className="mt-2 text-sm text-[var(--color-status-red)]">{error}</p>}
+    </div>
+  );
+}
+
+function AzureControlsCollapsible() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="mt-4">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center gap-2 rounded-lg border border-[var(--color-border-muted)] bg-[var(--color-gray-50)]/50 px-3 py-2 text-left text-sm font-medium text-[var(--color-gray-700)] hover:bg-[var(--color-gray-100)]/50"
+      >
+        {open ? (
+          <ChevronDown className="h-4 w-4 shrink-0" aria-hidden />
+        ) : (
+          <ChevronRight className="h-4 w-4 shrink-0" aria-hidden />
+        )}
+        <Shield className="h-4 w-4 text-[var(--color-blue-accent)]" aria-hidden />
+        Azure/Entra baseline — 7 controls
+      </button>
+      {open && (
+        <ul className="mt-2 space-y-2 border-t border-[var(--color-border-muted)] pt-2" role="list">
+          {AZURE_ENTRA_BASELINE.map((entry) => (
+            <li
+              key={entry.controlId}
+              className="rounded-lg border border-[var(--color-border-muted)] bg-[var(--color-gray-50)]/50 px-3 py-2 text-sm"
+            >
+              <span className="font-medium text-[var(--color-gray-700)]">{entry.controlId}</span>
+              <span className="ml-2 text-[var(--color-gray-600)]">{entry.title}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
 
 type CloudProviderValue = "microsoft" | "google" | "azure";
 
@@ -78,23 +218,10 @@ export function CloudHostingCard({
           )}
         </p>
         {(cloudProvider === "microsoft" || cloudProvider === "azure") && (
-          <div className="mt-4">
-            <p className="flex items-center gap-2 text-sm font-medium text-[var(--color-gray-700)]">
-              <Shield className="h-4 w-4 text-[var(--color-blue-accent)]" aria-hidden />
-              Azure/Entra baseline — 7 controls
-            </p>
-            <ul className="mt-2 space-y-2" role="list">
-              {AZURE_ENTRA_BASELINE.map((entry) => (
-                <li
-                  key={entry.controlId}
-                  className="rounded-lg border border-[var(--color-border-muted)] bg-[var(--color-gray-50)]/50 px-3 py-2 text-sm"
-                >
-                  <span className="font-medium text-[var(--color-gray-700)]">{entry.controlId}</span>
-                  <span className="ml-2 text-[var(--color-gray-600)]">{entry.title}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <>
+            <AzureControlsCollapsible />
+            <AzureEntraBulkUpload boundaryId={boundaryId} />
+          </>
         )}
       </section>
     );
@@ -107,7 +234,7 @@ export function CloudHostingCard({
         Cloud hosting
       </h2>
       <p className="mt-1 text-sm text-[var(--color-gray-600)]">
-        Identify the cloud provider for this boundary (e.g. Azure) to attach Azure/Entra control evidence.
+        Identify the cloud provider for this boundary to attach platform control evidence.
       </p>
       <button
         type="button"
