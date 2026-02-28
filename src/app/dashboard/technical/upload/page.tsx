@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft, Upload } from "lucide-react";
 
 type Asset = {
@@ -17,6 +17,8 @@ type Asset = {
 
 export default function TechnicalUploadPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const assetIdFromUrl = searchParams.get("assetId") ?? "";
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loadingAssets, setLoadingAssets] = useState(true);
   const [systemId, setSystemId] = useState("");
@@ -25,6 +27,7 @@ export default function TechnicalUploadPage() {
   const [manifestFile, setManifestFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const hasPreselected = useRef(false);
 
   useEffect(() => {
     fetch("/api/os-baselines/assets")
@@ -32,6 +35,23 @@ export default function TechnicalUploadPage() {
       .then(setAssets)
       .finally(() => setLoadingAssets(false));
   }, []);
+
+  useEffect(() => {
+    if (loadingAssets || !assetIdFromUrl || hasPreselected.current || assets.length === 0) return;
+    const match = assets.find((a) => a.id === assetIdFromUrl);
+    if (match) {
+      setSystemId(match.id);
+      hasPreselected.current = true;
+    }
+  }, [assets, assetIdFromUrl, loadingAssets]);
+
+  /** Detect 73-check validation report (validator + checks array). */
+  function isValidationReport(parsed: Record<string, unknown>): boolean {
+    if (!parsed?.validator || typeof parsed.validator !== "object") return false;
+    if (!Array.isArray(parsed.checks)) return false;
+    const first = parsed.checks[0];
+    return first != null && typeof first === "object" && "control" in first && "pass" in (first as Record<string, unknown>);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -41,43 +61,57 @@ export default function TechnicalUploadPage() {
       return;
     }
     if (!manifestFile) {
-      setError("Please select a manifest JSON file.");
+      setError("Please select a manifest JSON file or 73-check validation report.");
       return;
     }
 
-    let body: {
-      system_id: string;
-      run_id: string;
-      collected_at: string;
-      files: Array<{ path: string; sha256: string; size_bytes: number }>;
-      collector_name?: string;
-      collector_version?: string;
-      bundle_root?: string;
-      manifest?: unknown;
-    };
+    let body: Record<string, unknown>;
 
     try {
       const text = await manifestFile.text();
       const parsed = JSON.parse(text) as Record<string, unknown>;
-      const files = Array.isArray(parsed.files)
-        ? (parsed.files as Array<{ path: string; sha256: string; size_bytes: number }>)
-        : [];
-      if (files.length === 0) {
-        setError("Manifest JSON must contain a 'files' array with objects { path, sha256, size_bytes }.");
-        return;
+
+      if (isValidationReport(parsed)) {
+        // 73-check validation report: POST as report import
+        body = {
+          system_id: systemId.trim(),
+          run_id: runId.trim(),
+          collected_at: collectedAt.trim(),
+          source: "windows_server_hardening",
+          report: {
+            validator: parsed.validator,
+            inputs: parsed.inputs ?? [],
+            checks: parsed.checks,
+            ...(parsed.manifest_metadata && { manifest_metadata: parsed.manifest_metadata }),
+            ...(parsed.summary && { summary: parsed.summary }),
+          },
+        };
+      } else {
+        // Legacy manifest: require files array
+        const files = Array.isArray(parsed.files)
+          ? (parsed.files as Array<{ path: string; sha256: string; size_bytes: number }>)
+          : [];
+        if (files.length === 0) {
+          setError(
+            "Manifest JSON must contain a 'files' array with objects { path, sha256, size_bytes }, or upload a 73-check validation report (validation-report-windows-hardening.json) with validator and checks."
+          );
+          return;
+        }
+        body = {
+          system_id: systemId.trim(),
+          run_id: runId.trim(),
+          collected_at: collectedAt.trim(),
+          files,
+          collector_name: (parsed.collector_name as string) ?? "upload",
+          collector_version: (parsed.collector_version as string) ?? "1",
+          bundle_root: (parsed.bundle_root as string) ?? undefined,
+          manifest: parsed.manifest ?? {},
+        };
       }
-      body = {
-        system_id: systemId.trim(),
-        run_id: runId.trim(),
-        collected_at: collectedAt.trim(),
-        files,
-        collector_name: (parsed.collector_name as string) ?? "upload",
-        collector_version: (parsed.collector_version as string) ?? "1",
-        bundle_root: (parsed.bundle_root as string) ?? undefined,
-        manifest: parsed.manifest ?? {},
-      };
     } catch {
-      setError("Invalid JSON in manifest file. Expected { files: [{ path, sha256, size_bytes }, ...] }.");
+      setError(
+        "Invalid JSON. Use either a manifest with a 'files' array or a 73-check validation report (validator + checks)."
+      );
       return;
     }
 
@@ -93,7 +127,11 @@ export default function TechnicalUploadPage() {
         setError(data.error ?? `Upload failed (${res.status})`);
         return;
       }
-      router.push("/dashboard/technical");
+      if (systemId.trim()) {
+        router.push(`/dashboard/os-baselines/assets/${systemId.trim()}`);
+      } else {
+        router.push("/dashboard/technical");
+      }
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");
@@ -123,7 +161,7 @@ export default function TechnicalUploadPage() {
             Upload evidence bundle
           </h1>
           <p className="mt-1 text-sm text-[var(--color-gray-600)]">
-            Provide manifest metadata and a JSON manifest file listing files in the bundle (path, sha256, size_bytes). Use the manifest from your evidence run—e.g. inside the run folder, <code className="rounded bg-[var(--color-gray-100)] px-1">meta/manifest.json</code>. Do not upload the zip; upload that .json file. The system will create a run and adjudicate controls for the selected asset.
+            Upload either (1) a <strong>manifest.json</strong> with a <code className="rounded bg-[var(--color-gray-100)] px-1">files</code> array (path, sha256, size_bytes), or (2) a <strong>73-check validation report</strong> (<code className="rounded bg-[var(--color-gray-100)] px-1">validation-report-windows-hardening.json</code>) from the validator. The report path creates a run with pass/partial/fail per control and populates the asset’s Applicable technical controls with observed, expected, and evidence files used.
           </p>
         </div>
 
@@ -200,10 +238,10 @@ export default function TechnicalUploadPage() {
               </div>
               <div>
                 <label htmlFor="manifest" className="block text-sm font-medium text-[var(--color-gray-700)]">
-                  Manifest JSON file
+                  Manifest or validation report
                 </label>
                 <p className="mt-0.5 text-xs text-[var(--color-gray-500)]">
-                  Choose the <strong>manifest.json</strong> from your evidence run (e.g. <code className="rounded bg-[var(--color-gray-100)] px-1">meta/manifest.json</code>). JSON must have a <code className="rounded bg-[var(--color-gray-100)] px-1">files</code> array: {"[{ path, sha256, size_bytes }, ...]"}
+                  Choose <strong>manifest.json</strong> (with a <code className="rounded bg-[var(--color-gray-100)] px-1">files</code> array) or the <strong>73-check report</strong> (<code className="rounded bg-[var(--color-gray-100)] px-1">validation-report-windows-hardening.json</code>) from your evidence run.
                 </p>
                 <input
                   id="manifest"
