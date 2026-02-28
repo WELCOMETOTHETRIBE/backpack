@@ -155,11 +155,43 @@ function cleanDiscussion(s: string): string {
     .trim();
 }
 
+/** Max length for control title (display in mock assessment, lists). */
+const TITLE_MAX_LEN = 120;
+
+/**
+ * Derive a short display title from the requirement text.
+ * Avoids ingesting run-on text (e.g. "...; and finally followed by the") by stopping at
+ * first sentence, semicolon, or " and " / " and finally", then capping length at word boundary.
+ */
 function deriveTitle(requirementText: string): string {
   const firstLine = requirementText.split("\n")[0].trim();
-  if (firstLine.length > 0 && firstLine.length <= 200) return firstLine;
-  if (requirementText.length <= 200) return requirementText;
-  return requirementText.slice(0, 197).trim() + "...";
+  if (!firstLine) {
+    const fallback = requirementText.trim().slice(0, TITLE_MAX_LEN);
+    return truncateAtWord(fallback, TITLE_MAX_LEN);
+  }
+  // Stop at first sentence or clause that often starts run-on text
+  let title = firstLine
+    .split(/[.;](?=\s|$)/)[0]
+    .trim();
+  if (!title) title = firstLine;
+  const runOnMarkers = [
+    /\s+and\s+finally\s+/i,
+    /\s+;?\s*and\s+finally\s+/i,
+    /,\s*meant to be used for quick reference only[^.]*$/i,
+  ];
+  for (const re of runOnMarkers) {
+    const idx = title.search(re);
+    if (idx > 10) title = title.slice(0, idx).trim();
+  }
+  return truncateAtWord(title, TITLE_MAX_LEN);
+}
+
+function truncateAtWord(s: string, maxLen: number): string {
+  if (s.length <= maxLen) return s;
+  const cut = s.slice(0, maxLen + 1);
+  const lastSpace = cut.lastIndexOf(" ");
+  if (lastSpace > maxLen * 0.6) return cut.slice(0, lastSpace).trim();
+  return cut.slice(0, maxLen).trim();
 }
 
 async function main() {

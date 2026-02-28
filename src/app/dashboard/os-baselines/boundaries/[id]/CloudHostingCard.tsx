@@ -20,6 +20,7 @@ function AzureEntraBulkUpload({ boundaryId }: { boundaryId: string }) {
   const [file, setFile] = useState<File | null>(null);
   const [runId, setRunId] = useState("");
   const [collectedAt, setCollectedAt] = useState("");
+  const [replaceExisting, setReplaceExisting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ImportResult>(null);
@@ -47,6 +48,7 @@ function AzureEntraBulkUpload({ boundaryId }: { boundaryId: string }) {
           run_id: runId.trim(),
           collected_at: collectedAt.trim(),
           report,
+          replace_existing: replaceExisting,
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -117,6 +119,16 @@ function AzureEntraBulkUpload({ boundaryId }: { boundaryId: string }) {
             disabled={uploading}
           />
         </div>
+        <label className="flex items-center gap-2 text-sm text-[var(--color-gray-600)]">
+          <input
+            type="checkbox"
+            checked={replaceExisting}
+            onChange={(e) => setReplaceExisting(e.target.checked)}
+            disabled={uploading}
+            className="h-4 w-4 rounded border-[var(--color-border)] text-[var(--color-blue-accent)]"
+          />
+          Replace if already imported
+        </label>
         <button
           type="submit"
           disabled={uploading || !file || !runId.trim() || !collectedAt.trim()}

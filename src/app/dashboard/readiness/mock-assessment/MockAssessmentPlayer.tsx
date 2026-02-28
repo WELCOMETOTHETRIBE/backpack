@@ -29,6 +29,17 @@ export default function MockAssessmentPlayer({
   const currentControl = controls[currentIndex];
   const isLast = currentIndex >= controls.length - 1;
 
+  /** Show a concise control title; avoid run-on text from bad parse (e.g. "; and finally followed by the"). */
+  const displayTitle = (() => {
+    const t = currentControl?.title ?? "";
+    const maxLen = 100;
+    const runOn = t.replace(/,?\s*meant to be used for quick reference only[^.]*$/i, "").trim();
+    const noRunOn = runOn.replace(/\s*;?\s*and\s+finally\s+followed by[^.]*$/i, "").trim();
+    if (noRunOn.length <= maxLen) return noRunOn;
+    const atWord = noRunOn.slice(0, maxLen + 1).replace(/\s+\S*$/, "");
+    return atWord.length > 20 ? atWord : noRunOn.slice(0, maxLen);
+  })();
+
   useEffect(() => {
     if (!currentControl) {
       setLoadingQuestion(false);
@@ -158,7 +169,7 @@ export default function MockAssessmentPlayer({
         Control {currentIndex + 1} of {controls.length}
       </p>
       <h2 className="mb-2 text-xl font-semibold text-[#0F172A]">
-        {currentControl.controlId} — {currentControl.title}
+        {currentControl.controlId} — {displayTitle}
       </h2>
 
       {loadingQuestion ? (

@@ -49,6 +49,13 @@ All tenant data is partitioned by `organization_id`. The system does not pull ev
    ```
    Sign in at `/auth/signin`, then use Dashboard, Controls, POA&M, Evidence, Governance. Assessor role gets read-only `/assessor`.
 
+5. **Deploy (e.g. Railway)**  
+   Set `DATABASE_URL` in the project variables. To run migrations on each deploy (required for new schema changes like `poam_entries.closed_at`), set **Release Command** to:
+   ```bash
+   npm run release
+   ```
+   That runs `db:migrate` before the new instance starts. If you deploy without a release command, run migrations once against production: `railway run npm run db:migrate` (with the project linked to production).
+
 ## Modules (mapping to end-state)
 
 | # | Module | Capabilities |

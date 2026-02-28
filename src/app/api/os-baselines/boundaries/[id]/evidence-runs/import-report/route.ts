@@ -28,6 +28,8 @@ type ReportBody = {
   run_id: string;
   collected_at: string; // ISO
   report: unknown;
+  /** If true and this report was already imported (same fingerprint), delete the existing run and re-import. */
+  replace_existing?: boolean;
 };
 
 /**
@@ -97,16 +99,20 @@ export async function POST(
     .limit(1);
 
   if (existingRun) {
-    return NextResponse.json(
-      {
-        error: "This report has already been imported for this organization.",
-        already_imported: true,
-        existing_run_id: existingRun.id,
-        existing_run_id_display: existingRun.runId,
-        existing_collected_at: existingRun.collectedAt,
-      },
-      { status: 409 }
-    );
+    if (body.replace_existing) {
+      await db.delete(evidenceRuns).where(eq(evidenceRuns.id, existingRun.id));
+    } else {
+      return NextResponse.json(
+        {
+          error: "This report has already been imported for this organization.",
+          already_imported: true,
+          existing_run_id: existingRun.id,
+          existing_run_id_display: existingRun.runId,
+          existing_collected_at: existingRun.collectedAt,
+        },
+        { status: 409 }
+      );
+    }
   }
 
   const [run] = await db

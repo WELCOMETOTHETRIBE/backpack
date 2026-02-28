@@ -67,6 +67,27 @@ export async function GET(req: Request) {
     .where(eq(evidenceRuns.organizationId, orgId));
   const assetsWithRuns = assetsWithRunsResult[0]?.count ?? 0;
 
+  const conditionsCloud = and(withSystem, eq(evidenceRuns.source, "azure_entra"));
+  const conditionsOs = and(withSystem, sql`${evidenceRuns.source} <> 'azure_entra'`);
+
+  const [totalCloudResult, totalOsResult, assetsCloudResult, assetsOsResult] = await Promise.all([
+    db.select({ count: sql<number>`count(*)::int` }).from(evidenceRuns).where(conditionsCloud),
+    db.select({ count: sql<number>`count(*)::int` }).from(evidenceRuns).where(conditionsOs),
+    db
+      .select({ count: sql<number>`count(distinct ${evidenceRuns.systemId})::int` })
+      .from(evidenceRuns)
+      .where(and(eq(evidenceRuns.organizationId, orgId), eq(evidenceRuns.source, "azure_entra"))),
+    db
+      .select({ count: sql<number>`count(distinct ${evidenceRuns.systemId})::int` })
+      .from(evidenceRuns)
+      .innerJoin(osAssets, and(eq(osAssets.id, evidenceRuns.systemId), eq(osAssets.organizationId, evidenceRuns.organizationId)))
+      .where(and(eq(evidenceRuns.organizationId, orgId), sql`${evidenceRuns.source} <> 'azure_entra'`)),
+  ]);
+  const totalCloud = totalCloudResult[0]?.count ?? 0;
+  const totalOs = totalOsResult[0]?.count ?? 0;
+  const assetsWithRunsCloud = assetsCloudResult[0]?.count ?? 0;
+  const assetsWithRunsOs = assetsOsResult[0]?.count ?? 0;
+
   const assetIds = [...new Set(list.map((r) => r.systemId))];
   const assets =
     assetIds.length > 0
@@ -127,5 +148,9 @@ export async function GET(req: Request) {
     limit,
     page,
     assetsWithRuns,
+    summaryBySource: {
+      cloud: { total: totalCloud, assetsWithRuns: assetsWithRunsCloud },
+      os: { total: totalOs, assetsWithRuns: assetsWithRunsOs },
+    },
   });
 }
