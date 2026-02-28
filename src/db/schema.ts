@@ -397,6 +397,8 @@ export const boundaries = pgTable("boundary", {
   scopeComponents: jsonb("scope_components").$type<string[]>(),
   /** When azure_cloud is in scope_components: gov | commercial. */
   azureEnvironment: varchar("azure_environment", { length: 32 }),
+  /** Optional cloud hosting: none | microsoft | google | azure. When microsoft/azure, scope/azure env can apply. */
+  cloudProvider: varchar("cloud_provider", { length: 32 }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });

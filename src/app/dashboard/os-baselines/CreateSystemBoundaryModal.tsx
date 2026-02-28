@@ -48,9 +48,12 @@ export function CreateSystemBoundaryModal({
   const [description, setDescription] = useState("");
   const [scopeComponents, setScopeComponents] = useState<ScopeValue[]>([]);
   const [azureEnvironment, setAzureEnvironment] = useState<"gov" | "commercial" | "">("");
+  const [cloudProvider, setCloudProvider] = useState<"" | "none" | "microsoft" | "google" | "azure">("");
   const [saving, setSaving] = useState(false);
 
   const hasAzure = scopeComponents.includes("azure_cloud");
+  const hasMicrosoftOrAzureCloud = cloudProvider === "microsoft" || cloudProvider === "azure";
+  const showAzureSection = hasAzure || hasMicrosoftOrAzureCloud;
 
   function toggleScope(value: ScopeValue) {
     setScopeComponents((prev) =>
@@ -72,9 +75,11 @@ export function CreateSystemBoundaryModal({
           description: description.trim() || undefined,
           scope_components: scopeComponents.length > 0 ? scopeComponents : undefined,
           azure_environment:
-            hasAzure && (azureEnvironment === "gov" || azureEnvironment === "commercial")
+            showAzureSection && (azureEnvironment === "gov" || azureEnvironment === "commercial")
               ? azureEnvironment
               : undefined,
+          cloud_provider:
+            cloudProvider && cloudProvider !== "none" ? cloudProvider : undefined,
         }),
       });
       if (!res.ok) {
@@ -85,6 +90,7 @@ export function CreateSystemBoundaryModal({
       setDescription("");
       setScopeComponents([]);
       setAzureEnvironment("");
+      setCloudProvider("");
       onClose();
       router.refresh();
     } finally {
@@ -212,8 +218,45 @@ export function CreateSystemBoundaryModal({
               </div>
             </section>
 
+            {/* Section 2b — Cloud hosting (optional) */}
+            <section className="rounded-lg border border-[var(--color-border-muted)] bg-[var(--color-surface-muted)]/50 p-4">
+              <h3 className="text-sm font-medium text-[var(--color-gray-700)]">
+                Cloud hosting <span className="text-[var(--color-gray-500)]">(optional)</span>
+              </h3>
+              <p className="mt-0.5 text-xs text-[var(--color-gray-600)]">
+                Overarching cloud provider for this boundary; when Microsoft or Azure, the 7 Azure/Entra controls apply.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {(["none", "microsoft", "google", "azure"] as const).map((value) => (
+                  <label
+                    key={value}
+                    className={`flex cursor-pointer items-center gap-2 rounded-lg border-2 px-3 py-2 text-sm font-medium transition-colors has-[:checked]:border-[var(--color-blue-accent)] has-[:checked]:bg-[var(--color-blue-accent)]/5 ${
+                      cloudProvider === value
+                        ? "border-[var(--color-blue-accent)] bg-[var(--color-blue-accent)]/5"
+                        : "border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-gray-300)]"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="cloud_provider"
+                      value={value}
+                      checked={cloudProvider === value}
+                      onChange={() => {
+                        setCloudProvider(value);
+                        if (value !== "microsoft" && value !== "azure") setAzureEnvironment("");
+                      }}
+                      className="h-4 w-4 border-[var(--color-border)] text-[var(--color-blue-accent)] focus:ring-[var(--color-blue-accent)]"
+                    />
+                    <span>
+                      {value === "none" ? "None" : value === "microsoft" ? "Microsoft" : value === "google" ? "Google" : "Azure"}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </section>
+
             {/* Section 3 — Azure environment (conditional) */}
-            {hasAzure && (
+            {showAzureSection && (
               <section className="rounded-lg border border-[var(--color-border-muted)] bg-[var(--color-surface-muted)]/50 p-4">
                 <h3 className="text-sm font-medium text-[var(--color-gray-700)]">
                   Azure environment
@@ -251,7 +294,7 @@ export function CreateSystemBoundaryModal({
             )}
 
             {/* Section 4 — Azure/Entra baseline (conditional) */}
-            {hasAzure && (
+            {showAzureSection && (
               <section className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
                 <h3 className="flex items-center gap-2 text-sm font-medium text-[var(--color-gray-700)]">
                   <Shield className="h-4 w-4 text-[var(--color-blue-accent)]" aria-hidden />

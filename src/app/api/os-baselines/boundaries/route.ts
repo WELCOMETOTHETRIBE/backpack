@@ -53,10 +53,11 @@ export async function GET() {
 
 const SCOPE_COMPONENT_VALUES = ["microsoft_office", "windows_server_vm", "azure_cloud"] as const;
 const AZURE_ENV_VALUES = ["gov", "commercial"] as const;
+const CLOUD_PROVIDER_VALUES = ["none", "microsoft", "google", "azure"] as const;
 
 /**
  * POST /api/os-baselines/boundaries — create a boundary.
- * Body: { name: string; description?: string; scope_components?: string[]; azure_environment?: "gov" | "commercial" }
+ * Body: { name: string; description?: string; scope_components?: string[]; azure_environment?: "gov" | "commercial"; cloud_provider?: "none" | "microsoft" | "google" | "azure" }
  */
 export async function POST(req: Request) {
   const session = await auth();
@@ -69,6 +70,7 @@ export async function POST(req: Request) {
     description?: string;
     scope_components?: string[];
     azure_environment?: string;
+    cloud_provider?: string;
   };
   if (!body.name?.trim()) {
     return NextResponse.json({ error: "name is required" }, { status: 400 });
@@ -80,9 +82,16 @@ export async function POST(req: Request) {
       ? body.scope_components
       : null;
 
-  const hasAzure = scopeComponents?.includes("azure_cloud");
+  const cloudProvider =
+    body.cloud_provider && CLOUD_PROVIDER_VALUES.includes(body.cloud_provider as (typeof CLOUD_PROVIDER_VALUES)[number])
+      ? body.cloud_provider
+      : null;
+
+  const hasAzureScope = scopeComponents?.includes("azure_cloud");
+  const hasMicrosoftOrAzureCloud = cloudProvider === "microsoft" || cloudProvider === "azure";
+  const effectiveHasAzure = hasAzureScope || hasMicrosoftOrAzureCloud;
   const azureEnvironment =
-    hasAzure && body.azure_environment && AZURE_ENV_VALUES.includes(body.azure_environment as (typeof AZURE_ENV_VALUES)[number])
+    effectiveHasAzure && body.azure_environment && AZURE_ENV_VALUES.includes(body.azure_environment as (typeof AZURE_ENV_VALUES)[number])
       ? body.azure_environment
       : null;
 
@@ -94,6 +103,7 @@ export async function POST(req: Request) {
       description: body.description?.trim() || null,
       scopeComponents: scopeComponents ?? null,
       azureEnvironment,
+      cloudProvider,
     })
     .returning();
 

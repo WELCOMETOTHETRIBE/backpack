@@ -4,11 +4,13 @@ import { db } from "@/db";
 import { boundaries, osAssets, osBaselineProfiles } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import Link from "next/link";
-import { Server, ChevronRight, Upload } from "lucide-react";
+import { Server, ChevronRight, Upload, Cloud, Shield } from "lucide-react";
 import { AddAssetForm } from "../../AddAssetForm";
+import { AZURE_ENTRA_BASELINE } from "@/lib/compliance/azure-entra-controls";
 import { EditBoundaryForm } from "./EditBoundaryForm";
 import { DeleteBoundaryButton } from "./DeleteBoundaryButton";
 import { DeleteAssetButton } from "./DeleteAssetButton";
+import { AzureEntraEvidenceCard } from "./AzureEntraEvidenceCard";
 
 export default async function BoundaryDetailPage({
   params,
@@ -81,6 +83,8 @@ export default async function BoundaryDetailPage({
               boundaryId={id}
               initialName={boundary.name}
               initialDescription={boundary.description}
+              initialCloudProvider={boundary.cloudProvider}
+              initialAzureEnvironment={boundary.azureEnvironment}
             />
             <DeleteBoundaryButton boundaryId={id} boundaryName={boundary.name} />
           </div>
@@ -102,6 +106,52 @@ export default async function BoundaryDetailPage({
               Upload evidence for this system
             </Link>
           </section>
+        )}
+
+        {boundary.cloudProvider && (
+          <section className={cardClass}>
+            <h2 className="flex items-center gap-2 text-lg font-semibold text-[var(--color-gray-800)]">
+              <Cloud className="h-5 w-5 text-[var(--color-gray-500)]" aria-hidden />
+              Cloud hosting
+            </h2>
+            <p className="mt-1 text-sm text-[var(--color-gray-600)]">
+              {boundary.cloudProvider === "microsoft"
+                ? "Microsoft"
+                : boundary.cloudProvider === "azure"
+                  ? "Azure"
+                  : boundary.cloudProvider === "google"
+                    ? "Google"
+                    : boundary.cloudProvider}
+              {boundary.azureEnvironment && (
+                <span className="ml-1">
+                  · {boundary.azureEnvironment === "gov" ? "Azure Government" : "Azure Commercial"}
+                </span>
+              )}
+            </p>
+            {(boundary.cloudProvider === "microsoft" || boundary.cloudProvider === "azure") && (
+              <div className="mt-4">
+                <p className="flex items-center gap-2 text-sm font-medium text-[var(--color-gray-700)]">
+                  <Shield className="h-4 w-4 text-[var(--color-blue-accent)]" aria-hidden />
+                  Azure/Entra baseline — 7 controls
+                </p>
+                <ul className="mt-2 space-y-2" role="list">
+                  {AZURE_ENTRA_BASELINE.map((entry) => (
+                    <li
+                      key={entry.controlId}
+                      className="rounded-lg border border-[var(--color-border-muted)] bg-[var(--color-gray-50)]/50 px-3 py-2 text-sm"
+                    >
+                      <span className="font-medium text-[var(--color-gray-700)]">{entry.controlId}</span>
+                      <span className="ml-2 text-[var(--color-gray-600)]">{entry.title}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </section>
+        )}
+
+        {(boundary.cloudProvider === "microsoft" || boundary.cloudProvider === "azure") && (
+          <AzureEntraEvidenceCard boundaryId={id} />
         )}
 
         <section className={cardClass}>

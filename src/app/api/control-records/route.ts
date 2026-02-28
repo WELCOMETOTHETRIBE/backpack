@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { controlRecords, artifacts, roles, evidenceRuns, evidenceFindings } from "@/db/schema";
-import { eq, and, like, desc } from "drizzle-orm";
+import { eq, and, like, desc, inArray } from "drizzle-orm";
 import { requireOrg, requireRole } from "@/lib/auth";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { controlIdToNist } from "@/lib/compliance/controlId";
@@ -24,8 +24,8 @@ const CONTROL_FAMILY_PREFIX: Record<string, string> = {
 };
 
 /**
- * GET /api/control-records?family=AC
- * Returns control records for the org, optionally filtered by family code.
+ * GET /api/control-records?family=AC | ?controlIds=3.1.14,3.1.13,...
+ * Returns control records for the org, optionally filtered by family code or by control IDs.
  */
 export async function GET(req: Request) {
   try {
@@ -34,8 +34,15 @@ export async function GET(req: Request) {
 
     const { searchParams } = new URL(req.url);
     const family = searchParams.get("family");
+    const controlIdsParam = searchParams.get("controlIds");
 
-    if (!family) {
+    const controlIdsList =
+      controlIdsParam?.trim()
+        ?.split(",")
+        .map((s) => s.trim())
+        .filter(Boolean) ?? null;
+
+    if (!family && !controlIdsList?.length) {
       const existing = await db
         .select({ id: controlRecords.id })
         .from(controlRecords)
@@ -47,10 +54,27 @@ export async function GET(req: Request) {
         );
       }
     }
+    if (controlIdsList?.length) {
+      const existingForIds = await db
+        .select({ controlId: controlRecords.controlId })
+        .from(controlRecords)
+        .where(
+          and(eq(controlRecords.organizationId, orgId), inArray(controlRecords.controlId, controlIdsList))
+        );
+      const existingSet = new Set(existingForIds.map((r) => r.controlId));
+      const missing = controlIdsList.filter((id) => !existingSet.has(id));
+      if (missing.length > 0) {
+        await db.insert(controlRecords).values(
+          missing.map((controlId) => ({ organizationId: orgId, controlId }))
+        );
+      }
+    }
 
-    const conditions = family && CONTROL_FAMILY_PREFIX[family]
-      ? and(eq(controlRecords.organizationId, orgId), like(controlRecords.controlId, `${CONTROL_FAMILY_PREFIX[family]}.%`))
-      : eq(controlRecords.organizationId, orgId);
+    const conditions = controlIdsList?.length
+      ? and(eq(controlRecords.organizationId, orgId), inArray(controlRecords.controlId, controlIdsList))
+      : family && CONTROL_FAMILY_PREFIX[family]
+        ? and(eq(controlRecords.organizationId, orgId), like(controlRecords.controlId, `${CONTROL_FAMILY_PREFIX[family]}.%`))
+        : eq(controlRecords.organizationId, orgId);
 
     const records = await db
       .select({
