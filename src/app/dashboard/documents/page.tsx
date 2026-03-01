@@ -4,11 +4,14 @@ import { useState } from "react";
 import Link from "next/link";
 import { GOVERNANCE_DOCUMENT_MATRIX } from "@/lib/governance/governance-document-matrix";
 import { GovernanceDocumentUploadModal } from "@/components/adjudication/GovernanceDocumentUploadModal";
+import { AssignDocumentModal } from "@/components/adjudication/AssignDocumentModal";
 import { RecordsManagementWidget } from "@/components/adjudication/RecordsManagementWidget";
-import { FileStack, FileText, ClipboardCheck, ChevronRight } from "lucide-react";
+import { FileStack, FileText, ClipboardCheck, ChevronRight, Upload, Link2 } from "lucide-react";
 
 export default function DocumentsPage() {
   const [governanceModalOpen, setGovernanceModalOpen] = useState(false);
+  const [uploadForRow, setUploadForRow] = useState<string | null>(null);
+  const [assignForRow, setAssignForRow] = useState<string | null>(null);
 
   return (
     <div className="space-y-8">
@@ -46,30 +49,40 @@ export default function DocumentsPage() {
         </div>
         <div className="overflow-x-auto">
           <table
-            className="w-full min-w-[480px] border-collapse text-left text-sm"
+            className="w-full table-fixed min-w-[520px] border-collapse text-left text-sm"
             aria-label="Governance Documents Matrix: required for Gov Pure, Gov Hybrid, Tech/Hybrid"
           >
+            <colgroup>
+              <col className="w-72 max-w-72" />
+              <col className="w-20" />
+              <col className="w-20" />
+              <col className="w-20" />
+              <col className="w-44" />
+            </colgroup>
             <thead>
               <tr className="border-b border-[var(--color-border)]">
-                <th className="pb-3 pr-4 pt-4 font-semibold text-[var(--color-navy-primary)]">
+                <th className="pb-3 pr-3 pt-4 font-semibold text-[var(--color-navy-primary)]">
                   Governance Document
                 </th>
-                <th className="w-24 pb-3 pr-2 pt-4 text-center font-semibold text-[var(--color-gray-700)]" scope="col">
+                <th className="w-20 pb-3 pr-2 pt-4 text-center font-semibold text-[var(--color-gray-700)]" scope="col">
                   Gov Pure
                 </th>
-                <th className="w-24 pb-3 pr-2 pt-4 text-center font-semibold text-[var(--color-gray-700)]" scope="col">
+                <th className="w-20 pb-3 pr-2 pt-4 text-center font-semibold text-[var(--color-gray-700)]" scope="col">
                   Gov Hybrid
                 </th>
-                <th className="w-24 pb-3 pl-2 pr-4 pt-4 text-center font-semibold text-[var(--color-gray-700)]" scope="col">
+                <th className="w-20 pb-3 pr-2 pt-4 text-center font-semibold text-[var(--color-gray-700)]" scope="col">
                   Tech/Hybrid
+                </th>
+                <th className="w-44 pb-3 pl-2 pr-4 pt-4 font-semibold text-[var(--color-gray-700)]" scope="col">
+                  Actions
                 </th>
               </tr>
             </thead>
             <tbody>
               {GOVERNANCE_DOCUMENT_MATRIX.map((row, i) => (
                 <tr key={i} className="border-b border-[var(--color-border)] last:border-0">
-                  <td className="py-2.5 pr-4 font-medium text-[var(--color-gray-800)]">
-                    {row.document}
+                  <td className="max-w-72 py-2.5 pr-3 font-medium text-[var(--color-gray-800)]">
+                    <span className="block truncate" title={row.document}>{row.document}</span>
                   </td>
                   <td className="py-2.5 pr-2 text-center">
                     {row.govPure ? (
@@ -85,12 +98,34 @@ export default function DocumentsPage() {
                       <span className="text-[var(--color-gray-400)]">—</span>
                     )}
                   </td>
-                  <td className="py-2.5 pl-2 pr-4 text-center">
+                  <td className="py-2.5 pr-2 text-center">
                     {row.techHybrid ? (
                       <span className="inline-flex h-6 w-6 items-center justify-center rounded bg-violet-100 text-violet-700" aria-label="Required">✓</span>
                     ) : (
                       <span className="text-[var(--color-gray-400)]">—</span>
                     )}
+                  </td>
+                  <td className="py-2.5 pl-2 pr-4">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setUploadForRow(row.document)}
+                        className="inline-flex items-center gap-1 rounded-md border border-[var(--color-border)] bg-white px-2 py-1.5 text-xs font-medium text-[var(--color-gray-700)] hover:bg-slate-50"
+                        title={`Upload document for ${row.document}`}
+                      >
+                        <Upload className="h-3.5 w-3.5" aria-hidden />
+                        Upload
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setAssignForRow(row.document)}
+                        className="inline-flex items-center gap-1 rounded-md border border-[var(--color-border)] bg-white px-2 py-1.5 text-xs font-medium text-[var(--color-gray-700)] hover:bg-slate-50"
+                        title={`Assign from Document Control for ${row.document}`}
+                      >
+                        <Link2 className="h-3.5 w-3.5" aria-hidden />
+                        Assign
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -136,10 +171,24 @@ export default function DocumentsPage() {
         </div>
       </section>
 
-      {governanceModalOpen && (
+      {(governanceModalOpen || uploadForRow !== null) && (
         <GovernanceDocumentUploadModal
-          onClose={() => setGovernanceModalOpen(false)}
-          onSaved={() => setGovernanceModalOpen(false)}
+          onClose={() => {
+            setGovernanceModalOpen(false);
+            setUploadForRow(null);
+          }}
+          onSaved={() => {
+            setGovernanceModalOpen(false);
+            setUploadForRow(null);
+          }}
+          initialArtifactLabel={uploadForRow ?? undefined}
+        />
+      )}
+      {assignForRow && (
+        <AssignDocumentModal
+          artifactLabel={assignForRow}
+          onClose={() => setAssignForRow(null)}
+          onSaved={() => setAssignForRow(null)}
         />
       )}
     </div>

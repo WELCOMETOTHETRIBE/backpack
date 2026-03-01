@@ -47,9 +47,11 @@ function slug(s: string): string {
 export function GovernanceDocumentUploadModal({
   onClose,
   onSaved,
+  initialArtifactLabel,
 }: {
   onClose: () => void;
   onSaved: () => void;
+  initialArtifactLabel?: string;
 }) {
   const [activeFamily, setActiveFamily] = useState("AC");
   const [records, setRecords] = useState<{ id: string; controlId: string }[]>([]);
@@ -60,8 +62,12 @@ export function GovernanceDocumentUploadModal({
   const [file, setFile] = useState<File | null>(null);
   const [version, setVersion] = useState("");
   const [approvalDate, setApprovalDate] = useState("");
-  const [artifactLabel, setArtifactLabel] = useState("");
+  const [artifactLabel, setArtifactLabel] = useState(initialArtifactLabel ?? "");
   const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    if (initialArtifactLabel) setArtifactLabel(initialArtifactLabel);
+  }, [initialArtifactLabel]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
