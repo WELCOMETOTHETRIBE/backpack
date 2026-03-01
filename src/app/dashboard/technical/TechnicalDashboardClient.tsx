@@ -53,7 +53,7 @@ export function TechnicalDashboardClient() {
   useEffect(() => {
     Promise.all([
       fetch("/api/evidence-runs?limit=10").then((r) =>
-        r.ok ? r.json() : { items: [], summaryBySource: { cloud: { total: 0, assetsWithRuns: 0 }, os: { total: 0, assetsWithRuns: 0 } }
+        r.ok ? r.json() : { items: [], summaryBySource: { cloud: { total: 0, assetsWithRuns: 0 }, os: { total: 0, assetsWithRuns: 0 } } }
       ),
       fetch("/api/evidence-runs/drift").then((r) =>
         r.ok ? r.json() : { items: [], totalRegressionsBySource: { cloud: 0, os: 0 } }
