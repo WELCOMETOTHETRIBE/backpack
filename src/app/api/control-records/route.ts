@@ -6,6 +6,7 @@ import { requireOrg, requireRole } from "@/lib/auth";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { controlIdToNist } from "@/lib/compliance/controlId";
 import { syncOrgAzureInheritedControls } from "@/lib/compliance/azure-inherited-controls";
+import { getSatisfactionSources } from "@/lib/compliance/satisfaction-sources";
 
 const CONTROL_FAMILY_PREFIX: Record<string, string> = {
   AC: "3.1",
@@ -135,10 +136,18 @@ export async function GET(req: Request) {
       }
     }
 
-    const enriched = withArtifactCount.map((r) => ({
-      ...r,
-      evidencePartial: partialControlIds.has(r.controlId),
-    }));
+    const enriched = withArtifactCount.map((r) => {
+      const sources = getSatisfactionSources(r.controlId);
+      return {
+        ...r,
+        evidencePartial: partialControlIds.has(r.controlId),
+        satisfiedByOs: sources.os,
+        satisfiedByCloud: sources.cloud,
+        satisfiedByGovernance: sources.governance,
+        satisfiedByHybrid: sources.hybrid,
+        satisfactionSourceNa: sources.na,
+      };
+    });
 
     return NextResponse.json(enriched);
   } catch (e) {

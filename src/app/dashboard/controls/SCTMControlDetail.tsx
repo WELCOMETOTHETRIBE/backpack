@@ -50,6 +50,12 @@ export type SCTMRecord = {
   responsibleRoleId: string | null;
   roleName: string | null;
   artifactCount: number;
+  evidencePartial?: boolean;
+  satisfiedByOs?: boolean;
+  satisfiedByCloud?: boolean;
+  satisfiedByGovernance?: boolean;
+  satisfiedByHybrid?: boolean;
+  satisfactionSourceNa?: boolean;
 };
 
 export type NistRow = {
@@ -259,6 +265,21 @@ export function SCTMControlDetail({
           <span className="rounded-full bg-[var(--color-blue-accent)]/10 px-2.5 py-0.5 text-xs font-medium text-[var(--color-blue-accent)]">
             {sctmOptimized.compliance_meta.satisfaction_type.replace(/-/g, " ")}
           </span>
+        )}
+        {record.satisfactionSourceNa && (
+          <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-zinc-100 text-zinc-600" title="Often not applicable.">N/A</span>
+        )}
+        {record.satisfiedByOs && (
+          <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-700" title="Met by OS configuration (73).">OS</span>
+        )}
+        {record.satisfiedByCloud && (
+          <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-sky-100 text-sky-800" title="Met by cloud (5 inherited + 7 Azure/Entra).">Cloud</span>
+        )}
+        {record.satisfiedByHybrid && (
+          <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200/60" title="Hybrid (OS + gov docs or policy + technical).">Hybrid</span>
+        )}
+        {record.satisfiedByGovernance && (
+          <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-violet-100 text-violet-800" title="Met by governance (18).">Governance</span>
         )}
         {record.roleName && <span className="text-xs text-[var(--color-gray-400)]">· {record.roleName}</span>}
       </div>

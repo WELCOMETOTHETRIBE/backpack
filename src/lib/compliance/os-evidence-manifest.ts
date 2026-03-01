@@ -22,6 +22,11 @@ const controls: OsEvidenceControlEntry[] = (manifest as { controls: OsEvidenceCo
 /** All 73 enclave configuration control IDs in NIST req form (e.g. 3.1.1). */
 export const ENCLAVE_73_NIST_IDS: string[] = controls.map((c) => c.nist_req);
 
+/** 31 controls in the 73 with support_level PARTIAL (OS evidence + gov docs to close). */
+export const ENCLAVE_OS_PARTIAL_31_NIST_IDS: string[] = controls
+  .filter((c) => c.support_level === "PARTIAL")
+  .map((c) => c.nist_req);
+
 /** By nist_req (3.x.x) for app lookups. */
 const byNistReq = new Map<string, OsEvidenceControlEntry>(controls.map((c) => [c.nist_req, c]));
 

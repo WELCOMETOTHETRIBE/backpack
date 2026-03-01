@@ -14,6 +14,16 @@ export type SCTMRecord = {
   artifactCount: number;
   /** True when latest 73-check run has this control as partial (evidence passed, gov docs needed). */
   evidencePartial?: boolean;
+  /** True when control is in the 73 OS (enclave) set. */
+  satisfiedByOs?: boolean;
+  /** True when control is in the 12 Cloud set (5 inherited + 7 Azure/Entra). */
+  satisfiedByCloud?: boolean;
+  /** True when control is in the 18 true governance set (PURE_GOV). */
+  satisfiedByGovernance?: boolean;
+  /** True when control is Hybrid (31 OS partial + 6 delta). */
+  satisfiedByHybrid?: boolean;
+  /** True when control is in the 7 often-not-applicable set. */
+  satisfactionSourceNa?: boolean;
 };
 
 export function SCTMFilters({
