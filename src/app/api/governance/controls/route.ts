@@ -12,21 +12,18 @@ import { requireOrg, requireRole } from "@/lib/auth";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { getControlFamilyPrefix } from "@/components/governance-wizard/constants";
 import {
-  PURE_GOV_CONTROL_IDS,
-  HYBRID_GOV_CONTROL_IDS,
-  HYBRID_GOV_CENTRIC_IDS,
-  HYBRID_TECHNICAL_CENTRIC_IDS,
-} from "@/lib/governance/seed-data";
+  PURE_GOVERNANCE_IDS,
+  HYBRID_GOVERNANCE_IDS,
+  PURE_TECHNICAL_IDS,
+  HYBRID_TECHNICAL_IDS,
+  getControlBin,
+} from "@/lib/compliance/control-bins";
 
 const FAMILY_PREFIX: Record<string, string> = {
   AC: "3.1", AT: "3.2", AU: "3.3", CM: "3.4", IA: "3.5", IR: "3.6",
   MA: "3.7", MP: "3.8", PS: "3.9", PE: "3.10", RA: "3.11", CA: "3.12",
   SC: "3.13", SI: "3.14",
 };
-
-const TECHNICAL_CONTROL_IDS = ALL_CONTROL_IDS.filter(
-  (id) => !PURE_GOV_CONTROL_IDS.includes(id) && !HYBRID_GOV_CONTROL_IDS.includes(id)
-);
 
 /**
  * GET /api/governance/controls?classification=PURE_GOV|HYBRID_GOV|HYBRID_TECHNICAL|TECHNICAL&status=...&domain=AC&page=1&limit=20
@@ -42,6 +39,7 @@ export async function GET(req: Request) {
       | "PURE_GOV"
       | "HYBRID_GOV"
       | "HYBRID_GOV_CENTRIC"
+      | "HYBRID_GOVERNANCE"
       | "HYBRID_TECHNICAL"
       | "TECHNICAL"
       | null;
@@ -63,7 +61,9 @@ export async function GET(req: Request) {
     const metaList =
       classification &&
       classification !== "HYBRID_TECHNICAL" &&
-      classification !== "HYBRID_GOV_CENTRIC"
+      classification !== "HYBRID_GOV_CENTRIC" &&
+      classification !== "HYBRID_GOVERNANCE" &&
+      classification !== "TECHNICAL"
         ? await metaQuery.where(eq(governanceControlMetadata.classification, classification))
         : await metaQuery;
 
@@ -71,13 +71,18 @@ export async function GET(req: Request) {
     if (
       controlIds.length === 0 ||
       classification === "HYBRID_TECHNICAL" ||
-      classification === "HYBRID_GOV_CENTRIC"
+      classification === "HYBRID_GOV_CENTRIC" ||
+      classification === "HYBRID_GOVERNANCE" ||
+      classification === "TECHNICAL" ||
+      classification === "PURE_GOV"
     ) {
-      if (classification === "PURE_GOV") controlIds = [...PURE_GOV_CONTROL_IDS];
-      else if (classification === "HYBRID_GOV") controlIds = [...HYBRID_GOV_CONTROL_IDS];
-      else if (classification === "HYBRID_GOV_CENTRIC") controlIds = [...HYBRID_GOV_CENTRIC_IDS];
-      else if (classification === "HYBRID_TECHNICAL") controlIds = [...HYBRID_TECHNICAL_CENTRIC_IDS];
-      else if (classification === "TECHNICAL") controlIds = [...TECHNICAL_CONTROL_IDS];
+      if (classification === "PURE_GOV") controlIds = [...PURE_GOVERNANCE_IDS];
+      else if (classification === "HYBRID_GOVERNANCE" || classification === "HYBRID_GOV_CENTRIC")
+        controlIds = [...HYBRID_GOVERNANCE_IDS];
+      else if (classification === "HYBRID_GOV")
+        controlIds = [...HYBRID_TECHNICAL_IDS, ...HYBRID_GOVERNANCE_IDS];
+      else if (classification === "HYBRID_TECHNICAL") controlIds = [...HYBRID_TECHNICAL_IDS];
+      else if (classification === "TECHNICAL") controlIds = [...PURE_TECHNICAL_IDS];
       else controlIds = [...ALL_CONTROL_IDS];
     }
     if (domain && FAMILY_PREFIX[domain]) {
@@ -120,10 +125,11 @@ export async function GET(req: Request) {
     const metaByControl = Object.fromEntries(metaList.map((m) => [m.controlId, m]));
     function fallbackClassification(
       controlId: string
-    ): "PURE_GOV" | "HYBRID_GOV" | "HYBRID_TECHNICAL" | "TECHNICAL" {
-      if (PURE_GOV_CONTROL_IDS.includes(controlId)) return "PURE_GOV";
-      if (HYBRID_TECHNICAL_CENTRIC_IDS.includes(controlId)) return "HYBRID_TECHNICAL";
-      if (HYBRID_GOV_CONTROL_IDS.includes(controlId)) return "HYBRID_GOV";
+    ): "PURE_GOV" | "HYBRID_GOV" | "HYBRID_GOVERNANCE" | "HYBRID_TECHNICAL" | "TECHNICAL" {
+      const bin = getControlBin(controlId);
+      if (bin === "pure_governance") return "PURE_GOV";
+      if (bin === "hybrid_governance") return "HYBRID_GOVERNANCE";
+      if (bin === "hybrid_technical") return "HYBRID_TECHNICAL";
       return "TECHNICAL";
     }
     const controlIdsToFetch = [...new Set(records.map((r) => r.controlId))];

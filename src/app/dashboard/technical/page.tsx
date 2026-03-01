@@ -5,13 +5,13 @@ import { db } from "@/db";
 import { controlRecords } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import {
-  PURE_TECHNICAL_CONTROL_IDS,
-  HYBRID_TECHNICAL_CENTRIC_IDS,
-} from "@/lib/governance/seed-data";
+  PURE_TECHNICAL_IDS,
+  HYBRID_TECHNICAL_IDS,
+} from "@/lib/compliance/control-bins";
 import { Cpu, FolderOpen, Server, Upload, Download } from "lucide-react";
 
-const PURE_TECHNICAL_TOTAL = PURE_TECHNICAL_CONTROL_IDS.length;
-const HYBRID_TECHNICAL_TOTAL = HYBRID_TECHNICAL_CENTRIC_IDS.length;
+const PURE_TECHNICAL_TOTAL = PURE_TECHNICAL_IDS.length;
+const HYBRID_TECHNICAL_TOTAL = HYBRID_TECHNICAL_IDS.length;
 const IMPLEMENTED_STATUSES = ["implemented", "assessed", "inherited", "not_applicable"] as const;
 
 export default async function TechnicalDashboardPage() {
@@ -28,14 +28,16 @@ export default async function TechnicalDashboardPage() {
     .from(controlRecords)
     .where(eq(controlRecords.organizationId, orgId));
 
+  const pureTechnicalSet = new Set(PURE_TECHNICAL_IDS);
+  const hybridTechnicalSet = new Set(HYBRID_TECHNICAL_IDS);
   let pureTechnicalDone = 0;
   let hybridTechnicalDone = 0;
   for (const r of records) {
     const status = r.implementationStatus as string;
     if (!IMPLEMENTED_STATUSES.includes(status as (typeof IMPLEMENTED_STATUSES)[number]))
       continue;
-    if (PURE_TECHNICAL_CONTROL_IDS.includes(r.controlId)) pureTechnicalDone++;
-    else if (HYBRID_TECHNICAL_CENTRIC_IDS.includes(r.controlId)) hybridTechnicalDone++;
+    if (pureTechnicalSet.has(r.controlId)) pureTechnicalDone++;
+    else if (hybridTechnicalSet.has(r.controlId)) hybridTechnicalDone++;
   }
 
   const cardClass =

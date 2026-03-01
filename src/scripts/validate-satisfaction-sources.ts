@@ -1,12 +1,13 @@
 #!/usr/bin/env npx tsx
 /**
- * C3PAO validation: satisfaction-source bins (73 OS, 12 Cloud, 7 N/A, rest Governance).
+ * C3PAO validation: satisfaction-source bins and 4-bin partition (Pure Technical, Pure Gov, Hybrid-technical, Hybrid-governance).
  * Run: npm run validate-satisfaction-sources
  * Exits 0 if validation passes, 1 otherwise.
  */
 
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { runC3PAOValidation } from "@/lib/compliance/satisfaction-sources";
+import { validateControlBins } from "@/lib/compliance/control-bins";
 
 function main(): number {
   const result = runC3PAOValidation(ALL_CONTROL_IDS);
@@ -41,7 +42,22 @@ function main(): number {
     return 1;
   }
 
-  console.log("Validation passed: all controls assigned, tally adds up.");
+  console.log("Validation passed: all controls assigned, tally adds up.\n");
+
+  const bins = validateControlBins();
+  console.log("4-Bin Partition Validation");
+  console.log(`  Pure Technical:    ${bins.counts.pure_technical}`);
+  console.log(`  Pure Governance:   ${bins.counts.pure_governance}`);
+  console.log(`  Hybrid Technical:  ${bins.counts.hybrid_technical}`);
+  console.log(`  Hybrid Governance: ${bins.counts.hybrid_governance}`);
+  console.log(`  Total:             ${bins.total} (expected ${bins.expected})`);
+  if (bins.errors.length > 0) {
+    console.error("");
+    bins.errors.forEach((e) => console.error("  -", e));
+    return 1;
+  }
+  console.log("4-bin partition OK.\n");
+
   return 0;
 }
 

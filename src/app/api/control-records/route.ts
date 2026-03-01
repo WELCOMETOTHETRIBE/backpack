@@ -7,6 +7,7 @@ import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { controlIdToNist } from "@/lib/compliance/controlId";
 import { syncOrgAzureInheritedControls } from "@/lib/compliance/azure-inherited-controls";
 import { getSatisfactionSources } from "@/lib/compliance/satisfaction-sources";
+import { isHybridControl } from "@/lib/compliance/control-bins";
 
 const CONTROL_FAMILY_PREFIX: Record<string, string> = {
   AC: "3.1",
@@ -192,7 +193,7 @@ export async function GET(req: Request) {
         satisfiedByOs: sources.os,
         satisfiedByCloud: sources.cloud,
         satisfiedByGovernance: sources.governance,
-        satisfiedByHybrid: sources.hybrid,
+        satisfiedByHybrid: isHybridControl(r.controlId),
         oftenNotApplicable: sources.oftenNotApplicable,
       };
     });

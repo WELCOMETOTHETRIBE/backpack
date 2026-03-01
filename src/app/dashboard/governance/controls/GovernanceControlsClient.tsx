@@ -70,9 +70,9 @@ export default function GovernanceControlsClient() {
           className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-1.5 text-sm"
         >
           <option value="">All</option>
-          <option value="PURE_GOV">Pure Gov</option>
-          <option value="HYBRID_GOV">Hybrid Gov (all)</option>
-          <option value="HYBRID_GOV_CENTRIC">Hybrid Gov Centric</option>
+          <option value="PURE_GOV">Pure Governance</option>
+          <option value="HYBRID_GOVERNANCE">Hybrid Governance</option>
+          <option value="HYBRID_GOV">Hybrid (all)</option>
           <option value="TECHNICAL">Pure Technical</option>
           <option value="HYBRID_TECHNICAL">Hybrid Technical</option>
         </select>

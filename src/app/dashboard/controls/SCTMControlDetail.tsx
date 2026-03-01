@@ -14,6 +14,7 @@ import {
 } from "./assessment-guide-sections";
 import type { SctmOptimizedControl } from "@/lib/sctm-optimized-types";
 import { getHybridCriteriaLabels } from "@/lib/compliance/satisfaction-sources";
+import { getEnclaveEntry } from "@/lib/compliance/os-evidence-manifest";
 import type { ArtifactSpec } from "@/lib/artifact-guide";
 
 function TextWithBold({ text }: { text: string }) {
@@ -208,6 +209,7 @@ export function SCTMControlDetail({
   const [artifacts, setArtifacts] = useState<{ artifactLabel: string }[]>([]);
 
   const hybridLabels = record.satisfiedByHybrid ? getHybridCriteriaLabels(record.controlId) : null;
+  const enclaveEntry = record.satisfiedByHybrid ? getEnclaveEntry(record.controlId) : undefined;
   const hybridArtifacts = (() => {
     if (!record.satisfiedByHybrid) return { technical: [] as string[], governance: [] as string[] };
     const list: { label: string; handling: string }[] = (sctmOptimized?.compliance_meta?.required_artifacts ?? []).map((a) => ({ label: a.name, handling: a.handling }));
@@ -506,6 +508,9 @@ export function SCTMControlDetail({
                     </>
                   );
                 })()}
+                {enclaveEntry && enclaveEntry.evidence_files?.length > 0 && (
+                  <p className="mt-1"><span className="font-medium">Required technical config / evidence files:</span> {enclaveEntry.evidence_files.join(", ")}</p>
+                )}
                 {hybridArtifacts.technical.length > 0 && (
                   <p className="mt-1"><span className="font-medium">Required evidence:</span> {hybridArtifacts.technical.join("; ")}</p>
                 )}
@@ -525,7 +530,7 @@ export function SCTMControlDetail({
               </label>
               <div className="ml-7 text-xs text-teal-800 space-y-0.5">
                 {hybridArtifacts.governance.length > 0 ? (
-                  <p><span className="font-medium">Required documentation:</span> {hybridArtifacts.governance.join("; ")}</p>
+                  <p><span className="font-medium">Required governance documentation:</span> {hybridArtifacts.governance.join("; ")}</p>
                 ) : (
                   <p className="text-teal-700">Policy, procedure, or other documentation that addresses this control.</p>
                 )}
