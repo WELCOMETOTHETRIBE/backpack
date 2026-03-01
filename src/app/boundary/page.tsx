@@ -52,6 +52,8 @@ interface EvidenceRun {
   collectorName: string;
   collectorVersion: string;
   source: string | null;
+  /** Report integrity hash (Azure/Entra validation report); for auditor verification */
+  report_sha256?: string | null;
 }
 
 interface AllocationItem {
@@ -532,7 +534,7 @@ export default function BoundaryPage() {
           ) : (
             <ul className="mt-2 space-y-1 text-sm">
               {evidenceRuns.slice(0, 10).map((r) => (
-                <li key={r.id} className="flex flex-wrap gap-x-2 gap-y-0">
+                <li key={r.id} className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                   <span className="font-mono text-slate-700">{r.runId}</span>
                   <span className="text-slate-500">
                     {new Date(r.collectedAt).toLocaleString()} — {r.collectorName} {r.collectorVersion}
@@ -540,6 +542,11 @@ export default function BoundaryPage() {
                   {r.source && r.source !== "legacy" && (
                     <span className="rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-600">
                       {r.source}
+                    </span>
+                  )}
+                  {r.report_sha256 && (
+                    <span className="font-mono text-xs text-slate-500" title={r.report_sha256}>
+                      report_sha256: {r.report_sha256.slice(0, 16)}…
                     </span>
                   )}
                 </li>
@@ -1010,7 +1017,7 @@ export default function BoundaryPage() {
                           )}
                           <p className="mt-1 text-slate-700">Observed: {f.observed}</p>
                           <p className="text-slate-600">Expected: {f.expected}</p>
-                          <p className="text-slate-500">Hint: {f.evidence_hint}</p>
+                          <p className="text-slate-500">Evidence artifacts for this control: {f.evidence_hint}</p>
                           {f.evidence_files_used?.length > 0 && (
                             <p className="mt-1 text-xs text-slate-500">
                               Files: {f.evidence_files_used.join(", ")}

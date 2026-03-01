@@ -163,6 +163,8 @@ export const controlRecords = pgTable(
     lastValidationDate: timestamp("last_validation_date", { withTimezone: true }),
     /** ConMon: review cadence for "due for review" (Quarterly = 90d, Monthly = 30d, Annual = 365d). */
     monitoringCadence: monitoringCadenceEnum("monitoring_cadence"),
+    /** Hybrid controls: user-modifiable satisfaction of the two criteria (technical/OS + governance). */
+    hybridSatisfaction: jsonb("hybrid_satisfaction").$type<{ technical?: boolean; governance?: boolean }>(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },

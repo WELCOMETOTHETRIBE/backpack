@@ -38,26 +38,33 @@ export interface SatisfactionSourceFlags {
   cloud: boolean;
   governance: boolean;
   hybrid: boolean;
-  na: boolean;
+  /** True when control is in the 7 "often not applicable" list; still has a real satisfaction bin. */
+  oftenNotApplicable: boolean;
 }
 
 /**
  * Returns which satisfaction-source pills to show for a control.
- * N/A takes precedence (control gets only N/A pill). Otherwise OS, Cloud, Governance (18), and/or Hybrid.
- * Hybrid = (in 73 and in 31 partial) OR delta (not in OS/Cloud/N/A/Governance).
+ * Every control gets a real bin (OS, Cloud, Governance, or Hybrid). The 7 "often N/A" controls
+ * get their actual bin (e.g. Hybrid for delta) and oftenNotApplicable: true for a separate N/A badge.
  */
 export function getSatisfactionSources(controlId: string): SatisfactionSourceFlags {
-  const na = NA_7_CONTROL_IDS.has(controlId);
+  const oftenNotApplicable = NA_7_CONTROL_IDS.has(controlId);
   const os = OS_73_CONTROL_IDS.has(controlId);
   const cloud = CLOUD_12_CONTROL_IDS.has(controlId);
   const governance = GOVERNANCE_18_CONTROL_IDS.has(controlId);
   const osPartial = OS_PARTIAL_31_CONTROL_IDS.has(controlId);
-  const hybrid = na ? false : (os && osPartial) || (!os && !cloud && !governance);
+  const hybrid = (os && osPartial) || (!os && !cloud && !governance);
 
-  if (na) {
-    return { os: false, cloud: false, governance: false, hybrid: false, na: true };
+  return { os, cloud, governance, hybrid, oftenNotApplicable };
+}
+
+/** Labels for the two hybrid satisfaction criteria (for control card UI). */
+export function getHybridCriteriaLabels(controlId: string): { technical: string; governance: string } {
+  const osPartial = OS_PARTIAL_31_CONTROL_IDS.has(controlId);
+  if (osPartial) {
+    return { technical: "OS configuration evidence", governance: "Governance documentation" };
   }
-  return { os, cloud, governance, hybrid, na: false };
+  return { technical: "Technical implementation", governance: "Policy / documentation" };
 }
 
 /** C3PAO validation result: tally and any errors. */
@@ -68,7 +75,7 @@ export interface C3PAOValidationResult {
   tally: {
     os: number;
     cloud: number;
-    na: number;
+    oftenNotApplicable: number;
     governance: number;
     hybrid: number;
     osAndCloud: number;
@@ -77,7 +84,6 @@ export interface C3PAOValidationResult {
   warnings: string[];
   osCloudOverlap: string[];
   unassigned: string[];
-  naOverlap: string[];
 }
 
 const EXPECTED_OS = 73;
@@ -96,11 +102,10 @@ export function runC3PAOValidation(allControlIds: string[]): C3PAOValidationResu
   const warnings: string[] = [];
   const osCloudOverlap: string[] = [];
   const unassigned: string[] = [];
-  const naOverlap: string[] = [];
 
   let countOs = 0;
   let countCloud = 0;
-  let countNa = 0;
+  let countOftenNotApplicable = 0;
   let countGovernance = 0;
   let countHybrid = 0;
   let countOsAndCloud = 0;
@@ -109,17 +114,14 @@ export function runC3PAOValidation(allControlIds: string[]): C3PAOValidationResu
     const s = getSatisfactionSources(controlId);
     if (s.os) countOs++;
     if (s.cloud) countCloud++;
-    if (s.na) countNa++;
+    if (s.oftenNotApplicable) countOftenNotApplicable++;
     if (s.governance) countGovernance++;
     if (s.hybrid) countHybrid++;
     if (s.os && s.cloud) countOsAndCloud++;
 
-    const hasAny = s.os || s.cloud || s.governance || s.hybrid || s.na;
+    const hasAny = s.os || s.cloud || s.governance || s.hybrid;
     if (!hasAny) unassigned.push(controlId);
 
-    if (s.na && (s.os || s.cloud || s.governance || s.hybrid)) {
-      naOverlap.push(controlId);
-    }
     if (s.os && s.cloud) osCloudOverlap.push(controlId);
   }
 
@@ -148,11 +150,6 @@ export function runC3PAOValidation(allControlIds: string[]): C3PAOValidationResu
   if (unassigned.length > 0) {
     errors.push(`Controls with no satisfaction source: ${unassigned.join(", ")}`);
   }
-  if (naOverlap.length > 0) {
-    errors.push(
-      `N/A controls must not also be in OS/Cloud/Governance/Hybrid (exclusive bin): ${naOverlap.join(", ")}`
-    );
-  }
 
   if (countGovernance !== EXPECTED_GOVERNANCE) {
     errors.push(`Governance count is ${countGovernance}, expected ${EXPECTED_GOVERNANCE}`);
@@ -165,7 +162,7 @@ export function runC3PAOValidation(allControlIds: string[]): C3PAOValidationResu
     tally: {
       os: countOs,
       cloud: countCloud,
-      na: countNa,
+      oftenNotApplicable: countOftenNotApplicable,
       governance: countGovernance,
       hybrid: countHybrid,
       osAndCloud: countOsAndCloud,
@@ -174,6 +171,5 @@ export function runC3PAOValidation(allControlIds: string[]): C3PAOValidationResu
     warnings,
     osCloudOverlap,
     unassigned,
-    naOverlap,
   };
 }

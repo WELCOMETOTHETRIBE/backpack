@@ -13,6 +13,7 @@ import {
   type GuideSection,
 } from "./assessment-guide-sections";
 import type { SctmOptimizedControl } from "@/lib/sctm-optimized-types";
+import { getHybridCriteriaLabels } from "@/lib/compliance/satisfaction-sources";
 
 function TextWithBold({ text }: { text: string }) {
   const parts: React.ReactNode[] = [];
@@ -55,7 +56,8 @@ export type SCTMRecord = {
   satisfiedByCloud?: boolean;
   satisfiedByGovernance?: boolean;
   satisfiedByHybrid?: boolean;
-  satisfactionSourceNa?: boolean;
+  oftenNotApplicable?: boolean;
+  hybridSatisfaction?: { technical?: boolean; governance?: boolean } | null;
 };
 
 export type NistRow = {
@@ -76,7 +78,18 @@ const SECTION_ICONS: Record<string, React.ComponentType<{ className?: string }>>
   "Overview": FileText,
   "More": FileText,
   "What assessors do": ListChecks,
+  "How the Codex Accelerator Helps": Lightbulb,
 };
+
+/** Splits text on "How the Codex Accelerator Helps" so it can be rendered as its own section. */
+function extractCodexAcceleratorSection(text: string): { main: string; codex: string } {
+  const codexMarker = /\s*\*?\s*\*?How the Codex Accelerator Helps\*?\s*:?\s*/i;
+  const idx = text.search(codexMarker);
+  if (idx === -1) return { main: text, codex: "" };
+  const main = text.slice(0, idx).replace(/\s*$/, "");
+  const after = text.slice(idx).replace(codexMarker, "").trim();
+  return { main, codex: after };
+}
 
 /** Renders guide/JSON body with [SELECT FROM: a; b; c] as a readable list; rest as paragraphs. Use bold to support **bold** in text. */
 function FormattedGuideBody({ text, bold = false }: { text: string; bold?: boolean }) {
@@ -190,7 +203,17 @@ export function SCTMControlDetail({
   const [narrative, setNarrative] = useState(record.governanceNarrative ?? "");
   const [savingNarrative, setSavingNarrative] = useState(false);
   const [savingStatus, setSavingStatus] = useState(false);
+  const [savingHybrid, setSavingHybrid] = useState(false);
   const [artifacts, setArtifacts] = useState<{ artifactLabel: string }[]>([]);
+
+  const hybridLabels = record.satisfiedByHybrid ? getHybridCriteriaLabels(record.controlId) : null;
+  const technicalDefault = Boolean(record.evidencePartial);
+  const [technicalSatisfied, setTechnicalSatisfied] = useState(
+    record.hybridSatisfaction?.technical ?? technicalDefault
+  );
+  const [governanceSatisfied, setGovernanceSatisfied] = useState(
+    record.hybridSatisfaction?.governance ?? false
+  );
 
   const refresh = useCallback(() => {
     onSaved?.();
@@ -199,6 +222,12 @@ export function SCTMControlDetail({
   useEffect(() => {
     setNarrative(record.governanceNarrative ?? "");
   }, [record.governanceNarrative]);
+
+  useEffect(() => {
+    const techDefault = Boolean(record.evidencePartial);
+    setTechnicalSatisfied(record.hybridSatisfaction?.technical ?? techDefault);
+    setGovernanceSatisfied(record.hybridSatisfaction?.governance ?? false);
+  }, [record.hybridSatisfaction, record.evidencePartial]);
 
   useEffect(() => {
     refreshArtifacts(record.id, setArtifacts);
@@ -250,6 +279,33 @@ export function SCTMControlDetail({
     }
   }
 
+  async function saveHybridSatisfaction(payload: { technical: boolean; governance: boolean }) {
+    if (savingHybrid || !record.satisfiedByHybrid) return;
+    setSavingHybrid(true);
+    try {
+      const res = await fetch(`/api/control-records/${record.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hybridSatisfaction: payload }),
+      });
+      if (res.ok) refresh();
+    } finally {
+      setSavingHybrid(false);
+    }
+  }
+
+  function handleTechnicalToggle() {
+    const next = !technicalSatisfied;
+    setTechnicalSatisfied(next);
+    saveHybridSatisfaction({ technical: next, governance: governanceSatisfied });
+  }
+
+  function handleGovernanceToggle() {
+    const next = !governanceSatisfied;
+    setGovernanceSatisfied(next);
+    saveHybridSatisfaction({ technical: technicalSatisfied, governance: next });
+  }
+
   const familyCode = familyCodeFromControlId(record.controlId);
 
   return (
@@ -266,20 +322,23 @@ export function SCTMControlDetail({
             {sctmOptimized.compliance_meta.satisfaction_type.replace(/-/g, " ")}
           </span>
         )}
-        {record.satisfactionSourceNa && (
+        {record.oftenNotApplicable && (
           <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-zinc-100 text-zinc-600" title="Often not applicable.">N/A</span>
         )}
-        {record.satisfiedByOs && (
-          <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-700" title="Met by OS configuration (73).">OS</span>
-        )}
-        {record.satisfiedByCloud && (
-          <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-sky-100 text-sky-800" title="Met by cloud (5 inherited + 7 Azure/Entra).">Cloud</span>
-        )}
-        {record.satisfiedByHybrid && (
-          <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200/60" title="Hybrid (OS + gov docs or policy + technical).">Hybrid</span>
-        )}
-        {record.satisfiedByGovernance && (
-          <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-violet-100 text-violet-800" title="Met by governance (18).">Governance</span>
+        {record.satisfiedByHybrid ? (
+          <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-teal-100 text-teal-800" title="Hybrid (OS + gov docs or policy + technical).">Hybrid</span>
+        ) : (
+          <>
+            {record.satisfiedByOs && (
+              <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-700" title="Met by OS configuration (73).">OS</span>
+            )}
+            {record.satisfiedByCloud && (
+              <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-sky-100 text-sky-800" title="Met by cloud (5 inherited + 7 Azure/Entra).">Cloud</span>
+            )}
+            {record.satisfiedByGovernance && (
+              <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-violet-100 text-violet-800" title="Met by governance (18).">Governance</span>
+            )}
+          </>
         )}
         {record.roleName && <span className="text-xs text-[var(--color-gray-400)]">· {record.roleName}</span>}
       </div>
@@ -351,18 +410,29 @@ export function SCTMControlDetail({
           (sctmOptimized.assessor_interrogation.assessor_questions ||
             sctmOptimized.assessor_interrogation.examine_criteria ||
             sctmOptimized.assessor_interrogation.test_procedures);
-        const assessorSectionBody = hasAssessorContent
-          ? [
-              sctmOptimized!.assessor_interrogation!.assessor_questions && `**Interview**\n\n${sctmOptimized!.assessor_interrogation!.assessor_questions}`,
-              sctmOptimized!.assessor_interrogation!.examine_criteria && `**Examine**\n\n${sctmOptimized!.assessor_interrogation!.examine_criteria}`,
-              sctmOptimized!.assessor_interrogation!.test_procedures && `**Test**\n\n${sctmOptimized!.assessor_interrogation!.test_procedures}`,
-            ]
-              .filter(Boolean)
-              .join("\n\n")
-          : "";
+        let assessorSectionBody = "";
+        let codexSection: GuideSection | null = null;
+        if (hasAssessorContent) {
+          const testProcedures = sctmOptimized!.assessor_interrogation!.test_procedures ?? "";
+          const { main: testMain, codex: codexBody } = extractCodexAcceleratorSection(testProcedures);
+          assessorSectionBody = [
+            sctmOptimized!.assessor_interrogation!.assessor_questions && `**Interview**\n\n${sctmOptimized!.assessor_interrogation!.assessor_questions}`,
+            sctmOptimized!.assessor_interrogation!.examine_criteria && `**Examine**\n\n${sctmOptimized!.assessor_interrogation!.examine_criteria}`,
+            testMain && `**Test**\n\n${testMain}`,
+          ]
+            .filter(Boolean)
+            .join("\n\n");
+          if (codexBody.trim()) {
+            codexSection = { label: "How the Codex Accelerator Helps", body: codexBody.trim() };
+          }
+        }
         const assessorSection: GuideSection | null =
           assessorSectionBody.trim() ? { label: "What assessors do", body: assessorSectionBody.trim() } : null;
-        const allSections: GuideSection[] = assessorSection ? [assessorSection, ...guideSections] : guideSections;
+        const allSections: GuideSection[] = [
+          ...(assessorSection ? [assessorSection] : []),
+          ...(codexSection ? [codexSection] : []),
+          ...guideSections,
+        ];
 
         if (allSections.length === 0) return null;
         return (
@@ -388,6 +458,41 @@ export function SCTMControlDetail({
             <div className="text-[15px] leading-[1.7] text-[var(--color-gray-700)] whitespace-pre-wrap [&_strong]:font-semibold [&_strong]:text-[var(--color-gray-800)]">
               <TextWithBold text={cleanDisplayText(nist.nistDiscussionGuidance)} />
             </div>
+          </div>
+        </section>
+      )}
+
+      {/* Hybrid satisfaction criteria — when control is Hybrid */}
+      {record.satisfiedByHybrid && hybridLabels && (
+        <section className="mb-4 rounded-xl border-2 border-teal-200 bg-teal-50/50 overflow-hidden">
+          <div className="px-4 py-2.5 border-b border-teal-200/80 bg-teal-100/50">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-teal-800">Hybrid — satisfaction criteria</h2>
+            <p className="text-xs text-teal-700 mt-0.5">Mark each criterion when satisfied (editable).</p>
+          </div>
+          <div className="px-4 py-3 space-y-3">
+            <label className="flex items-center gap-3 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={technicalSatisfied}
+                onChange={handleTechnicalToggle}
+                disabled={savingHybrid}
+                className="h-4 w-4 rounded border-teal-300 text-teal-600 focus:ring-teal-500"
+              />
+              <span className="text-sm font-medium text-teal-900 group-hover:text-teal-800">{hybridLabels.technical}</span>
+              {technicalSatisfied && <span className="text-xs text-teal-600">Satisfied</span>}
+            </label>
+            <label className="flex items-center gap-3 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={governanceSatisfied}
+                onChange={handleGovernanceToggle}
+                disabled={savingHybrid}
+                className="h-4 w-4 rounded border-teal-300 text-teal-600 focus:ring-teal-500"
+              />
+              <span className="text-sm font-medium text-teal-900 group-hover:text-teal-800">{hybridLabels.governance}</span>
+              {governanceSatisfied && <span className="text-xs text-teal-600">Satisfied</span>}
+            </label>
+            {savingHybrid && <p className="text-xs text-teal-600">Saving…</p>}
           </div>
         </section>
       )}

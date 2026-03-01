@@ -15,7 +15,7 @@ function main(): number {
   console.log("Tally:");
   console.log(`  OS (73):        ${result.tally.os}`);
   console.log(`  Cloud (12):     ${result.tally.cloud}`);
-  console.log(`  N/A (7):        ${result.tally.na}`);
+  console.log(`  Often N/A (7):  ${result.tally.oftenNotApplicable}`);
   console.log(`  Governance (18): ${result.tally.governance}`);
   console.log(`  Hybrid (31+6):  ${result.tally.hybrid}`);
   console.log(`  OS ∩ Cloud:     ${result.tally.osAndCloud} (controls in both)`);

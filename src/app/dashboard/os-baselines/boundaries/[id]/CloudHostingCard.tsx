@@ -84,7 +84,7 @@ function AzureEntraBulkUpload({ boundaryId }: { boundaryId: string }) {
         Upload validation report
       </p>
       <p className="mt-0.5 text-xs text-[var(--color-gray-600)]">
-        Upload <code className="rounded bg-[var(--color-gray-200)] px-1">validation-report-azure-entra.json</code> from the validator for bulk ingest.
+        Upload <code className="rounded bg-[var(--color-gray-200)] px-1">validation-report-azure-entra.json</code> — this is the single file used for governance mapping and auditor quick view. The report includes <code className="rounded bg-[var(--color-gray-200)] px-0.5">report_sha256</code> and per-artifact hashes in <code className="rounded bg-[var(--color-gray-200)] px-0.5">inputs</code> for integrity verification.
       </p>
       <form onSubmit={handleSubmit} className="mt-3 flex flex-wrap items-end gap-3">
         <div className="min-w-[180px]">

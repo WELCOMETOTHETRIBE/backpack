@@ -12,21 +12,13 @@ import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 
 describe("satisfaction-sources", () => {
   describe("getSatisfactionSources", () => {
-    it("returns only na for N/A controls (exclusive bin)", () => {
-      expect(getSatisfactionSources("3.1.16")).toEqual({
-        os: false,
-        cloud: false,
-        governance: false,
-        hybrid: false,
-        na: true,
-      });
-      expect(getSatisfactionSources("3.13.14")).toEqual({
-        os: false,
-        cloud: false,
-        governance: false,
-        hybrid: false,
-        na: true,
-      });
+    it("returns oftenNotApplicable and real bin for the 7 N/A-listed controls", () => {
+      const s116 = getSatisfactionSources("3.1.16");
+      expect(s116.oftenNotApplicable).toBe(true);
+      expect(s116.hybrid).toBe(true); // delta (not in 73/12/18)
+      const s314 = getSatisfactionSources("3.13.14");
+      expect(s314.oftenNotApplicable).toBe(true);
+      expect(s314.hybrid).toBe(true);
     });
 
     it("returns os for enclave (73) controls", () => {
@@ -74,13 +66,12 @@ describe("satisfaction-sources", () => {
 
       expect(result.tally.os).toBe(73);
       expect(result.tally.cloud).toBe(12);
-      expect(result.tally.na).toBe(7);
+      expect(result.tally.oftenNotApplicable).toBe(7);
       expect(result.tally.governance).toBe(18);
-      expect(result.tally.hybrid).toBe(38); // 31 OS partial + 7 delta (or 32+6)
+      expect(result.tally.hybrid).toBe(45); // 31 OS partial + 7 delta + 7 often-N/A (delta)
       expect(result.tally.osAndCloud).toBe(6);
 
       expect(result.unassigned).toHaveLength(0);
-      expect(result.naOverlap).toHaveLength(0);
       expect(result.osCloudOverlap).toHaveLength(6);
       expect(result.osCloudOverlap).toContain("3.1.13");
       expect(result.osCloudOverlap).toContain("3.13.8");
@@ -101,7 +92,7 @@ describe("satisfaction-sources", () => {
       }
     });
 
-    it("every control has at least one source (na, os, cloud, governance, or hybrid)", () => {
+    it("every control has at least one satisfaction source (os, cloud, governance, or hybrid)", () => {
       const result = runC3PAOValidation(ALL_CONTROL_IDS);
       expect(result.ok).toBe(true);
       expect(result.unassigned).toHaveLength(0);

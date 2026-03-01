@@ -92,6 +92,7 @@ export async function GET(req: Request) {
         sprs31311Condition: controlRecords.sprs31311Condition,
         lastValidationDate: controlRecords.lastValidationDate,
         monitoringCadence: controlRecords.monitoringCadence,
+        hybridSatisfaction: controlRecords.hybridSatisfaction,
       })
       .from(controlRecords)
       .leftJoin(roles, eq(controlRecords.responsibleRoleId, roles.id))
@@ -145,7 +146,7 @@ export async function GET(req: Request) {
         satisfiedByCloud: sources.cloud,
         satisfiedByGovernance: sources.governance,
         satisfiedByHybrid: sources.hybrid,
-        satisfactionSourceNa: sources.na,
+        oftenNotApplicable: sources.oftenNotApplicable,
       };
     });
 

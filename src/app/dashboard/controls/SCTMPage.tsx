@@ -344,30 +344,33 @@ export function SCTMPage() {
                       ) : (
                         <StatusBadge status={r.implementationStatus} />
                       )}
-                      {r.satisfactionSourceNa && (
+                      {r.oftenNotApplicable && (
                         <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-zinc-100 text-zinc-600" title="Often not applicable (e.g. wireless, VoIP, alternate work sites).">
                           N/A
                         </span>
                       )}
-                      {r.satisfiedByOs && (
-                        <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-slate-100 text-slate-700" title="Met by OS configuration (73 enclave controls).">
-                          OS
-                        </span>
-                      )}
-                      {r.satisfiedByCloud && (
-                        <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-sky-100 text-sky-800" title="Met by cloud (5 inherited + 7 Azure/Entra).">
-                          Cloud
-                        </span>
-                      )}
-                      {r.satisfiedByHybrid && (
-                        <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-amber-50 text-amber-800 border border-amber-200/60" title="OS evidence + gov docs, or policy + technical (hybrid).">
+                      {r.satisfiedByHybrid ? (
+                        <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-teal-100 text-teal-800" title="OS evidence + gov docs, or policy + technical (hybrid).">
                           Hybrid
                         </span>
-                      )}
-                      {r.satisfiedByGovernance && (
-                        <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-violet-100 text-violet-800" title="Met by governance (18 policy/documentation).">
-                          Governance
-                        </span>
+                      ) : (
+                        <>
+                          {r.satisfiedByOs && (
+                            <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-slate-100 text-slate-700" title="Met by OS configuration (73 enclave controls).">
+                              OS
+                            </span>
+                          )}
+                          {r.satisfiedByCloud && (
+                            <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-sky-100 text-sky-800" title="Met by cloud (5 inherited + 7 Azure/Entra).">
+                              Cloud
+                            </span>
+                          )}
+                          {r.satisfiedByGovernance && (
+                            <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-violet-100 text-violet-800" title="Met by governance (18 policy/documentation).">
+                              Governance
+                            </span>
+                          )}
+                        </>
                       )}
                     </div>
                     <p className="mt-0.5 font-medium text-[var(--color-gray-900)] leading-tight line-clamp-2 text-xs min-w-0">

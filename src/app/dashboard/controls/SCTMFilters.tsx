@@ -22,8 +22,8 @@ export type SCTMRecord = {
   satisfiedByGovernance?: boolean;
   /** True when control is Hybrid (31 OS partial + 6 delta). */
   satisfiedByHybrid?: boolean;
-  /** True when control is in the 7 often-not-applicable set. */
-  satisfactionSourceNa?: boolean;
+  /** True when control is in the 7 often-not-applicable set (still has a real satisfaction bin). */
+  oftenNotApplicable?: boolean;
 };
 
 export function SCTMFilters({

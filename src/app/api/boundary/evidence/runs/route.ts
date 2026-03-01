@@ -43,27 +43,36 @@ export async function GET(req: Request) {
         collectorVersion: evidenceRuns.collectorVersion,
         runFingerprint: evidenceRuns.runFingerprint,
         source: evidenceRuns.source,
+        manifest: evidenceRuns.manifest,
       })
       .from(evidenceRuns)
       .where(and(...conditions))
       .orderBy(desc(evidenceRuns.collectedAt))
       .limit(100);
 
-    const runsPayload = runs.map((r) => ({
-      id: r.id,
-      evidence_run_id: r.id,
-      run_id: r.runId,
-      system_id: r.systemId,
-      collected_at: r.collectedAt instanceof Date ? r.collectedAt.toISOString() : String(r.collectedAt),
-      run_fingerprint: r.runFingerprint,
-      source: r.source ?? null,
-      // for existing boundary page list
-      runId: r.runId,
-      systemId: r.systemId,
-      collectedAt: r.collectedAt instanceof Date ? r.collectedAt.toISOString() : String(r.collectedAt),
-      collectorName: r.collectorName,
-      collectorVersion: r.collectorVersion,
-    }));
+    const runsPayload = runs.map((r) => {
+      const manifest = r.manifest as Record<string, unknown> | null;
+      const reportSha256 =
+        r.source === "azure_entra" && manifest && typeof manifest.report_sha256 === "string"
+          ? manifest.report_sha256
+          : null;
+      return {
+        id: r.id,
+        evidence_run_id: r.id,
+        run_id: r.runId,
+        system_id: r.systemId,
+        collected_at: r.collectedAt instanceof Date ? r.collectedAt.toISOString() : String(r.collectedAt),
+        run_fingerprint: r.runFingerprint,
+        source: r.source ?? null,
+        report_sha256: reportSha256,
+        // for existing boundary page list
+        runId: r.runId,
+        systemId: r.systemId,
+        collectedAt: r.collectedAt instanceof Date ? r.collectedAt.toISOString() : String(r.collectedAt),
+        collectorName: r.collectorName,
+        collectorVersion: r.collectorVersion,
+      };
+    });
 
     return NextResponse.json({ runs: runsPayload });
   } catch (e) {
