@@ -30,13 +30,23 @@ const CONTROL_FAMILY_PREFIX: Record<string, string> = {
  * Returns control records for the org, optionally filtered by family code or by control IDs.
  */
 export async function GET(req: Request) {
+  let orgId: string;
   try {
-    const orgId = await requireOrg();
+    orgId = await requireOrg();
     await requireRole(["Admin", "Compliance", "Assessor"]);
+  } catch (authErr) {
+    const message = authErr instanceof Error ? authErr.message : "Unauthorized";
+    return NextResponse.json({ error: message }, { status: 401 });
+  }
 
-    // Ensure 3.10.1–3.10.5 inherited status is in sync with any Azure boundary
+  try {
+    // Ensure 3.10.1–3.10.5 inherited status is in sync with any Azure boundary (non-blocking)
     await syncOrgAzureInheritedControls(db, orgId);
+  } catch {
+    // Sync failure should not block listing control records
+  }
 
+  try {
     const { searchParams } = new URL(req.url);
     const family = searchParams.get("family");
     const controlIdsParam = searchParams.get("controlIds");
@@ -153,6 +163,6 @@ export async function GET(req: Request) {
     return NextResponse.json(enriched);
   } catch (e) {
     const message = e instanceof Error ? e.message : "Failed to list control records";
-    return NextResponse.json({ error: message }, { status: 401 });
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
