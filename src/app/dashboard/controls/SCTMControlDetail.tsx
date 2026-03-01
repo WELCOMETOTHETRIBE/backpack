@@ -14,6 +14,7 @@ import {
 } from "./assessment-guide-sections";
 import type { SctmOptimizedControl } from "@/lib/sctm-optimized-types";
 import { getHybridCriteriaLabels } from "@/lib/compliance/satisfaction-sources";
+import type { ArtifactSpec } from "@/lib/artifact-guide";
 
 function TextWithBold({ text }: { text: string }) {
   const parts: React.ReactNode[] = [];
@@ -207,6 +208,20 @@ export function SCTMControlDetail({
   const [artifacts, setArtifacts] = useState<{ artifactLabel: string }[]>([]);
 
   const hybridLabels = record.satisfiedByHybrid ? getHybridCriteriaLabels(record.controlId) : null;
+  const hybridArtifacts = (() => {
+    if (!record.satisfiedByHybrid) return { technical: [] as string[], governance: [] as string[] };
+    const list: { label: string; handling: string }[] = (sctmOptimized?.compliance_meta?.required_artifacts ?? []).map((a) => ({ label: a.name, handling: a.handling }));
+    if (list.length === 0) {
+      const spec = getSpecForControl(record.controlId);
+      spec?.artifacts?.filter((a) => (a as ArtifactSpec).handling !== "N/A").forEach((a) => {
+        const x = a as ArtifactSpec;
+        list.push({ label: x.label, handling: x.handling });
+      });
+    }
+    const technical = list.filter((a) => a.handling === "UPLOAD" || a.handling === "NATIVE").map((a) => a.label);
+    const governance = list.filter((a) => a.handling === "REFERENCE" || a.handling === "ATTESTATION").map((a) => a.label);
+    return { technical, governance };
+  })();
   const technicalDefault = Boolean(record.evidencePartial);
   const [technicalSatisfied, setTechnicalSatisfied] = useState(
     record.hybridSatisfaction?.technical ?? technicalDefault
@@ -239,9 +254,10 @@ export function SCTMControlDetail({
   const requiredUpload = hasUltimateArtifacts
     ? ultimateArtifacts.filter((a) => a.handling === "UPLOAD" || a.handling === "NATIVE").map((a) => ({ label: a.name, handling: a.handling }))
     : (spec?.artifacts.filter((a) => a.handling === "UPLOAD" || a.handling === "NATIVE") ?? []);
-  const allEvidenceArtifacts = hasUltimateArtifacts
+  const allEvidenceArtifacts = (hasUltimateArtifacts
     ? ultimateArtifacts.map((a) => ({ label: a.name, handling: a.handling }))
-    : (spec?.artifacts ?? []);
+    : (spec?.artifacts ?? [])
+  ).filter((a) => a.handling !== "N/A");
   const uploadedSet = new Set(artifacts.map((a) => a.artifactLabel));
 
   const guideSections = parseAssessmentGuideSections(nist?.nistDiscussionGuidance);
@@ -321,9 +337,6 @@ export function SCTMControlDetail({
           <span className="rounded-full bg-[var(--color-blue-accent)]/10 px-2.5 py-0.5 text-xs font-medium text-[var(--color-blue-accent)]">
             {sctmOptimized.compliance_meta.satisfaction_type.replace(/-/g, " ")}
           </span>
-        )}
-        {record.oftenNotApplicable && (
-          <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-zinc-100 text-zinc-600" title="Often not applicable.">N/A</span>
         )}
         {record.satisfiedByHybrid ? (
           <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-teal-100 text-teal-800" title="Hybrid (OS + gov docs or policy + technical).">Hybrid</span>
@@ -469,29 +482,55 @@ export function SCTMControlDetail({
             <h2 className="text-xs font-semibold uppercase tracking-wider text-teal-800">Hybrid — satisfaction criteria</h2>
             <p className="text-xs text-teal-700 mt-0.5">Mark each criterion when satisfied (editable).</p>
           </div>
-          <div className="px-4 py-3 space-y-3">
-            <label className="flex items-center gap-3 cursor-pointer group">
-              <input
-                type="checkbox"
-                checked={technicalSatisfied}
-                onChange={handleTechnicalToggle}
-                disabled={savingHybrid}
-                className="h-4 w-4 rounded border-teal-300 text-teal-600 focus:ring-teal-500"
-              />
-              <span className="text-sm font-medium text-teal-900 group-hover:text-teal-800">{hybridLabels.technical}</span>
-              {technicalSatisfied && <span className="text-xs text-teal-600">Satisfied</span>}
-            </label>
-            <label className="flex items-center gap-3 cursor-pointer group">
-              <input
-                type="checkbox"
-                checked={governanceSatisfied}
-                onChange={handleGovernanceToggle}
-                disabled={savingHybrid}
-                className="h-4 w-4 rounded border-teal-300 text-teal-600 focus:ring-teal-500"
-              />
-              <span className="text-sm font-medium text-teal-900 group-hover:text-teal-800">{hybridLabels.governance}</span>
-              {governanceSatisfied && <span className="text-xs text-teal-600">Satisfied</span>}
-            </label>
+          <div className="px-4 py-3 space-y-4">
+            <div className="space-y-1.5">
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={technicalSatisfied}
+                  onChange={handleTechnicalToggle}
+                  disabled={savingHybrid}
+                  className="h-4 w-4 rounded border-teal-300 text-teal-600 focus:ring-teal-500"
+                />
+                <span className="text-sm font-medium text-teal-900 group-hover:text-teal-800">{hybridLabels.technical}</span>
+                {technicalSatisfied && <span className="text-xs text-teal-600">Satisfied</span>}
+              </label>
+              <div className="ml-7 text-xs text-teal-800 space-y-0.5">
+                {requirementText && (() => {
+                  const firstSentence = requirementText.split(/[.!?]/)[0]?.trim() ?? "";
+                  const hasPunct = /[.!?]/.test(requirementText);
+                  return (
+                    <>
+                      <p className="font-medium">Technical requirement:</p>
+                      <p className="text-teal-700">{firstSentence}{hasPunct ? "." : ""}</p>
+                    </>
+                  );
+                })()}
+                {hybridArtifacts.technical.length > 0 && (
+                  <p className="mt-1"><span className="font-medium">Required evidence:</span> {hybridArtifacts.technical.join("; ")}</p>
+                )}
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={governanceSatisfied}
+                  onChange={handleGovernanceToggle}
+                  disabled={savingHybrid}
+                  className="h-4 w-4 rounded border-teal-300 text-teal-600 focus:ring-teal-500"
+                />
+                <span className="text-sm font-medium text-teal-900 group-hover:text-teal-800">{hybridLabels.governance}</span>
+                {governanceSatisfied && <span className="text-xs text-teal-600">Satisfied</span>}
+              </label>
+              <div className="ml-7 text-xs text-teal-800 space-y-0.5">
+                {hybridArtifacts.governance.length > 0 ? (
+                  <p><span className="font-medium">Required documentation:</span> {hybridArtifacts.governance.join("; ")}</p>
+                ) : (
+                  <p className="text-teal-700">Policy, procedure, or other documentation that addresses this control.</p>
+                )}
+              </div>
+            </div>
             {savingHybrid && <p className="text-xs text-teal-600">Saving…</p>}
           </div>
         </section>

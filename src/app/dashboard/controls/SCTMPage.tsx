@@ -343,11 +343,6 @@ export function SCTMPage() {
                       ) : (
                         <StatusBadge status={r.implementationStatus} />
                       )}
-                      {r.oftenNotApplicable && (
-                        <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-zinc-100 text-zinc-600" title="Often not applicable (e.g. wireless, VoIP, alternate work sites).">
-                          N/A
-                        </span>
-                      )}
                       {r.satisfiedByHybrid ? (
                         <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-teal-100 text-teal-800" title="OS evidence + gov docs, or policy + technical (hybrid).">
                           Hybrid
