@@ -88,7 +88,7 @@ export default async function TechnicalDashboardPage() {
               </p>
             )}
             <Link
-              href="/dashboard/governance/controls?classification=TECHNICAL"
+              href="/dashboard/technical/controls?classification=TECHNICAL"
               className="mt-2 inline-block text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
             >
               View controls →
@@ -114,7 +114,7 @@ export default async function TechnicalDashboardPage() {
               </p>
             )}
             <Link
-              href="/dashboard/governance/controls?classification=HYBRID_TECHNICAL"
+              href="/dashboard/technical/controls?classification=HYBRID_TECHNICAL"
               className="mt-2 inline-block text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
             >
               View controls →
@@ -151,7 +151,7 @@ export default async function TechnicalDashboardPage() {
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Link
-            href="/dashboard/governance/controls?classification=TECHNICAL"
+            href="/dashboard/technical/controls?classification=TECHNICAL"
             className={`${cardClass} block transition-colors hover:bg-[var(--color-gray-50)]`}
           >
             <div className="flex items-center gap-2 text-[var(--color-navy-primary)]">

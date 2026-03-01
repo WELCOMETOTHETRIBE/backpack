@@ -16,7 +16,11 @@ type Item = {
   requiredRegisters: string[];
 };
 
-export default function GovernanceControlsClient() {
+type ControlsListProps = {
+  basePath?: string;
+};
+
+export default function GovernanceControlsClient({ basePath = "/dashboard/governance/controls" }: ControlsListProps = {}) {
   const searchParams = useSearchParams();
   const classification = searchParams.get("classification") ?? "";
   const status = searchParams.get("status") ?? "";
@@ -44,7 +48,6 @@ export default function GovernanceControlsClient() {
   const total = data?.total ?? 0;
   const limit = data?.limit ?? 20;
   const totalPages = Math.max(1, Math.ceil(total / limit));
-  const basePath = "/dashboard/governance/controls";
 
   const buildUrl = (updates: Record<string, string>) => {
     const p = new URLSearchParams(searchParams);
@@ -146,7 +149,7 @@ export default function GovernanceControlsClient() {
                     </td>
                     <td className="px-4 py-3">
                       <Link
-                        href={`/dashboard/governance/controls/${encodeURIComponent(item.controlId)}`}
+                        href={`${basePath}/${encodeURIComponent(item.controlId)}`}
                         className="font-medium text-[var(--color-blue-accent)] hover:underline"
                       >
                         View

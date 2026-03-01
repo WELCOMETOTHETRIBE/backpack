@@ -11,6 +11,8 @@ const ROUTE_TITLES: Record<string, string> = {
   "/dashboard/controls": "SCTM",
   "/dashboard/governance": "Governance",
   "/dashboard/governance/controls": "Governance Controls",
+  "/dashboard/technical": "Technical",
+  "/dashboard/technical/controls": "Technical Controls",
   "/dashboard/governance/documents": "Document Control",
   "/dashboard/governance/registers": "Registers",
   "/dashboard/governance/evidence": "Evidence Library",
