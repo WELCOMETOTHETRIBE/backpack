@@ -1,68 +1,38 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import {
-  GOVERNANCE_18_CONTROL_IDS,
-  GOVERNANCE_18_ANALYSIS,
-} from "@/lib/compliance/governance-18-analysis";
-import { StatusBadge } from "@/components/governance-wizard/StatusBadge";
+import { GOVERNANCE_DOCUMENT_MATRIX } from "@/lib/governance/governance-document-matrix";
 import { GovernanceDocumentUploadModal } from "@/components/adjudication/GovernanceDocumentUploadModal";
 import { RecordsManagementWidget } from "@/components/adjudication/RecordsManagementWidget";
 import { FileStack, FileText, ClipboardCheck, ChevronRight } from "lucide-react";
 
-type ControlRecord = {
-  id: string;
-  controlId: string;
-  implementationStatus: string;
-};
-
 export default function DocumentsPage() {
-  const [records, setRecords] = useState<ControlRecord[]>([]);
-  const [loading, setLoading] = useState(true);
   const [governanceModalOpen, setGovernanceModalOpen] = useState(false);
-
-  const fetchRecords = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/control-records");
-      if (res.ok) {
-        const list: ControlRecord[] = await res.json();
-        setRecords(list);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchRecords();
-  }, [fetchRecords]);
-
-  const recordByControlId = Object.fromEntries(records.map((r) => [r.controlId, r]));
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-xl font-semibold text-[var(--color-navy-primary)]">Documents</h1>
         <p className="mt-1 text-sm text-[var(--color-gray-600)]">
-          Upload governance documentation, adjudicate the 18 governance controls, and manage routine logs and records.
+          Governance Documents Matrix: required for Gov Pure, Gov Hybrid, and Tech/Hybrid. Upload and map documents to controls.
         </p>
       </div>
 
-      {/* 1. Governance documents (upload & map) */}
+      {/* 1. Governance Documents Matrix (primary) */}
       <section
-        className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm"
-        aria-labelledby="doc-governance-heading"
+        className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm"
+        aria-labelledby="doc-matrix-heading"
+        aria-describedby="doc-matrix-desc"
       >
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-4 border-b border-[var(--color-border)] px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 id="doc-governance-heading" className="flex items-center gap-2 text-sm font-semibold text-[var(--color-navy-primary)]">
+            <h2 id="doc-matrix-heading" className="flex items-center gap-2 text-sm font-semibold text-[var(--color-navy-primary)]">
               <FileStack className="h-4 w-4" aria-hidden />
-              Governance documents
+              Governance Documents Matrix
             </h2>
-            <p className="mt-1 text-sm text-[var(--color-gray-600)]">
-              Upload policies and procedures; map one document to multiple controls.
+            <p id="doc-matrix-desc" className="mt-1 text-sm text-[var(--color-gray-600)]">
+              Required for Gov Pure (18 governance-only controls), Gov Hybrid, and Tech/Hybrid. Upload and map documents below.
             </p>
           </div>
           <button
@@ -74,60 +44,80 @@ export default function DocumentsPage() {
             Upload & map documents
           </button>
         </div>
+        <div className="overflow-x-auto">
+          <table
+            className="w-full min-w-[480px] border-collapse text-left text-sm"
+            aria-label="Governance Documents Matrix: required for Gov Pure, Gov Hybrid, Tech/Hybrid"
+          >
+            <thead>
+              <tr className="border-b border-[var(--color-border)]">
+                <th className="pb-3 pr-4 pt-4 font-semibold text-[var(--color-navy-primary)]">
+                  Governance Document
+                </th>
+                <th className="w-24 pb-3 pr-2 pt-4 text-center font-semibold text-[var(--color-gray-700)]" scope="col">
+                  Gov Pure
+                </th>
+                <th className="w-24 pb-3 pr-2 pt-4 text-center font-semibold text-[var(--color-gray-700)]" scope="col">
+                  Gov Hybrid
+                </th>
+                <th className="w-24 pb-3 pl-2 pr-4 pt-4 text-center font-semibold text-[var(--color-gray-700)]" scope="col">
+                  Tech/Hybrid
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {GOVERNANCE_DOCUMENT_MATRIX.map((row, i) => (
+                <tr key={i} className="border-b border-[var(--color-border)] last:border-0">
+                  <td className="py-2.5 pr-4 font-medium text-[var(--color-gray-800)]">
+                    {row.document}
+                  </td>
+                  <td className="py-2.5 pr-2 text-center">
+                    {row.govPure ? (
+                      <span className="inline-flex h-6 w-6 items-center justify-center rounded bg-emerald-100 text-emerald-700" aria-label="Required">✓</span>
+                    ) : (
+                      <span className="text-[var(--color-gray-400)]">—</span>
+                    )}
+                  </td>
+                  <td className="py-2.5 pr-2 text-center">
+                    {row.govHybrid ? (
+                      <span className="inline-flex h-6 w-6 items-center justify-center rounded bg-teal-100 text-teal-700" aria-label="Required">✓</span>
+                    ) : (
+                      <span className="text-[var(--color-gray-400)]">—</span>
+                    )}
+                  </td>
+                  <td className="py-2.5 pl-2 pr-4 text-center">
+                    {row.techHybrid ? (
+                      <span className="inline-flex h-6 w-6 items-center justify-center rounded bg-violet-100 text-violet-700" aria-label="Required">✓</span>
+                    ) : (
+                      <span className="text-[var(--color-gray-400)]">—</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </section>
 
-      {/* 2. 18 Governance controls */}
+      {/* 2. 18 Governance controls — compact link */}
       <section
-        className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm"
+        className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm"
         aria-labelledby="doc-18-heading"
       >
-        <div className="border-b border-[var(--color-border)] px-6 py-4">
-          <h2 id="doc-18-heading" className="flex items-center gap-2 text-sm font-semibold text-[var(--color-navy-primary)]">
-            <ClipboardCheck className="h-4 w-4" aria-hidden />
-            18 Governance controls
-          </h2>
-          <p className="mt-1 text-sm text-[var(--color-gray-600)]">
-            Adjudicate by document: each control has its own page with requirements and upload.
-          </p>
-        </div>
-        {loading ? (
-          <div className="flex min-h-[200px] items-center justify-center p-8">
-            <p className="text-sm text-[var(--color-gray-600)]">Loading…</p>
-          </div>
-        ) : (
-          <ul className="divide-y divide-[var(--color-border-muted)]">
-            {GOVERNANCE_18_CONTROL_IDS.map((controlId) => {
-              const analysis = GOVERNANCE_18_ANALYSIS[controlId];
-              const record = recordByControlId[controlId];
-              const title = analysis?.title ?? controlId;
-              return (
-                <li key={controlId}>
-                  <Link
-                    href={`/dashboard/adjudication/governance/${controlId}`}
-                    className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 transition-colors hover:bg-[var(--color-gray-50)] focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--color-blue-accent)]"
-                  >
-                    <div className="min-w-0">
-                      <span className="font-mono text-sm font-medium text-[var(--color-gray-800)]">
-                        {controlId}
-                      </span>
-                      <span className="ml-2 text-sm text-[var(--color-gray-600)]">{title}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {record ? (
-                        <StatusBadge status={record.implementationStatus} />
-                      ) : (
-                        <span className="rounded bg-[var(--color-gray-100)] px-2 py-0.5 text-xs font-medium text-[var(--color-gray-600)]">
-                          —
-                        </span>
-                      )}
-                      <ChevronRight className="h-4 w-4 text-[var(--color-gray-400)]" aria-hidden />
-                    </div>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        )}
+        <h2 id="doc-18-heading" className="flex items-center gap-2 text-sm font-semibold text-[var(--color-navy-primary)]">
+          <ClipboardCheck className="h-4 w-4" aria-hidden />
+          18 Governance controls
+        </h2>
+        <p className="mt-1 text-sm text-[var(--color-gray-600)]">
+          Adjudicate by control: each control has its own page with requirements and upload.
+        </p>
+        <Link
+          href="/dashboard/adjudication/governance"
+          className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-[var(--color-blue-accent)] hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2"
+        >
+          Adjudicate 18 governance controls by control
+          <ChevronRight className="h-4 w-4" aria-hidden />
+        </Link>
       </section>
 
       {/* 3. Routine logs & records */}
@@ -149,10 +139,7 @@ export default function DocumentsPage() {
       {governanceModalOpen && (
         <GovernanceDocumentUploadModal
           onClose={() => setGovernanceModalOpen(false)}
-          onSaved={() => {
-            setGovernanceModalOpen(false);
-            fetchRecords();
-          }}
+          onSaved={() => setGovernanceModalOpen(false)}
         />
       )}
     </div>

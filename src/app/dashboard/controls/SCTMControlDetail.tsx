@@ -593,6 +593,11 @@ export function SCTMControlDetail({
           {(allEvidenceArtifacts.length > 0 || requiredUpload.length > 0) && (
             <div>
               <p className="text-sm font-medium text-[var(--color-gray-700)] mb-2">Evidence</p>
+              {!record.satisfiedByHybrid && requiredUpload.length > 0 && (
+                <p className="text-xs text-[var(--color-gray-500)] mb-2">
+                  Policy or procedure documents required for assessor verification (technical implementation may be evidenced by system configuration or evidence runs).
+                </p>
+              )}
               <ul className="space-y-3">
                 {(allEvidenceArtifacts.length > 0 ? allEvidenceArtifacts : requiredUpload).map((a) => {
                   const needsUpload = (a.handling === "UPLOAD" || a.handling === "NATIVE") && !uploadedSet.has(a.label);
