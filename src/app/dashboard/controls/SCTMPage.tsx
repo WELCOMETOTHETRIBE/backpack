@@ -91,7 +91,6 @@ export function SCTMPage() {
 
   const filteredRecords = useMemo(() => {
     let list = records;
-    if (!family && type !== "partial") return [];
     if (family) {
       const fam = CONTROL_FAMILIES.find((f) => f.code === family);
       if (fam) list = list.filter((r) => getControlFamilyPrefix(r.controlId) === fam.controlPrefix);
