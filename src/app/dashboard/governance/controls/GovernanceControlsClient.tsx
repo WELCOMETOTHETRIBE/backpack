@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { StatusBadge } from "@/components/governance-wizard/StatusBadge";
 
 type Item = {
   id: string;
@@ -140,9 +141,7 @@ export default function GovernanceControlsClient({ basePath = "/dashboard/govern
                     <td className="px-4 py-3 text-[var(--color-gray-900)]">{item.title}</td>
                     <td className="px-4 py-3 text-[var(--color-gray-600)]">{item.classification ?? "—"}</td>
                     <td className="px-4 py-3">
-                      <span className="rounded-full px-2 py-0.5 text-xs font-medium bg-[var(--color-gray-100)] text-[var(--color-gray-700)]">
-                        {item.status ?? "—"}
-                      </span>
+                      <StatusBadge status={item.status ?? "not_started"} />
                     </td>
                     <td className="px-4 py-3 text-[var(--color-gray-600)]">
                       {item.cmmcRef?.split(".")[0] ?? "—"}

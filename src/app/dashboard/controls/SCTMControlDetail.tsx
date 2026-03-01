@@ -220,8 +220,13 @@ export function SCTMControlDetail({
         list.push({ label: x.label, handling: x.handling });
       });
     }
-    const technical = list.filter((a) => a.handling === "UPLOAD" || a.handling === "NATIVE").map((a) => a.label);
-    const governance = list.filter((a) => a.handling === "REFERENCE" || a.handling === "ATTESTATION").map((a) => a.label);
+    // For hybrid: governance = policies/procedures (UPLOAD + REFERENCE + ATTESTATION); technical = OS/config (NATIVE + enclave evidence_files)
+    const governance = list
+      .filter((a) => a.handling === "UPLOAD" || a.handling === "REFERENCE" || a.handling === "ATTESTATION")
+      .map((a) => a.label);
+    const nativeLabels = list.filter((a) => a.handling === "NATIVE").map((a) => a.label);
+    const enclaveFiles = enclaveEntry?.evidence_files ?? [];
+    const technical = [...nativeLabels, ...enclaveFiles];
     return { technical, governance };
   })();
   const technicalDefault = Boolean(record.evidencePartial);
