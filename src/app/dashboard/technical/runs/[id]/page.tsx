@@ -108,6 +108,15 @@ export default async function TechnicalRunDetailPage({
           <p className="mt-1 text-sm text-[var(--color-gray-600)]">
             {asset?.hostname ?? run.systemId} · Collected {new Date(run.collectedAt).toLocaleString()} · {run.collectorName} {run.collectorVersion}
           </p>
+          {run.source === "azure_entra" &&
+            run.manifest &&
+            typeof run.manifest === "object" &&
+            "report_sha256" in run.manifest &&
+            typeof (run.manifest as Record<string, unknown>).report_sha256 === "string" && (
+            <p className="mt-1 text-xs font-mono text-[var(--color-gray-500)]" title={(run.manifest as Record<string, unknown>).report_sha256 as string}>
+              report_sha256: {(run.manifest as Record<string, unknown>).report_sha256 as string}
+            </p>
+          )}
         </div>
 
         <section className={cardClass}>
@@ -225,7 +234,7 @@ export default async function TechnicalRunDetailPage({
                       )}
                       {f.evidenceHint && (
                         <p className="mt-1 text-xs text-[var(--color-gray-500)]">
-                          <span className="font-medium">Hint:</span> {f.evidenceHint}
+                          <span className="font-medium">Evidence artifacts for this control:</span> {f.evidenceHint}
                         </p>
                       )}
                     </li>

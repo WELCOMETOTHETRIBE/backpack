@@ -324,7 +324,7 @@ export default async function AssetDetailPage({
                         )}
                         {detail.evidenceHint && (
                           <p className="mt-1 text-[var(--color-gray-500)]">
-                            <span className="font-medium">Hint:</span> {detail.evidenceHint}
+                            <span className="font-medium">Evidence artifacts for this control:</span> {detail.evidenceHint}
                           </p>
                         )}
                       </div>
