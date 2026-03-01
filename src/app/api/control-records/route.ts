@@ -91,22 +91,59 @@ export async function GET(req: Request) {
         ? and(eq(controlRecords.organizationId, orgId), like(controlRecords.controlId, `${CONTROL_FAMILY_PREFIX[family]}.%`))
         : eq(controlRecords.organizationId, orgId);
 
-    const records = await db
-      .select({
-        id: controlRecords.id,
-        controlId: controlRecords.controlId,
-        implementationStatus: controlRecords.implementationStatus,
-        governanceNarrative: controlRecords.governanceNarrative,
-        responsibleRoleId: controlRecords.responsibleRoleId,
-        roleName: roles.name,
-        sprs31311Condition: controlRecords.sprs31311Condition,
-        lastValidationDate: controlRecords.lastValidationDate,
-        monitoringCadence: controlRecords.monitoringCadence,
-        hybridSatisfaction: controlRecords.hybridSatisfaction,
-      })
-      .from(controlRecords)
-      .leftJoin(roles, eq(controlRecords.responsibleRoleId, roles.id))
-      .where(conditions);
+    type RecordRow = {
+      id: string;
+      controlId: string;
+      implementationStatus: string;
+      governanceNarrative: string | null;
+      responsibleRoleId: string | null;
+      roleName: string | null;
+      sprs31311Condition: string | null;
+      lastValidationDate: Date | null;
+      monitoringCadence: string | null;
+      hybridSatisfaction: { technical?: boolean; governance?: boolean } | null;
+    };
+    let records: RecordRow[];
+    try {
+      records = await db
+        .select({
+          id: controlRecords.id,
+          controlId: controlRecords.controlId,
+          implementationStatus: controlRecords.implementationStatus,
+          governanceNarrative: controlRecords.governanceNarrative,
+          responsibleRoleId: controlRecords.responsibleRoleId,
+          roleName: roles.name,
+          sprs31311Condition: controlRecords.sprs31311Condition,
+          lastValidationDate: controlRecords.lastValidationDate,
+          monitoringCadence: controlRecords.monitoringCadence,
+          hybridSatisfaction: controlRecords.hybridSatisfaction,
+        })
+        .from(controlRecords)
+        .leftJoin(roles, eq(controlRecords.responsibleRoleId, roles.id))
+        .where(conditions);
+    } catch (selectErr) {
+      const msg = selectErr instanceof Error ? selectErr.message : String(selectErr);
+      if (msg.includes("hybrid_satisfaction")) {
+        const rows = await db
+          .select({
+            id: controlRecords.id,
+            controlId: controlRecords.controlId,
+            implementationStatus: controlRecords.implementationStatus,
+            governanceNarrative: controlRecords.governanceNarrative,
+            responsibleRoleId: controlRecords.responsibleRoleId,
+            roleName: roles.name,
+            sprs31311Condition: controlRecords.sprs31311Condition,
+            lastValidationDate: controlRecords.lastValidationDate,
+            monitoringCadence: controlRecords.monitoringCadence,
+          })
+          .from(controlRecords)
+          .leftJoin(roles, eq(controlRecords.responsibleRoleId, roles.id))
+          .where(conditions);
+        records = rows.map((r) => ({ ...r, hybridSatisfaction: null }));
+      } else {
+        throw selectErr;
+      }
+    }
 
     const withArtifactCount = await Promise.all(
       records.map(async (r) => {

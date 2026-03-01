@@ -11,7 +11,10 @@ import {
   governanceRegisterEntries,
 } from "@/db/schema";
 import { eq, and, desc, sql, lt } from "drizzle-orm";
-import { PURE_GOV_CONTROL_IDS, HYBRID_GOV_CONTROL_IDS } from "@/lib/governance/seed-data";
+import {
+  PURE_GOV_CONTROL_IDS,
+  HYBRID_GOV_CENTRIC_IDS,
+} from "@/lib/governance/seed-data";
 import {
   BookMarked,
   FileText,
@@ -23,7 +26,7 @@ import {
 } from "lucide-react";
 
 const PURE_TOTAL = PURE_GOV_CONTROL_IDS.length;
-const HYBRID_TOTAL = HYBRID_GOV_CONTROL_IDS.length;
+const HYBRID_GOV_CENTRIC_TOTAL = HYBRID_GOV_CENTRIC_IDS.length;
 const IMPLEMENTED_STATUSES = ["implemented", "assessed", "inherited", "not_applicable"] as const;
 
 export default async function GovernanceDashboardPage() {
@@ -46,13 +49,13 @@ export default async function GovernanceDashboardPage() {
 
   const metaByControl = new Map(metadata.map((m) => [m.controlId, m.classification]));
   let pureDone = 0;
-  let hybridDone = 0;
+  let hybridGovCentricDone = 0;
   for (const r of records) {
     const status = r.implementationStatus as string;
     if (!IMPLEMENTED_STATUSES.includes(status as (typeof IMPLEMENTED_STATUSES)[number])) continue;
     const cls = metaByControl.get(r.controlId);
     if (cls === "PURE_GOV") pureDone++;
-    else if (cls === "HYBRID_GOV") hybridDone++;
+    else if (HYBRID_GOV_CENTRIC_IDS.includes(r.controlId)) hybridGovCentricDone++;
   }
 
   const today = new Date().toISOString().slice(0, 10);
@@ -118,7 +121,7 @@ export default async function GovernanceDashboardPage() {
             Governance overview
           </h2>
           <p className="mt-1 text-sm text-[var(--color-gray-600)]">
-            Pure governance controls (18), hybrid controls (17), document control, registers, and evidence library.
+            Pure governance controls (18), hybrid gov-centric controls ({HYBRID_GOV_CENTRIC_TOTAL}), document control, registers, and evidence library.
           </p>
         </section>
 
@@ -144,10 +147,10 @@ export default async function GovernanceDashboardPage() {
               <span className="text-sm font-medium">Hybrid Gov controls</span>
             </div>
             <p className="mt-2 text-2xl font-bold text-[var(--color-navy-primary)]">
-              {hybridDone} <span className="font-normal text-[var(--color-gray-600)]">/ {HYBRID_TOTAL}</span>
+              {hybridGovCentricDone} <span className="font-normal text-[var(--color-gray-600)]">/ {HYBRID_GOV_CENTRIC_TOTAL}</span>
             </p>
             <Link
-              href="/dashboard/governance/controls?classification=HYBRID_GOV"
+              href="/dashboard/governance/controls?classification=HYBRID_GOV_CENTRIC"
               className="mt-2 inline-block text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
             >
               View controls →

@@ -3,6 +3,8 @@
  * and document master list (required doc keys for "missing required docs").
  */
 
+import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
+
 export const PURE_GOV_CONTROL_IDS = [
   "3.1.4", "3.2.1", "3.2.2", "3.2.3", "3.3.3", "3.4.3", "3.4.4",
   "3.6.1", "3.6.2", "3.6.3", "3.7.6", "3.9.1", "3.9.2", "3.11.1",
@@ -21,6 +23,28 @@ export const HYBRID_GOV_CONTROL_IDS = [
   "3.13.2", "3.13.3", "3.13.8", "3.13.11",
   "3.14.3",
 ];
+
+/**
+ * Hybrid controls counted on the Governance page (gov-centric: policy/process focus).
+ */
+export const HYBRID_GOV_CENTRIC_IDS = [
+  "3.1.1", "3.1.2", "3.1.3", "3.1.5", "3.1.6", "3.1.7",
+  "3.4.5", "3.7.5",
+];
+
+/**
+ * Hybrid controls counted on the Technical page (tech-centric: config/implementation focus).
+ */
+export const HYBRID_TECHNICAL_CENTRIC_IDS = [
+  "3.5.1", "3.5.2", "3.5.3", "3.5.7",
+  "3.13.2", "3.13.3", "3.13.8", "3.13.11",
+  "3.14.3",
+];
+
+/** Pure technical controls (all 110 minus 18 pure gov minus 17 hybrid). */
+export const PURE_TECHNICAL_CONTROL_IDS = ALL_CONTROL_IDS.filter(
+  (id) => !PURE_GOV_CONTROL_IDS.includes(id) && !HYBRID_GOV_CONTROL_IDS.includes(id)
+);
 
 export type ControlMetadataSeed = {
   controlId: string;

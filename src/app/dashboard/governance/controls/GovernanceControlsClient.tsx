@@ -71,8 +71,10 @@ export default function GovernanceControlsClient() {
         >
           <option value="">All</option>
           <option value="PURE_GOV">Pure Gov</option>
-          <option value="HYBRID_GOV">Hybrid Gov</option>
-          <option value="TECHNICAL">Technical</option>
+          <option value="HYBRID_GOV">Hybrid Gov (all)</option>
+          <option value="HYBRID_GOV_CENTRIC">Hybrid Gov Centric</option>
+          <option value="TECHNICAL">Pure Technical</option>
+          <option value="HYBRID_TECHNICAL">Hybrid Technical</option>
         </select>
         <label className="ml-4 text-sm font-medium text-[var(--color-gray-700)]">Status</label>
         <select

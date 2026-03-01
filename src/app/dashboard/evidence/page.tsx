@@ -1,12 +1,10 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
-import { evidenceMetadata } from "@/db/schema";
+import { osAssets } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import RegisterEvidenceForm from "./RegisterEvidenceForm";
-import { EvidenceTableClient } from "./EvidenceTableClient";
-
-const cardClass = "rounded-xl border border-slate-200 bg-white p-6 shadow-sm";
+import Link from "next/link";
+import { TechnicalDashboardClient } from "../technical/TechnicalDashboardClient";
 
 export default async function EvidencePage() {
   const session = await auth();
@@ -14,59 +12,56 @@ export default async function EvidencePage() {
   const orgId = user?.organizationId;
   if (!orgId) redirect("/auth/signin");
 
-  const items = await db
-    .select()
-    .from(evidenceMetadata)
-    .where(eq(evidenceMetadata.organizationId, orgId));
-
-  const in30Days = new Date();
-  in30Days.setDate(in30Days.getDate() + 30);
-  const expiring = items.filter(
-    (r) => r.retentionUntil && new Date(r.retentionUntil) <= in30Days
-  );
-
-  const rows = items.map((i) => ({
-    id: i.id,
-    evidenceId: i.evidenceId ?? "—",
-    artifactFilename: i.artifactFilename ?? "—",
-    storageLocation: i.storageLocation ?? "—",
-    sha256Preview: i.sha256Hash ? `${i.sha256Hash.slice(0, 16)}…` : "",
-  }));
+  const assetCount = await db
+    .select({ id: osAssets.id })
+    .from(osAssets)
+    .where(eq(osAssets.organizationId, orgId));
+  const hasAssets = assetCount.length > 0;
 
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-[#0F172A]">Evidence Metadata Registry</h1>
-        <p className="mt-2 text-gray-600">
-          Metadata only — no file uploads. Register RunId, path, SHA-256, and link to controls.
-        </p>
-      </div>
-
-      <div className="space-y-6">
-        {expiring.length > 0 && (
-          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 shadow-sm">
-            <h2 className="text-sm font-semibold text-amber-800">
-              Expiring within 30 days ({expiring.length})
-            </h2>
-            <ul className="mt-2 space-y-1 text-sm text-amber-700">
-              {expiring.map((i) => (
-                <li key={i.id}>
-                  {i.evidenceId} — retention until{" "}
-                  {i.retentionUntil ? new Date(i.retentionUntil).toLocaleDateString() : ""}
-                </li>
-              ))}
-            </ul>
-          </div>
+    <div className="min-h-0">
+      <div className="mx-auto max-w-5xl space-y-6">
+        {!hasAssets && (
+          <section className="rounded-[var(--radius-xl)] border border-[var(--color-status-amber)]/50 bg-[var(--color-status-amber)]/5 p-4">
+            <p className="text-sm font-medium text-[var(--color-gray-800)]">
+              Define your boundary and add endpoints in System Boundary first.
+            </p>
+            <p className="mt-1 text-sm text-[var(--color-gray-600)]">
+              Add a boundary and endpoints with baseline profiles so evidence bundles can be scored against the right controls.
+            </p>
+            <Link
+              href="/dashboard/os-baselines"
+              className="mt-2 inline-block text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
+            >
+              Go to System Boundary →
+            </Link>
+          </section>
         )}
-
-        <div className={cardClass}>
-          <h2 className="mb-4 text-sm font-semibold text-slate-800">Register evidence</h2>
-          <RegisterEvidenceForm />
-        </div>
-
-        <div className={cardClass}>
-          <h2 className="mb-4 text-sm font-semibold text-slate-800">Registered evidence</h2>
-          <EvidenceTableClient rows={rows} />
+        <section className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--color-gray-600)]">
+            Technical control onboarding
+          </h2>
+          <p className="mt-1 text-sm text-[var(--color-gray-600)]">
+            Upload evidence bundles; the system adjudicates control implementation status from required files and surfaces drift (regressions) vs the previous run.
+          </p>
+        </section>
+        <TechnicalDashboardClient />
+        <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm">
+          <h2 className="text-sm font-semibold text-[var(--color-navy-primary)]">Quick actions</h2>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link
+              href="/dashboard/technical/upload"
+              className="inline-flex items-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-primary-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2"
+            >
+              Upload evidence bundle
+            </Link>
+            <Link
+              href="/dashboard/os-baselines"
+              className="inline-flex items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-sm font-medium text-[var(--color-gray-700)] transition-colors hover:bg-[var(--color-gray-50)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2"
+            >
+              System Boundary (endpoints)
+            </Link>
+          </div>
         </div>
       </div>
     </div>

@@ -11,7 +11,12 @@ import { eq, and, inArray, sql } from "drizzle-orm";
 import { requireOrg, requireRole } from "@/lib/auth";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { getControlFamilyPrefix } from "@/components/governance-wizard/constants";
-import { PURE_GOV_CONTROL_IDS, HYBRID_GOV_CONTROL_IDS } from "@/lib/governance/seed-data";
+import {
+  PURE_GOV_CONTROL_IDS,
+  HYBRID_GOV_CONTROL_IDS,
+  HYBRID_GOV_CENTRIC_IDS,
+  HYBRID_TECHNICAL_CENTRIC_IDS,
+} from "@/lib/governance/seed-data";
 
 const FAMILY_PREFIX: Record<string, string> = {
   AC: "3.1", AT: "3.2", AU: "3.3", CM: "3.4", IA: "3.5", IR: "3.6",
@@ -24,7 +29,7 @@ const TECHNICAL_CONTROL_IDS = ALL_CONTROL_IDS.filter(
 );
 
 /**
- * GET /api/governance/controls?classification=PURE_GOV|HYBRID_GOV|TECHNICAL&status=...&domain=AC&page=1&limit=20
+ * GET /api/governance/controls?classification=PURE_GOV|HYBRID_GOV|HYBRID_TECHNICAL|TECHNICAL&status=...&domain=AC&page=1&limit=20
  * List governance controls for org; only controls that have governance_control_metadata.
  */
 export async function GET(req: Request) {
@@ -33,7 +38,13 @@ export async function GET(req: Request) {
     await requireRole(["Admin", "Compliance", "Assessor"]);
 
     const { searchParams } = new URL(req.url);
-    const classification = searchParams.get("classification") as "PURE_GOV" | "HYBRID_GOV" | "TECHNICAL" | null;
+    const classification = searchParams.get("classification") as
+      | "PURE_GOV"
+      | "HYBRID_GOV"
+      | "HYBRID_GOV_CENTRIC"
+      | "HYBRID_TECHNICAL"
+      | "TECHNICAL"
+      | null;
     const status = searchParams.get("status");
     const domain = searchParams.get("domain");
     const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10));
@@ -49,14 +60,23 @@ export async function GET(req: Request) {
         requiredRegisters: governanceControlMetadata.requiredRegisters,
       })
       .from(governanceControlMetadata);
-    const metaList = classification
-      ? await metaQuery.where(eq(governanceControlMetadata.classification, classification))
-      : await metaQuery;
+    const metaList =
+      classification &&
+      classification !== "HYBRID_TECHNICAL" &&
+      classification !== "HYBRID_GOV_CENTRIC"
+        ? await metaQuery.where(eq(governanceControlMetadata.classification, classification))
+        : await metaQuery;
 
     let controlIds = metaList.map((m) => m.controlId);
-    if (controlIds.length === 0) {
+    if (
+      controlIds.length === 0 ||
+      classification === "HYBRID_TECHNICAL" ||
+      classification === "HYBRID_GOV_CENTRIC"
+    ) {
       if (classification === "PURE_GOV") controlIds = [...PURE_GOV_CONTROL_IDS];
       else if (classification === "HYBRID_GOV") controlIds = [...HYBRID_GOV_CONTROL_IDS];
+      else if (classification === "HYBRID_GOV_CENTRIC") controlIds = [...HYBRID_GOV_CENTRIC_IDS];
+      else if (classification === "HYBRID_TECHNICAL") controlIds = [...HYBRID_TECHNICAL_CENTRIC_IDS];
       else if (classification === "TECHNICAL") controlIds = [...TECHNICAL_CONTROL_IDS];
       else controlIds = [...ALL_CONTROL_IDS];
     }
@@ -98,8 +118,11 @@ export async function GET(req: Request) {
       .where(conditions);
 
     const metaByControl = Object.fromEntries(metaList.map((m) => [m.controlId, m]));
-    function fallbackClassification(controlId: string): "PURE_GOV" | "HYBRID_GOV" | "TECHNICAL" {
+    function fallbackClassification(
+      controlId: string
+    ): "PURE_GOV" | "HYBRID_GOV" | "HYBRID_TECHNICAL" | "TECHNICAL" {
       if (PURE_GOV_CONTROL_IDS.includes(controlId)) return "PURE_GOV";
+      if (HYBRID_TECHNICAL_CENTRIC_IDS.includes(controlId)) return "HYBRID_TECHNICAL";
       if (HYBRID_GOV_CONTROL_IDS.includes(controlId)) return "HYBRID_GOV";
       return "TECHNICAL";
     }
