@@ -28,16 +28,27 @@ export default async function TechnicalDashboardPage() {
     .from(controlRecords)
     .where(eq(controlRecords.organizationId, orgId));
 
-  const pureTechnicalSet = new Set(PURE_TECHNICAL_IDS);
-  const hybridTechnicalSet = new Set(HYBRID_TECHNICAL_IDS);
+  const metStatusSet = new Set(IMPLEMENTED_STATUSES);
+  const recordByControlId = new Map(records.map((r) => [r.controlId, r.implementationStatus as string]));
   let pureTechnicalDone = 0;
   let hybridTechnicalDone = 0;
-  for (const r of records) {
-    const status = r.implementationStatus as string;
-    if (!IMPLEMENTED_STATUSES.includes(status as (typeof IMPLEMENTED_STATUSES)[number]))
-      continue;
-    if (pureTechnicalSet.has(r.controlId)) pureTechnicalDone++;
-    else if (hybridTechnicalSet.has(r.controlId)) hybridTechnicalDone++;
+  const pureTechnicalNotMet: string[] = [];
+  const hybridTechnicalNotMet: string[] = [];
+  for (const id of PURE_TECHNICAL_IDS) {
+    const status = recordByControlId.get(id);
+    if (status && metStatusSet.has(status as (typeof IMPLEMENTED_STATUSES)[number])) {
+      pureTechnicalDone++;
+    } else {
+      pureTechnicalNotMet.push(id);
+    }
+  }
+  for (const id of HYBRID_TECHNICAL_IDS) {
+    const status = recordByControlId.get(id);
+    if (status && metStatusSet.has(status as (typeof IMPLEMENTED_STATUSES)[number])) {
+      hybridTechnicalDone++;
+    } else {
+      hybridTechnicalNotMet.push(id);
+    }
   }
 
   const cardClass =
@@ -68,6 +79,14 @@ export default async function TechnicalDashboardPage() {
                 / {PURE_TECHNICAL_TOTAL}
               </span>
             </p>
+            {pureTechnicalNotMet.length > 0 && (
+              <p className="mt-1.5 text-sm text-[var(--color-gray-600)]" title="Controls not yet met">
+                <span className="font-medium text-[var(--color-gray-700)]">Not met:</span>{" "}
+                {pureTechnicalNotMet.length <= 8
+                  ? pureTechnicalNotMet.join(", ")
+                  : `${pureTechnicalNotMet.slice(0, 5).join(", ")} and ${pureTechnicalNotMet.length - 5} more`}
+              </p>
+            )}
             <Link
               href="/dashboard/governance/controls?classification=TECHNICAL"
               className="mt-2 inline-block text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
@@ -86,6 +105,14 @@ export default async function TechnicalDashboardPage() {
                 / {HYBRID_TECHNICAL_TOTAL}
               </span>
             </p>
+            {hybridTechnicalNotMet.length > 0 && (
+              <p className="mt-1.5 text-sm text-[var(--color-gray-600)]" title="Controls not yet met">
+                <span className="font-medium text-[var(--color-gray-700)]">Not met:</span>{" "}
+                {hybridTechnicalNotMet.length <= 8
+                  ? hybridTechnicalNotMet.join(", ")
+                  : `${hybridTechnicalNotMet.slice(0, 5).join(", ")} and ${hybridTechnicalNotMet.length - 5} more`}
+              </p>
+            )}
             <Link
               href="/dashboard/governance/controls?classification=HYBRID_TECHNICAL"
               className="mt-2 inline-block text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
