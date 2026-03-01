@@ -1,0 +1,11 @@
+Principal                                                Role                                    Scope
+-------------------------------------------------------  --------------------------------------  -----------------------------------------------------------------------------------------------------------------------------------------------------
+patcaru_outlook.com#EXT#@patcaruoutlook.onmicrosoft.com  Owner                                   /subscriptions/3601ba7f-cdac-4f0a-92ab-05e92a4ca810
+patcaru_outlook.com#EXT#@patcaruoutlook.onmicrosoft.com  Owner                                   /subscriptions/3601ba7f-cdac-4f0a-92ab-05e92a4ca810
+0c7668b5-3260-4ad0-9f53-34ed54fa19b2                     Defender Agentless VM Scan              /subscriptions/3601ba7f-cdac-4f0a-92ab-05e92a4ca810
+fa06ec71-4ae3-4a75-837b-7ad1e0cbfa5d                     Defender CSPM Storage Scanner Operator  /subscriptions/3601ba7f-cdac-4f0a-92ab-05e92a4ca810
+fa06ec71-4ae3-4a75-837b-7ad1e0cbfa5d                     Defender Kubernetes API Access          /subscriptions/3601ba7f-cdac-4f0a-92ab-05e92a4ca810
+fa06ec71-4ae3-4a75-837b-7ad1e0cbfa5d                     Defender Serverless Scanner             /subscriptions/3601ba7f-cdac-4f0a-92ab-05e92a4ca810
+6bfb7618-4c5f-4da8-bb10-0939066abdb4                     Defender Sensitive Data Discovery       /subscriptions/3601ba7f-cdac-4f0a-92ab-05e92a4ca810
+patcaru_outlook.com#EXT#@patcaruoutlook.onmicrosoft.com  Virtual Machine User Login              /subscriptions/3601ba7f-cdac-4f0a-92ab-05e92a4ca810/resourceGroups/rg-cui-pilot-envclave/providers/Microsoft.Compute/virtualMachines/cui-win-pilot-01
+admin@patcaruoutlook.onmicrosoft.com                     Virtual Machine Administrator Login     /subscriptions/3601ba7f-cdac-4f0a-92ab-05e92a4ca810/resourceGroups/rg-cui-pilot-envclave/providers/Microsoft.Compute/virtualMachines/cui-win-pilot-01

@@ -1,0 +1,329 @@
+﻿
+DisplayName                                                                Enabled Direction Action             Profile
+-----------                                                                ------- --------- ------             -------
+AllJoyn Router (TCP-In)                                                       True   Inbound  Allow     Domain, Private
+AllJoyn Router (TCP-Out)                                                      True  Outbound  Allow     Domain, Private
+AllJoyn Router (UDP-In)                                                       True   Inbound  Allow     Domain, Private
+AllJoyn Router (UDP-Out)                                                      True  Outbound  Allow     Domain, Private
+App Installer                                                                 True   Inbound  Allow     Domain, Private
+App Installer                                                                 True  Outbound  Allow ... Private, Public
+BranchCache Content Retrieval (HTTP-In)                                      False   Inbound  Allow                 Any
+BranchCache Content Retrieval (HTTP-Out)                                     False  Outbound  Allow                 Any
+BranchCache Hosted Cache Client (HTTP-Out)                                   False  Outbound  Allow                 Any
+BranchCache Hosted Cache Server (HTTP-In)                                    False   Inbound  Allow                 Any
+BranchCache Hosted Cache Server(HTTP-Out)                                    False  Outbound  Allow                 Any
+BranchCache Peer Discovery (WSD-In)                                          False   Inbound  Allow                 Any
+BranchCache Peer Discovery (WSD-Out)                                         False  Outbound  Allow                 Any
+Captive Portal Flow                                                           True  Outbound  Allow ... Private, Public
+Cast to Device functionality (qWave-TCP-In)                                   True   Inbound  Allow     Private, Public
+Cast to Device functionality (qWave-TCP-Out)                                  True  Outbound  Allow     Private, Public
+Cast to Device functionality (qWave-UDP-In)                                   True   Inbound  Allow     Private, Public
+Cast to Device functionality (qWave-UDP-Out)                                  True  Outbound  Allow     Private, Public
+Cast to Device SSDP Discovery (UDP-In)                                        True   Inbound  Allow              Public
+Cast to Device streaming server (HTTP-Streaming-In)                           True   Inbound  Allow              Public
+Cast to Device streaming server (HTTP-Streaming-In)                           True   Inbound  Allow             Private
+Cast to Device streaming server (HTTP-Streaming-In)                           True   Inbound  Allow              Domain
+Cast to Device streaming server (RTCP-Streaming-In)                           True   Inbound  Allow             Private
+Cast to Device streaming server (RTCP-Streaming-In)                           True   Inbound  Allow              Domain
+Cast to Device streaming server (RTCP-Streaming-In)                           True   Inbound  Allow              Public
+Cast to Device streaming server (RTP-Streaming-Out)                           True  Outbound  Allow             Private
+Cast to Device streaming server (RTP-Streaming-Out)                           True  Outbound  Allow              Public
+Cast to Device streaming server (RTP-Streaming-Out)                           True  Outbound  Allow              Domain
+Cast to Device streaming server (RTSP-Streaming-In)                           True   Inbound  Allow              Domain
+Cast to Device streaming server (RTSP-Streaming-In)                           True   Inbound  Allow             Private
+Cast to Device streaming server (RTSP-Streaming-In)                           True   Inbound  Allow              Public
+Cast to Device UPnP Events (TCP-In)                                           True   Inbound  Allow              Public
+COM+ Network Access (DCOM-In)                                                False   Inbound  Allow                 Any
+COM+ Remote Administration (DCOM-In)                                         False   Inbound  Allow                 Any
+Connected User Experiences and Telemetry                                      True  Outbound  Allow                 Any
+Core Networking - Destination Unreachable (ICMPv6-In)                         True   Inbound  Allow                 Any
+Core Networking - Destination Unreachable Fragmentation Needed (ICMPv4-In)    True   Inbound  Allow                 Any
+Core Networking - DNS (UDP-Out)                                               True  Outbound  Allow                 Any
+Core Networking - Dynamic Host Configuration Protocol (DHCP-In)               True   Inbound  Allow                 Any
+Core Networking - Dynamic Host Configuration Protocol (DHCP-Out)              True  Outbound  Allow                 Any
+Core Networking - Dynamic Host Configuration Protocol for IPv6(DHCPV6-In)     True   Inbound  Allow                 Any
+Core Networking - Dynamic Host Configuration Protocol for IPv6(DHCPV6-Out)    True  Outbound  Allow                 Any
+Core Networking - Group Policy (LSASS-Out)                                    True  Outbound  Allow              Domain
+Core Networking - Group Policy (NP-Out)                                       True  Outbound  Allow              Domain
+Core Networking - Group Policy (TCP-Out)                                      True  Outbound  Allow              Domain
+Core Networking - Internet Group Management Protocol (IGMP-In)                True   Inbound  Allow                 Any
+Core Networking - Internet Group Management Protocol (IGMP-Out)               True  Outbound  Allow                 Any
+Core Networking - IPHTTPS (TCP-In)                                            True   Inbound  Allow                 Any
+Core Networking - IPHTTPS (TCP-Out)                                           True  Outbound  Allow                 Any
+Core Networking - IPv6 (IPv6-In)                                              True   Inbound  Allow                 Any
+Core Networking - IPv6 (IPv6-Out)                                             True  Outbound  Allow                 Any
+Core Networking - Multicast Listener Done (ICMPv6-In)                         True   Inbound  Allow                 Any
+Core Networking - Multicast Listener Done (ICMPv6-Out)                        True  Outbound  Allow                 Any
+Core Networking - Multicast Listener Query (ICMPv6-In)                        True   Inbound  Allow                 Any
+Core Networking - Multicast Listener Query (ICMPv6-Out)                       True  Outbound  Allow                 Any
+Core Networking - Multicast Listener Report (ICMPv6-In)                       True   Inbound  Allow                 Any
+Core Networking - Multicast Listener Report (ICMPv6-Out)                      True  Outbound  Allow                 Any
+Core Networking - Multicast Listener Report v2 (ICMPv6-In)                    True   Inbound  Allow                 Any
+Core Networking - Multicast Listener Report v2 (ICMPv6-Out)                   True  Outbound  Allow                 Any
+Core Networking - Neighbor Discovery Advertisement (ICMPv6-In)                True   Inbound  Allow                 Any
+Core Networking - Neighbor Discovery Advertisement (ICMPv6-Out)               True  Outbound  Allow                 Any
+Core Networking - Neighbor Discovery Solicitation (ICMPv6-In)                 True   Inbound  Allow                 Any
+Core Networking - Neighbor Discovery Solicitation (ICMPv6-Out)                True  Outbound  Allow                 Any
+Core Networking - Packet Too Big (ICMPv6-In)                                  True   Inbound  Allow                 Any
+Core Networking - Packet Too Big (ICMPv6-Out)                                 True  Outbound  Allow                 Any
+Core Networking - Parameter Problem (ICMPv6-In)                               True   Inbound  Allow                 Any
+Core Networking - Parameter Problem (ICMPv6-Out)                              True  Outbound  Allow                 Any
+Core Networking - Router Advertisement (ICMPv6-In)                            True   Inbound  Allow                 Any
+Core Networking - Router Advertisement (ICMPv6-Out)                           True  Outbound  Allow                 Any
+Core Networking - Router Solicitation (ICMPv6-In)                             True   Inbound  Allow                 Any
+Core Networking - Router Solicitation (ICMPv6-Out)                            True  Outbound  Allow                 Any
+Core Networking - Teredo (UDP-In)                                             True   Inbound  Allow                 Any
+Core Networking - Teredo (UDP-Out)                                            True  Outbound  Allow                 Any
+Core Networking - Time Exceeded (ICMPv6-In)                                   True   Inbound  Allow                 Any
+Core Networking - Time Exceeded (ICMPv6-Out)                                  True  Outbound  Allow                 Any
+Core Networking Diagnostics - ICMP Echo Request (ICMPv4-In)                  False   Inbound  Allow              Domain
+Core Networking Diagnostics - ICMP Echo Request (ICMPv4-In)                  False   Inbound  Allow     Private, Public
+Core Networking Diagnostics - ICMP Echo Request (ICMPv4-Out)                 False  Outbound  Allow              Domain
+Core Networking Diagnostics - ICMP Echo Request (ICMPv4-Out)                 False  Outbound  Allow     Private, Public
+Core Networking Diagnostics - ICMP Echo Request (ICMPv6-In)                  False   Inbound  Allow              Domain
+Core Networking Diagnostics - ICMP Echo Request (ICMPv6-In)                  False   Inbound  Allow     Private, Public
+Core Networking Diagnostics - ICMP Echo Request (ICMPv6-Out)                 False  Outbound  Allow              Domain
+Core Networking Diagnostics - ICMP Echo Request (ICMPv6-Out)                 False  Outbound  Allow     Private, Public
+CUI Allow RDP Inbound (TCP 3389)                                              True   Inbound  Allow                 Any
+CUI Allow RDP Inbound (TCP 3389)                                              True   Inbound  Allow                 Any
+CUI Allow RDP Inbound (TCP 3389)                                              True   Inbound  Allow                 Any
+CUI Allow SSH Inbound (TCP 22)                                                True   Inbound  Allow                 Any
+CUI Allow SSH Inbound (TCP 22)                                                True   Inbound  Allow                 Any
+CUI Allow SSH Inbound (TCP 22)                                                True   Inbound  Allow                 Any
+Delivery Optimization (TCP-In)                                                True   Inbound  Allow                 Any
+Delivery Optimization (UDP-In)                                                True   Inbound  Allow                 Any
+Desktop App Web Viewer                                                        True  Outbound  Allow ... Private, Public
+Desktop App Web Viewer                                                        True   Inbound  Allow ... Private, Public
+DIAL protocol server (HTTP-In)                                                True   Inbound  Allow             Private
+DIAL protocol server (HTTP-In)                                                True   Inbound  Allow              Domain
+Distributed Transaction Coordinator (RPC)                                    False   Inbound  Allow                 Any
+Distributed Transaction Coordinator (RPC-EPMAP)                              False   Inbound  Allow                 Any
+Distributed Transaction Coordinator (TCP-In)                                 False   Inbound  Allow                 Any
+Distributed Transaction Coordinator (TCP-Out)                                False  Outbound  Allow                 Any
+Email and accounts                                                            True  Outbound  Allow ... Private, Public
+Feedback Hub                                                                  True   Inbound  Allow     Domain, Private
+Feedback Hub                                                                  True  Outbound  Allow ... Private, Public
+File and Printer Sharing (Echo Request - ICMPv4-In)                          False   Inbound  Allow                 Any
+File and Printer Sharing (Echo Request - ICMPv4-Out)                         False  Outbound  Allow                 Any
+File and Printer Sharing (Echo Request - ICMPv6-In)                          False   Inbound  Allow                 Any
+File and Printer Sharing (Echo Request - ICMPv6-Out)                         False  Outbound  Allow                 Any
+File and Printer Sharing (LLMNR-UDP-In)                                      False   Inbound  Allow                 Any
+File and Printer Sharing (LLMNR-UDP-Out)                                     False  Outbound  Allow                 Any
+File and Printer Sharing (NB-Datagram-In)                                    False   Inbound  Allow                 Any
+File and Printer Sharing (NB-Datagram-Out)                                   False  Outbound  Allow                 Any
+File and Printer Sharing (NB-Name-In)                                        False   Inbound  Allow                 Any
+File and Printer Sharing (NB-Name-Out)                                       False  Outbound  Allow                 Any
+File and Printer Sharing (NB-Session-In)                                     False   Inbound  Allow                 Any
+File and Printer Sharing (NB-Session-Out)                                    False  Outbound  Allow                 Any
+File and Printer Sharing (Restrictive) (Echo Request - ICMPv4-In)            False   Inbound  Allow                 Any
+File and Printer Sharing (Restrictive) (Echo Request - ICMPv4-Out)           False  Outbound  Allow                 Any
+File and Printer Sharing (Restrictive) (Echo Request - ICMPv6-In)            False   Inbound  Allow                 Any
+File and Printer Sharing (Restrictive) (Echo Request - ICMPv6-Out)           False  Outbound  Allow                 Any
+File and Printer Sharing (Restrictive) (LLMNR-UDP-In)                        False   Inbound  Allow                 Any
+File and Printer Sharing (Restrictive) (LLMNR-UDP-Out)                       False  Outbound  Allow                 Any
+File and Printer Sharing (Restrictive) (SMB-In)                              False   Inbound  Allow                 Any
+File and Printer Sharing (Restrictive) (SMB-Out)                             False  Outbound  Allow                 Any
+File and Printer Sharing (Restrictive) (Spooler Service - RPC)               False   Inbound  Allow                 Any
+File and Printer Sharing (Restrictive) (Spooler Service - RPC-EPMAP)         False   Inbound  Allow                 Any
+File and Printer Sharing (Restrictive) (Spooler Service Worker - RPC)        False   Inbound  Allow                 Any
+File and Printer Sharing (SMB-In)                                            False   Inbound  Allow                 Any
+File and Printer Sharing (SMB-Out)                                           False  Outbound  Allow                 Any
+File and Printer Sharing (SMB-QUIC-In)                                       False   Inbound  Allow                 Any
+File and Printer Sharing (SMB-QUIC-Out)                                      False  Outbound  Allow                 Any
+File and Printer Sharing (Spooler Service - RPC)                             False   Inbound  Allow                 Any
+File and Printer Sharing (Spooler Service - RPC-EPMAP)                       False   Inbound  Allow                 Any
+File and Printer Sharing (Spooler Service Worker - RPC)                      False   Inbound  Allow                 Any
+File and Printer Sharing over SMBDirect (iWARP-In)                           False   Inbound  Allow                 Any
+Inbound Rule for Remote Shutdown (RPC-EP-In)                                 False   Inbound  Allow                 Any
+Inbound Rule for Remote Shutdown (TCP-In)                                    False   Inbound  Allow                 Any
+iSCSI Service (TCP-In)                                                       False   Inbound  Allow                 Any
+iSCSI Service (TCP-Out)                                                      False  Outbound  Allow                 Any
+Key Management Service (TCP-In)                                              False   Inbound  Allow                 Any
+mDNS (UDP-In)                                                                 True   Inbound  Allow              Domain
+mDNS (UDP-In)                                                                 True   Inbound  Allow             Private
+mDNS (UDP-In)                                                                 True   Inbound  Allow              Public
+mDNS (UDP-Out)                                                                True  Outbound  Allow              Public
+mDNS (UDP-Out)                                                                True  Outbound  Allow              Domain
+mDNS (UDP-Out)                                                                True  Outbound  Allow             Private
+Microsoft Content                                                             True  Outbound  Allow ... Private, Public
+Microsoft Edge (mDNS-In)                                                      True   Inbound  Allow                 Any
+Microsoft Edge (mDNS-In)                                                      True   Inbound  Allow                 Any
+Microsoft Media Foundation Network Source IN [TCP 554]                        True   Inbound  Allow                 Any
+Microsoft Media Foundation Network Source IN [UDP 5004-5009]                  True   Inbound  Allow                 Any
+Microsoft Media Foundation Network Source OUT [TCP ALL]                       True  Outbound  Allow                 Any
+ms-resource:ProductPkgDisplayName                                             True  Outbound  Allow             Private
+ms-resource:ProductPkgDisplayName                                             True  Outbound  Allow              Public
+ms-resource:ProductPkgDisplayName                                             True  Outbound  Allow             Private
+ms-resource:ProductPkgDisplayName                                             True  Outbound  Allow              Public
+ms-resource:ProductPkgDisplayName                                             True   Inbound  Allow             Private
+ms-resource:ProductPkgDisplayName                                             True   Inbound  Allow              Public
+ms-resource:ProductPkgDisplayName                                             True  Outbound  Allow             Private
+ms-resource:ProductPkgDisplayName                                             True   Inbound  Allow              Public
+ms-resource:ProductPkgDisplayName                                             True   Inbound  Allow             Private
+ms-resource:ProductPkgDisplayName                                             True   Inbound  Allow              Public
+ms-resource:ProductPkgDisplayName                                             True  Outbound  Allow              Public
+ms-resource:ProductPkgDisplayName                                             True  Outbound  Allow             Private
+ms-resource:ProductPkgDisplayName                                             True  Outbound  Allow              Public
+ms-resource:ProductPkgDisplayName                                             True   Inbound  Allow              Public
+ms-resource:ProductPkgDisplayName                                             True   Inbound  Allow             Private
+ms-resource:ProductPkgDisplayName                                             True   Inbound  Allow             Private
+Narrator                                                                      True  Outbound  Allow ... Private, Public
+Netlogon Service (NP-In)                                                     False   Inbound  Allow                 Any
+Netlogon Service Authz (RPC)                                                 False   Inbound  Allow                 Any
+Network Discovery (LLMNR-UDP-In)                                             False   Inbound  Allow                 Any
+Network Discovery (LLMNR-UDP-Out)                                            False  Outbound  Allow                 Any
+Network Discovery (NB-Datagram-In)                                           False   Inbound  Allow                 Any
+Network Discovery (NB-Datagram-Out)                                          False  Outbound  Allow                 Any
+Network Discovery (NB-Name-In)                                               False   Inbound  Allow                 Any
+Network Discovery (NB-Name-Out)                                              False  Outbound  Allow                 Any
+Network Discovery (Pub WSD-Out)                                              False  Outbound  Allow                 Any
+Network Discovery (Pub-WSD-In)                                               False   Inbound  Allow                 Any
+Network Discovery (SSDP-In)                                                  False   Inbound  Allow                 Any
+Network Discovery (SSDP-Out)                                                 False  Outbound  Allow                 Any
+Network Discovery (UPnPHost-Out)                                             False  Outbound  Allow                 Any
+Network Discovery (UPnP-In)                                                  False   Inbound  Allow                 Any
+Network Discovery (UPnP-Out)                                                 False  Outbound  Allow                 Any
+Network Discovery (WSD Events-In)                                            False   Inbound  Allow                 Any
+Network Discovery (WSD Events-Out)                                           False  Outbound  Allow                 Any
+Network Discovery (WSD EventsSecure-In)                                      False   Inbound  Allow                 Any
+Network Discovery (WSD EventsSecure-Out)                                     False  Outbound  Allow                 Any
+Network Discovery (WSD-In)                                                   False   Inbound  Allow                 Any
+Network Discovery (WSD-Out)                                                  False  Outbound  Allow                 Any
+OpenSSH Server (Inbound)                                                      True   Inbound  Allow                 Any
+OpenSSH SSH Server (sshd)                                                     True   Inbound  Allow                 Any
+Performance Logs and Alerts (DCOM-In)                                        False   Inbound  Allow     Private, Public
+Performance Logs and Alerts (DCOM-In)                                        False   Inbound  Allow              Domain
+Performance Logs and Alerts (TCP-In)                                         False   Inbound  Allow     Private, Public
+Performance Logs and Alerts (TCP-In)                                         False   Inbound  Allow              Domain
+Remote Desktop - (TCP-WS-In)                                                 False   Inbound  Allow                 Any
+Remote Desktop - (TCP-WSS-In)                                                False   Inbound  Allow                 Any
+Remote Desktop - Shadow (TCP-In)                                              True   Inbound  Allow ... Private, Public
+Remote Desktop - User Mode (TCP-In)                                           True   Inbound  Allow ... Private, Public
+Remote Desktop - User Mode (UDP-In)                                           True   Inbound  Allow ... Private, Public
+Remote Event Log Management (NP-In)                                          False   Inbound  Allow                 Any
+Remote Event Log Management (RPC)                                            False   Inbound  Allow                 Any
+Remote Event Log Management (RPC-EPMAP)                                      False   Inbound  Allow                 Any
+Remote Event Monitor (RPC)                                                   False   Inbound  Allow                 Any
+Remote Event Monitor (RPC-EPMAP)                                             False   Inbound  Allow                 Any
+Remote Scheduled Tasks Management (RPC)                                      False   Inbound  Allow                 Any
+Remote Scheduled Tasks Management (RPC-EPMAP)                                False   Inbound  Allow                 Any
+Remote Service Management (NP-In)                                            False   Inbound  Allow                 Any
+Remote Service Management (RPC)                                              False   Inbound  Allow                 Any
+Remote Service Management (RPC-EPMAP)                                        False   Inbound  Allow                 Any
+Remote Volume Management - Virtual Disk Service (RPC)                        False   Inbound  Allow                 Any
+Remote Volume Management - Virtual Disk Service Loader (RPC)                 False   Inbound  Allow                 Any
+Remote Volume Management (RPC-EPMAP)                                         False   Inbound  Allow                 Any
+Routing and Remote Access (GRE-In)                                           False   Inbound  Allow                 Any
+Routing and Remote Access (GRE-Out)                                          False  Outbound  Allow                 Any
+Routing and Remote Access (L2TP-In)                                          False   Inbound  Allow                 Any
+Routing and Remote Access (L2TP-Out)                                         False  Outbound  Allow                 Any
+Routing and Remote Access (PPTP-In)                                          False   Inbound  Allow                 Any
+Routing and Remote Access (PPTP-Out)                                         False  Outbound  Allow                 Any
+Secure Socket Tunneling Protocol (SSTP-In)                                   False   Inbound  Allow                 Any
+SNMP Trap Service (UDP In)                                                   False   Inbound  Allow     Private, Public
+SNMP Trap Service (UDP In)                                                   False   Inbound  Allow              Domain
+Software Load Balancer Multiplexer (TCP-In)                                  False   Inbound  Allow                 Any
+Start                                                                         True  Outbound  Allow ... Private, Public
+Start                                                                         True   Inbound  Allow     Domain, Private
+TPM Virtual Smart Card Management (DCOM-In)                                  False   Inbound  Allow     Private, Public
+TPM Virtual Smart Card Management (DCOM-In)                                  False   Inbound  Allow              Domain
+TPM Virtual Smart Card Management (TCP-In)                                   False   Inbound  Allow              Domain
+TPM Virtual Smart Card Management (TCP-In)                                   False   Inbound  Allow     Private, Public
+TPM Virtual Smart Card Management (TCP-Out)                                  False  Outbound  Allow     Private, Public
+TPM Virtual Smart Card Management (TCP-Out)                                  False  Outbound  Allow              Domain
+Virtual Machine Monitoring (DCOM-In)                                         False   Inbound  Allow                 Any
+Virtual Machine Monitoring (Echo Request - ICMPv4-In)                        False   Inbound  Allow                 Any
+Virtual Machine Monitoring (Echo Request - ICMPv6-In)                        False   Inbound  Allow                 Any
+Virtual Machine Monitoring (NB-Session-In)                                   False   Inbound  Allow                 Any
+Virtual Machine Monitoring (RPC)                                             False   Inbound  Allow                 Any
+WFD ASP Coordination Protocol (UDP-In)                                        True   Inbound  Allow                 Any
+WFD ASP Coordination Protocol (UDP-Out)                                       True  Outbound  Allow                 Any
+WFD Driver-only (TCP-In)                                                      True   Inbound  Allow                 Any
+WFD Driver-only (TCP-Out)                                                     True  Outbound  Allow                 Any
+WFD Driver-only (UDP-In)                                                      True   Inbound  Allow                 Any
+WFD Driver-only (UDP-Out)                                                     True  Outbound  Allow                 Any
+Windows Default Lock Screen                                                   True  Outbound  Allow ... Private, Public
+Windows Defender Firewall Remote Management (RPC)                            False   Inbound  Allow                 Any
+Windows Defender Firewall Remote Management (RPC-EPMAP)                      False   Inbound  Allow                 Any
+Windows Defender SmartScreen                                                  True  Outbound  Allow ... Private, Public
+Windows Device Management Certificate Installer (TCP out)                     True  Outbound  Allow                 Any
+Windows Device Management Device Enroller (TCP out)                           True  Outbound  Allow                 Any
+Windows Device Management Enrollment Service (TCP out)                        True  Outbound  Allow                 Any
+Windows Device Management Sync Client (TCP out)                               True  Outbound  Allow                 Any
+Windows Feature Experience Pack                                               True  Outbound  Allow ... Private, Public
+Windows Feature Experience Pack                                               True  Outbound  Allow ... Private, Public
+Windows Feature Experience Pack                                               True  Outbound  Allow ... Private, Public
+Windows Feature Experience Pack                                               True  Outbound  Allow ... Private, Public
+Windows Feature Experience Pack                                               True  Outbound  Allow ... Private, Public
+Windows Feature Experience Pack                                               True  Outbound  Allow ... Private, Public
+Windows Feature Experience Pack                                               True  Outbound  Allow ... Private, Public
+Windows Feature Experience Pack                                               True  Outbound  Allow ... Private, Public
+Windows Feature Experience Pack                                               True   Inbound  Allow     Domain, Private
+Windows Feature Experience Pack                                               True   Inbound  Allow ... Private, Public
+Windows Feature Experience Pack                                               True   Inbound  Allow     Domain, Private
+Windows Feature Experience Pack                                               True  Outbound  Allow ... Private, Public
+Windows Feature Experience Pack                                               True   Inbound  Allow ... Private, Public
+Windows Feature Experience Pack                                               True  Outbound  Allow ... Private, Public
+Windows Management Instrumentation (ASync-In)                                False   Inbound  Allow                 Any
+Windows Management Instrumentation (DCOM-In)                                 False   Inbound  Allow                 Any
+Windows Management Instrumentation (WMI-In)                                  False   Inbound  Allow                 Any
+Windows Management Instrumentation (WMI-Out)                                 False  Outbound  Allow                 Any
+Windows Media Player (TCP-Out)                                               False  Outbound  Allow                 Any
+Windows Media Player (UDP-In)                                                False   Inbound  Allow                 Any
+Windows Media Player (UDP-Out)                                               False  Outbound  Allow                 Any
+Windows Media Player Network Sharing Service (HTTP-Streaming-In)             False   Inbound  Allow     Private, Public
+Windows Media Player Network Sharing Service (HTTP-Streaming-In)             False   Inbound  Allow              Domain
+Windows Media Player Network Sharing Service (HTTP-Streaming-Out)            False  Outbound  Allow     Private, Public
+Windows Media Player Network Sharing Service (HTTP-Streaming-Out)            False  Outbound  Allow              Domain
+Windows Media Player Network Sharing Service (qWave-TCP-In)                  False   Inbound  Allow              Domain
+Windows Media Player Network Sharing Service (qWave-TCP-In)                  False   Inbound  Allow     Private, Public
+Windows Media Player Network Sharing Service (qWave-TCP-Out)                 False  Outbound  Allow     Private, Public
+Windows Media Player Network Sharing Service (qWave-TCP-Out)                 False  Outbound  Allow              Domain
+Windows Media Player Network Sharing Service (qWave-UDP-In)                  False   Inbound  Allow     Private, Public
+Windows Media Player Network Sharing Service (qWave-UDP-In)                  False   Inbound  Allow              Domain
+Windows Media Player Network Sharing Service (qWave-UDP-Out)                 False  Outbound  Allow     Private, Public
+Windows Media Player Network Sharing Service (qWave-UDP-Out)                 False  Outbound  Allow              Domain
+Windows Media Player Network Sharing Service (SSDP-In)                       False   Inbound  Allow                 Any
+Windows Media Player Network Sharing Service (SSDP-Out)                      False  Outbound  Allow                 Any
+Windows Media Player Network Sharing Service (Streaming-TCP-Out)             False  Outbound  Allow              Domain
+Windows Media Player Network Sharing Service (Streaming-TCP-Out)             False  Outbound  Allow     Private, Public
+Windows Media Player Network Sharing Service (Streaming-UDP-In)              False   Inbound  Allow              Domain
+Windows Media Player Network Sharing Service (Streaming-UDP-In)              False   Inbound  Allow     Private, Public
+Windows Media Player Network Sharing Service (Streaming-UDP-Out)             False  Outbound  Allow              Domain
+Windows Media Player Network Sharing Service (Streaming-UDP-Out)             False  Outbound  Allow     Private, Public
+Windows Media Player Network Sharing Service (TCP-In)                        False   Inbound  Allow              Domain
+Windows Media Player Network Sharing Service (TCP-In)                        False   Inbound  Allow     Private, Public
+Windows Media Player Network Sharing Service (TCP-Out)                       False  Outbound  Allow              Domain
+Windows Media Player Network Sharing Service (TCP-Out)                       False  Outbound  Allow     Private, Public
+Windows Media Player Network Sharing Service (UDP-In)                        False   Inbound  Allow     Private, Public
+Windows Media Player Network Sharing Service (UDP-In)                        False   Inbound  Allow              Domain
+Windows Media Player Network Sharing Service (UDP-Out)                       False  Outbound  Allow              Domain
+Windows Media Player Network Sharing Service (UDP-Out)                       False  Outbound  Allow     Private, Public
+Windows Media Player Network Sharing Service (UPnPHost-Out)                  False  Outbound  Allow                 Any
+Windows Media Player Network Sharing Service (UPnP-In)                       False   Inbound  Allow                 Any
+Windows Media Player Network Sharing Service (UPnP-Out)                      False  Outbound  Allow                 Any
+Windows Media Player x86 (TCP-Out)                                           False  Outbound  Allow                 Any
+Windows Media Player x86 (UDP-In)                                            False   Inbound  Allow                 Any
+Windows Media Player x86 (UDP-Out)                                           False  Outbound  Allow                 Any
+Windows Print                                                                 True  Outbound  Allow ... Private, Public
+Windows Remote Management - Compatibility Mode (HTTP-In)                     False   Inbound  Allow                 Any
+Windows Remote Management (HTTP-In)                                           True   Inbound  Allow              Public
+Windows Remote Management (HTTP-In)                                           True   Inbound  Allow     Domain, Private
+Windows Security                                                              True  Outbound  Allow ... Private, Public
+Windows Security                                                              True   Inbound  Allow     Domain, Private
+Windows Shell Experience                                                      True  Outbound  Allow ... Private, Public
+Windows Shell Experience                                                      True   Inbound  Allow     Domain, Private
+Windows Shell Experience                                                      True  Outbound  Allow     Domain, Private
+Windows Terminal                                                              True  Outbound  Allow ... Private, Public
+Wireless Display (TCP-In)                                                     True   Inbound  Allow                 Any
+Wireless Display (TCP-Out)                                                    True  Outbound  Allow                 Any
+Wireless Display (UDP-Out)                                                    True  Outbound  Allow                 Any
+Wireless Display Infrastructure Back Channel (TCP-In)                         True   Inbound  Allow                 Any
+Work or school account                                                        True   Inbound  Allow     Domain, Private
+Work or school account                                                        True  Outbound  Allow ... Private, Public
+Your account                                                                  True   Inbound  Allow     Domain, Private
+Your account                                                                  True  Outbound  Allow ... Private, Public
+
+
+
+

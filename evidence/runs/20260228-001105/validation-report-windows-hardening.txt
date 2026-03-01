@@ -1,0 +1,80 @@
+Windows Server Hardening Validation Report (73/73 controls)
+Validator: validate_windows_server_hardening 2.0.0
+Total checks: 73
+Passed: 73
+Partial (needs accompanying docs): 31
+Failed: 0
+
+  [PASS] AC.L2-3.1.1 - All 3 required files present.
+  [PASS] AC.L2-3.1.2 - All 1 required files present.
+  [PASS] AC.L2-3.1.3 - All 3 required files present.
+  [PASS] AC.L2-3.1.5 - All 3 required files present.
+  [PASS] AC.L2-3.1.6 - All 3 required files present.
+  [PASS] AC.L2-3.1.7 - All 2 required files present.
+  [PASS] AC.L2-3.1.8 - All 2 required files present.
+  [PASS] AC.L2-3.1.9 - All 2 required files present.
+  [PASS] AC.L2-3.1.10 - All 4 required files present.
+  [PASS] AC.L2-3.1.11 - All 3 required files present.
+  [PASS] AC.L2-3.1.12 - All 3 required files present.
+  [PASS] AC.L2-3.1.13 - TLS protocols in schannel: TLS 1.2/1.3 present; weak disabled
+  [PASS] AC.L2-3.1.21 - All 3 required files present.
+  [PARTIAL] AC.L2-3.1.22 - All 3 required files present. Accompanying governance documentation, logs, or re
+  [PASS] AU.L2-3.3.1 - auditpol evidence: 2 files
+  [PASS] AU.L2-3.3.2 - All 2 required files present.
+  [PASS] AU.L2-3.3.4 - Event log evidence: 6 files
+  [PARTIAL] AU.L2-3.3.5 - All 3 required files present. Accompanying governance documentation, logs, or re
+  [PARTIAL] AU.L2-3.3.6 - All 3 required files present. Accompanying governance documentation, logs, or re
+  [PASS] AU.L2-3.3.7 - All 1 required files present.
+  [PASS] AU.L2-3.3.8 - All 1 required files present.
+  [PASS] AU.L2-3.3.9 - All 2 required files present.
+  [PASS] CM.L2-3.4.1 - Secure Boot: evidence present | Installed roles/features: present | AppLocker ev
+  [PASS] CM.L2-3.4.2 - All 4 required files present.
+  [PARTIAL] CM.L2-3.4.3 - All 2 required files present. Accompanying governance documentation, logs, or re
+  [PARTIAL] CM.L2-3.4.5 - All 2 required files present. Accompanying governance documentation, logs, or re
+  [PASS] CM.L2-3.4.6 - Hotfix list: present | Update policy/services: present
+  [PASS] CM.L2-3.4.7 - All 1 required files present.
+  [PASS] CM.L2-3.4.8 - All 3 required files present.
+  [PASS] CM.L2-3.4.9 - All 2 required files present.
+  [PASS] IA.L2-3.5.1 - All 2 required files present.
+  [PASS] IA.L2-3.5.2 - All 3 required files present.
+  [PARTIAL] IA.L2-3.5.3 - All 2 required files present. Accompanying governance documentation, logs, or re
+  [PARTIAL] IA.L2-3.5.4 - All 3 required files present. Accompanying governance documentation, logs, or re
+  [PASS] IA.L2-3.5.5 - All 2 required files present.
+  [PARTIAL] IA.L2-3.5.6 - All 2 required files present. Accompanying governance documentation, logs, or re
+  [PASS] IA.L2-3.5.7 - All 2 required files present.
+  [PASS] IA.L2-3.5.8 - All 2 required files present.
+  [PARTIAL] IA.L2-3.5.9 - All 2 required files present. Accompanying governance documentation, logs, or re
+  [PARTIAL] IA.L2-3.5.10 - All 2 required files present. Accompanying governance documentation, logs, or re
+  [PARTIAL] IA.L2-3.5.11 - All 2 required files present. Accompanying governance documentation, logs, or re
+  [PARTIAL] MA.L2-3.7.1 - All 2 required files present. Accompanying governance documentation, logs, or re
+  [PARTIAL] MA.L2-3.7.2 - All 3 required files present. Accompanying governance documentation, logs, or re
+  [PARTIAL] MA.L2-3.7.5 - All 3 required files present. Accompanying governance documentation, logs, or re
+  [PARTIAL] MP.L2-3.8.1 - BitLocker evidence: 1 files | Removable storage policy: 2 files. Accompanying go
+  [PARTIAL] MP.L2-3.8.2 - All 2 required files present. Accompanying governance documentation, logs, or re
+  [PARTIAL] MP.L2-3.8.5 - All 2 required files present. Accompanying governance documentation, logs, or re
+  [PASS] MP.L2-3.8.6 - All 1 required files present.
+  [PASS] MP.L2-3.8.7 - All 2 required files present.
+  [PARTIAL] MP.L2-3.8.8 - All 2 required files present. Accompanying governance documentation, logs, or re
+  [PARTIAL] RA.L2-3.11.2 - All 3 required files present. Accompanying governance documentation, logs, or re
+  [PARTIAL] RA.L2-3.11.3 - All 2 required files present. Accompanying governance documentation, logs, or re
+  [PASS] SC.L2-3.13.1 - Firewall evidence files: 4 present
+  [PARTIAL] SC.L2-3.13.2 - SMB evidence: 5 files; SMB1: disabled. Accompanying governance documentation, lo
+  [PARTIAL] SC.L2-3.13.3 - All 3 required files present. Accompanying governance documentation, logs, or re
+  [PARTIAL] SC.L2-3.13.4 - All 3 required files present. Accompanying governance documentation, logs, or re
+  [PARTIAL] SC.L2-3.13.5 - RDP/network evidence: 4 files; RDP exposure: restricted or documented. Accompany
+  [PASS] SC.L2-3.13.6 - All 2 required files present.
+  [PASS] SC.L2-3.13.8 - All 3 required files present.
+  [PARTIAL] SC.L2-3.13.9 - All 2 required files present. Accompanying governance documentation, logs, or re
+  [PARTIAL] SC.L2-3.13.10 - All 2 required files present. Accompanying governance documentation, logs, or re
+  [PASS] SC.L2-3.13.11 - FIPS mode: enabled | TLS cipher suites: restricted to strong ciphers
+  [PARTIAL] SC.L2-3.13.12 - All 2 required files present. Accompanying governance documentation, logs, or re
+  [PARTIAL] SC.L2-3.13.13 - All 2 required files present. Accompanying governance documentation, logs, or re
+  [PARTIAL] SC.L2-3.13.15 - All 2 required files present. Accompanying governance documentation, logs, or re
+  [PASS] SC.L2-3.13.16 - All 1 required files present.
+  [PASS] SI.L2-3.14.1 - All 3 required files present.
+  [PASS] SI.L2-3.14.2 - Defender evidence: 4 files
+  [PARTIAL] SI.L2-3.14.3 - All 3 required files present. Accompanying governance documentation, logs, or re
+  [PASS] SI.L2-3.14.4 - All 2 required files present.
+  [PASS] SI.L2-3.14.5 - All 2 required files present.
+  [PASS] SI.L2-3.14.6 - All 3 required files present.
+  [PARTIAL] SI.L2-3.14.7 - All 3 required files present. Accompanying governance documentation, logs, or re

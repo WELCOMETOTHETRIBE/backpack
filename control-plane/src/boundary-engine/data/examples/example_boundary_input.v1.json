@@ -1,0 +1,32 @@
+{
+  "hosting_model": "IaaS",
+  "provider": "Azure",
+  "environment": "Government",
+  "os": "Windows Server 2025 Datacenter",
+  "services_enabled": {
+    "compute_vm": true,
+    "network_nsg": true,
+    "identity_entra_id": true,
+    "security_defender_for_cloud": true,
+    "logging_azure_monitor_log_analytics": true,
+    "crypto_azure_key_vault": false,
+    "backup_azure_backup": true,
+    "network_azure_firewall": false,
+    "network_expressroute": false
+  },
+  "gate_answers": {
+    "entra_used_for_authn": "yes",
+    "entra_mfa_for_privileged": "yes",
+    "entra_ca_policy_exists": "yes",
+    "defender_plan_enabled": "yes",
+    "defender_findings_reviewed": "yes",
+    "log_analytics_workspace_exists": "yes",
+    "diagnostic_settings_configured": "yes",
+    "log_retention_set": "yes",
+    "backup_vault_configured": "yes",
+    "backup_policy_applied": "yes",
+    "restore_tested": "no",
+    "nsg_attached": "yes",
+    "default_deny_inbound": "yes"
+  }
+}

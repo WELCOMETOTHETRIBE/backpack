@@ -34,10 +34,20 @@ export async function PATCH(
       responsibleRoleId: string | null;
       sprs31311Condition: string | null;
       lastValidationDate: Date | null;
+      hybridSatisfaction: { technical?: boolean; governance?: boolean } | null;
       implementationStatus: "not_started" | "in_progress" | "implemented" | "assessed" | "inherited" | "not_applicable";
     }> = {};
     if (typeof body.governanceNarrative !== "undefined") updates.governanceNarrative = body.governanceNarrative ?? null;
     if (typeof body.responsibleRoleId !== "undefined") updates.responsibleRoleId = body.responsibleRoleId ?? null;
+    if (typeof body.hybridSatisfaction !== "undefined") {
+      updates.hybridSatisfaction =
+        body.hybridSatisfaction != null && typeof body.hybridSatisfaction === "object"
+          ? {
+              technical: Boolean(body.hybridSatisfaction.technical),
+              governance: Boolean(body.hybridSatisfaction.governance),
+            }
+          : null;
+    }
     if (existing.controlId === "3.13.11" && typeof body.sprs31311Condition !== "undefined") {
       const v = body.sprs31311Condition;
       updates.sprs31311Condition = v === "no_crypto" || v === "non_fips" ? v : null;

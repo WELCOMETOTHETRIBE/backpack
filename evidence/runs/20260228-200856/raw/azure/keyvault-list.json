@@ -1,0 +1,11 @@
+[
+  {
+    "id": "/subscriptions/3601ba7f-cdac-4f0a-92ab-05e92a4ca810/resourceGroups/rg-cui-pilot-envclave/providers/Microsoft.KeyVault/vaults/codex-cui-kv-pilot",
+    "location": "westus2",
+    "name": "codex-cui-kv-pilot",
+    "resourceGroup": "rg-cui-pilot-envclave",
+    "systemData": null,
+    "tags": {},
+    "type": "Microsoft.KeyVault/vaults"
+  }
+]

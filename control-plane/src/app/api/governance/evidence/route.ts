@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { governanceEvidenceItems, controlRecords, governanceControlLinks } from "@/db/schema";
+import {
+  governanceEvidenceItems,
+  controlRecords,
+  governanceControlLinks,
+  poamEntries,
+} from "@/db/schema";
 import { eq, and, desc, sql, inArray } from "drizzle-orm";
 import { requireOrg, requireRole } from "@/lib/auth";
 
@@ -21,7 +26,7 @@ export async function GET(req: Request) {
     const offset = (page - 1) * limit;
 
     const conditions = [eq(governanceEvidenceItems.organizationId, orgId)];
-    if (evidenceType) conditions.push(eq(governanceEvidenceItems.evidenceType, evidenceType as "screenshot" | "export_file" | "log_snippet" | "config_baseline" | "policy_export" | "ticket" | "training_record" | "incident_report" | "risk_report" | "other"));
+    if (evidenceType) conditions.push(eq(governanceEvidenceItems.evidenceType, evidenceType as "screenshot" | "export_file" | "log_snippet" | "config_baseline" | "policy_export" | "ticket" | "training_record" | "incident_report" | "risk_report" | "attestation" | "other"));
 
     if (controlId) {
       const records = await db.select({ id: controlRecords.id }).from(controlRecords).where(and(eq(controlRecords.organizationId, orgId), eq(controlRecords.controlId, controlId)));
@@ -123,7 +128,7 @@ export async function POST(req: Request) {
 
     const validTypes = [
       "screenshot", "export_file", "log_snippet", "config_baseline", "policy_export",
-      "ticket", "training_record", "incident_report", "risk_report", "other",
+      "ticket", "training_record", "incident_report", "risk_report", "attestation", "other",
     ];
     if (!validTypes.includes(evidenceType)) {
       return NextResponse.json({ error: "Invalid evidenceType" }, { status: 400 });
@@ -134,7 +139,7 @@ export async function POST(req: Request) {
       .values({
         organizationId: orgId,
         title: title.trim(),
-        evidenceType: evidenceType as "screenshot" | "export_file" | "log_snippet" | "config_baseline" | "policy_export" | "ticket" | "training_record" | "incident_report" | "risk_report" | "other",
+        evidenceType: evidenceType as "screenshot" | "export_file" | "log_snippet" | "config_baseline" | "policy_export" | "ticket" | "training_record" | "incident_report" | "risk_report" | "attestation" | "other",
         sourceSystem: (body.sourceSystem as string) || null,
         collectedById: (body.collectedById as string) || user.id || null,
         collectedAt: body.collectedAt ? new Date(body.collectedAt) : new Date(),
@@ -144,18 +149,51 @@ export async function POST(req: Request) {
       .returning();
 
     const controlIds = (body.controlIds as string[]) ?? [];
+    let recordIds: string[] = [];
     if (controlIds.length > 0 && item) {
-      const { controlRecords: cr, governanceControlLinks: gcl } = await import("@/db/schema");
+      const { governanceControlLinks: gcl } = await import("@/db/schema");
       const records = await db
-        .select({ id: cr.id })
-        .from(cr)
-        .where(and(eq(cr.organizationId, orgId), inArray(cr.controlId, controlIds)));
+        .select({ id: controlRecords.id })
+        .from(controlRecords)
+        .where(and(eq(controlRecords.organizationId, orgId), inArray(controlRecords.controlId, controlIds)));
+      recordIds = records.map((r) => r.id);
       for (const r of records) {
         await db.insert(gcl).values({
           controlRecordId: r.id,
           linkType: "evidence",
           linkId: item.id,
         });
+      }
+
+      // When attestation is uploaded for controls: mark controls implemented and auto-close related POA&M with closeout evidence.
+      if (evidenceType === "attestation" && recordIds.length > 0) {
+        const closeoutMessage = `Closed via attestation: user uploaded the required attestation to Governance > Evidence. Evidence: ${title.trim()}.`;
+        await db
+          .update(controlRecords)
+          .set({ implementationStatus: "implemented", updatedAt: new Date() })
+          .where(and(eq(controlRecords.organizationId, orgId), inArray(controlRecords.id, recordIds)));
+        const openEntries = await db
+          .select({ id: poamEntries.id })
+          .from(poamEntries)
+          .where(
+            and(
+              eq(poamEntries.organizationId, orgId),
+              eq(poamEntries.status, "open"),
+              inArray(poamEntries.controlRecordId, recordIds)
+            )
+          );
+        const now = new Date();
+        for (const e of openEntries) {
+          await db
+            .update(poamEntries)
+            .set({
+              status: "closed",
+              closedAt: now,
+              closeoutEvidence: closeoutMessage,
+              updatedAt: now,
+            })
+            .where(eq(poamEntries.id, e.id));
+        }
       }
     }
 

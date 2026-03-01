@@ -40,7 +40,7 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
     nistRequirement: "Separate duties among individuals to prevent malevolent activity.",
     primaryDocuments: [
       {
-        name: "MAC-POL-210 — Access Control Policy",
+        name: "Access Control Policy",
         whatMustAddress: [
           "Definition of separation of duties principle",
           "Identification of incompatible duty pairs (e.g., approver cannot implement changes)",
@@ -56,7 +56,7 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
       "Monitoring records showing no violations or documented remediation",
     ],
     c3paoVerificationFocus: [
-      "Does MAC-POL-210 explicitly define incompatible duty pairs?",
+      "Does the Access Control Policy explicitly define incompatible duty pairs?",
       "Is there a documented Separation of Duties Matrix?",
       "Are access controls configured to prevent conflicts?",
       "Are there monitoring records showing compliance?",
@@ -68,7 +68,7 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
     nistRequirement: "Provide security awareness training to all users.",
     primaryDocuments: [
       {
-        name: "MAC-POL-219 — Awareness and Training Policy",
+        name: "Awareness and Training Policy",
         whatMustAddress: [
           "Mandatory security awareness training requirement",
           "Training frequency (at least annually)",
@@ -78,7 +78,7 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
         ],
       },
       {
-        name: "MAC-SOP-227 — Security Awareness Training Procedure",
+        name: "Security Awareness Training Procedure",
         whatMustAddress: [
           "Step-by-step training enrollment and delivery procedures",
           "Training curriculum outline",
@@ -93,8 +93,8 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
       "Training attendance/completion documentation",
     ],
     c3paoVerificationFocus: [
-      "Does MAC-POL-219 mandate annual training for all users?",
-      "Does MAC-SOP-227 define the training delivery process?",
+      "Does the Awareness and Training Policy mandate annual training for all users?",
+      "Does the Security Awareness Training Procedure define the training delivery process?",
       "Do training records exist for all active users?",
       "Are training dates current (within 12 months)?",
     ],
@@ -105,7 +105,7 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
     nistRequirement: "Provide security training to individuals with significant security responsibilities.",
     primaryDocuments: [
       {
-        name: "MAC-POL-219 — Awareness and Training Policy",
+        name: "Awareness and Training Policy",
         whatMustAddress: [
           'Definition of "significant security responsibilities" (e.g., system administrators, security officers, incident responders)',
           "Enhanced training requirements for security personnel (beyond general awareness)",
@@ -115,7 +115,7 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
         ],
       },
       {
-        name: "MAC-SOP-227 — Security Awareness Training Procedure",
+        name: "Security Awareness Training Procedure",
         whatMustAddress: [
           "Process for identifying individuals with significant security responsibilities",
           "Role-specific training curriculum for each security role",
@@ -130,8 +130,8 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
       "Role-specific training curriculum documentation",
     ],
     c3paoVerificationFocus: [
-      "Does MAC-POL-219 define which roles have significant security responsibilities?",
-      "Does MAC-SOP-227 describe role-specific training?",
+      "Does the Awareness and Training Policy define which roles have significant security responsibilities?",
+      "Does the Security Awareness Training Procedure describe role-specific training?",
       "Do training records exist for all security personnel?",
       "Were security personnel trained before assuming their roles?",
     ],
@@ -142,7 +142,7 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
     nistRequirement: "Provide insider threat awareness training to all users.",
     primaryDocuments: [
       {
-        name: "MAC-POL-219 — Awareness and Training Policy",
+        name: "Awareness and Training Policy",
         whatMustAddress: [
           "Insider threat awareness training is mandatory for all users",
           "Training frequency (at least annually)",
@@ -151,7 +151,7 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
         ],
       },
       {
-        name: "MAC-SOP-227 — Security Awareness Training Procedure",
+        name: "Security Awareness Training Procedure",
         whatMustAddress: [
           "Insider threat training curriculum outline",
           "Specific insider threat indicators covered (unusual access patterns, policy violations, behavioral changes)",
@@ -167,8 +167,8 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
       "Documentation of non-retaliation messaging",
     ],
     c3paoVerificationFocus: [
-      "Does MAC-POL-219 mandate insider threat training for all users?",
-      "Does MAC-SOP-227 include specific insider threat content?",
+      "Does the Awareness and Training Policy mandate insider threat training for all users?",
+      "Does the Security Awareness Training Procedure include specific insider threat content?",
       "Is non-retaliation messaging documented?",
       "Do training records exist for all users?",
     ],
@@ -179,7 +179,7 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
     nistRequirement: "Review and update logged events for unusual activity.",
     primaryDocuments: [
       {
-        name: "MAC-POL-218 — Audit and Accountability Policy",
+        name: "Audit and Accountability Policy",
         whatMustAddress: [
           "Audit logs must be reviewed for unusual activity",
           "Review frequency (at least monthly)",
@@ -189,7 +189,7 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
         ],
       },
       {
-        name: "MAC-SOP-226 — Audit Log Review Procedure",
+        name: "Audit Log Review Procedure",
         whatMustAddress: [
           "Step-by-step audit log review procedure",
           "Tools and methods for log analysis",
@@ -207,8 +207,8 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
       "Escalation records if suspicious activity detected",
     ],
     c3paoVerificationFocus: [
-      "Does MAC-POL-218 mandate monthly log reviews?",
-      "Does MAC-SOP-226 define the review procedure?",
+      "Does the Audit and Accountability Policy mandate monthly log reviews?",
+      "Does the Audit Log Review Procedure define the review procedure?",
       "Do monthly review records exist for past 12 months?",
       "Are findings and actions documented?",
     ],
@@ -219,7 +219,7 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
     nistRequirement: "Approve and control changes to the system.",
     primaryDocuments: [
       {
-        name: "MAC-POL-220 — Configuration Management Policy",
+        name: "Configuration Management Policy",
         whatMustAddress: [
           "All changes must be approved before implementation",
           "Change approval process (request, review, approval, implementation, verification)",
@@ -235,7 +235,7 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
       "Documentation of unauthorized changes (if any) and remediation",
     ],
     c3paoVerificationFocus: [
-      "Does MAC-POL-220 require change approval?",
+      "Does the Configuration Management Policy require change approval?",
       "Do change approval records exist?",
       "Are all changes approved before implementation?",
       "Are unauthorized changes detected and remediated?",
@@ -247,7 +247,7 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
     nistRequirement: "Perform security impact analysis for changes.",
     primaryDocuments: [
       {
-        name: "MAC-POL-220 — Configuration Management Policy",
+        name: "Configuration Management Policy",
         whatMustAddress: [
           "Security impact analysis is required for all changes",
           "Impact analysis must be documented",
@@ -255,7 +255,7 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
         ],
       },
       {
-        name: "MAC-SOP-225 — Configuration Change Procedure",
+        name: "Configuration Change Procedure",
         whatMustAddress: [
           "Step-by-step security impact analysis procedure",
           "Risk assessment methodology",
@@ -270,8 +270,8 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
       "Approval records based on impact analysis",
     ],
     c3paoVerificationFocus: [
-      "Does MAC-POL-220 require security impact analysis?",
-      "Does MAC-SOP-225 define the analysis procedure?",
+      "Does the Configuration Management Policy require security impact analysis?",
+      "Does the Configuration Change Procedure define the analysis procedure?",
       "Do impact analysis records exist for changes?",
       "Are high-risk changes identified and escalated?",
     ],
@@ -282,7 +282,7 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
     nistRequirement: "Establish incident response capability.",
     primaryDocuments: [
       {
-        name: "MAC-POL-215 — Incident Response Policy",
+        name: "Incident Response Policy",
         whatMustAddress: [
           "Incident response capability is established and documented",
           "Incident response team structure and roles",
@@ -313,7 +313,7 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
     nistRequirement: "Track, document, and report incidents.",
     primaryDocuments: [
       {
-        name: "MAC-POL-215 — Incident Response Policy",
+        name: "Incident Response Policy",
         whatMustAddress: [
           "Incident reporting requirements and procedures",
           "Incident documentation requirements",
@@ -329,7 +329,7 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
       "Incident tracking records",
     ],
     c3paoVerificationFocus: [
-      "Does MAC-POL-215 require incident documentation?",
+      "Does the Incident Response Policy require incident documentation?",
       "Do incident records exist?",
       "Are incidents tracked and reported?",
       "Is incident documentation complete?",
@@ -341,7 +341,7 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
     nistRequirement: "Test incident response capability.",
     primaryDocuments: [
       {
-        name: "MAC-POL-215 — Incident Response Policy",
+        name: "Incident Response Policy",
         whatMustAddress: [
           "Incident response testing is mandatory",
           "Testing frequency (at least annually)",
@@ -349,7 +349,7 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
         ],
       },
       {
-        name: "MAC-SOP-232 — Incident Response Testing Procedure",
+        name: "Incident Response Testing Procedure",
         whatMustAddress: [
           "Testing frequency and schedule",
           "Testing scenarios (detailed descriptions)",
@@ -367,8 +367,8 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
       "Improvements implemented",
     ],
     c3paoVerificationFocus: [
-      "Does MAC-POL-215 mandate annual testing?",
-      "Does MAC-SOP-232 define testing procedures?",
+      "Does the Incident Response Policy mandate annual testing?",
+      "Does the Incident Response Testing Procedure define testing procedures?",
       "Do test records exist for past 12 months?",
       "Are lessons learned documented?",
     ],
@@ -379,7 +379,7 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
     nistRequirement: "Supervise maintenance personnel.",
     primaryDocuments: [
       {
-        name: "MAC-POL-221 — Maintenance Policy",
+        name: "Maintenance Policy",
         whatMustAddress: [
           "Maintenance personnel supervision is required",
           "Supervision procedures for third-party maintenance",
@@ -395,7 +395,7 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
       "Documentation of any unauthorized activities and remediation",
     ],
     c3paoVerificationFocus: [
-      "Does MAC-POL-221 require supervision of maintenance personnel?",
+      "Does the Maintenance Policy require supervision of maintenance personnel?",
       "Are supervision procedures documented?",
       "Do supervision records exist?",
       "Are maintenance activities monitored?",
@@ -407,7 +407,7 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
     nistRequirement: "Screen individuals before authorizing access.",
     primaryDocuments: [
       {
-        name: "MAC-POL-222 — Personnel Security Policy",
+        name: "Personnel Security Policy",
         whatMustAddress: [
           "All individuals must be screened before access authorization",
           "Screening requirements (background check, reference checks, identity verification)",
@@ -417,7 +417,7 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
         ],
       },
       {
-        name: "MAC-SOP-233 — Personnel Screening Procedure",
+        name: "Personnel Screening Procedure",
         whatMustAddress: [
           "Screening process and procedures",
           "Background check requirements",
@@ -434,8 +434,8 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
       "Background check documentation",
     ],
     c3paoVerificationFocus: [
-      "Does MAC-POL-222 require screening?",
-      "Does MAC-SOP-233 define the screening process?",
+      "Does the Personnel Security Policy require screening?",
+      "Does the Personnel Screening Procedure define the screening process?",
       "Do screening records exist for all users?",
       "Was screening completed before access granted?",
     ],
@@ -446,7 +446,7 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
     nistRequirement: "Protect systems during and after personnel actions (termination, role change).",
     primaryDocuments: [
       {
-        name: "MAC-POL-222 — Personnel Security Policy",
+        name: "Personnel Security Policy",
         whatMustAddress: [
           "Access must be terminated upon employee termination or role change",
           "Termination timeframe (within 24 hours)",
@@ -463,7 +463,7 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
       "Data backup/preservation documentation",
     ],
     c3paoVerificationFocus: [
-      "Does MAC-POL-222 require timely access termination?",
+      "Does the Personnel Security Policy require timely access termination?",
       "Do termination records exist?",
       "Is access revoked within 24 hours?",
       "Are all systems revoked (network, email, applications, physical)?",
@@ -475,7 +475,7 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
     nistRequirement: "Conduct risk assessments.",
     primaryDocuments: [
       {
-        name: "MAC-POL-223 — Risk Assessment Policy",
+        name: "Risk Assessment Policy",
         whatMustAddress: [
           "Risk assessments are mandatory",
           "Risk assessment frequency (at least annually)",
@@ -495,7 +495,7 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
       "Risk assessment approval",
     ],
     c3paoVerificationFocus: [
-      "Does MAC-POL-223 mandate annual risk assessments?",
+      "Does the Risk Assessment Policy mandate annual risk assessments?",
       "Do risk assessment records exist?",
       "Is the methodology documented?",
       "Are risks identified and prioritized?",
@@ -507,7 +507,7 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
     nistRequirement: "Periodically assess security controls.",
     primaryDocuments: [
       {
-        name: "MAC-POL-224 — Security Assessment Policy",
+        name: "Security Assessment Policy",
         whatMustAddress: [
           "Security control assessments are mandatory",
           "Assessment frequency (at least annually)",
@@ -526,7 +526,7 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
       "Assessment approval",
     ],
     c3paoVerificationFocus: [
-      "Does MAC-POL-224 mandate annual assessments?",
+      "Does the Security Assessment Policy mandate annual assessments?",
       "Do assessment records exist?",
       "Are all 110 controls assessed?",
       "Are findings documented?",
@@ -538,7 +538,7 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
     nistRequirement: "Develop and implement POA&M.",
     primaryDocuments: [
       {
-        name: "MAC-POL-224 — Security Assessment Policy",
+        name: "Security Assessment Policy",
         whatMustAddress: [
           "POA&M development is required for all findings",
           "POA&M content requirements (finding description, remediation plan, timeline, responsible party)",
@@ -554,7 +554,7 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
       "Closure documentation for remediated findings",
     ],
     c3paoVerificationFocus: [
-      "Does MAC-POL-224 require POA&M development?",
+      "Does the Security Assessment Policy require POA&M development?",
       "Do POA&M records exist?",
       "Are findings tracked and remediated?",
       "Is progress documented?",
@@ -566,7 +566,7 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
     nistRequirement: "Monitor security controls.",
     primaryDocuments: [
       {
-        name: "MAC-POL-224 — Security Assessment Policy",
+        name: "Security Assessment Policy",
         whatMustAddress: [
           "Continuous security control monitoring is required",
           "Monitoring frequency (at least quarterly)",
@@ -584,7 +584,7 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
       "Escalation records",
     ],
     c3paoVerificationFocus: [
-      "Does MAC-POL-224 require quarterly monitoring?",
+      "Does the Security Assessment Policy require quarterly monitoring?",
       "Do monitoring records exist?",
       "Are all controls monitored?",
       "Are findings documented and escalated?",
@@ -596,7 +596,7 @@ export const GOVERNANCE_18_ANALYSIS: Record<string, GovernanceControlAnalysis> =
     nistRequirement: "Develop and update System Security Plan (SSP).",
     primaryDocuments: [
       {
-        name: "MAC-POL-224 — Security Assessment Policy",
+        name: "Security Assessment Policy",
         whatMustAddress: [
           "System Security Plan is mandatory",
           "SSP must be developed before system authorization",

@@ -1,0 +1,201 @@
+{
+  "profile_id": "microsoft-azure-government-iaas-v1",
+  "provider": "Microsoft",
+  "cloud": "Azure",
+  "environment": "Azure Government",
+  "service_model": "IaaS",
+  "cloud_model": "IaaS",
+  "assurance": {
+    "fedramp_expected": true,
+    "fedramp_level_target": "High",
+    "notes": [
+      "Azure/Azure Government FedRAMP SSP and continuous monitoring artifacts are accessed via Microsoft Service Trust Portal (STP) under NDA and approval.",
+      "Services must be in FedRAMP audit scope for Azure Government for inheritance to be claimed."
+    ],
+    "evidence_sources": [
+      "Microsoft Service Trust Portal (FedRAMP reports under NDA)",
+      "Azure Government services in FedRAMP audit scope list"
+    ]
+  },
+  "shared_responsibility_reference": {
+    "model": "Azure shared responsibility",
+    "notes": [
+      "In IaaS, Microsoft is responsible for physical datacenter + host infrastructure; customer is responsible for OS/guest configuration, identity configuration, data, applications, and governance."
+    ]
+  },
+  "layer_ontology_version": "wttt-boundary-layers-v1",
+  "ontology_semver": "1.0.0",
+  "always_inherited_layers": [
+    "Physical",
+    "Facility/Environmental",
+    "Infrastructure/Hardware",
+    "Infrastructure/Hypervisor",
+    "Provider/Backbone-Network"
+  ],
+  "never_inherited_layers": [
+    "Governance/Policy",
+    "Governance/Training",
+    "Governance/IR",
+    "Governance/Risk",
+    "Governance/SSP",
+    "Governance/POAM",
+    "Governance/HR",
+    "Data/Classification-Handling"
+  ],
+  "default_customer_layers_in_iaas": [
+    "GuestOS/Hardening",
+    "GuestOS/Logging-Config",
+    "GuestOS/Patching",
+    "GuestOS/Endpoint-Protection-Config",
+    "Application/Config",
+    "Application/Logging",
+    "Identity/Configuration",
+    "Network/Configuration"
+  ],
+  "services": {
+    "entra_id": {
+      "display_name": "Microsoft Entra ID",
+      "category": "Identity",
+      "coverage_layers": [
+        "Identity/AuthN",
+        "Identity/MFA",
+        "Identity/Conditional-Access",
+        "Identity/Role-Governance"
+      ],
+      "allocation_effect": "Shared",
+      "gating_requirements": [
+        "Users authenticate via Entra ID (not local-only identities)",
+        "MFA enforced for privileged access; ideally for all users in scope",
+        "Conditional Access policies configured for the boundary"
+      ],
+      "notes": [
+        "Entra can support MFA and access policy enforcement, but customer remains responsible for correct tenant configuration and identity lifecycle processes."
+      ]
+    },
+    "defender_for_cloud": {
+      "display_name": "Microsoft Defender for Cloud",
+      "category": "Security Posture / Detection",
+      "coverage_layers": [
+        "Vulnerability-Mgmt",
+        "Monitoring/Detection",
+        "Continuous-Monitoring",
+        "Posture/Compliance-Mapping"
+      ],
+      "allocation_effect": "Shared",
+      "gating_requirements": [
+        "Defender plan enabled for relevant subscription/resources",
+        "Recommendations/alerts are reviewed with an operational process"
+      ],
+      "notes": [
+        "This reduces evidence burden (alerts, recommendations, vulnerability findings) but does not replace governance controls."
+      ]
+    },
+    "azure_monitor_log_analytics": {
+      "display_name": "Azure Monitor + Log Analytics",
+      "category": "Logging / Telemetry",
+      "coverage_layers": [
+        "Logging/Collection",
+        "Logging/Monitoring",
+        "Logging/Analytics"
+      ],
+      "allocation_effect": "Shared",
+      "gating_requirements": [
+        "Logs from in-scope resources are collected into a workspace",
+        "Retention configured to meet policy",
+        "Alerting rules configured for key events"
+      ],
+      "notes": [
+        "Customer still must define audited events, enable Windows audit policy, and conduct log review."
+      ]
+    },
+    "azure_key_vault": {
+      "display_name": "Azure Key Vault",
+      "category": "Cryptography / Key Management",
+      "coverage_layers": [
+        "Crypto/Key-Mgmt",
+        "Crypto/Secrets-Management"
+      ],
+      "allocation_effect": "Shared",
+      "gating_requirements": [
+        "Workloads actually use Key Vault for keys/secrets",
+        "Access policies/RBAC are locked down and audited"
+      ],
+      "notes": [
+        "Key Vault can centralize and harden key/secrets handling; customer still owns key usage decisions and app/OS encryption configuration."
+      ]
+    },
+    "azure_backup": {
+      "display_name": "Azure Backup",
+      "category": "Backup / Recovery",
+      "coverage_layers": [
+        "Backup/Recovery",
+        "Backup/Storage-Protection"
+      ],
+      "allocation_effect": "Shared",
+      "gating_requirements": [
+        "Backup vault configured",
+        "Backup schedules and retention configured",
+        "Restore testing performed on a cadence"
+      ],
+      "notes": [
+        "Backup services support availability/recovery evidence; restore testing remains customer responsibility."
+      ]
+    },
+    "azure_firewall": {
+      "display_name": "Azure Firewall",
+      "category": "Network Boundary",
+      "coverage_layers": [
+        "Network/Boundary",
+        "Network/Firewall",
+        "Network/Egress-Control"
+      ],
+      "allocation_effect": "Shared",
+      "gating_requirements": [
+        "Traffic is routed through Azure Firewall (effective enforcement point)",
+        "Rules are defined and change-controlled"
+      ],
+      "notes": [
+        "Customer still owns rule design, least privilege, and rule review."
+      ]
+    },
+    "expressroute": {
+      "display_name": "Azure ExpressRoute",
+      "category": "Connectivity",
+      "coverage_layers": [
+        "Network/Private-Connectivity"
+      ],
+      "allocation_effect": "Shared",
+      "gating_requirements": [
+        "ExpressRoute circuit provisioned and used for the boundary connectivity"
+      ],
+      "notes": [
+        "Improves network exposure posture; does not automatically inherit many 800-171 controls by itself."
+      ]
+    },
+    "nsg": {
+      "display_name": "Network Security Groups (NSG)",
+      "category": "Network ACL",
+      "coverage_layers": [
+        "Network/Boundary",
+        "Network/Segmentation"
+      ],
+      "allocation_effect": "Shared",
+      "gating_requirements": [
+        "NSGs attached to subnets/NICs in scope",
+        "Default-deny inbound and restricted egress as applicable"
+      ]
+    }
+  },
+  "evidence_expectations": {
+    "provider_inheritance": [
+      "FedRAMP High SSP + applicable control implementations (from STP under NDA)",
+      "Continuous monitoring reports (from STP under NDA)",
+      "Azure Government FedRAMP audit scope for services used"
+    ],
+    "customer_configuration": [
+      "Tenant/subscription configuration exports (policy assignments, CA policies, Defender plans)",
+      "Architectural diagram showing boundary + enforcement points",
+      "Procedures (log review, vuln mgmt, backup restore tests)"
+    ]
+  }
+}

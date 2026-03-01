@@ -3,11 +3,72 @@
  * Source of truth: controlRecords.implementationStatus. Called after every artifact upload, delete, narrative save, and technical evidence change.
  */
 import { db } from "@/db";
-import { controlRecords, artifacts, technicalEvidence, boundaryProfiles } from "@/db/schema";
-import { eq } from "drizzle-orm";
-import { getRequiredUploadArtifactLabels } from "./artifact-guide";
+import {
+  controlRecords,
+  artifacts,
+  technicalEvidence,
+  boundaryProfiles,
+  boundarySnapshots,
+  governanceArtifactCompletions,
+} from "@/db/schema";
+import { eq, desc } from "drizzle-orm";
+import {
+  getRequiredUploadArtifactLabels,
+  getRequiredArtifactSpecs,
+  type RequiredArtifactSpec,
+} from "./artifact-guide";
 import { getEvidenceRequirements } from "./compliance";
 import { computeAndPersistSprsScore } from "./sprs";
+import { isEnclaveMappedControl } from "./compliance/enclaveManifest";
+import { hasPassingFreshEnclaveFinding } from "./evidence/hasPassingFreshFinding";
+
+export interface GovernanceCompletionRow {
+  artifactLabel: string;
+  artifactType: string;
+  valueText: string | null;
+  attestedBy: string | null;
+  attestedAt: Date | string | null;
+}
+
+/** Pure: returns true iff every required artifact is satisfied (uploads or non-upload completions). */
+export function isGovernanceComplete(
+  requiredSpecs: RequiredArtifactSpec[],
+  uploadedLabels: Set<string>,
+  completionByLabel: Map<string, GovernanceCompletionRow>
+): boolean {
+  if (requiredSpecs.length === 0) return true;
+  return requiredSpecs.every((spec) => {
+    if (spec.type === "UPLOAD" || spec.type === "NATIVE") {
+      return uploadedLabels.has(spec.label);
+    }
+    if (spec.type === "REFERENCE" || spec.type === "SYSTEM_POINTER") {
+      const c = completionByLabel.get(spec.label);
+      return Boolean(c?.valueText?.trim());
+    }
+    if (spec.type === "ATTESTATION") {
+      const c = completionByLabel.get(spec.label);
+      return Boolean(c?.attestedBy && c?.attestedAt);
+    }
+    return false;
+  });
+}
+
+async function getLayerForControl(
+  organizationId: string,
+  controlNistId: string
+): Promise<string | null> {
+  const [snapshot] = await db
+    .select({ snapshotJson: boundarySnapshots.snapshotJson })
+    .from(boundarySnapshots)
+    .where(eq(boundarySnapshots.accountId, organizationId))
+    .orderBy(desc(boundarySnapshots.createdAt))
+    .limit(1);
+  if (!snapshot?.snapshotJson) return null;
+  const allocations = (snapshot.snapshotJson as { allocations?: Array<{ control_id?: string; layer?: string; rationale?: { layer?: string } }> })
+    ?.allocations ?? [];
+  const alloc = allocations.find((a) => a.control_id === controlNistId);
+  return alloc?.layer ?? (alloc?.rationale as { layer?: string } | undefined)?.layer ?? null;
+}
 
 export type ImplementationStatus = "not_started" | "in_progress" | "implemented" | "assessed" | "inherited" | "not_applicable";
 
@@ -39,19 +100,43 @@ export async function calculateControlStatus(controlRecordId: string): Promise<I
   }
 
   const controlId = record.controlId;
-  const requiredLabels = getRequiredUploadArtifactLabels(controlId);
+  const requiredSpecs = getRequiredArtifactSpecs(controlId);
   const hasNarrative = Boolean(record.governanceNarrative?.trim());
 
   const existingArtifacts = await db
     .select({ artifactLabel: artifacts.artifactLabel })
     .from(artifacts)
     .where(eq(artifacts.controlRecordId, controlRecordId));
-
   const uploadedLabels = new Set(existingArtifacts.map((a) => a.artifactLabel));
-  const governanceComplete =
-    requiredLabels.length === 0
-      ? true
-      : requiredLabels.every((label) => uploadedLabels.has(label));
+
+  const completions = await db
+    .select({
+      artifactLabel: governanceArtifactCompletions.artifactLabel,
+      artifactType: governanceArtifactCompletions.artifactType,
+      valueText: governanceArtifactCompletions.valueText,
+      attestedBy: governanceArtifactCompletions.attestedBy,
+      attestedAt: governanceArtifactCompletions.attestedAt,
+    })
+    .from(governanceArtifactCompletions)
+    .where(eq(governanceArtifactCompletions.controlRecordId, controlRecordId));
+  const completionByLabel = new Map(
+    completions.map((c) => [
+      c.artifactLabel,
+      {
+        artifactLabel: c.artifactLabel,
+        artifactType: c.artifactType,
+        valueText: c.valueText,
+        attestedBy: c.attestedBy,
+        attestedAt: c.attestedAt,
+      },
+    ])
+  );
+
+  const governanceComplete = isGovernanceComplete(
+    requiredSpecs,
+    uploadedLabels,
+    completionByLabel
+  );
   const governanceDone = governanceComplete && hasNarrative;
 
   // Technical: get org's boundary profile and requirements for this control
@@ -76,6 +161,17 @@ export async function calculateControlStatus(controlRecordId: string): Promise<I
       evidenceRows.map((r) => r.requirementId).filter((id): id is string => Boolean(id))
     );
     technicalComplete = requiredTechnicalIds.every((id) => satisfiedIds.has(id));
+  }
+
+  if (!technicalComplete && isEnclaveMappedControl(controlId)) {
+    const layer = await getLayerForControl(record.organizationId, controlId);
+    const res = await hasPassingFreshEnclaveFinding({
+      db,
+      organizationId: record.organizationId,
+      controlNistId: controlId,
+      layer,
+    });
+    technicalComplete = technicalComplete || res.ok;
   }
 
   const allComplete = governanceDone && technicalComplete;

@@ -3,6 +3,18 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { StatusBadge } from "@/components/governance-wizard/StatusBadge";
+import { CONTROL_FAMILIES, getControlFamilyPrefix } from "@/components/governance-wizard/constants";
+
+/** Link to SCTM with this control selected (no separate detail card). */
+function sctmControlUrl(controlId: string): string {
+  const prefix = getControlFamilyPrefix(controlId);
+  const family = CONTROL_FAMILIES.find((f) => f.controlPrefix === prefix)?.code;
+  const params = new URLSearchParams();
+  if (family) params.set("family", family);
+  params.set("control", controlId);
+  return `/dashboard/controls?${params.toString()}`;
+}
 
 type Item = {
   id: string;
@@ -16,7 +28,11 @@ type Item = {
   requiredRegisters: string[];
 };
 
-export default function GovernanceControlsClient() {
+type ControlsListProps = {
+  basePath?: string;
+};
+
+export default function GovernanceControlsClient({ basePath = "/dashboard/governance/controls" }: ControlsListProps = {}) {
   const searchParams = useSearchParams();
   const classification = searchParams.get("classification") ?? "";
   const status = searchParams.get("status") ?? "";
@@ -44,7 +60,6 @@ export default function GovernanceControlsClient() {
   const total = data?.total ?? 0;
   const limit = data?.limit ?? 20;
   const totalPages = Math.max(1, Math.ceil(total / limit));
-  const basePath = "/dashboard/governance/controls";
 
   const buildUrl = (updates: Record<string, string>) => {
     const p = new URLSearchParams(searchParams);
@@ -70,9 +85,11 @@ export default function GovernanceControlsClient() {
           className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-1.5 text-sm"
         >
           <option value="">All</option>
-          <option value="PURE_GOV">Pure Gov</option>
-          <option value="HYBRID_GOV">Hybrid Gov</option>
-          <option value="TECHNICAL">Technical</option>
+          <option value="PURE_GOV">Pure Governance</option>
+          <option value="HYBRID_GOVERNANCE">Hybrid Governance</option>
+          <option value="HYBRID_GOV">Hybrid (all)</option>
+          <option value="TECHNICAL">Pure Technical</option>
+          <option value="HYBRID_TECHNICAL">Hybrid Technical</option>
         </select>
         <label className="ml-4 text-sm font-medium text-[var(--color-gray-700)]">Status</label>
         <select
@@ -135,16 +152,14 @@ export default function GovernanceControlsClient() {
                     <td className="px-4 py-3 text-[var(--color-gray-900)]">{item.title}</td>
                     <td className="px-4 py-3 text-[var(--color-gray-600)]">{item.classification ?? "—"}</td>
                     <td className="px-4 py-3">
-                      <span className="rounded-full px-2 py-0.5 text-xs font-medium bg-[var(--color-gray-100)] text-[var(--color-gray-700)]">
-                        {item.status ?? "—"}
-                      </span>
+                      <StatusBadge status={item.status ?? "not_started"} />
                     </td>
                     <td className="px-4 py-3 text-[var(--color-gray-600)]">
                       {item.cmmcRef?.split(".")[0] ?? "—"}
                     </td>
                     <td className="px-4 py-3">
                       <Link
-                        href={`/dashboard/governance/controls/${encodeURIComponent(item.controlId)}`}
+                        href={sctmControlUrl(item.controlId)}
                         className="font-medium text-[var(--color-blue-accent)] hover:underline"
                       >
                         View

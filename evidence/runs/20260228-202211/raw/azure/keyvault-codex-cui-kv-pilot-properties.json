@@ -1,0 +1,38 @@
+{
+  "id": "/subscriptions/3601ba7f-cdac-4f0a-92ab-05e92a4ca810/resourceGroups/rg-cui-pilot-envclave/providers/Microsoft.KeyVault/vaults/codex-cui-kv-pilot",
+  "location": "westus2",
+  "name": "codex-cui-kv-pilot",
+  "properties": {
+    "accessPolicies": [],
+    "createMode": null,
+    "enablePurgeProtection": null,
+    "enableRbacAuthorization": true,
+    "enableSoftDelete": true,
+    "enabledForDeployment": false,
+    "enabledForDiskEncryption": false,
+    "enabledForTemplateDeployment": false,
+    "hsmPoolResourceId": null,
+    "networkAcls": null,
+    "privateEndpointConnections": null,
+    "provisioningState": "Succeeded",
+    "publicNetworkAccess": "Enabled",
+    "sku": {
+      "family": "A",
+      "name": "standard"
+    },
+    "softDeleteRetentionInDays": 90,
+    "tenantId": "0dad716f-3462-4902-8403-6611b2d0f6f7",
+    "vaultUri": "https://codex-cui-kv-pilot.vault.azure.net/"
+  },
+  "resourceGroup": "rg-cui-pilot-envclave",
+  "systemData": {
+    "createdAt": "2026-02-14T21:26:53.097000+00:00",
+    "createdBy": "patcaru@outlook.com",
+    "createdByType": "User",
+    "lastModifiedAt": "2026-02-14T21:26:53.097000+00:00",
+    "lastModifiedBy": "patcaru@outlook.com",
+    "lastModifiedByType": "User"
+  },
+  "tags": {},
+  "type": "Microsoft.KeyVault/vaults"
+}

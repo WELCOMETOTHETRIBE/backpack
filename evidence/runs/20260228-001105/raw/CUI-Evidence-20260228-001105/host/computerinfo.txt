@@ -1,0 +1,193 @@
+﻿
+
+WindowsBuildLabEx                                       : 26100.1.amd64fre.ge_release.240331-1435
+WindowsCurrentVersion                                   : 6.3
+WindowsEditionId                                        : ServerDatacenter
+WindowsInstallationType                                 : Server
+WindowsInstallDateFromRegistry                          : 2/6/2026 4:59:08 AM
+WindowsProductId                                        : 00491-50000-00001-AA362
+WindowsProductName                                      : Windows Server 2025 Datacenter
+WindowsRegisteredOrganization                           : 
+WindowsRegisteredOwner                                  : 
+WindowsSystemRoot                                       : C:\Windows
+WindowsVersion                                          : 2009
+OSDisplayVersion                                        : 24H2
+BiosCharacteristics                                     : {3, 9, 15, 16...}
+BiosBIOSVersion                                         : {VRTUAL - 1, Hyper-V UEFI Release v4.1, Microsoft - 100032}
+BiosBuildNumber                                         : 
+BiosCaption                                             : Hyper-V UEFI Release v4.1
+BiosCodeSet                                             : 
+BiosCurrentLanguage                                     : 
+BiosDescription                                         : Hyper-V UEFI Release v4.1
+BiosEmbeddedControllerMajorVersion                      : 255
+BiosEmbeddedControllerMinorVersion                      : 255
+BiosFirmwareType                                        : Uefi
+BiosIdentificationCode                                  : 
+BiosInstallableLanguages                                : 
+BiosInstallDate                                         : 
+BiosLanguageEdition                                     : 
+BiosListOfLanguages                                     : 
+BiosManufacturer                                        : Microsoft Corporation
+BiosName                                                : Hyper-V UEFI Release v4.1
+BiosOtherTargetOS                                       : 
+BiosPrimaryBIOS                                         : True
+BiosReleaseDate                                         : 6/10/2025 12:00:00 AM
+BiosSeralNumber                                         : 0000-0001-0049-2281-4692-4780-24
+BiosSMBIOSBIOSVersion                                   : Hyper-V UEFI Release v4.1
+BiosSMBIOSMajorVersion                                  : 3
+BiosSMBIOSMinorVersion                                  : 1
+BiosSMBIOSPresent                                       : True
+BiosSoftwareElementState                                : Running
+BiosStatus                                              : OK
+BiosSystemBiosMajorVersion                              : 4
+BiosSystemBiosMinorVersion                              : 1
+BiosTargetOperatingSystem                               : 0
+BiosVersion                                             : VRTUAL - 1
+CsAdminPasswordStatus                                   : Unknown
+CsAutomaticManagedPagefile                              : False
+CsAutomaticResetBootOption                              : True
+CsAutomaticResetCapability                              : True
+CsBootOptionOnLimit                                     : 
+CsBootOptionOnWatchDog                                  : 
+CsBootROMSupported                                      : True
+CsBootStatus                                            : {0, 0, 0, 127...}
+CsBootupState                                           : Normal boot
+CsCaption                                               : cui-win-pilot-0
+CsChassisBootupState                                    : Safe
+CsChassisSKUNumber                                      : Virtual Machine
+CsCurrentTimeZone                                       : 0
+CsDaylightInEffect                                      : 
+CsDescription                                           : AT/AT COMPATIBLE
+CsDNSHostName                                           : cui-win-pilot-0
+CsDomain                                                : WORKGROUP
+CsDomainRole                                            : StandaloneServer
+CsEnableDaylightSavingsTime                             : True
+CsFrontPanelResetStatus                                 : Unknown
+CsHypervisorPresent                                     : True
+CsInfraredSupported                                     : False
+CsInitialLoadInfo                                       : 
+CsInstallDate                                           : 
+CsKeyboardPasswordStatus                                : Unknown
+CsLastLoadInfo                                          : 
+CsManufacturer                                          : Microsoft Corporation
+CsModel                                                 : Virtual Machine
+CsName                                                  : cui-win-pilot-0
+CsNetworkAdapters                                       : {Ethernet}
+CsNetworkServerModeEnabled                              : True
+CsNumberOfLogicalProcessors                             : 2
+CsNumberOfProcessors                                    : 1
+CsProcessors                                            : {Intel(R) Xeon(R) Platinum 8171M CPU @ 2.60GHz}
+CsOEMStringArray                                        : {[MS_VM_CERT/SHA1/9b80ca0d5dd061ec9da4e494f4c3fd1196270c22], 
+                                                          None, To be filled by OEM}
+CsPartOfDomain                                          : False
+CsPauseAfterReset                                       : -1
+CsPCSystemType                                          : Desktop
+CsPCSystemTypeEx                                        : Desktop
+CsPowerManagementCapabilities                           : 
+CsPowerManagementSupported                              : 
+CsPowerOnPasswordStatus                                 : Unknown
+CsPowerState                                            : Unknown
+CsPowerSupplyState                                      : Safe
+CsPrimaryOwnerContact                                   : 
+CsPrimaryOwnerName                                      : 
+CsResetCapability                                       : Other
+CsResetCount                                            : -1
+CsResetLimit                                            : -1
+CsRoles                                                 : {LM_Workstation, LM_Server, NT, Server_NT}
+CsStatus                                                : OK
+CsSupportContactDescription                             : 
+CsSystemFamily                                          : Virtual Machine
+CsSystemSKUNumber                                       : None
+CsSystemType                                            : x64-based PC
+CsThermalState                                          : Safe
+CsTotalPhysicalMemory                                   : 8531955712
+CsPhyicallyInstalledMemory                              : 8337408
+CsUserName                                              : 
+CsWakeUpType                                            : PowerSwitch
+CsWorkgroup                                             : WORKGROUP
+OsName                                                  : Microsoft Windows Server 2025 Datacenter
+OsType                                                  : WINNT
+OsOperatingSystemSKU                                    : DatacenterServerEdition
+OsVersion                                               : 10.0.26100
+OsCSDVersion                                            : 
+OsBuildNumber                                           : 26100
+OsHotFixes                                              : {KB5066131, KB5075899, KB5075898}
+OsBootDevice                                            : \Device\HarddiskVolume3
+OsSystemDevice                                          : \Device\HarddiskVolume4
+OsSystemDirectory                                       : C:\Windows\system32
+OsSystemDrive                                           : C:
+OsWindowsDirectory                                      : C:\Windows
+OsCountryCode                                           : 1
+OsCurrentTimeZone                                       : 0
+OsLocaleID                                              : 0409
+OsLocale                                                : en-US
+OsLocalDateTime                                         : 2/28/2026 12:11:15 AM
+OsLastBootUpTime                                        : 2/24/2026 8:09:32 AM
+OsUptime                                                : 3.16:01:42.8980672
+OsBuildType                                             : Multiprocessor Free
+OsCodeSet                                               : 1252
+OsDataExecutionPreventionAvailable                      : True
+OsDataExecutionPrevention32BitApplications              : True
+OsDataExecutionPreventionDrivers                        : True
+OsDataExecutionPreventionSupportPolicy                  : OptOut
+OsDebug                                                 : False
+OsDistributed                                           : False
+OsEncryptionLevel                                       : 256
+OsForegroundApplicationBoost                            : Maximum
+OsTotalVisibleMemorySize                                : 8331988
+OsFreePhysicalMemory                                    : 5374516
+OsTotalVirtualMemorySize                                : 9642708
+OsFreeVirtualMemory                                     : 7017908
+OsInUseVirtualMemory                                    : 2624800
+OsTotalSwapSpaceSize                                    : 
+OsSizeStoredInPagingFiles                               : 1310720
+OsFreeSpaceInPagingFiles                                : 928700
+OsPagingFiles                                           : {D:\pagefile.sys}
+OsHardwareAbstractionLayer                              : 10.0.26100.1
+OsInstallDate                                           : 2/6/2026 4:59:08 AM
+OsManufacturer                                          : Microsoft Corporation
+OsMaxNumberOfProcesses                                  : 4294967295
+OsMaxProcessMemorySize                                  : 137438953344
+OsMuiLanguages                                          : {en-US}
+OsNumberOfLicensedUsers                                 : 0
+OsNumberOfProcesses                                     : 137
+OsNumberOfUsers                                         : 1
+OsOrganization                                          : 
+OsArchitecture                                          : 64-bit
+OsLanguage                                              : en-US
+OsProductSuites                                         : {TerminalServices, DatacenterEdition, 
+                                                          TerminalServicesSingleSession}
+OsOtherTypeDescription                                  : 
+OsPAEEnabled                                            : 
+OsPortableOperatingSystem                               : False
+OsPrimary                                               : True
+OsProductType                                           : Server
+OsRegisteredUser                                        : 
+OsSerialNumber                                          : 00491-50000-00001-AA362
+OsServicePackMajorVersion                               : 0
+OsServicePackMinorVersion                               : 0
+OsStatus                                                : OK
+OsSuites                                                : {TerminalServices, DatacenterEdition, 
+                                                          TerminalServicesSingleSession}
+OsServerLevel                                           : FullServer
+KeyboardLayout                                          : en-US
+TimeZone                                                : (UTC) Coordinated Universal Time
+LogonServer                                             : \\cui-win-pilot-0
+PowerPlatformRole                                       : Desktop
+HyperVisorPresent                                       : True
+HyperVRequirementDataExecutionPreventionAvailable       : 
+HyperVRequirementSecondLevelAddressTranslation          : 
+HyperVRequirementVirtualizationFirmwareEnabled          : 
+HyperVRequirementVMMonitorModeExtensions                : 
+DeviceGuardSmartStatus                                  : Off
+DeviceGuardRequiredSecurityProperties                   : 
+DeviceGuardAvailableSecurityProperties                  : 
+DeviceGuardSecurityServicesConfigured                   : 
+DeviceGuardSecurityServicesRunning                      : 
+DeviceGuardCodeIntegrityPolicyEnforcementStatus         : EnforcementMode
+DeviceGuardUserModeCodeIntegrityPolicyEnforcementStatus : Off
+
+
+
+
+

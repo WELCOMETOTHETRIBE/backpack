@@ -1,0 +1,1260 @@
+{
+  "validator": {
+    "name": "validate_windows_server_hardening",
+    "version": "2.0.0",
+    "sha256": "4f6a36020c08c25985972e762e69024b0bfa0ca628aff182dbb013f74620667e"
+  },
+  "manifest_metadata": {
+    "path": "src/data/os-evidence-nist-manifest.json",
+    "control_count": 73,
+    "schema": "os-evidence-nist-manifest.v1"
+  },
+  "summary": {
+    "total_controls": 73,
+    "passed": 73,
+    "partial": 31,
+    "failed": 0
+  },
+  "inputs": [
+    {
+      "filename": "apps/applocker-policy.txt",
+      "sha256": "880907ce0f7a02cfa383e18f360e835ccc08b1c1f7b5b2c541c8528e90643b8c",
+      "size": 502,
+      "mtime_utc": "1772237538.885532"
+    },
+    {
+      "filename": "audit/auditpol-subcategories.txt",
+      "sha256": "0ed84d56004ccaf1cddd256b16fe4af77b5494b1305c7203796e47c8a9c66dab",
+      "size": 4174,
+      "mtime_utc": "1772237539.2683501"
+    },
+    {
+      "filename": "audit/auditpol.txt",
+      "sha256": "80065e993c9039f2c09a5af8da49a3d6b49020b3450c2d2a5686e52f224ce304",
+      "size": 4031,
+      "mtime_utc": "1772237539.4698234"
+    },
+    {
+      "filename": "audit/eventlog-4625-failed-logons.txt",
+      "sha256": "1124a052ae04fcb3e34654524a8543c60b32494ce396839c02242abe258302c9",
+      "size": 462,
+      "mtime_utc": "1772237539.6745367"
+    },
+    {
+      "filename": "audit/eventlog-application.txt",
+      "sha256": "f6eb1a2e981c63c6382ab909d22d9bb4e1f8d2d23d5d8560359cd74492b8ed5e",
+      "size": 546,
+      "mtime_utc": "1772237539.8584738"
+    },
+    {
+      "filename": "audit/eventlog-security-sample.txt",
+      "sha256": "b2f14c668076e225c5bd795e134782ab2333c06ffd2de685669b4f3ba3b633dc",
+      "size": 63996,
+      "mtime_utc": "1772237540.1065285"
+    },
+    {
+      "filename": "audit/eventlog-security.txt",
+      "sha256": "d31fc571d1879876756e3b26861655eb9b97fb2647ba6a6e0d37f332b49cb3f6",
+      "size": 331,
+      "mtime_utc": "1772237540.291385"
+    },
+    {
+      "filename": "audit/eventlog-system-sample.txt",
+      "sha256": "d685aead0fb04eed17c5e0c413a58a08da565651187b22ee2ae4acdc86fc7de4",
+      "size": 11353,
+      "mtime_utc": "1772237540.48856"
+    },
+    {
+      "filename": "audit/eventlog-system.txt",
+      "sha256": "26838714d05e58e2be5317dff1ceb5341b4cbb91c701ff4e17f4d2ba5503b736",
+      "size": 415,
+      "mtime_utc": "1772237540.7154577"
+    },
+    {
+      "filename": "crypto/fips.txt",
+      "sha256": "00c14af4d1c03c800e114ad117a0e9db96a156bfe2370d6bfd78d3d336ab435b",
+      "size": 396,
+      "mtime_utc": "1772237541.8623602"
+    },
+    {
+      "filename": "crypto/schannel-protocols.txt",
+      "sha256": "bbb1a47dd31296638cd644f9801ac1a2f32dde6aa48151629236f34d833f86d7",
+      "size": 7051,
+      "mtime_utc": "1772237542.0556347"
+    },
+    {
+      "filename": "crypto/tls-ciphersuites.txt",
+      "sha256": "5bea246d866da752806a67c5ef8a9c04efeeb7d98f53ea22667fb87e67f5fee9",
+      "size": 31,
+      "mtime_utc": "1772237542.2476804"
+    },
+    {
+      "filename": "defender/defender-preferences.txt",
+      "sha256": "5feff8a3910b12003a9f0e814bd962963030223f3b81d7637dd3faf5f2d3efdf",
+      "size": 8558,
+      "mtime_utc": "1772237542.6289492"
+    },
+    {
+      "filename": "defender/defender-scan-ages.txt",
+      "sha256": "6a688ce109f0799899657785fcf19e05ac3f43f4e0ded14a76bc25d387faffb1",
+      "size": 99,
+      "mtime_utc": "1772237542.8126776"
+    },
+    {
+      "filename": "defender/defender-status.txt",
+      "sha256": "9db5f5d18c3da9003ccff9e0cafb697dbf34c57f4c7c9770a3ce0496669ebafe",
+      "size": 2672,
+      "mtime_utc": "1772237543.0018835"
+    },
+    {
+      "filename": "defender/defender-threat-detections.txt",
+      "sha256": "60116575bb1b6772ed22ba93bfa53bef0a772667da1812c1c3fc0a46cd93bc3e",
+      "size": 7,
+      "mtime_utc": "1772237543.193743"
+    },
+    {
+      "filename": "host/deviceguard.txt",
+      "sha256": "f4d06de639382333aeebc3c5a56b578634adfab9a1c4b43386e81d4c7cec9163",
+      "size": 1202,
+      "mtime_utc": "1772237543.7713337"
+    },
+    {
+      "filename": "host/hotfixes.txt",
+      "sha256": "2f907e4a5b77f225652197cbd82e3d87eae7bd1adf429e8aae0e324d945a7632",
+      "size": 358,
+      "mtime_utc": "1772237544.1616986"
+    },
+    {
+      "filename": "host/installed-roles-features.txt",
+      "sha256": "5089ab9cbe9700227523625d24ad9ccbe8053d276f17950134a2e09579924d7c",
+      "size": 1021,
+      "mtime_utc": "1772237544.3429277"
+    },
+    {
+      "filename": "host/secureboot.txt",
+      "sha256": "f5ba3b01a0efc4afcfd43792905a6f2ac05f9cd24b42c930417d17517aa7a874",
+      "size": 11,
+      "mtime_utc": "1772237544.7287245"
+    },
+    {
+      "filename": "host/tpm.txt",
+      "sha256": "ea8a2e06d9388ddb9b2c981262927462129d83cae01699226b870dee02c47a0b",
+      "size": 771,
+      "mtime_utc": "1772237545.7113528"
+    },
+    {
+      "filename": "host/windows-update-policy.txt",
+      "sha256": "3cd40abf73cdc49973712ecf66a0c587174c8ba52dd37cb5b4df0047b88b4142",
+      "size": 633,
+      "mtime_utc": "1772237546.074426"
+    },
+    {
+      "filename": "host/windows-update-services.txt",
+      "sha256": "f6cf968159c1e95eeb46ec618b91ae4abf343e3e58ba568ce7cfde4d335a6132",
+      "size": 205,
+      "mtime_utc": "1772237546.258823"
+    },
+    {
+      "filename": "network/firewall-rules-summary.txt",
+      "sha256": "08c823388534b46340c5798d2a52953dd374220e2a9c4f61191c5505597beccf",
+      "size": 39217,
+      "mtime_utc": "1772237547.9775665"
+    },
+    {
+      "filename": "network/firewall.txt",
+      "sha256": "d9d8b44a004cf6878c44a3ed3e22bd09d62cc5016db7397f2e4e1aad9cd068cf",
+      "size": 498,
+      "mtime_utc": "1772237548.1668131"
+    },
+    {
+      "filename": "network/listening-ports.txt",
+      "sha256": "0824faf7735d31941f490cf201ad4c558b402e3c9de5ed2a1fbd5f11bae6dbf2",
+      "size": 887,
+      "mtime_utc": "1772237548.3591154"
+    },
+    {
+      "filename": "network/listening-processes.txt",
+      "sha256": "0be3398c8dc650490f006f75fb2997700105cb3425aa60ed3acb1aafb3fc3a1d",
+      "size": 1416,
+      "mtime_utc": "1772237548.5421476"
+    },
+    {
+      "filename": "network/rdp-policy.txt",
+      "sha256": "b63c10da1648f850f29729f2dc64c4615f67e0ba04313ed028792f58d122b9e8",
+      "size": 1342,
+      "mtime_utc": "1772237548.9218411"
+    },
+    {
+      "filename": "network/rdp-tcp.txt",
+      "sha256": "83a123a15312481ee7bf89716b8f9a608cab1a61abd74d280ff5a0d0491def48",
+      "size": 3563,
+      "mtime_utc": "1772237549.111464"
+    },
+    {
+      "filename": "network/smb-client-config.txt",
+      "sha256": "104541ebb07f1586f24e66d03a93a739176c1c7b6713f3005a9c9b4595457bce",
+      "size": 2122,
+      "mtime_utc": "1772237549.3057046"
+    },
+    {
+      "filename": "network/smb-server-config.txt",
+      "sha256": "f16c165c6924b981f1020627c4958206efd80b95deb2a89fa693cc5acc7271f8",
+      "size": 2812,
+      "mtime_utc": "1772237549.499986"
+    },
+    {
+      "filename": "network/smb-shares.txt",
+      "sha256": "92bc097f4a27103df9d4d8d647934be3633aeec767d4f162e2bd61fa3afbc614",
+      "size": 331,
+      "mtime_utc": "1772237549.6870723"
+    },
+    {
+      "filename": "network/smb-signing.txt",
+      "sha256": "68f9e5834a59e574dc9597fbc6d0a8782fd6e507a2cef83fcf9a27763fb8d60b",
+      "size": 118,
+      "mtime_utc": "1772237549.8677988"
+    },
+    {
+      "filename": "network/smb1-feature.txt",
+      "sha256": "7b3a7c4ade2eedf98133d76a38e4be2de5a15ced083ca5ec390e934c8548ec04",
+      "size": 795,
+      "mtime_utc": "1772237550.0544646"
+    },
+    {
+      "filename": "storage/bitlocker-status.txt",
+      "sha256": "39db7cb21e3643aee8e3fbdcc779886ebe5c1432ec6fb4bba02ecc1d7e4a0a97",
+      "size": 341,
+      "mtime_utc": "1772237555.0154314"
+    },
+    {
+      "filename": "storage/removable-storage-policies.txt",
+      "sha256": "520ed5d2c57973ab9a04247e32bfd52d42669e2e685ee68ea66955d7659d4c5e",
+      "size": 953,
+      "mtime_utc": "1772237555.20061"
+    },
+    {
+      "filename": "storage/usbstor.txt",
+      "sha256": "a5763444c0d7fcae496bc3ebc0631b43921507a88f0f383ae37ce331ba01cb8d",
+      "size": 576,
+      "mtime_utc": "1772237555.3938606"
+    }
+  ],
+  "checks": [
+    {
+      "control": "AC.L2-3.1.1",
+      "pass": true,
+      "observed": "All 3 required files present.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "policy/local-accounts.txt",
+        "policy/local-groups.txt",
+        "policy/secpol.cfg"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null
+    },
+    {
+      "control": "AC.L2-3.1.2",
+      "pass": true,
+      "observed": "All 1 required files present.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "apps/applocker-policy.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null
+    },
+    {
+      "control": "AC.L2-3.1.3",
+      "pass": true,
+      "observed": "All 3 required files present.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "network/firewall-rules-summary.txt",
+        "network/listening-ports.txt",
+        "policy/secpol.cfg"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null
+    },
+    {
+      "control": "AC.L2-3.1.5",
+      "pass": true,
+      "observed": "All 3 required files present.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "policy/local-accounts.txt",
+        "policy/local-groups.txt",
+        "policy/user-rights-assignments.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null
+    },
+    {
+      "control": "AC.L2-3.1.6",
+      "pass": true,
+      "observed": "All 3 required files present.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "policy/local-accounts.txt",
+        "policy/local-admins.txt",
+        "policy/user-rights-assignments.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null
+    },
+    {
+      "control": "AC.L2-3.1.7",
+      "pass": true,
+      "observed": "All 2 required files present.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "policy/secpol.cfg",
+        "policy/user-rights-assignments.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null
+    },
+    {
+      "control": "AC.L2-3.1.8",
+      "pass": true,
+      "observed": "All 2 required files present.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "policy/account-policy.txt",
+        "policy/secpol.cfg"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null
+    },
+    {
+      "control": "AC.L2-3.1.9",
+      "pass": true,
+      "observed": "All 2 required files present.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "policy/auth-ux-policy.txt",
+        "policy/interactive-logon-notice.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null
+    },
+    {
+      "control": "AC.L2-3.1.10",
+      "pass": true,
+      "observed": "All 4 required files present.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "policy/machine-inactivity-limit.txt",
+        "policy/rsop.xml",
+        "policy/screensaver-policy.txt",
+        "policy/secpol.cfg"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null
+    },
+    {
+      "control": "AC.L2-3.1.11",
+      "pass": true,
+      "observed": "All 3 required files present.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "network/firewall-rules-summary.txt",
+        "network/listening-ports.txt",
+        "policy/secpol.cfg"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null
+    },
+    {
+      "control": "AC.L2-3.1.12",
+      "pass": true,
+      "observed": "All 3 required files present.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "audit/auditpol.txt",
+        "network/listening-ports.txt",
+        "network/rdp-policy.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null
+    },
+    {
+      "control": "AC.L2-3.1.13",
+      "pass": true,
+      "observed": "TLS protocols in schannel: TLS 1.2/1.3 present; weak disabled",
+      "expected": "TLS 1.2 or 1.3 enabled; SSL 2.0/3.0 and TLS 1.0 disabled",
+      "evidence_hint": "Review crypto/schannel-protocols.txt",
+      "evidence_files_used": [
+        "crypto/schannel-protocols.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": "Crypto/Transit"
+    },
+    {
+      "control": "AC.L2-3.1.21",
+      "pass": true,
+      "observed": "All 3 required files present.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "policy/secpol.cfg",
+        "storage/removable-storage-policies.txt",
+        "storage/usbstor.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null
+    },
+    {
+      "control": "AC.L2-3.1.22",
+      "pass": true,
+      "observed": "All 3 required files present. Accompanying governance documentation, logs, or records required.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "network/firewall-rules-summary.txt",
+        "network/firewall.txt",
+        "policy/local-accounts.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null,
+      "partial": true
+    },
+    {
+      "control": "AU.L2-3.3.1",
+      "pass": true,
+      "observed": "auditpol evidence: 2 files",
+      "expected": "auditpol configuration captured",
+      "evidence_hint": "Review audit/auditpol.txt; on system: auditpol /get /category:*",
+      "evidence_files_used": [
+        "audit/auditpol-subcategories.txt",
+        "audit/auditpol.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": "Logging/Collection"
+    },
+    {
+      "control": "AU.L2-3.3.2",
+      "pass": true,
+      "observed": "All 2 required files present.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "audit/auditpol-subcategories.txt",
+        "audit/eventlog-security-sample.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null
+    },
+    {
+      "control": "AU.L2-3.3.4",
+      "pass": true,
+      "observed": "Event log evidence: 6 files",
+      "expected": "Event log configuration and retention captured",
+      "evidence_hint": "Review audit/ for eventlog-*.txt",
+      "evidence_files_used": [
+        "audit/eventlog-4625-failed-logons.txt",
+        "audit/eventlog-application.txt",
+        "audit/eventlog-security-sample.txt",
+        "audit/eventlog-security.txt",
+        "audit/eventlog-system-sample.txt",
+        "audit/eventlog-system.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": "Logging/Collection"
+    },
+    {
+      "control": "AU.L2-3.3.5",
+      "pass": true,
+      "observed": "All 3 required files present. Accompanying governance documentation, logs, or records required.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "audit/auditpol-subcategories.txt",
+        "audit/eventlog-security-sample.txt",
+        "audit/eventlog-system-sample.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null,
+      "partial": true
+    },
+    {
+      "control": "AU.L2-3.3.6",
+      "pass": true,
+      "observed": "All 3 required files present. Accompanying governance documentation, logs, or records required.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "audit/auditpol.txt",
+        "audit/eventlog-application.txt",
+        "audit/eventlog-security.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null,
+      "partial": true
+    },
+    {
+      "control": "AU.L2-3.3.7",
+      "pass": true,
+      "observed": "All 1 required files present.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "host/time-sync.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null
+    },
+    {
+      "control": "AU.L2-3.3.8",
+      "pass": true,
+      "observed": "All 1 required files present.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "audit/security-evtx-acl.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": "GuestOS/Logging-Config"
+    },
+    {
+      "control": "AU.L2-3.3.9",
+      "pass": true,
+      "observed": "All 2 required files present.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "policy/secpol.cfg",
+        "policy/user-rights-assignments.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null
+    },
+    {
+      "control": "CM.L2-3.4.1",
+      "pass": true,
+      "observed": "Secure Boot: evidence present | Installed roles/features: present | AppLocker evidence: 1 files",
+      "expected": "Secure Boot / Device Guard / TPM evidence present | Installed roles and features captured | AppLocker or application control policy present",
+      "evidence_hint": "Review host/secureboot.txt, deviceguard.txt, tpm.txt",
+      "evidence_files_used": [
+        "apps/applocker-policy.txt",
+        "deviceguard.txt",
+        "installed-roles-features.txt",
+        "secureboot.txt",
+        "tpm.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": "GuestOS/Hardening"
+    },
+    {
+      "control": "CM.L2-3.4.2",
+      "pass": true,
+      "observed": "All 4 required files present.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "policy/gpresult-computer.txt",
+        "policy/gpresult-user.txt",
+        "policy/gpresult.html",
+        "policy/rsop.xml"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null
+    },
+    {
+      "control": "CM.L2-3.4.3",
+      "pass": true,
+      "observed": "All 2 required files present. Accompanying governance documentation, logs, or records required.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "meta/collector-transcript.txt",
+        "meta/manifest.json"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null,
+      "partial": true
+    },
+    {
+      "control": "CM.L2-3.4.5",
+      "pass": true,
+      "observed": "All 2 required files present. Accompanying governance documentation, logs, or records required.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "policy/secpol.cfg",
+        "policy/user-rights-assignments.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null,
+      "partial": true
+    },
+    {
+      "control": "CM.L2-3.4.6",
+      "pass": true,
+      "observed": "Hotfix list: present | Update policy/services: present",
+      "expected": "Patch/hotfix evidence present | Windows Update policy or service evidence present",
+      "evidence_hint": "Review host/hotfixes.txt; on system: Get-HotFix",
+      "evidence_files_used": [
+        "host/hotfixes.txt",
+        "host/windows-update-policy.txt",
+        "host/windows-update-services.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": "GuestOS/Patching"
+    },
+    {
+      "control": "CM.L2-3.4.7",
+      "pass": true,
+      "observed": "All 1 required files present.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "apps/applocker-policy.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null
+    },
+    {
+      "control": "CM.L2-3.4.8",
+      "pass": true,
+      "observed": "All 3 required files present.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "apps/applocker-policy.txt",
+        "network/firewall-rules-summary.txt",
+        "network/firewall.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null
+    },
+    {
+      "control": "CM.L2-3.4.9",
+      "pass": true,
+      "observed": "All 2 required files present.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "apps/applocker-policy.txt",
+        "policy/rsop.xml"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null
+    },
+    {
+      "control": "IA.L2-3.5.1",
+      "pass": true,
+      "observed": "All 2 required files present.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "host/whoami-all.txt",
+        "policy/local-accounts.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null
+    },
+    {
+      "control": "IA.L2-3.5.2",
+      "pass": true,
+      "observed": "All 3 required files present.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "policy/local-accounts.txt",
+        "policy/lsa.txt",
+        "policy/secpol.cfg"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null
+    },
+    {
+      "control": "IA.L2-3.5.3",
+      "pass": true,
+      "observed": "All 2 required files present. Accompanying governance documentation, logs, or records required.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "network/rdp-policy.txt",
+        "policy/local-admins.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null,
+      "partial": true
+    },
+    {
+      "control": "IA.L2-3.5.4",
+      "pass": true,
+      "observed": "All 3 required files present. Accompanying governance documentation, logs, or records required.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "policy/lsa.txt",
+        "policy/ntlm-policy.txt",
+        "policy/secpol.cfg"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null,
+      "partial": true
+    },
+    {
+      "control": "IA.L2-3.5.5",
+      "pass": true,
+      "observed": "All 2 required files present.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "policy/local-accounts.txt",
+        "policy/secpol.cfg"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null
+    },
+    {
+      "control": "IA.L2-3.5.6",
+      "pass": true,
+      "observed": "All 2 required files present. Accompanying governance documentation, logs, or records required.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "network/firewall-rules-summary.txt",
+        "policy/account-policy.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null,
+      "partial": true
+    },
+    {
+      "control": "IA.L2-3.5.7",
+      "pass": true,
+      "observed": "All 2 required files present.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "policy/account-policy.txt",
+        "policy/secpol.cfg"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null
+    },
+    {
+      "control": "IA.L2-3.5.8",
+      "pass": true,
+      "observed": "All 2 required files present.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "policy/account-policy.txt",
+        "policy/secpol.cfg"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null
+    },
+    {
+      "control": "IA.L2-3.5.9",
+      "pass": true,
+      "observed": "All 2 required files present. Accompanying governance documentation, logs, or records required.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "policy/local-accounts.txt",
+        "policy/secpol.cfg"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null,
+      "partial": true
+    },
+    {
+      "control": "IA.L2-3.5.10",
+      "pass": true,
+      "observed": "All 2 required files present. Accompanying governance documentation, logs, or records required.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "crypto/fips.txt",
+        "policy/lsa.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null,
+      "partial": true
+    },
+    {
+      "control": "IA.L2-3.5.11",
+      "pass": true,
+      "observed": "All 2 required files present. Accompanying governance documentation, logs, or records required.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "policy/auth-ux-policy.txt",
+        "policy/interactive-logon-notice.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null,
+      "partial": true
+    },
+    {
+      "control": "MA.L2-3.7.1",
+      "pass": true,
+      "observed": "All 2 required files present. Accompanying governance documentation, logs, or records required.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "host/services-security-relevant.txt",
+        "meta/collector-transcript.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null,
+      "partial": true
+    },
+    {
+      "control": "MA.L2-3.7.2",
+      "pass": true,
+      "observed": "All 3 required files present. Accompanying governance documentation, logs, or records required.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "host/services-remote.txt",
+        "network/firewall-rules-summary.txt",
+        "policy/local-admins.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null,
+      "partial": true
+    },
+    {
+      "control": "MA.L2-3.7.5",
+      "pass": true,
+      "observed": "All 3 required files present. Accompanying governance documentation, logs, or records required.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "network/rdp-policy.txt",
+        "network/rdp-tcp.txt",
+        "policy/local-remote-desktop-users.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null,
+      "partial": true
+    },
+    {
+      "control": "MP.L2-3.8.1",
+      "pass": true,
+      "observed": "BitLocker evidence: 1 files | Removable storage policy: 2 files. Accompanying governance documentation, logs, or records required.",
+      "expected": "BitLocker or encryption-at-rest evidence present | Removable storage policy evidence present",
+      "evidence_hint": "Review storage/ for BitLocker status. Accompanying governance documentation, logs, or records required.",
+      "evidence_files_used": [
+        "storage/bitlocker-status.txt",
+        "storage/removable-storage-policies.txt",
+        "storage/usbstor.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": "Crypto/At Rest",
+      "partial": true
+    },
+    {
+      "control": "MP.L2-3.8.2",
+      "pass": true,
+      "observed": "All 2 required files present. Accompanying governance documentation, logs, or records required.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "policy/local-accounts.txt",
+        "storage/bitlocker-status.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null,
+      "partial": true
+    },
+    {
+      "control": "MP.L2-3.8.5",
+      "pass": true,
+      "observed": "All 2 required files present. Accompanying governance documentation, logs, or records required.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "crypto/fips.txt",
+        "storage/bitlocker-status.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null,
+      "partial": true
+    },
+    {
+      "control": "MP.L2-3.8.6",
+      "pass": true,
+      "observed": "All 1 required files present.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "storage/bitlocker-status.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null
+    },
+    {
+      "control": "MP.L2-3.8.7",
+      "pass": true,
+      "observed": "All 2 required files present.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "storage/removable-storage-policies.txt",
+        "storage/usbstor.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null
+    },
+    {
+      "control": "MP.L2-3.8.8",
+      "pass": true,
+      "observed": "All 2 required files present. Accompanying governance documentation, logs, or records required.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "policy/secpol.cfg",
+        "storage/removable-storage-policies.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null,
+      "partial": true
+    },
+    {
+      "control": "RA.L2-3.11.2",
+      "pass": true,
+      "observed": "All 3 required files present. Accompanying governance documentation, logs, or records required.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "defender/defender-status.txt",
+        "host/hotfixes.txt",
+        "host/windows-update-services.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null,
+      "partial": true
+    },
+    {
+      "control": "RA.L2-3.11.3",
+      "pass": true,
+      "observed": "All 2 required files present. Accompanying governance documentation, logs, or records required.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "defender/defender-scan-ages.txt",
+        "host/hotfixes.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null,
+      "partial": true
+    },
+    {
+      "control": "SC.L2-3.13.1",
+      "pass": true,
+      "observed": "Firewall evidence files: 4 present",
+      "expected": "At least one firewall configuration or rules file present",
+      "evidence_hint": "Review network/ for firewall-rules or firewall.txt",
+      "evidence_files_used": [
+        "network/firewall-rules-summary.txt",
+        "network/firewall.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": "Network/Firewall"
+    },
+    {
+      "control": "SC.L2-3.13.2",
+      "pass": true,
+      "observed": "SMB evidence: 5 files; SMB1: disabled. Accompanying governance documentation, logs, or records required.",
+      "expected": "SMB configuration present; SMBv1 disabled",
+      "evidence_hint": "Review network/ for SMB config. Accompanying governance documentation, logs, or records required.",
+      "evidence_files_used": [
+        "network/smb-signing.txt",
+        "smb-client-config.txt",
+        "smb-server-config.txt",
+        "smb-shares.txt",
+        "smb1-feature.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": "Network/Firewall",
+      "partial": true
+    },
+    {
+      "control": "SC.L2-3.13.3",
+      "pass": true,
+      "observed": "All 3 required files present. Accompanying governance documentation, logs, or records required.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "host/whoami-all.txt",
+        "policy/local-admins.txt",
+        "policy/user-rights-assignments.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null,
+      "partial": true
+    },
+    {
+      "control": "SC.L2-3.13.4",
+      "pass": true,
+      "observed": "All 3 required files present. Accompanying governance documentation, logs, or records required.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "network/firewall-rules-summary.txt",
+        "network/smb-signing.txt",
+        "storage/removable-storage-policies.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null,
+      "partial": true
+    },
+    {
+      "control": "SC.L2-3.13.5",
+      "pass": true,
+      "observed": "RDP/network evidence: 4 files; RDP exposure: restricted or documented. Accompanying governance documentation, logs, or records required.",
+      "expected": "RDP configuration documented; exposure restricted where required",
+      "evidence_hint": "Review network/ for RDP policy and listening ports. Accompanying governance documentation, logs, or records required.",
+      "evidence_files_used": [
+        "listening-processes.txt",
+        "network/listening-ports.txt",
+        "network/rdp-policy.txt",
+        "network/rdp-tcp.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": "Network/Boundary",
+      "partial": true
+    },
+    {
+      "control": "SC.L2-3.13.6",
+      "pass": true,
+      "observed": "All 2 required files present.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "network/firewall-rules-summary.txt",
+        "network/firewall.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null
+    },
+    {
+      "control": "SC.L2-3.13.8",
+      "pass": true,
+      "observed": "All 3 required files present.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "crypto/fips.txt",
+        "crypto/schannel-protocols.txt",
+        "crypto/tls-ciphersuites.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null
+    },
+    {
+      "control": "SC.L2-3.13.9",
+      "pass": true,
+      "observed": "All 2 required files present. Accompanying governance documentation, logs, or records required.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "network/firewall-rules-summary.txt",
+        "policy/machine-inactivity-limit.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null,
+      "partial": true
+    },
+    {
+      "control": "SC.L2-3.13.10",
+      "pass": true,
+      "observed": "All 2 required files present. Accompanying governance documentation, logs, or records required.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "crypto/fips.txt",
+        "crypto/schannel-protocols.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": "Crypto/Key-Mgmt",
+      "partial": true
+    },
+    {
+      "control": "SC.L2-3.13.11",
+      "pass": true,
+      "observed": "FIPS mode: enabled | TLS cipher suites: restricted to strong ciphers",
+      "expected": "FIPS mode enabled for cryptographic modules | Strong cipher suites only; no NULL/export",
+      "evidence_hint": "Review crypto/fips.txt; on system: Get-ItemProperty -Path HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Lsa\\FipsAlgorithmPolicy",
+      "evidence_files_used": [
+        "crypto/fips.txt",
+        "crypto/tls-ciphersuites.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": "Crypto/FIPS"
+    },
+    {
+      "control": "SC.L2-3.13.12",
+      "pass": true,
+      "observed": "All 2 required files present. Accompanying governance documentation, logs, or records required.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "network/rdp-policy.txt",
+        "network/rdp-tcp.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null,
+      "partial": true
+    },
+    {
+      "control": "SC.L2-3.13.13",
+      "pass": true,
+      "observed": "All 2 required files present. Accompanying governance documentation, logs, or records required.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "apps/applocker-policy.txt",
+        "defender/defender-preferences.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null,
+      "partial": true
+    },
+    {
+      "control": "SC.L2-3.13.15",
+      "pass": true,
+      "observed": "All 2 required files present. Accompanying governance documentation, logs, or records required.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "crypto/fips.txt",
+        "network/smb-signing.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null,
+      "partial": true
+    },
+    {
+      "control": "SC.L2-3.13.16",
+      "pass": true,
+      "observed": "All 1 required files present.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "storage/bitlocker-status.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null
+    },
+    {
+      "control": "SI.L2-3.14.1",
+      "pass": true,
+      "observed": "All 3 required files present.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "host/hotfixes.txt",
+        "host/installed-software.txt",
+        "host/windows-update-policy.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null
+    },
+    {
+      "control": "SI.L2-3.14.2",
+      "pass": true,
+      "observed": "Defender evidence: 4 files",
+      "expected": "Defender status or preferences captured",
+      "evidence_hint": "Review defender/ for status and prefs",
+      "evidence_files_used": [
+        "defender/defender-preferences.txt",
+        "defender/defender-scan-ages.txt",
+        "defender/defender-status.txt",
+        "defender/defender-threat-detections.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": "GuestOS/Endpoint-Protection-Config"
+    },
+    {
+      "control": "SI.L2-3.14.3",
+      "pass": true,
+      "observed": "All 3 required files present. Accompanying governance documentation, logs, or records required.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "audit/eventlog-security-sample.txt",
+        "defender/defender-status.txt",
+        "defender/defender-threat-detections.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null,
+      "partial": true
+    },
+    {
+      "control": "SI.L2-3.14.4",
+      "pass": true,
+      "observed": "All 2 required files present.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "defender/defender-scan-ages.txt",
+        "defender/defender-status.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null
+    },
+    {
+      "control": "SI.L2-3.14.5",
+      "pass": true,
+      "observed": "All 2 required files present.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "defender/defender-preferences.txt",
+        "defender/defender-scan-ages.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null
+    },
+    {
+      "control": "SI.L2-3.14.6",
+      "pass": true,
+      "observed": "All 3 required files present.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "audit/auditpol.txt",
+        "defender/defender-status.txt",
+        "network/listening-ports.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null
+    },
+    {
+      "control": "SI.L2-3.14.7",
+      "pass": true,
+      "observed": "All 3 required files present. Accompanying governance documentation, logs, or records required.",
+      "expected": "All required files present per 73/73 OS evidence manifest.",
+      "evidence_hint": "73/73 OS evidence manifest",
+      "evidence_files_used": [
+        "audit/eventlog-4625-failed-logons.txt",
+        "audit/eventlog-security-sample.txt",
+        "defender/defender-threat-detections.txt"
+      ],
+      "provider_or_customer": "customer",
+      "layer": null,
+      "partial": true
+    }
+  ]
+}

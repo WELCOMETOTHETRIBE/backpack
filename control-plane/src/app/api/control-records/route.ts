@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { controlRecords, artifacts, roles } from "@/db/schema";
-import { eq, and, like } from "drizzle-orm";
+import { controlRecords, artifacts, roles, evidenceRuns, evidenceFindings } from "@/db/schema";
+import { eq, and, like, desc, inArray } from "drizzle-orm";
 import { requireOrg, requireRole } from "@/lib/auth";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
+import { controlIdToNist } from "@/lib/compliance/controlId";
+import { syncOrgAzureInheritedControls } from "@/lib/compliance/azure-inherited-controls";
+import { getSatisfactionSources } from "@/lib/compliance/satisfaction-sources";
+import { isHybridControl } from "@/lib/compliance/control-bins";
 
 const CONTROL_FAMILY_PREFIX: Record<string, string> = {
   AC: "3.1",
@@ -23,18 +27,38 @@ const CONTROL_FAMILY_PREFIX: Record<string, string> = {
 };
 
 /**
- * GET /api/control-records?family=AC
- * Returns control records for the org, optionally filtered by family code.
+ * GET /api/control-records?family=AC | ?controlIds=3.1.14,3.1.13,...
+ * Returns control records for the org, optionally filtered by family code or by control IDs.
  */
 export async function GET(req: Request) {
+  let orgId: string;
   try {
-    const orgId = await requireOrg();
+    orgId = await requireOrg();
     await requireRole(["Admin", "Compliance", "Assessor"]);
+  } catch (authErr) {
+    const message = authErr instanceof Error ? authErr.message : "Unauthorized";
+    return NextResponse.json({ error: message }, { status: 401 });
+  }
 
+  try {
+    // Ensure 3.10.1–3.10.5 inherited status is in sync with any Azure boundary (non-blocking)
+    await syncOrgAzureInheritedControls(db, orgId);
+  } catch {
+    // Sync failure should not block listing control records
+  }
+
+  try {
     const { searchParams } = new URL(req.url);
     const family = searchParams.get("family");
+    const controlIdsParam = searchParams.get("controlIds");
 
-    if (!family) {
+    const controlIdsList =
+      controlIdsParam?.trim()
+        ?.split(",")
+        .map((s) => s.trim())
+        .filter(Boolean) ?? null;
+
+    if (!family && !controlIdsList?.length) {
       const existing = await db
         .select({ id: controlRecords.id })
         .from(controlRecords)
@@ -46,26 +70,81 @@ export async function GET(req: Request) {
         );
       }
     }
+    if (controlIdsList?.length) {
+      const existingForIds = await db
+        .select({ controlId: controlRecords.controlId })
+        .from(controlRecords)
+        .where(
+          and(eq(controlRecords.organizationId, orgId), inArray(controlRecords.controlId, controlIdsList))
+        );
+      const existingSet = new Set(existingForIds.map((r) => r.controlId));
+      const missing = controlIdsList.filter((id) => !existingSet.has(id));
+      if (missing.length > 0) {
+        await db.insert(controlRecords).values(
+          missing.map((controlId) => ({ organizationId: orgId, controlId }))
+        );
+      }
+    }
 
-    const conditions = family && CONTROL_FAMILY_PREFIX[family]
-      ? and(eq(controlRecords.organizationId, orgId), like(controlRecords.controlId, `${CONTROL_FAMILY_PREFIX[family]}.%`))
-      : eq(controlRecords.organizationId, orgId);
+    const conditions = controlIdsList?.length
+      ? and(eq(controlRecords.organizationId, orgId), inArray(controlRecords.controlId, controlIdsList))
+      : family && CONTROL_FAMILY_PREFIX[family]
+        ? and(eq(controlRecords.organizationId, orgId), like(controlRecords.controlId, `${CONTROL_FAMILY_PREFIX[family]}.%`))
+        : eq(controlRecords.organizationId, orgId);
 
-    const records = await db
-      .select({
-        id: controlRecords.id,
-        controlId: controlRecords.controlId,
-        implementationStatus: controlRecords.implementationStatus,
-        governanceNarrative: controlRecords.governanceNarrative,
-        responsibleRoleId: controlRecords.responsibleRoleId,
-        roleName: roles.name,
-        sprs31311Condition: controlRecords.sprs31311Condition,
-        lastValidationDate: controlRecords.lastValidationDate,
-        monitoringCadence: controlRecords.monitoringCadence,
-      })
-      .from(controlRecords)
-      .leftJoin(roles, eq(controlRecords.responsibleRoleId, roles.id))
-      .where(conditions);
+    type RecordRow = {
+      id: string;
+      controlId: string;
+      implementationStatus: string;
+      governanceNarrative: string | null;
+      responsibleRoleId: string | null;
+      roleName: string | null;
+      sprs31311Condition: string | null;
+      lastValidationDate: Date | null;
+      monitoringCadence: string | null;
+      hybridSatisfaction: { technical?: boolean; governance?: boolean } | null;
+    };
+    let records: RecordRow[];
+    try {
+      records = await db
+        .select({
+          id: controlRecords.id,
+          controlId: controlRecords.controlId,
+          implementationStatus: controlRecords.implementationStatus,
+          governanceNarrative: controlRecords.governanceNarrative,
+          responsibleRoleId: controlRecords.responsibleRoleId,
+          roleName: roles.name,
+          sprs31311Condition: controlRecords.sprs31311Condition,
+          lastValidationDate: controlRecords.lastValidationDate,
+          monitoringCadence: controlRecords.monitoringCadence,
+          hybridSatisfaction: controlRecords.hybridSatisfaction,
+        })
+        .from(controlRecords)
+        .leftJoin(roles, eq(controlRecords.responsibleRoleId, roles.id))
+        .where(conditions);
+    } catch (selectErr) {
+      const msg = selectErr instanceof Error ? selectErr.message : String(selectErr);
+      if (msg.includes("hybrid_satisfaction")) {
+        const rows = await db
+          .select({
+            id: controlRecords.id,
+            controlId: controlRecords.controlId,
+            implementationStatus: controlRecords.implementationStatus,
+            governanceNarrative: controlRecords.governanceNarrative,
+            responsibleRoleId: controlRecords.responsibleRoleId,
+            roleName: roles.name,
+            sprs31311Condition: controlRecords.sprs31311Condition,
+            lastValidationDate: controlRecords.lastValidationDate,
+            monitoringCadence: controlRecords.monitoringCadence,
+          })
+          .from(controlRecords)
+          .leftJoin(roles, eq(controlRecords.responsibleRoleId, roles.id))
+          .where(conditions);
+        records = rows.map((r) => ({ ...r, hybridSatisfaction: null }));
+      } else {
+        throw selectErr;
+      }
+    }
 
     const withArtifactCount = await Promise.all(
       records.map(async (r) => {
@@ -77,9 +156,51 @@ export async function GET(req: Request) {
       })
     );
 
-    return NextResponse.json(withArtifactCount);
+    // Enrich with evidencePartial from latest 73-check run (controls that passed but need gov docs)
+    const latestRunWithFindings = await db
+      .select({ id: evidenceRuns.id })
+      .from(evidenceRuns)
+      .where(
+        and(
+          eq(evidenceRuns.organizationId, orgId),
+          eq(evidenceRuns.source, "windows_server_hardening")
+        )
+      )
+      .orderBy(desc(evidenceRuns.collectedAt))
+      .limit(1);
+
+    let partialControlIds = new Set<string>();
+    if (latestRunWithFindings.length > 0) {
+      const findings = await db
+        .select({ controlId: evidenceFindings.controlId, partial: evidenceFindings.partial })
+        .from(evidenceFindings)
+        .where(
+          and(
+            eq(evidenceFindings.evidenceRunId, latestRunWithFindings[0].id),
+            eq(evidenceFindings.partial, true)
+          )
+        );
+      for (const f of findings) {
+        partialControlIds.add(controlIdToNist(f.controlId));
+      }
+    }
+
+    const enriched = withArtifactCount.map((r) => {
+      const sources = getSatisfactionSources(r.controlId);
+      return {
+        ...r,
+        evidencePartial: partialControlIds.has(r.controlId),
+        satisfiedByOs: sources.os,
+        satisfiedByCloud: sources.cloud,
+        satisfiedByGovernance: sources.governance,
+        satisfiedByHybrid: isHybridControl(r.controlId),
+        oftenNotApplicable: sources.oftenNotApplicable,
+      };
+    });
+
+    return NextResponse.json(enriched);
   } catch (e) {
     const message = e instanceof Error ? e.message : "Failed to list control records";
-    return NextResponse.json({ error: message }, { status: 401 });
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

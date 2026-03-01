@@ -1,0 +1,3 @@
+Location    Name           ProvisioningState    ResourceGroup          ResourceGuid
+----------  -------------  -------------------  ---------------------  ------------------------------------
+westus2     nsg-cui-pilot  Succeeded            rg-cui-pilot-envclave  3b154bc9-1cbf-4031-9887-18c42d51c9dc

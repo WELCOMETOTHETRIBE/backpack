@@ -1,0 +1,227 @@
+{
+  "catalog_id": "azure-commercial-services-to-layers-v1",
+  "provider_profile_id": "microsoft-azure-commercial-iaas-v1",
+  "layer_ontology_version": "wttt-boundary-layers-v1",
+  "ontology_semver": "1.0.0",
+  "version": "1.0.0",
+  "services": [
+    {
+      "service_key": "compute_vm",
+      "display_name": "Azure Virtual Machines (IaaS)",
+      "type": "core",
+      "coverage_layers": [
+        "Physical",
+        "Facility/Environmental",
+        "Infrastructure/Hardware",
+        "Infrastructure/Hypervisor",
+        "Provider/Backbone-Network"
+      ],
+      "allocation_effect": "Inherited-or-Shared",
+      "notes": [
+        "Baseline. Physical + hypervisor are provider-controlled; guest OS remains customer."
+      ],
+      "ui": {
+        "category": "Compute",
+        "default_enabled": true
+      }
+    },
+    {
+      "service_key": "network_nsg",
+      "display_name": "Network Security Groups (NSG)",
+      "type": "optional",
+      "coverage_layers": [
+        "Network/Boundary",
+        "Network/Segmentation"
+      ],
+      "allocation_effect": "Shared",
+      "ui": {
+        "category": "Network",
+        "default_enabled": true
+      }
+    },
+    {
+      "service_key": "network_azure_firewall",
+      "display_name": "Azure Firewall",
+      "type": "optional",
+      "coverage_layers": [
+        "Network/Boundary",
+        "Network/Firewall",
+        "Network/Egress-Control"
+      ],
+      "allocation_effect": "Shared",
+      "ui": {
+        "category": "Network",
+        "default_enabled": false
+      }
+    },
+    {
+      "service_key": "network_expressroute",
+      "display_name": "ExpressRoute",
+      "type": "optional",
+      "coverage_layers": [
+        "Network/Private-Connectivity"
+      ],
+      "allocation_effect": "Shared",
+      "ui": {
+        "category": "Network",
+        "default_enabled": false
+      }
+    },
+    {
+      "service_key": "identity_entra_id",
+      "display_name": "Microsoft Entra ID",
+      "type": "optional",
+      "coverage_layers": [
+        "Identity/AuthN",
+        "Identity/MFA",
+        "Identity/Conditional-Access",
+        "Identity/Role-Governance"
+      ],
+      "allocation_effect": "Shared",
+      "ui": {
+        "category": "Identity",
+        "default_enabled": false
+      }
+    },
+    {
+      "service_key": "security_defender_for_cloud",
+      "display_name": "Microsoft Defender for Cloud",
+      "type": "optional",
+      "coverage_layers": [
+        "Vulnerability-Mgmt",
+        "Monitoring/Detection",
+        "Continuous-Monitoring"
+      ],
+      "allocation_effect": "Shared",
+      "ui": {
+        "category": "Security",
+        "default_enabled": false
+      }
+    },
+    {
+      "service_key": "logging_azure_monitor_log_analytics",
+      "display_name": "Azure Monitor + Log Analytics",
+      "type": "optional",
+      "coverage_layers": [
+        "Logging/Collection",
+        "Logging/Monitoring",
+        "Logging/Analytics"
+      ],
+      "coverage": [
+        {
+          "layer": "Logging/Collection",
+          "strength": "platform"
+        },
+        {
+          "layer": "Logging/Analytics",
+          "strength": "platform"
+        },
+        {
+          "layer": "Logging/Monitoring",
+          "strength": "operational"
+        }
+      ],
+      "allocation_effect": "Shared",
+      "ui": {
+        "category": "Logging",
+        "default_enabled": false
+      }
+    },
+    {
+      "service_key": "logging_sentinel",
+      "display_name": "Microsoft Sentinel (SIEM)",
+      "type": "optional",
+      "coverage_layers": [
+        "Logging/Analytics",
+        "Monitoring/Detection"
+      ],
+      "allocation_effect": "Shared",
+      "ui": {
+        "category": "Logging",
+        "default_enabled": false
+      }
+    },
+    {
+      "service_key": "crypto_azure_key_vault",
+      "display_name": "Azure Key Vault",
+      "type": "optional",
+      "coverage_layers": [
+        "Crypto/Key-Mgmt",
+        "Crypto/Secrets-Management"
+      ],
+      "allocation_effect": "Shared",
+      "ui": {
+        "category": "Cryptography",
+        "default_enabled": false
+      }
+    },
+    {
+      "service_key": "backup_azure_backup",
+      "display_name": "Azure Backup",
+      "type": "optional",
+      "coverage_layers": [
+        "Backup/Recovery",
+        "Backup/Storage-Protection"
+      ],
+      "allocation_effect": "Shared",
+      "ui": {
+        "category": "Backup",
+        "default_enabled": false
+      }
+    },
+    {
+      "service_key": "guest_windows_server",
+      "display_name": "Guest OS: Windows Server (customer-managed)",
+      "type": "customer",
+      "coverage_layers": [
+        "GuestOS/Hardening",
+        "GuestOS/Logging-Config",
+        "GuestOS/Patching",
+        "GuestOS/Endpoint-Protection-Config"
+      ],
+      "allocation_effect": "Customer",
+      "ui": {
+        "category": "Operating System",
+        "default_enabled": true
+      }
+    },
+    {
+      "service_key": "app_workload",
+      "display_name": "Application Workload(s)",
+      "type": "customer",
+      "coverage_layers": [
+        "Application/Config",
+        "Application/Logging",
+        "Data/Classification-Handling"
+      ],
+      "allocation_effect": "Customer",
+      "ui": {
+        "category": "Applications",
+        "default_enabled": true
+      }
+    },
+    {
+      "service_key": "governance_program",
+      "display_name": "Governance Program",
+      "type": "customer",
+      "coverage_layers": [
+        "Governance/Policy",
+        "Governance/Training",
+        "Governance/IR",
+        "Governance/Risk",
+        "Governance/SSP",
+        "Governance/POAM",
+        "Governance/HR"
+      ],
+      "allocation_effect": "Customer",
+      "ui": {
+        "category": "Governance",
+        "default_enabled": true
+      }
+    }
+  ],
+  "rules": {
+    "coverage_layers_must_exist_in_ontology": true,
+    "unknown_service_key_behavior": "Reject boundary input referencing unknown service_key."
+  }
+}

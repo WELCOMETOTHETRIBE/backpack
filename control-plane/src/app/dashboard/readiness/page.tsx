@@ -3,11 +3,43 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { FileText, Calculator } from "lucide-react";
 import { db } from "@/db";
-import { getSprsScore } from "@/lib/sprs";
-import { controlImplementations } from "@/db/schema";
+import {
+  getSprsScore,
+  sprsScoringData,
+  SPRS_MIN,
+  SPRS_MAX,
+  SPRS_RANGE,
+} from "@/lib/sprs";
+import { controlRecords } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 
 const cardClass = "rounded-xl border border-slate-200 bg-white p-6 shadow-sm";
+
+const TOTAL_CONTROLS = ALL_CONTROL_IDS.length;
+const ADJUDICATED_STATUSES = ["implemented", "assessed", "inherited", "not_applicable"] as const;
+
+const sprs5 = sprsScoringData.filter((c) => c.value === 5).length;
+const sprs3 = sprsScoringData.filter((c) => c.value === 3).length;
+const sprs1 = sprsScoringData.filter((c) => c.value === 1).length;
+
+function ProgressBar({
+  pct,
+  className = "bg-[#3B82F6]",
+}: {
+  pct: number;
+  className?: string;
+}) {
+  const width = Math.max(0, Math.min(100, pct));
+  return (
+    <div className="h-2.5 w-full overflow-hidden rounded-full bg-gray-100">
+      <div
+        className={`h-full rounded-full transition-all duration-500 ${className}`}
+        style={{ width: `${width}%` }}
+      />
+    </div>
+  );
+}
 
 export default async function ReadinessPage() {
   const session = await auth();
@@ -17,14 +49,24 @@ export default async function ReadinessPage() {
 
   const sprsScore = await getSprsScore(orgId);
 
-  const impls = await db
-    .select({ status: controlImplementations.status })
-    .from(controlImplementations)
-    .where(eq(controlImplementations.organizationId, orgId));
+  const records = await db
+    .select({ implementationStatus: controlRecords.implementationStatus })
+    .from(controlRecords)
+    .where(eq(controlRecords.organizationId, orgId));
 
-  const total = impls.length;
-  const implemented = impls.filter((i) => i.status === "Implemented").length;
+  const implemented = records.filter((r) =>
+    ADJUDICATED_STATUSES.includes(r.implementationStatus as (typeof ADJUDICATED_STATUSES)[number])
+  ).length;
+  const total = records.length || TOTAL_CONTROLS;
   const compliancePct = total > 0 ? Math.round((implemented / total) * 100) : 0;
+  const controlsImplementedPct =
+    TOTAL_CONTROLS > 0 ? Math.round((implemented / TOTAL_CONTROLS) * 100) : 0;
+
+  // Map SPRS score from [SPRS_MIN, SPRS_MAX] to 0–100% for progress bar
+  const sprsPct =
+    SPRS_RANGE > 0
+      ? Math.round(((sprsScore - SPRS_MIN) / SPRS_RANGE) * 100)
+      : 0;
 
   return (
     <div>
@@ -35,49 +77,66 @@ export default async function ReadinessPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <div className={`lg:col-span-6 ${cardClass}`}>
-          <h2 className="mb-4 text-sm font-semibold text-slate-800">SPRS Score</h2>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">
-                Your current Supplier Performance Risk System score based on NIST SP 800-171 DoD Assessment Methodology.
-              </p>
-            </div>
-            <div className="text-right">
-              <div className="text-5xl font-bold text-[#3B82F6]">{sprsScore}</div>
-              <div className="text-sm text-gray-600">out of 110</div>
-            </div>
-          </div>
-          <div className="mt-4">
-            <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
-              <div
-                className="h-full bg-[#3B82F6] transition-all"
-                style={{ width: `${(sprsScore / 110) * 100}%` }}
-              />
-            </div>
-            <p className="mt-2 text-xs text-gray-500">
-              Maximum score is 110. Each unimplemented control deducts its point value.
-            </p>
+      {/* SPRS scoring: progress bar + score + range + priority distribution */}
+      <div className={`mb-6 ${cardClass}`}>
+        <h2 className="mb-4 text-sm font-semibold text-slate-800">SPRS Score</h2>
+        <p className="mb-4 text-sm text-gray-600">
+          Supplier Performance Risk System score from NIST SP 800-171 DoD Assessment Methodology. Each unimplemented control deducts its point value (1, 3, or 5).
+        </p>
+        <p className="mb-3 text-xs font-medium text-slate-500">
+          SPRS range (CMMC 800-171, 110 controls): <span className="tabular-nums text-slate-700">{SPRS_MIN} to {SPRS_MAX}</span>
+        </p>
+        <div className="mb-4">
+          <ProgressBar pct={sprsPct} />
+          <div className="mt-2 flex justify-between text-sm">
+            <span className="font-semibold text-[#0F172A]">{sprsPct}% of range</span>
+            <span className="tabular-nums text-gray-600">
+              {sprsScore} of 110 (range {SPRS_MIN}–{SPRS_MAX})
+            </span>
           </div>
         </div>
+        <div className="flex flex-wrap gap-3">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-3 py-1.5 text-sm font-medium text-red-800">
+            <span className="tabular-nums font-bold">{sprs5}</span> High (5)
+          </span>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1.5 text-sm font-medium text-amber-800">
+            <span className="tabular-nums font-bold">{sprs3}</span> Medium (3)
+          </span>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-3 py-1.5 text-sm font-medium text-blue-800">
+            <span className="tabular-nums font-bold">{sprs1}</span> Basic (1)
+          </span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
 
         <div className={`lg:col-span-6 ${cardClass}`}>
           <h2 className="mb-4 text-sm font-semibold text-slate-800">Readiness Summary</h2>
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-5 sm:grid-cols-3">
             <div>
               <p className="text-sm text-gray-600">Compliance Score</p>
               <p className="mt-1 text-2xl font-bold text-[#0F172A]">{compliancePct}%</p>
+              <div className="mt-2">
+                <ProgressBar pct={compliancePct} />
+              </div>
             </div>
             <div>
               <p className="text-sm text-gray-600">SPRS Score</p>
               <p className="mt-1 text-2xl font-bold text-[#3B82F6]">{sprsScore}</p>
+              <div className="mt-2">
+                <ProgressBar pct={sprsPct} className="bg-[#3B82F6]" />
+              </div>
+              <p className="mt-1 text-xs text-gray-500">Range: {SPRS_MIN} to {SPRS_MAX}</p>
             </div>
             <div>
               <p className="text-sm text-gray-600">Controls Implemented</p>
               <p className="mt-1 text-2xl font-bold text-[#0F172A]">
-                {implemented}/{total}
+                {implemented} / {TOTAL_CONTROLS}
               </p>
+              <div className="mt-2">
+                <ProgressBar pct={controlsImplementedPct} className="bg-emerald-600" />
+              </div>
+              <p className="mt-1 text-xs text-gray-500">{TOTAL_CONTROLS} total (CMMC 800-171)</p>
             </div>
           </div>
         </div>

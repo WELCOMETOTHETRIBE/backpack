@@ -1,0 +1,11 @@
+﻿
+Name               Enabled LastLogon            
+----               ------- ---------            
+admin_patrick         True 2/28/2026 12:11:07 AM
+DefaultAccount       False                      
+Guest                False                      
+WDAGUtilityAccount   False                      
+
+
+
+

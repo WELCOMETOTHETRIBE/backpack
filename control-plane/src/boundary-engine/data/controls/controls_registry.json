@@ -1,0 +1,80 @@
+[
+  {
+    "control_id": "3.1.1",
+    "family": "AC",
+    "title": "Physical access",
+    "layer": "Physical",
+    "inheritable_possible": true,
+    "default_allocation": {
+      "on_prem": "Customer",
+      "iaas": "Customer",
+      "paas": "Customer",
+      "saas": "Customer"
+    }
+  },
+  {
+    "control_id": "3.1.2",
+    "family": "AC",
+    "title": "Hypervisor",
+    "layer": "Infrastructure/Hypervisor",
+    "inheritable_possible": true,
+    "default_allocation": {
+      "on_prem": "Customer",
+      "iaas": "Customer",
+      "paas": "Customer",
+      "saas": "Customer"
+    }
+  },
+  {
+    "control_id": "3.2.1",
+    "family": "AC",
+    "title": "Governance policy",
+    "layer": "Governance/Policy",
+    "inheritable_possible": false,
+    "default_allocation": {
+      "on_prem": "Customer",
+      "iaas": "Customer",
+      "paas": "Customer",
+      "saas": "Customer"
+    }
+  },
+  {
+    "control_id": "3.3.1",
+    "family": "AC",
+    "title": "Identity AuthN",
+    "layer": "Identity/AuthN",
+    "inheritable_possible": true,
+    "default_allocation": {
+      "on_prem": "Customer",
+      "iaas": "Customer",
+      "paas": "Customer",
+      "saas": "Customer"
+    }
+  },
+  {
+    "control_id": "3.4.1",
+    "family": "AC",
+    "title": "Network boundary",
+    "layer": "Network/Boundary",
+    "inheritable_possible": true,
+    "default_allocation": {
+      "on_prem": "Customer",
+      "iaas": "Customer",
+      "paas": "Customer",
+      "saas": "Customer"
+    }
+  },
+  {
+    "control_id": "3.5.1",
+    "family": "CP",
+    "title": "Backup recovery",
+    "layer": "Backup/Recovery",
+    "inheritable_possible": true,
+    "default_allocation": {
+      "on_prem": "Customer",
+      "iaas": "Customer",
+      "paas": "Customer",
+      "saas": "Customer"
+    }
+  }
+]

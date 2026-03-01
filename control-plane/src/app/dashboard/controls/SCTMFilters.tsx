@@ -1,6 +1,6 @@
 "use client";
 
-import { CONTROL_FAMILIES } from "@/components/governance-wizard/constants";
+import { CONTROL_FAMILIES, getControlFamilyPrefix } from "@/components/governance-wizard/constants";
 
 const ADJUDICATED = ["implemented", "assessed", "inherited", "not_applicable"];
 
@@ -12,6 +12,18 @@ export type SCTMRecord = {
   responsibleRoleId: string | null;
   roleName: string | null;
   artifactCount: number;
+  /** True when latest 73-check run has this control as partial (evidence passed, gov docs needed). */
+  evidencePartial?: boolean;
+  /** True when control is in the 73 OS (enclave) set. */
+  satisfiedByOs?: boolean;
+  /** True when control is in the 12 Cloud set (5 inherited + 7 Azure/Entra). */
+  satisfiedByCloud?: boolean;
+  /** True when control is in the 18 true governance set (PURE_GOV). */
+  satisfiedByGovernance?: boolean;
+  /** True when control is Hybrid (31 OS partial + 6 delta). */
+  satisfiedByHybrid?: boolean;
+  /** True when control is in the 7 often-not-applicable set (still has a real satisfaction bin). */
+  oftenNotApplicable?: boolean;
 };
 
 export function SCTMFilters({
@@ -20,18 +32,21 @@ export function SCTMFilters({
   type,
   onFamilyChange,
   onTypeChange,
+  hideFamilyList = false,
 }: {
   records: SCTMRecord[];
   family: string | null;
   type: "all" | "configuration" | "governance";
   onFamilyChange: (code: string | null) => void;
   onTypeChange: (t: "all" | "configuration" | "governance") => void;
+  /** When true, family filter is shown in the top bar instead of sidebar. */
+  hideFamilyList?: boolean;
 }) {
   const adjudicated = records.filter((r) => ADJUDICATED.includes(r.implementationStatus)).length;
   const outstanding = records.length - adjudicated;
 
   const familyStats = CONTROL_FAMILIES.map((f) => {
-    const inFamily = records.filter((r) => r.controlId.startsWith(f.controlPrefix));
+    const inFamily = records.filter((r) => getControlFamilyPrefix(r.controlId) === f.controlPrefix);
     const adj = inFamily.filter((r) => ADJUDICATED.includes(r.implementationStatus)).length;
     return { code: f.code, name: f.plainName, total: inFamily.length, adjudicated: adj };
   });
@@ -72,28 +87,30 @@ export function SCTMFilters({
         </p>
       </div>
 
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">
-          Family
-        </p>
-        <ul className="mt-2 space-y-0.5" role="list">
-          {familyStats.map((f) => (
-            <li key={f.code}>
-              <button
-                type="button"
-                onClick={() => onFamilyChange(family === f.code ? null : f.code)}
-                className={`w-full rounded-[var(--radius-md)] px-3 py-2 text-left text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2 ${
-                  family === f.code
-                    ? "bg-[var(--color-primary)] font-medium text-white"
-                    : "text-[var(--color-gray-700)] hover:bg-[var(--color-gray-100)]"
-                }`}
-              >
-                {f.code} — {f.name} ({f.adjudicated}/{f.total})
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
+      {!hideFamilyList && (
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">
+            Family
+          </p>
+          <ul className="mt-2 space-y-0.5" role="list">
+            {familyStats.map((f) => (
+              <li key={f.code}>
+                <button
+                  type="button"
+                  onClick={() => onFamilyChange(family === f.code ? null : f.code)}
+                  className={`w-full rounded-[var(--radius-md)] px-3 py-2 text-left text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2 ${
+                    family === f.code
+                      ? "bg-[var(--color-primary)] font-medium text-white"
+                      : "text-[var(--color-gray-700)] hover:bg-[var(--color-gray-100)]"
+                  }`}
+                >
+                  {f.code} — {f.name} ({f.adjudicated}/{f.total})
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

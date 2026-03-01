@@ -48,7 +48,7 @@ async function seedGovernance() {
       projectId: null,
       registerKey: def.registerKey,
       name: def.name,
-      description: null,
+      description: def.description ?? null,
       requiredColumns: def.requiredColumns,
       retainForDays: def.retainForDays ?? null,
     });

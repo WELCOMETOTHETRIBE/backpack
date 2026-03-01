@@ -1,0 +1,284 @@
+{
+  "azure_entra_dir": "/Users/patrick/cui-pilot/evidence/runs/20260228-202211/raw/azure",
+  "checks": [
+    {
+      "control": "IA.L2-3.5.3",
+      "evidence_files_used": [
+        "bastion-entra-mfa-attested.txt",
+        "conditional-access-policies.json",
+        "entra-signin.json",
+        "mfa-in-path-attested.sig",
+        "mfa-in-path-attested.txt"
+      ],
+      "evidence_hint": "Entra sign-in export and Conditional Access policies. For MFA-in-path: signed attestation (mfa-in-path-attested.txt + .sig) or CA/sign-in MFA evidence.",
+      "expected": "entra-signin or CA policy export present AND MFA in enclave access path (evidence or signed mfa-in-path-attested.txt + .sig)",
+      "id": "ENTRA-MFA",
+      "layer": "Identity/MFA",
+      "mfa_in_path_detail": null,
+      "mfa_in_path_source": "none",
+      "observed": "Sign-in/CA evidence=True; MFA in path satisfied=False (source=none)",
+      "partial": true,
+      "partial_reason": "Awaiting attestation sign-off (Governance > Evidence)",
+      "pass": false,
+      "provider_or_customer": "shared",
+      "status": "partial",
+      "timestamp_utc": "2026-03-01T19:49:37.228832+00:00",
+      "title": "MFA for privileged accounts (Entra evidence)"
+    },
+    {
+      "control": "MA.L2-3.7.5",
+      "evidence_files_used": [
+        "bastion-entra-mfa-attested.txt",
+        "conditional-access-policies.json",
+        "entra-signin.json",
+        "mfa-in-path-attested.sig",
+        "mfa-in-path-attested.txt"
+      ],
+      "evidence_hint": "Entra sign-in and MFA policy. For MFA-in-path: signed attestation (mfa-in-path-attested.txt + .sig) or CA/sign-in MFA evidence.",
+      "expected": "Entra/MFA evidence AND MFA in enclave access path (evidence or attestation)",
+      "id": "ENTRA-MFA-MA",
+      "layer": null,
+      "mfa_in_path_detail": null,
+      "mfa_in_path_source": "none",
+      "observed": "Sign-in/CA evidence=True; MFA in path satisfied=False (source=none)",
+      "partial": true,
+      "partial_reason": "Awaiting attestation sign-off (Governance > Evidence)",
+      "pass": false,
+      "provider_or_customer": "shared",
+      "status": "partial",
+      "timestamp_utc": "2026-03-01T19:49:37.229091+00:00",
+      "title": "MFA for nonlocal maintenance (Entra evidence)"
+    },
+    {
+      "control": "IA.L2-3.5.4",
+      "evidence_files_used": [
+        "bastion-entra-mfa-attested.txt",
+        "conditional-access-policies.json",
+        "entra-admin-roles.json",
+        "entra-signin.json",
+        "mfa-in-path-attested.sig",
+        "mfa-in-path-attested.txt"
+      ],
+      "evidence_hint": "Entra sign-in and role-assignments (or admin roles). For MFA-in-path: signed attestation (mfa-in-path-attested.txt + .sig) or CA/sign-in MFA evidence.",
+      "expected": "Entra/role evidence AND MFA in enclave access path (evidence or attestation)",
+      "id": "ENTRA-REPLAY",
+      "layer": "Identity/AuthN",
+      "mfa_in_path_detail": null,
+      "mfa_in_path_source": "none",
+      "observed": "Entra/role evidence=True; MFA in path satisfied=False (source=none)",
+      "partial": true,
+      "partial_reason": "Awaiting attestation sign-off (Governance > Evidence)",
+      "pass": false,
+      "provider_or_customer": "shared",
+      "status": "partial",
+      "timestamp_utc": "2026-03-01T19:49:37.229548+00:00",
+      "title": "Replay-resistant authentication (Entra evidence)"
+    },
+    {
+      "control": "IA.L2-3.5.5",
+      "evidence_files_used": [
+        "bastion-entra-mfa-attested.txt",
+        "conditional-access-policies.json",
+        "entra-admin-roles.json",
+        "entra-signin.json",
+        "mfa-in-path-attested.sig",
+        "mfa-in-path-attested.txt"
+      ],
+      "evidence_hint": "Entra sign-in and role-assignments (or admin roles). For MFA-in-path: signed attestation (mfa-in-path-attested.txt + .sig) or CA/sign-in MFA evidence.",
+      "expected": "Entra/role evidence AND MFA in enclave access path (evidence or attestation)",
+      "id": "ENTRA-NO-REUSE",
+      "layer": "Identity/AuthN",
+      "mfa_in_path_detail": null,
+      "mfa_in_path_source": "none",
+      "observed": "Entra/role evidence=True; MFA in path satisfied=False (source=none)",
+      "partial": true,
+      "partial_reason": "Awaiting attestation sign-off (Governance > Evidence)",
+      "pass": false,
+      "provider_or_customer": "shared",
+      "status": "partial",
+      "timestamp_utc": "2026-03-01T19:49:37.229566+00:00",
+      "title": "Prevent identifier reuse (Entra evidence)"
+    },
+    {
+      "control": "IA.L2-3.5.6",
+      "evidence_files_used": [
+        "bastion-entra-mfa-attested.txt",
+        "conditional-access-policies.json",
+        "entra-admin-roles.json",
+        "entra-signin.json",
+        "mfa-in-path-attested.sig",
+        "mfa-in-path-attested.txt"
+      ],
+      "evidence_hint": "Entra sign-in and role-assignments (or admin roles). For MFA-in-path: signed attestation (mfa-in-path-attested.txt + .sig) or CA/sign-in MFA evidence.",
+      "expected": "Entra/role evidence AND MFA in enclave access path (evidence or attestation)",
+      "id": "ENTRA-INACTIVITY",
+      "layer": "Identity/Role-Governance",
+      "mfa_in_path_detail": null,
+      "mfa_in_path_source": "none",
+      "observed": "Entra/role evidence=True; MFA in path satisfied=False (source=none)",
+      "partial": true,
+      "partial_reason": "Awaiting attestation sign-off (Governance > Evidence)",
+      "pass": false,
+      "provider_or_customer": "shared",
+      "status": "partial",
+      "timestamp_utc": "2026-03-01T19:49:37.229570+00:00",
+      "title": "Disable identifiers after inactivity (Entra evidence)"
+    },
+    {
+      "control": "SC.L2-3.13.10",
+      "evidence_files_used": [
+        "keyvault-codex-cui-kv-pilot-access-policies.json",
+        "keyvault-codex-cui-kv-pilot-properties.json",
+        "keyvault-codex-cui-kv-pilot-role-assignments.json",
+        "keyvault-list.json"
+      ],
+      "evidence_hint": "keyvault-list.json; for each vault optionally keyvault-*-properties.json (soft delete, purge protection), keyvault-*-access-policies.json, keyvault-*-role-assignments.json.",
+      "expected": "Azure Key Vault list; when keyvault-*-properties.json exported: soft delete and purge protection enabled per vault",
+      "id": "AZ-KEYVAULT",
+      "keyvault_details": [
+        {
+          "purge_protection_enabled": null,
+          "rbac_or_access_policy": "RBAC and access policies documented",
+          "soft_delete_enabled": true,
+          "vault_name": "codex-cui-kv-pilot"
+        }
+      ],
+      "layer": "Crypto/Key-Mgmt",
+      "observed": "keyvault-list present and non-empty=True; keyvault_details=1 vault(s); all soft delete and purge protection=True",
+      "partial": false,
+      "partial_reason": null,
+      "pass": true,
+      "provider_or_customer": "shared",
+      "status": "pass",
+      "timestamp_utc": "2026-03-01T19:49:37.231047+00:00",
+      "title": "Cryptographic key management (Azure Key Vault evidence)"
+    },
+    {
+      "acceptable_alternative": null,
+      "control": "SC.L2-3.13.5",
+      "effective_rdp_public": false,
+      "evidence_files_used": [
+        "bastion-only-attested.txt",
+        "firewall-enforcement-attested.txt",
+        "jit-enabled-attested.txt",
+        "network-bypass-attested.json"
+      ],
+      "evidence_hint": "nsg-list.json and nsg-rules-*.json. If RDP is open to public, add one of: bastion-only-attested.txt, jit-enabled-attested.txt, firewall-enforcement-attested.txt, or network-bypass-attested.json.",
+      "expected": "NSG list/rules present; RDP (3389) not allowed from public, or acceptable alternative (Bastion/JIT/Firewall) attested",
+      "id": "AZ-NSG",
+      "layer": "Network/Boundary",
+      "observed": "NSG list present=True; effective RDP from public=False; acceptable_alternative=none",
+      "partial": false,
+      "partial_reason": null,
+      "pass": true,
+      "provider_or_customer": "customer",
+      "rationale": null,
+      "status": "pass",
+      "timestamp_utc": "2026-03-01T19:49:37.231722+00:00",
+      "title": "Implement subnetworks (NSG evidence)"
+    },
+    {
+      "control": "AC.L2-3.1.14",
+      "evidence_files_used": [
+        "bastion-only-attested.txt",
+        "conditional-access-policies.json",
+        "entra-signin.json",
+        "firewall-enforcement-attested.txt",
+        "jit-enabled-attested.txt",
+        "network-bypass-attested.json",
+        "role-assignments-all.json"
+      ],
+      "evidence_hint": "nsg-list.json, nsg-rules-*.json; entra-signin.json or role-assignments-all.json (and optionally conditional-access-policies.json) to show managed access path.",
+      "expected": "NSG list/rules with RDP not from public (or attested alternative); Entra sign-in or role evidence for managed access path.",
+      "id": "AC-REMOTE-ACCESS",
+      "layer": "Access Control",
+      "observed": "NSG restricts public RDP=True; Entra/sign-in or role evidence=True \u2192 remote access routed through managed points",
+      "partial": false,
+      "partial_reason": null,
+      "pass": true,
+      "provider_or_customer": "shared",
+      "status": "pass",
+      "timestamp_utc": "2026-03-01T19:49:37.231733+00:00",
+      "title": "Remote Access Routing (managed access control points)"
+    }
+  ],
+  "generated_utc": "2026-03-01T19:49:37.231742+00:00",
+  "inputs": [
+    {
+      "filename": "entra-signin.json",
+      "mtime_utc": "2026-02-28T20:22:21.330172+00:00",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "size": 3
+    },
+    {
+      "filename": "conditional-access-policies.json",
+      "mtime_utc": "2026-02-28T20:22:24.178179+00:00",
+      "sha256": "e95ba49dd5701cfa84deb1e6a226b2b092d61b8c51ac077be9702349103f5910",
+      "size": 110
+    },
+    {
+      "filename": "role-assignments-all.json",
+      "mtime_utc": "2026-02-28T20:22:13.854499+00:00",
+      "sha256": "6808667886aa2c8b8a649f8e26342737f08c7d538f783415152ff2a3d7fd0091",
+      "size": 9919
+    },
+    {
+      "filename": "keyvault-list.json",
+      "mtime_utc": "2026-02-28T20:22:25.473224+00:00",
+      "sha256": "e1be1b2d54cdfee00d1e4d38855d7f173dc0b4111dcd1e94e31514297a7b4ed9",
+      "size": 356
+    },
+    {
+      "filename": "nsg-list.json",
+      "mtime_utc": "2026-02-28T20:22:16.856380+00:00",
+      "sha256": "16bf0645d60b0943ec4b93d4a1e03ff0735a12d15411fd97d841e69999ff2ae8",
+      "size": 10342
+    },
+    {
+      "filename": "keyvault-codex-cui-kv-pilot-access-policies.json",
+      "mtime_utc": "2026-02-28T20:22:27.885860+00:00",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "size": 3
+    },
+    {
+      "filename": "keyvault-codex-cui-kv-pilot-properties.json",
+      "mtime_utc": "2026-02-28T20:22:26.872249+00:00",
+      "sha256": "5866caed0f7517fcf2204e89c93914106eefbdec1916016a76d5a46819c61cea",
+      "size": 1278
+    },
+    {
+      "filename": "keyvault-codex-cui-kv-pilot-role-assignments.json",
+      "mtime_utc": "2026-02-28T20:22:30.659619+00:00",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "size": 3
+    }
+  ],
+  "report_sha256": "4df0154d8b117ffec92eadbc51cb052205f2d77eff79296b7b04943b2181ad99",
+  "run_id": "20260228-202211",
+  "summary": {
+    "azure_entra_dir": "/Users/patrick/cui-pilot/evidence/runs/20260228-202211/raw/azure",
+    "computer": "Patricks-MacBook-Pro.local",
+    "control_ids": [
+      "AC.L2-3.1.14",
+      "IA.L2-3.5.3",
+      "IA.L2-3.5.4",
+      "IA.L2-3.5.5",
+      "IA.L2-3.5.6",
+      "MA.L2-3.7.5",
+      "SC.L2-3.13.10",
+      "SC.L2-3.13.5"
+    ],
+    "fail_count": 0,
+    "generated_utc": "2026-03-01T19:49:37.231742+00:00",
+    "partial_count": 5,
+    "pass_count": 3,
+    "run_id": "20260228-202211",
+    "total": 8,
+    "user": "patrick"
+  },
+  "validator": {
+    "name": "validate_azure_entra",
+    "sha256": "f3004dc5db72e98fa5c4e9f7b6b852f5e5b8bf4d340fc8c3db44bd43259c3d0f",
+    "version": "1.3.0"
+  }
+}

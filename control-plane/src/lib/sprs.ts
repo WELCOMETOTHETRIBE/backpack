@@ -124,5 +124,11 @@ export async function getSprsBreakdown(
     .sort((a, b) => a.family.localeCompare(b.family));
 }
 
-export { calculateSprsScore, sprsScoringData } from "./sprs/index";
+export {
+  calculateSprsScore,
+  sprsScoringData,
+  SPRS_MAX,
+  SPRS_MIN,
+  SPRS_RANGE,
+} from "./sprs/index";
 export type { ControlImplementation, SprsControlScore } from "./sprs/index";

@@ -4,14 +4,16 @@ import { redirect } from "next/navigation";
 import { db } from "@/db";
 import {
   controlRecords,
-  governanceControlMetadata,
   governanceDocuments,
   governanceEvidenceItems,
   governanceRegisters,
   governanceRegisterEntries,
 } from "@/db/schema";
 import { eq, and, desc, sql, lt } from "drizzle-orm";
-import { PURE_GOV_CONTROL_IDS, HYBRID_GOV_CONTROL_IDS } from "@/lib/governance/seed-data";
+import {
+  PURE_GOVERNANCE_IDS,
+  HYBRID_GOVERNANCE_IDS,
+} from "@/lib/compliance/control-bins";
 import {
   BookMarked,
   FileText,
@@ -22,8 +24,8 @@ import {
   PlusCircle,
 } from "lucide-react";
 
-const PURE_TOTAL = PURE_GOV_CONTROL_IDS.length;
-const HYBRID_TOTAL = HYBRID_GOV_CONTROL_IDS.length;
+const PURE_TOTAL = PURE_GOVERNANCE_IDS.length;
+const HYBRID_GOVERNANCE_TOTAL = HYBRID_GOVERNANCE_IDS.length;
 const IMPLEMENTED_STATUSES = ["implemented", "assessed", "inherited", "not_applicable"] as const;
 
 export default async function GovernanceDashboardPage() {
@@ -40,19 +42,15 @@ export default async function GovernanceDashboardPage() {
     .from(controlRecords)
     .where(eq(controlRecords.organizationId, orgId));
 
-  const metadata = await db
-    .select({ controlId: governanceControlMetadata.controlId, classification: governanceControlMetadata.classification })
-    .from(governanceControlMetadata);
-
-  const metaByControl = new Map(metadata.map((m) => [m.controlId, m.classification]));
+  const pureGovSet = new Set(PURE_GOVERNANCE_IDS);
+  const hybridGovSet = new Set(HYBRID_GOVERNANCE_IDS);
   let pureDone = 0;
-  let hybridDone = 0;
+  let hybridGovernanceDone = 0;
   for (const r of records) {
     const status = r.implementationStatus as string;
     if (!IMPLEMENTED_STATUSES.includes(status as (typeof IMPLEMENTED_STATUSES)[number])) continue;
-    const cls = metaByControl.get(r.controlId);
-    if (cls === "PURE_GOV") pureDone++;
-    else if (cls === "HYBRID_GOV") hybridDone++;
+    if (pureGovSet.has(r.controlId)) pureDone++;
+    else if (hybridGovSet.has(r.controlId)) hybridGovernanceDone++;
   }
 
   const today = new Date().toISOString().slice(0, 10);
@@ -118,7 +116,7 @@ export default async function GovernanceDashboardPage() {
             Governance overview
           </h2>
           <p className="mt-1 text-sm text-[var(--color-gray-600)]">
-            Pure governance controls (18), hybrid controls (17), document control, registers, and evidence library.
+            Pure governance controls ({PURE_TOTAL}), hybrid governance controls ({HYBRID_GOVERNANCE_TOTAL}), document control, registers, and evidence library.
           </p>
         </section>
 
@@ -141,13 +139,13 @@ export default async function GovernanceDashboardPage() {
           <div className={cardClass}>
             <div className="flex items-center gap-2 text-[var(--color-gray-600)]">
               <BookMarked className="h-5 w-5" aria-hidden />
-              <span className="text-sm font-medium">Hybrid Gov controls</span>
+              <span className="text-sm font-medium">Hybrid Governance controls</span>
             </div>
             <p className="mt-2 text-2xl font-bold text-[var(--color-navy-primary)]">
-              {hybridDone} <span className="font-normal text-[var(--color-gray-600)]">/ {HYBRID_TOTAL}</span>
+              {hybridGovernanceDone} <span className="font-normal text-[var(--color-gray-600)]">/ {HYBRID_GOVERNANCE_TOTAL}</span>
             </p>
             <Link
-              href="/dashboard/governance/controls?classification=HYBRID_GOV"
+              href="/dashboard/governance/controls?classification=HYBRID_GOVERNANCE"
               className="mt-2 inline-block text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
             >
               View controls →

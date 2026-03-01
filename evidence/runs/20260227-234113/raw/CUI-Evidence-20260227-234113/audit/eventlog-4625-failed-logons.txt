@@ -1,0 +1,6 @@
+﻿ERROR running failed_logons_4625_sample: No events were found that match the specified selection criteria.
+at <ScriptBlock>, C:\hardening\codex-scripts\Collect-Cui-Evidence-v2.ps1: line 350
+at Run-And-Capture, C:\hardening\codex-scripts\Collect-Cui-Evidence-v2.ps1: line 56
+at <ScriptBlock>, C:\hardening\codex-scripts\Collect-Cui-Evidence-v2.ps1: line 349
+at <ScriptBlock>, C:\hardening\codex-scripts\Run-CuiBulkEvidenceAndValidate-RunId.ps1: line 31
+

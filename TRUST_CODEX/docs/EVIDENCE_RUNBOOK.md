@@ -14,7 +14,7 @@ This runbook gives **exact commands and steps** to generate the evidence types r
 
 2. **On the enclave VM** (VPN + RDP): run the commands in `evidence/runs/<RunId>/VM_INSTRUCTIONS.md` — i.e. run `Run-CuiBulkEvidenceAndValidate.ps1` in `C:\hardening\codex-scripts\`, then copy the VM output into the run’s `raw/` or sync to the evidence vault.
 
-3. **Optional:** From a machine with Azure CLI, run `TRUST_CODEX/tools/export_azure_evidence.sh` with `RUN_ID` and `OUT_DIR` set (or run `run_evidence_runbook.py` there) to collect role assignments and NSG rules into the same run.
+3. **Optional:** From a machine with Azure CLI, run `TRUST_CODEX/tools/export_azure_evidence.sh` with `RUN_ID` and `OUT_DIR` set (or run `run_evidence_runbook.py` there) to collect role assignments and NSG rules into the same run. The script is configured for C3PAO: it defaults `AZURE_RG=rg-cui-pilot-envclave`, writes a compliance-oriented `manifest.json`, and `EVIDENCE_COLLECTION.txt` in the output dir for assessors.
 
 ### Run via SSH (no RDP)
 
@@ -375,17 +375,46 @@ cd C:\evidence  # or wherever vm-scripts are (e.g. C:\Codex\TRUST_CODEX\vm-scrip
 ```
 
 - Produces `CUI-Validation-AzureEntra-<RunId>\validation-report-azure-entra.txt` and `validation-report-azure-entra.json`.
+
+**CMMC Control Plane (governance mapping and auditor quick view):** The **single file** you upload to the Control Plane is **`validation-report-azure-entra.json`**. Upload it via **Governance → Evidence** (Technical onboarding). Evidence stays in the customer enclave; only this report is sent. The report includes **`report_sha256`** (integrity of the report) and **`inputs`** (per-artifact filename, sha256, size) for verification; the Control Plane displays the report hash for auditors when present.
+
 - **Checks:** Key Vault (SC.L2-3.13.10) and NSG / no public RDP (SC.L2-3.13.5) pass when evidence artifacts are present. The **five IA/MA checks** (IA.L2-3.5.3, 3.5.4, 3.5.5, 3.5.6, MA.L2-3.7.5) pass **only if** (1) sign-in or Conditional Access evidence is present **and** (2) **MFA is attested in the enclave access path** (see below). Without (2), SSH key + RDP local = MFA-less access and those five checks **FAIL** (2 PASS, 5 FAIL total).
 
 **MFA in access path attestation**
 
-The validator requires a file **`mfa-in-path-attested.txt`** in the same artifact folder (e.g. `raw/azure/` or `CUI-AzureEntra-<RunId>\`). The file must exist and be non-empty. Add it **only after** MFA is actually in the path to the enclave (e.g. VPN that requires Entra sign-in, or Azure AD login for RDP, or Bastion). Example content:
+The validator requires **signed** MFA-in-path attestation for the five IA/MA controls to pass when using the attestation path (no CA+sign-in MFA evidence). Two files:
 
-```
-MFA is enforced in the enclave access path. Access to the VM requires VPN with Entra sign-in (MFA) or Azure AD login for RDP. Date: YYYY-MM-DD.
+1. **`mfa-in-path-attested.txt`** — Attestation text (must exist and be non-empty). Add it **only after** MFA is actually in the path (e.g. VPN that requires Entra sign-in, or Azure AD login for RDP, or Bastion). Example content:
+
+   ```
+   MFA is enforced in the enclave access path. Access to the VM requires VPN with Entra sign-in (MFA) or Azure AD login for RDP. Date: YYYY-MM-DD.
+   ```
+
+2. **`mfa-in-path-attested.sig`** — Signature file. Must exist, be non-empty, and contain **`SIGNED_AT=`** (e.g. `SIGNED_AT=2026-02-28T19:40:42Z`). If the attestation is **written but not signed** (no .sig or .sig missing SIGNED_AT=), the five controls **FAIL** until the attestation is signed.
+
+Without both files (or CA+sign-in MFA evidence), the validator reports **FAIL** for IA.L2-3.5.3, 3.5.4, 3.5.5, 3.5.6 and MA.L2-3.7.5. See `reports/AZURE_ENTRA_FIVE_CONTROLS_COMPLIANCE_STATUS.md`.
+
+**To create the attestation (unsigned)** — then add .sig for pass:
+
+```bash
+# 1) Write attestation text (five controls will still FAIL until signed)
+OUT_DIR=evidence/runs/<RunId>/raw/azure bash TRUST_CODEX/tools/write_mfa_attestation.sh
+# Or: bash TRUST_CODEX/tools/write_mfa_attestation.sh evidence/runs/<RunId>/raw/azure
+
+# 2) Sign the attestation (adds mfa-in-path-attested.sig with SIGNED_AT= and SIGNED_BY=)
+OUT_DIR=evidence/runs/<RunId>/raw/azure SIGNED_BY="Authorized signer name" bash TRUST_CODEX/tools/write_mfa_attestation_sig.sh
+# Or: bash TRUST_CODEX/tools/write_mfa_attestation_sig.sh evidence/runs/<RunId>/raw/azure "Authorized signer"
 ```
 
-Without this file, the validator reports **FAIL** for IA.L2-3.5.3, 3.5.4, 3.5.5, 3.5.6 and MA.L2-3.7.5 so that 7/7 is not claimed when access is still SSH-key + RDP local (MFA-less). See `reports/AZURE_ENTRA_FIVE_CONTROLS_COMPLIANCE_STATUS.md`.
+**Hardening the 4 commonly failed Azure/Entra checks**
+
+If the validation report shows **FAIL** for ENTRA-MFA, ENTRA-MFA-MA, AZ-KEYVAULT, or AZ-NSG, you can harden as follows:
+
+| Check | Cause | Hardening |
+|-------|--------|-----------|
+| **ENTRA-MFA** / **ENTRA-MFA-MA** (IA.L2-3.5.3, MA.L2-3.7.5) | Missing sign-in/CA policy file or MFA not attested (or attestation unsigned) | 1) Run `export_azure_evidence.sh`. 2) Export sign-in/CA per **§2** / **§2a** into `raw/azure/`. 3) After MFA is in the path, run `write_mfa_attestation.sh` then `write_mfa_attestation_sig.sh` (attestation must be **signed** — .sig with SIGNED_AT= — for the five controls to pass). |
+| **AZ-KEYVAULT** (SC.L2-3.13.10) | No Key Vault in subscription or empty `keyvault-list.json` | Create at least one Azure Key Vault in the subscription (e.g. in the enclave resource group). Enable soft delete and purge protection. Re-run `export_azure_evidence.sh` so `keyvault-list.json` is non-empty. See `docs/SC_L2_3_13_10_Key_Management_Narrative.md`. |
+| **AZ-NSG** (SC.L2-3.13.5) | Missing `nsg-list.json` or RDP open to 0.0.0.0/0 | Run `export_azure_evidence.sh`. It defaults `AZURE_RG=rg-cui-pilot-envclave` for C3PAO and always exports NSG list + rules; if the RG has no NSGs, a subscription-wide fallback (via jq) exports rules. Ensure NSG rules deny RDP from 0.0.0.0/0 (or use Bastion/JIT and add attestations). |
 
 **One command (collect then validate):**
 

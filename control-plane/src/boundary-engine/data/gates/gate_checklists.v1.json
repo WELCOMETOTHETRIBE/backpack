@@ -1,0 +1,461 @@
+{
+  "gates_id": "boundary-engine-gates-v1",
+  "version": "1.0.0",
+  "evaluation_model": {
+    "gate_states": [
+      "unknown",
+      "yes",
+      "no"
+    ],
+    "coverage_rule": "A service contributes its coverage_layers only if all required gates evaluate to 'yes'.",
+    "partial_coverage_rule": "Optional gates can add evidence_strength, but do not block coverage unless marked required."
+  },
+  "services": [
+    {
+      "service_key": "identity_entra_id",
+      "required_gates": [
+        "entra_used_for_authn",
+        "entra_mfa_for_privileged",
+        "entra_ca_policy_exists"
+      ],
+      "optional_gates": [
+        "entra_pim_enabled",
+        "entra_access_reviews"
+      ],
+      "gates": [
+        {
+          "gate_id": "entra_used_for_authn",
+          "prompt": "Are users authenticating to the boundary using Entra-backed identities (not local-only accounts)?",
+          "type": "boolean",
+          "evidence_examples": [
+            "Entra sign-in logs showing successful sign-in for boundary admins/users",
+            "VM joined to Entra/AD with Entra integration, or documented auth flow"
+          ]
+        },
+        {
+          "gate_id": "entra_mfa_for_privileged",
+          "prompt": "Is MFA enforced for privileged access to the boundary (admins)?",
+          "type": "boolean",
+          "evidence_examples": [
+            "Conditional Access policy requiring MFA for admin roles",
+            "PIM settings requiring MFA on activation"
+          ]
+        },
+        {
+          "gate_id": "entra_ca_policy_exists",
+          "prompt": "Is at least one Conditional Access policy applied to the boundary access path (e.g., admin access)?",
+          "type": "boolean",
+          "evidence_examples": [
+            "Conditional Access policy export / screenshots",
+            "Policy assignment scope evidence"
+          ]
+        },
+        {
+          "gate_id": "entra_pim_enabled",
+          "prompt": "Is Privileged Identity Management (PIM) enabled for admin roles?",
+          "type": "boolean",
+          "evidence_examples": [
+            "PIM role settings",
+            "Activation logs"
+          ]
+        },
+        {
+          "gate_id": "entra_access_reviews",
+          "prompt": "Are Access Reviews configured for privileged roles or boundary access groups?",
+          "type": "boolean",
+          "evidence_examples": [
+            "Access review configuration + review history"
+          ]
+        }
+      ]
+    },
+    {
+      "service_key": "security_defender_for_cloud",
+      "required_gates": [
+        "defender_plan_enabled",
+        "defender_findings_reviewed"
+      ],
+      "optional_gates": [
+        "defender_regulatory_compliance_view"
+      ],
+      "gates": [
+        {
+          "gate_id": "defender_plan_enabled",
+          "prompt": "Is Defender for Cloud enabled for the subscription/resources in scope (appropriate plan)?",
+          "type": "boolean",
+          "evidence_examples": [
+            "Defender for Cloud plan settings",
+            "Subscription coverage screenshot/export"
+          ]
+        },
+        {
+          "gate_id": "defender_findings_reviewed",
+          "prompt": "Is there an operational process showing alerts/recommendations are reviewed and acted on?",
+          "type": "boolean",
+          "evidence_examples": [
+            "Ticketing evidence",
+            "Monthly review notes",
+            "Assigned remediation items"
+          ]
+        },
+        {
+          "gate_id": "defender_regulatory_compliance_view",
+          "prompt": "Is Defender Regulatory Compliance/standards mapping enabled/used for reporting?",
+          "type": "boolean",
+          "evidence_examples": [
+            "Compliance dashboard exports",
+            "Score trend reports"
+          ]
+        }
+      ]
+    },
+    {
+      "service_key": "logging_azure_monitor_log_analytics",
+      "required_gates": [
+        "log_analytics_workspace_exists",
+        "diagnostic_settings_configured",
+        "log_retention_set"
+      ],
+      "optional_gates": [
+        "alert_rules_present",
+        "windows_events_forwarded"
+      ],
+      "gates": [
+        {
+          "gate_id": "log_analytics_workspace_exists",
+          "prompt": "Is there a Log Analytics workspace used for in-scope resources?",
+          "type": "boolean",
+          "evidence_examples": [
+            "Workspace resource evidence",
+            "Workspace ID in config exports"
+          ]
+        },
+        {
+          "gate_id": "diagnostic_settings_configured",
+          "prompt": "Are diagnostic settings configured to send platform logs/metrics to the workspace for in-scope resources?",
+          "type": "boolean",
+          "evidence_examples": [
+            "Diagnostic settings export",
+            "Resource diagnostic config screenshots"
+          ]
+        },
+        {
+          "gate_id": "log_retention_set",
+          "prompt": "Is log retention configured to meet policy requirements?",
+          "type": "boolean",
+          "evidence_examples": [
+            "Workspace retention settings",
+            "Data retention policy"
+          ]
+        },
+        {
+          "gate_id": "alert_rules_present",
+          "prompt": "Are alert rules configured for key security/system events (collection health, auth anomalies, etc.)?",
+          "type": "boolean",
+          "evidence_examples": [
+            "Alert rule list export",
+            "Action group configs"
+          ]
+        },
+        {
+          "gate_id": "windows_events_forwarded",
+          "prompt": "Are Windows security logs forwarded (agent/AMA) from the VM into Log Analytics?",
+          "type": "boolean",
+          "evidence_examples": [
+            "Data collection rule",
+            "Heartbeat + SecurityEvent table entries"
+          ]
+        }
+      ]
+    },
+    {
+      "service_key": "logging_sentinel",
+      "required_gates": [
+        "sentinel_workspace_configured"
+      ],
+      "optional_gates": [
+        "sentinel_analytics_rules",
+        "sentinel_incident_workflow"
+      ],
+      "gates": [
+        {
+          "gate_id": "sentinel_workspace_configured",
+          "prompt": "Is Microsoft Sentinel deployed and connected to the Log Analytics workspace used for in-scope resources?",
+          "type": "boolean",
+          "evidence_examples": [
+            "Sentinel workspace resource",
+            "Data connector configuration",
+            "Log Analytics link"
+          ]
+        },
+        {
+          "gate_id": "sentinel_analytics_rules",
+          "prompt": "Are analytics rules (or detection rules) configured for key security events?",
+          "type": "boolean",
+          "evidence_examples": [
+            "Analytics rule list",
+            "Scheduled/detection rule config"
+          ]
+        },
+        {
+          "gate_id": "sentinel_incident_workflow",
+          "prompt": "Is incident management/workflow defined for Sentinel incidents?",
+          "type": "boolean",
+          "evidence_examples": [
+            "Automation rules",
+            "Incident handling runbook reference"
+          ]
+        }
+      ]
+    },
+    {
+      "service_key": "crypto_azure_key_vault",
+      "required_gates": [
+        "key_vault_exists",
+        "workload_uses_key_vault",
+        "kv_access_controlled"
+      ],
+      "optional_gates": [
+        "kv_logging_enabled",
+        "kv_rotation_policy"
+      ],
+      "gates": [
+        {
+          "gate_id": "key_vault_exists",
+          "prompt": "Is an Azure Key Vault resource deployed in scope?",
+          "type": "boolean",
+          "evidence_examples": [
+            "Key Vault resource evidence"
+          ]
+        },
+        {
+          "gate_id": "workload_uses_key_vault",
+          "prompt": "Does the boundary workload actually use Key Vault for keys/secrets (not just deployed)?",
+          "type": "boolean",
+          "evidence_examples": [
+            "App config references KV",
+            "Managed identity access logs",
+            "Secret retrieval logs"
+          ]
+        },
+        {
+          "gate_id": "kv_access_controlled",
+          "prompt": "Is Key Vault access restricted using RBAC/access policies with least privilege?",
+          "type": "boolean",
+          "evidence_examples": [
+            "RBAC role assignments",
+            "Access policy exports"
+          ]
+        },
+        {
+          "gate_id": "kv_logging_enabled",
+          "prompt": "Are Key Vault diagnostics/audit logs enabled (to Log Analytics/storage)?",
+          "type": "boolean",
+          "evidence_examples": [
+            "Diagnostic settings showing AuditEvent enabled"
+          ]
+        },
+        {
+          "gate_id": "kv_rotation_policy",
+          "prompt": "Are rotation/expiry policies configured for keys/secrets (where applicable)?",
+          "type": "boolean",
+          "evidence_examples": [
+            "Rotation policy settings",
+            "Expiry metadata"
+          ]
+        }
+      ]
+    },
+    {
+      "service_key": "backup_azure_backup",
+      "required_gates": [
+        "backup_vault_configured",
+        "backup_policy_applied",
+        "restore_tested"
+      ],
+      "optional_gates": [
+        "soft_delete_enabled",
+        "immutability_or_lock"
+      ],
+      "gates": [
+        {
+          "gate_id": "backup_vault_configured",
+          "prompt": "Is an Azure Backup vault configured for in-scope resources?",
+          "type": "boolean",
+          "evidence_examples": [
+            "Vault resource evidence",
+            "Protected items list"
+          ]
+        },
+        {
+          "gate_id": "backup_policy_applied",
+          "prompt": "Are backup schedules and retention policies applied to in-scope workloads?",
+          "type": "boolean",
+          "evidence_examples": [
+            "Backup policy export",
+            "Protected item policy binding"
+          ]
+        },
+        {
+          "gate_id": "restore_tested",
+          "prompt": "Have restores been tested on a defined cadence and documented?",
+          "type": "boolean",
+          "evidence_examples": [
+            "Restore job history",
+            "Restore test record in governance system"
+          ]
+        },
+        {
+          "gate_id": "soft_delete_enabled",
+          "prompt": "Is soft delete enabled to protect against accidental/malicious deletion?",
+          "type": "boolean",
+          "evidence_examples": [
+            "Vault soft delete setting"
+          ]
+        },
+        {
+          "gate_id": "immutability_or_lock",
+          "prompt": "Is immutability/vault lock configured (where available/required)?",
+          "type": "boolean",
+          "evidence_examples": [
+            "Vault lock configuration evidence"
+          ]
+        }
+      ]
+    },
+    {
+      "service_key": "network_azure_firewall",
+      "required_gates": [
+        "firewall_deployed",
+        "traffic_routes_through_firewall",
+        "rules_change_controlled"
+      ],
+      "optional_gates": [
+        "threat_intel_mode",
+        "dns_proxy_or_tls_inspection"
+      ],
+      "gates": [
+        {
+          "gate_id": "firewall_deployed",
+          "prompt": "Is Azure Firewall deployed in the boundary\u2019s virtual network?",
+          "type": "boolean",
+          "evidence_examples": [
+            "Firewall resource evidence",
+            "VNET/subnet association"
+          ]
+        },
+        {
+          "gate_id": "traffic_routes_through_firewall",
+          "prompt": "Is boundary traffic (in/out) actually routed through the firewall enforcement point?",
+          "type": "boolean",
+          "evidence_examples": [
+            "Route tables (UDR) showing default route to firewall",
+            "Effective routes screenshot"
+          ]
+        },
+        {
+          "gate_id": "rules_change_controlled",
+          "prompt": "Are firewall rules managed under change control (approval + logging)?",
+          "type": "boolean",
+          "evidence_examples": [
+            "Change tickets",
+            "IaC PR approvals",
+            "Activity logs for rule changes"
+          ]
+        },
+        {
+          "gate_id": "threat_intel_mode",
+          "prompt": "Is Firewall Threat Intelligence mode enabled (if applicable)?",
+          "type": "boolean",
+          "evidence_examples": [
+            "Firewall TI configuration"
+          ]
+        },
+        {
+          "gate_id": "dns_proxy_or_tls_inspection",
+          "prompt": "Are DNS proxy / TLS inspection capabilities used (where applicable)?",
+          "type": "boolean",
+          "evidence_examples": [
+            "Firewall policy config showing feature enabled"
+          ]
+        }
+      ]
+    },
+    {
+      "service_key": "network_expressroute",
+      "required_gates": [
+        "expressroute_circuit_active",
+        "boundary_uses_expressroute"
+      ],
+      "optional_gates": [
+        "private_peering_configured"
+      ],
+      "gates": [
+        {
+          "gate_id": "expressroute_circuit_active",
+          "prompt": "Is an ExpressRoute circuit provisioned and active?",
+          "type": "boolean",
+          "evidence_examples": [
+            "Circuit resource evidence",
+            "Provider provisioning status"
+          ]
+        },
+        {
+          "gate_id": "boundary_uses_expressroute",
+          "prompt": "Is boundary connectivity actually using ExpressRoute rather than internet paths?",
+          "type": "boolean",
+          "evidence_examples": [
+            "Routing evidence",
+            "Network diagram showing ER path"
+          ]
+        },
+        {
+          "gate_id": "private_peering_configured",
+          "prompt": "Is private peering configured correctly for boundary traffic?",
+          "type": "boolean",
+          "evidence_examples": [
+            "Private peering configuration details"
+          ]
+        }
+      ]
+    },
+    {
+      "service_key": "network_nsg",
+      "required_gates": [
+        "nsg_attached",
+        "default_deny_inbound"
+      ],
+      "optional_gates": [
+        "restricted_egress"
+      ],
+      "gates": [
+        {
+          "gate_id": "nsg_attached",
+          "prompt": "Are NSGs attached to the relevant NICs/subnets in scope?",
+          "type": "boolean",
+          "evidence_examples": [
+            "NIC/subnet association evidence",
+            "Effective security rules"
+          ]
+        },
+        {
+          "gate_id": "default_deny_inbound",
+          "prompt": "Is inbound effectively default-deny with explicit allow-by-exception?",
+          "type": "boolean",
+          "evidence_examples": [
+            "NSG rule set showing no broad inbound allows"
+          ]
+        },
+        {
+          "gate_id": "restricted_egress",
+          "prompt": "Is outbound restricted (where required) to least privilege destinations/services?",
+          "type": "boolean",
+          "evidence_examples": [
+            "NSG outbound rules",
+            "Egress policy doc"
+          ]
+        }
+      ]
+    }
+  ]
+}

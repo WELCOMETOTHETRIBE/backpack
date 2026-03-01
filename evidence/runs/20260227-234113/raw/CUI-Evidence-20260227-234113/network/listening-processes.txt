@@ -1,0 +1,78 @@
+﻿
+ Id ProcessName Path
+ -- ----------- ----
+868 services        
+
+
+
+
+  Id ProcessName Path                           
+  -- ----------- ----                           
+3232 spoolsv     C:\Windows\System32\spoolsv.exe
+
+
+
+
+  Id ProcessName Path                           
+  -- ----------- ----                           
+2584 svchost     C:\Windows\System32\svchost.exe
+
+
+
+
+  Id ProcessName Path                           
+  -- ----------- ----                           
+2284 svchost     C:\Windows\system32\svchost.exe
+
+
+
+
+  Id ProcessName Path                           
+  -- ----------- ----                           
+1984 svchost     C:\Windows\System32\svchost.exe
+
+
+
+
+ Id ProcessName Path
+ -- ----------- ----
+728 wininit         
+
+
+
+
+ Id ProcessName Path
+ -- ----------- ----
+880 lsass           
+
+
+
+
+  Id ProcessName Path                           
+  -- ----------- ----                           
+1308 svchost     C:\Windows\System32\svchost.exe
+
+
+
+
+Id ProcessName Path
+-- ----------- ----
+ 4 System          
+
+
+
+
+ Id ProcessName Path                           
+ -- ----------- ----                           
+740 svchost     C:\Windows\system32\svchost.exe
+
+
+
+
+  Id ProcessName Path                                
+  -- ----------- ----                                
+3720 sshd        C:\Windows\System32\OpenSSH\sshd.exe
+
+
+
+

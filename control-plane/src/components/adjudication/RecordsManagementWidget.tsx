@@ -3,6 +3,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { FileCheck, Upload, Circle } from "lucide-react";
 import Link from "next/link";
+import {
+  CONTROL_FAMILIES,
+  getControlFamilyPrefix,
+} from "@/components/governance-wizard/constants";
 
 const CADENCE_DAYS: Record<string, number> = {
   Monthly: 30,
@@ -30,7 +34,34 @@ type ControlRecordRow = {
   monitoringCadence: string | null;
 };
 
-type NistRow = { controlId: string; title: string | null };
+type NistRow = {
+  controlId: string;
+  title: string | null;
+  nistExactText?: string | null;
+};
+
+function getFamilyName(controlId: string): string {
+  const prefix = getControlFamilyPrefix(controlId);
+  const family = CONTROL_FAMILIES.find((f) => f.controlPrefix === prefix);
+  return family?.name ?? "—";
+}
+
+/** Prefer a short human-readable summary; fall back to title or truncated NIST text. */
+function getControlSummary(record: ControlRecordRow, nist: NistRow | undefined): string {
+  const title = nist?.title?.trim();
+  const exact = nist?.nistExactText?.trim();
+  if (title && !title.includes("CMMC Assessment Guide") && !/^Version\s|Level\s*2\s*\|\s*Version/i.test(title)) {
+    return title;
+  }
+  if (exact) {
+    const firstSentence = exact.split(/[.!?]+/)[0]?.trim();
+    if (firstSentence && firstSentence.length > 20) {
+      return firstSentence.length > 140 ? `${firstSentence.slice(0, 137)}…` : firstSentence;
+    }
+    return exact.length > 140 ? `${exact.slice(0, 137)}…` : exact;
+  }
+  return title || record.controlId;
+}
 
 function nextDueDate(
   lastValidationDate: Date | null,
@@ -161,16 +192,26 @@ export function RecordsManagementWidget() {
           const title =
             nistByControlId[record.controlId]?.title ?? record.controlId;
 
+          const familyName = getFamilyName(record.controlId);
+          const summary = getControlSummary(record, nistByControlId[record.controlId]);
+
           return (
             <div
               key={record.id}
               className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
             >
-              <div className="min-w-0">
-                <p className="font-mono text-sm font-medium text-slate-800">
-                  {record.controlId}
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-baseline gap-2">
+                  <p className="font-mono text-sm font-medium text-slate-800">
+                    {record.controlId}
+                  </p>
+                  <span className="text-xs font-medium text-slate-500">
+                    {familyName}
+                  </span>
+                </div>
+                <p className="mt-0.5 text-xs leading-snug text-slate-600 line-clamp-2" title={summary}>
+                  {summary}
                 </p>
-                <p className="truncate text-xs text-slate-600">{title}</p>
                 <div className="mt-1 flex items-center gap-2">
                   <span
                     className="inline-flex items-center gap-1 text-xs"

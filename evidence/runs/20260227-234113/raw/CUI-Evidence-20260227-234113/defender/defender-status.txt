@@ -1,0 +1,67 @@
+﻿
+
+AMEngineVersion                  : 1.1.26010.1
+AMProductVersion                 : 4.18.26010.5
+AMRunningMode                    : Normal
+AMServiceEnabled                 : True
+AMServiceVersion                 : 4.18.26010.5
+AntispywareEnabled               : True
+AntispywareSignatureAge          : 0
+AntispywareSignatureLastUpdated  : 2/27/2026 8:08:05 AM
+AntispywareSignatureVersion      : 1.445.277.0
+AntivirusEnabled                 : True
+AntivirusSignatureAge            : 0
+AntivirusSignatureLastUpdated    : 2/27/2026 8:08:05 AM
+AntivirusSignatureVersion        : 1.445.277.0
+BehaviorMonitorEnabled           : True
+ComputerID                       : E5E9B212-78FB-48B8-9FBD-1C1CFE2F06E1
+ComputerState                    : 0
+ControlledConfigurationState     : 0
+DefenderSignaturesOutOfDate      : False
+DeviceControlDefaultEnforcement  : 
+DeviceControlPoliciesLastUpdated : 1/1/1601 12:00:00 AM
+DeviceControlState               : Disabled
+FullScanAge                      : 16
+FullScanEndTime                  : 2/11/2026 10:58:57 AM
+FullScanOverdue                  : False
+FullScanRequired                 : False
+FullScanSignatureVersion         : 1.443.1115.0
+FullScanStartTime                : 2/11/2026 8:15:50 AM
+InitializationProgress           : ServiceStartedSuccessfully
+IoavProtectionEnabled            : True
+IsTamperProtected                : False
+IsVirtualMachine                 : True
+LastFullScanSource               : 1
+LastQuickScanSource              : 2
+NISEnabled                       : True
+NISEngineVersion                 : 1.1.26010.1
+NISSignatureAge                  : 0
+NISSignatureLastUpdated          : 2/27/2026 8:08:05 AM
+NISSignatureVersion              : 1.445.277.0
+OnAccessProtectionEnabled        : True
+ProductStatus                    : 524288
+QuickScanAge                     : 0
+QuickScanEndTime                 : 2/27/2026 2:18:37 AM
+QuickScanOverdue                 : False
+QuickScanSignatureVersion        : 1.445.267.0
+QuickScanStartTime               : 2/27/2026 2:17:17 AM
+RealTimeProtectionEnabled        : True
+RealTimeScanDirection            : 0
+RebootRequired                   : False
+SmartAppControlExpiration        : 
+SmartAppControlState             : Off
+TamperProtectionSource           : Signatures
+TroubleShootingDailyMaxQuota     : 
+TroubleShootingDailyQuotaLeft    : 
+TroubleShootingEndTime           : 
+TroubleShootingExpirationLeft    : 
+TroubleShootingMode              : 
+TroubleShootingModeSource        : 
+TroubleShootingQuotaResetTime    : 
+TroubleShootingStartTime         : 
+PSComputerName                   : 
+
+
+
+
+

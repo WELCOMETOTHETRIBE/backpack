@@ -1,0 +1,603 @@
+{
+  "schema": "os-baseline-mapping.v1",
+  "baseline_id": "windows-server-2025.member-server.v1",
+  "os": {
+    "family": "windows_server",
+    "version": "2025",
+    "role": "member_server"
+  },
+  "generated_at": "2026-02-26T06:04:40Z",
+  "notes": [
+    "Machine-ready mapping of CMMC L2 technical/hybrid controls to expected evidence file paths from the Windows evidence bundle collector.",
+    "support_level meanings: STRONG=host evidence usually sufficient; PARTIAL=hybrid\u2014host evidence helps but governance/IdP/architecture records also required."
+  ],
+  "controls": [
+    {
+      "control_id": "AC.L2-3.1.1",
+      "support_level": "STRONG",
+      "evidence_files": [
+        "policy/local-accounts.txt",
+        "policy/local-groups.txt",
+        "policy/secpol.cfg"
+      ],
+      "validation_hints": [
+        "Validate authorized local accounts/groups are defined and access is restricted to intended principals."
+      ],
+      "manual_commands": [
+        "Get-LocalUser",
+        "Get-LocalGroup",
+        "Get-LocalGroupMember -Group Administrators",
+        "secedit /export /cfg C:\\Temp\\secpol.cfg"
+      ],
+      "requires_external": []
+    },
+    {
+      "control_id": "AC.L2-3.1.2",
+      "support_level": "STRONG",
+      "evidence_files": [
+        "apps/applocker-policy.txt"
+      ],
+      "validation_hints": [
+        "Validate AppLocker (or equivalent application control) policy exists and is enforced for intended rule collections."
+      ],
+      "manual_commands": [
+        "Get-AppLockerPolicy -Effective -Xml | Out-File C:\\Temp\\applocker.xml"
+      ],
+      "requires_external": []
+    },
+    {
+      "control_id": "AC.L2-3.1.5",
+      "support_level": "STRONG",
+      "evidence_files": [
+        "policy/local-groups.txt",
+        "policy/local-accounts.txt"
+      ],
+      "validation_hints": [
+        "Validate privileged groups/memberships align with separation of duties expectations."
+      ],
+      "manual_commands": [
+        "Get-LocalGroup",
+        "Get-LocalGroupMember -Group Administrators"
+      ],
+      "requires_external": [
+        "governance:sod-matrix",
+        "governance:role-assignment-matrix"
+      ]
+    },
+    {
+      "control_id": "AC.L2-3.1.7",
+      "support_level": "STRONG",
+      "evidence_files": [
+        "policy/secpol.cfg"
+      ],
+      "validation_hints": [
+        "Validate User Rights Assignments restrict privileged functions to authorized roles."
+      ],
+      "manual_commands": [
+        "secedit /export /cfg C:\\Temp\\secpol.cfg",
+        "whoami /priv"
+      ],
+      "requires_external": []
+    },
+    {
+      "control_id": "AC.L2-3.1.8",
+      "support_level": "STRONG",
+      "evidence_files": [
+        "policy/secpol.cfg"
+      ],
+      "validation_hints": [
+        "Validate account lockout threshold/duration settings meet baseline."
+      ],
+      "manual_commands": [
+        "net accounts",
+        "secedit /export /cfg C:\\Temp\\secpol.cfg"
+      ],
+      "requires_external": []
+    },
+    {
+      "control_id": "AC.L2-3.1.10",
+      "support_level": "STRONG",
+      "evidence_files": [
+        "policy/secpol.cfg",
+        "policy/rsop.xml"
+      ],
+      "validation_hints": [
+        "Validate inactivity/session lock policy is configured and effective (RSOP)."
+      ],
+      "manual_commands": [
+        "gpresult /x C:\\Temp\\rsop.xml /f",
+        "secedit /export /cfg C:\\Temp\\secpol.cfg"
+      ],
+      "requires_external": []
+    },
+    {
+      "control_id": "AC.L2-3.1.11",
+      "support_level": "STRONG",
+      "evidence_files": [
+        "network/firewall-rules.txt",
+        "network/listening-ports.txt",
+        "policy/secpol.cfg"
+      ],
+      "validation_hints": [
+        "Validate remote access is controlled (allowed services/ports restricted, policies applied)."
+      ],
+      "manual_commands": [
+        "Get-NetFirewallRule | Select DisplayName,Enabled,Direction,Action,Profile",
+        "Get-NetTCPConnection -State Listen | Select LocalAddress,LocalPort,OwningProcess"
+      ],
+      "requires_external": [
+        "governance:remote-access-policy"
+      ]
+    },
+    {
+      "control_id": "AC.L2-3.1.13",
+      "support_level": "STRONG",
+      "evidence_files": [
+        "network/firewall-rules.txt",
+        "network/firewall-profiles.txt"
+      ],
+      "validation_hints": [
+        "Validate remote access mechanisms are restricted by firewall/profile posture."
+      ],
+      "manual_commands": [
+        "Get-NetFirewallProfile | Format-List Name,Enabled,DefaultInboundAction,DefaultOutboundAction"
+      ],
+      "requires_external": [
+        "governance:remote-access-policy"
+      ]
+    },
+    {
+      "control_id": "AU.L2-3.3.1",
+      "support_level": "STRONG",
+      "evidence_files": [
+        "audit/auditpol.txt",
+        "audit/auditpol-subcategories.txt"
+      ],
+      "validation_hints": [
+        "Validate auditing is enabled for required categories/subcategories."
+      ],
+      "manual_commands": [
+        "auditpol /get /category:*",
+        "auditpol /get /subcategory:* /r"
+      ],
+      "requires_external": []
+    },
+    {
+      "control_id": "AU.L2-3.3.2",
+      "support_level": "STRONG",
+      "evidence_files": [
+        "audit/auditpol-subcategories.txt"
+      ],
+      "validation_hints": [
+        "Validate audit settings support traceability of user actions."
+      ],
+      "manual_commands": [
+        "auditpol /get /subcategory:* /r"
+      ],
+      "requires_external": []
+    },
+    {
+      "control_id": "AU.L2-3.3.4",
+      "support_level": "STRONG",
+      "evidence_files": [
+        "audit/auditpol.txt"
+      ],
+      "validation_hints": [
+        "Validate audit policy supports detection/handling of audit failures (configuration evidence)."
+      ],
+      "manual_commands": [
+        "auditpol /get /category:*"
+      ],
+      "requires_external": [
+        "governance:siem-alerting-procedure"
+      ]
+    },
+    {
+      "control_id": "AU.L2-3.3.6",
+      "support_level": "PARTIAL",
+      "evidence_files": [
+        "audit/auditpol.txt"
+      ],
+      "validation_hints": [
+        "Host evidence shows audit is enabled; log review requires records of periodic review."
+      ],
+      "manual_commands": [
+        "wevtutil gli Security",
+        "Get-WinEvent -ListLog Security"
+      ],
+      "requires_external": [
+        "record:audit-log-review"
+      ]
+    },
+    {
+      "control_id": "AU.L2-3.3.8",
+      "support_level": "STRONG",
+      "evidence_files": [
+        "audit/security-evtx-acl.txt"
+      ],
+      "validation_hints": [
+        "Validate Security.evtx ACLs restrict access to authorized principals."
+      ],
+      "manual_commands": [
+        "icacls %windir%\\System32\\winevt\\Logs\\Security.evtx"
+      ],
+      "requires_external": []
+    },
+    {
+      "control_id": "AU.L2-3.3.9",
+      "support_level": "STRONG",
+      "evidence_files": [
+        "policy/secpol.cfg"
+      ],
+      "validation_hints": [
+        "Validate only authorized roles can manage audit functionality (user rights assignments)."
+      ],
+      "manual_commands": [
+        "secedit /export /cfg C:\\Temp\\secpol.cfg"
+      ],
+      "requires_external": [
+        "governance:role-assignment-matrix"
+      ]
+    },
+    {
+      "control_id": "CM.L2-3.4.1",
+      "support_level": "STRONG",
+      "evidence_files": [
+        "policy/secpol.cfg",
+        "policy/rsop.xml",
+        "meta/manifest.json"
+      ],
+      "validation_hints": [
+        "Validate baseline configuration exists and is recorded; RSOP supports effective state."
+      ],
+      "manual_commands": [
+        "gpresult /x C:\\Temp\\rsop.xml /f",
+        "secedit /export /cfg C:\\Temp\\secpol.cfg"
+      ],
+      "requires_external": [
+        "governance:baseline-standard"
+      ]
+    },
+    {
+      "control_id": "CM.L2-3.4.2",
+      "support_level": "STRONG",
+      "evidence_files": [
+        "policy/rsop.xml",
+        "policy/gpresult.html"
+      ],
+      "validation_hints": [
+        "Validate configuration settings are enforced via effective policy (RSOP/gpresult)."
+      ],
+      "manual_commands": [
+        "gpresult /h C:\\Temp\\gpresult.html /f",
+        "gpresult /x C:\\Temp\\rsop.xml /f"
+      ],
+      "requires_external": []
+    },
+    {
+      "control_id": "CM.L2-3.4.3",
+      "support_level": "PARTIAL",
+      "evidence_files": [
+        "meta/collector-transcript.txt"
+      ],
+      "validation_hints": [
+        "Evidence run shows state capture; formal change control requires approved change records."
+      ],
+      "manual_commands": [
+        "(Get-Date).ToString('o')"
+      ],
+      "requires_external": [
+        "record:change-log",
+        "governance:change-management-procedure"
+      ]
+    },
+    {
+      "control_id": "CM.L2-3.4.6",
+      "support_level": "STRONG",
+      "evidence_files": [
+        "network/listening-ports.txt",
+        "services/services.txt",
+        "software/software-inventory.txt"
+      ],
+      "validation_hints": [
+        "Validate only necessary services/software are installed and listening ports align with SSP/baseline."
+      ],
+      "manual_commands": [
+        "Get-Service | Sort Status,Name",
+        "Get-NetTCPConnection -State Listen | Sort LocalPort"
+      ],
+      "requires_external": [
+        "governance:ssp-service-justification"
+      ]
+    },
+    {
+      "control_id": "CM.L2-3.4.7",
+      "support_level": "STRONG",
+      "evidence_files": [
+        "apps/applocker-policy.txt"
+      ],
+      "validation_hints": [
+        "Validate restrictions on nonessential programs are implemented via application control."
+      ],
+      "manual_commands": [
+        "Get-AppLockerPolicy -Effective -Xml"
+      ],
+      "requires_external": [
+        "governance:application-control-standard"
+      ]
+    },
+    {
+      "control_id": "CM.L2-3.4.8",
+      "support_level": "STRONG",
+      "evidence_files": [
+        "network/firewall-profiles.txt",
+        "network/firewall-rules.txt"
+      ],
+      "validation_hints": [
+        "Validate deny-by-default inbound firewall posture with explicit exceptions."
+      ],
+      "manual_commands": [
+        "Get-NetFirewallProfile | Select Name,Enabled,DefaultInboundAction,DefaultOutboundAction"
+      ],
+      "requires_external": []
+    },
+    {
+      "control_id": "IA.L2-3.5.2",
+      "support_level": "STRONG",
+      "evidence_files": [
+        "policy/secpol.cfg",
+        "policy/local-accounts.txt"
+      ],
+      "validation_hints": [
+        "Validate users are authenticated prior to access (local policy posture)."
+      ],
+      "manual_commands": [
+        "whoami",
+        "secedit /export /cfg C:\\Temp\\secpol.cfg"
+      ],
+      "requires_external": []
+    },
+    {
+      "control_id": "IA.L2-3.5.3",
+      "support_level": "PARTIAL",
+      "evidence_files": [],
+      "validation_hints": [
+        "Host bundle cannot prove MFA; requires IdP/Entra policy exports or MFA enforcement evidence."
+      ],
+      "manual_commands": [],
+      "requires_external": [
+        "external:idp-mfa-policy-export",
+        "record:mfa-enforcement-test"
+      ]
+    },
+    {
+      "control_id": "IA.L2-3.5.4",
+      "support_level": "PARTIAL",
+      "evidence_files": [
+        "policy/secpol.cfg"
+      ],
+      "validation_hints": [
+        "Replay resistance typically depends on authentication protocols; host policy alone may be insufficient."
+      ],
+      "manual_commands": [
+        "klist",
+        "nltest /sc_query:%USERDOMAIN%"
+      ],
+      "requires_external": [
+        "architecture:auth-protocol-design"
+      ]
+    },
+    {
+      "control_id": "IA.L2-3.5.6",
+      "support_level": "PARTIAL",
+      "evidence_files": [
+        "network/firewall-rules.txt"
+      ],
+      "validation_hints": [
+        "Host evidence shows access paths; MFA for non-local access requires IdP proof."
+      ],
+      "manual_commands": [
+        "Get-NetFirewallRule | ? Direction -eq 'Inbound' | Select DisplayName,Action,Enabled"
+      ],
+      "requires_external": [
+        "external:idp-mfa-policy-export"
+      ]
+    },
+    {
+      "control_id": "IA.L2-3.5.7",
+      "support_level": "STRONG",
+      "evidence_files": [
+        "policy/secpol.cfg"
+      ],
+      "validation_hints": [
+        "Validate password complexity settings are enabled."
+      ],
+      "manual_commands": [
+        "net accounts",
+        "secedit /export /cfg C:\\Temp\\secpol.cfg"
+      ],
+      "requires_external": []
+    },
+    {
+      "control_id": "IA.L2-3.5.8",
+      "support_level": "STRONG",
+      "evidence_files": [
+        "policy/secpol.cfg"
+      ],
+      "validation_hints": [
+        "Validate password history is enforced (no reuse)."
+      ],
+      "manual_commands": [
+        "net accounts"
+      ],
+      "requires_external": []
+    },
+    {
+      "control_id": "MP.L2-3.8.6",
+      "support_level": "PARTIAL",
+      "evidence_files": [
+        "storage/bitlocker-status.txt"
+      ],
+      "validation_hints": [
+        "Host encryption supports media protection; backups require backup process + media handling records."
+      ],
+      "manual_commands": [
+        "Get-BitLockerVolume",
+        "manage-bde -status"
+      ],
+      "requires_external": [
+        "governance:backup-policy",
+        "record:backup-job-reports"
+      ]
+    },
+    {
+      "control_id": "SC.L2-3.13.1",
+      "support_level": "STRONG",
+      "evidence_files": [
+        "network/firewall-profiles.txt",
+        "network/firewall-rules.txt"
+      ],
+      "validation_hints": [
+        "Validate boundary protections via host firewall posture and rule set."
+      ],
+      "manual_commands": [
+        "Get-NetFirewallProfile",
+        "Get-NetFirewallRule"
+      ],
+      "requires_external": [
+        "architecture:network-boundary-diagram"
+      ]
+    },
+    {
+      "control_id": "SC.L2-3.13.5",
+      "support_level": "PARTIAL",
+      "evidence_files": [
+        "network/listening-ports.txt"
+      ],
+      "validation_hints": [
+        "Listening ports help validate segmentation intent; full subnetwork design requires architecture evidence."
+      ],
+      "manual_commands": [
+        "Get-NetTCPConnection -State Listen"
+      ],
+      "requires_external": [
+        "architecture:network-segmentation"
+      ]
+    },
+    {
+      "control_id": "SC.L2-3.13.8",
+      "support_level": "PARTIAL",
+      "evidence_files": [
+        "crypto/fips.txt"
+      ],
+      "validation_hints": [
+        "Crypto posture supported by FIPS setting; cryptographic protections and key management require governance/architecture."
+      ],
+      "manual_commands": [
+        "Get-ItemProperty HKLM:\\System\\CurrentControlSet\\Control\\Lsa\\FipsAlgorithmPolicy | Select Enabled"
+      ],
+      "requires_external": [
+        "governance:crypto-policy",
+        "governance:key-management-procedure"
+      ]
+    },
+    {
+      "control_id": "SC.L2-3.13.11",
+      "support_level": "STRONG",
+      "evidence_files": [
+        "crypto/fips.txt"
+      ],
+      "validation_hints": [
+        "Validate FIPS mode enabled where required."
+      ],
+      "manual_commands": [
+        "Get-ItemProperty HKLM:\\System\\CurrentControlSet\\Control\\Lsa\\FipsAlgorithmPolicy | Select Enabled"
+      ],
+      "requires_external": []
+    },
+    {
+      "control_id": "SC.L2-3.13.16",
+      "support_level": "STRONG",
+      "evidence_files": [
+        "storage/bitlocker-status.txt"
+      ],
+      "validation_hints": [
+        "Validate data-at-rest protection via BitLocker status."
+      ],
+      "manual_commands": [
+        "Get-BitLockerVolume",
+        "manage-bde -status C:"
+      ],
+      "requires_external": [
+        "governance:encryption-standard"
+      ]
+    },
+    {
+      "control_id": "SI.L2-3.14.1",
+      "support_level": "PARTIAL",
+      "evidence_files": [
+        "software/software-inventory.txt",
+        "software/installed-updates.txt"
+      ],
+      "validation_hints": [
+        "Inventory/patch state supports flaw remediation; requires patch management process records."
+      ],
+      "manual_commands": [
+        "Get-HotFix",
+        "wmic qfe list brief /format:table"
+      ],
+      "requires_external": [
+        "governance:patch-management-policy",
+        "record:patch-cycle-reports"
+      ]
+    },
+    {
+      "control_id": "SI.L2-3.14.2",
+      "support_level": "STRONG",
+      "evidence_files": [
+        "defender/defender-status.txt",
+        "defender/defender-preferences.txt"
+      ],
+      "validation_hints": [
+        "Validate malware protections are enabled and configured."
+      ],
+      "manual_commands": [
+        "Get-MpComputerStatus",
+        "Get-MpPreference"
+      ],
+      "requires_external": []
+    },
+    {
+      "control_id": "SI.L2-3.14.4",
+      "support_level": "PARTIAL",
+      "evidence_files": [
+        "defender/defender-status.txt"
+      ],
+      "validation_hints": [
+        "Signature state supports updates; requires update cadence/process evidence."
+      ],
+      "manual_commands": [
+        "Get-MpComputerStatus | Select AntivirusSignatureLastUpdated,AntispywareSignatureLastUpdated"
+      ],
+      "requires_external": [
+        "record:av-update-cadence"
+      ]
+    },
+    {
+      "control_id": "SI.L2-3.14.5",
+      "support_level": "PARTIAL",
+      "evidence_files": [
+        "defender/defender-preferences.txt"
+      ],
+      "validation_hints": [
+        "Scan settings support periodic scans; requires schedule/report records for full closure."
+      ],
+      "manual_commands": [
+        "Get-MpPreference | Select ScanScheduleDay,ScanScheduleTime"
+      ],
+      "requires_external": [
+        "record:scan-reports"
+      ]
+    }
+  ]
+}

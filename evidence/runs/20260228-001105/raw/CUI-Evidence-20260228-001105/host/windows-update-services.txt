@@ -1,0 +1,11 @@
+﻿
+Name          Status StartType
+----          ------ ---------
+BITS         Stopped    Manual
+UsoSvc       Running Automatic
+WaaSMedicSvc Stopped    Manual
+wuauserv     Stopped    Manual
+
+
+
+

@@ -73,6 +73,7 @@ export default function NewEvidencePage() {
             <option value="training_record">Training record</option>
             <option value="incident_report">Incident report</option>
             <option value="risk_report">Risk report</option>
+            <option value="attestation">Attestation</option>
             <option value="other">Other</option>
           </select>
         </div>

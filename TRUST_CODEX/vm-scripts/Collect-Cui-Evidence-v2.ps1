@@ -534,16 +534,57 @@ $controlMapping = @{
 Write-Json -Path (Join-Path $dirMeta "control-mapping.stub.json") -Object $controlMapping
 
 # -----------------------------
-# Hashes + manifest
+# Finalize transcript, then hash every file (100% coverage)
+# Order: Stop-Transcript -> all outputs written -> enumerate -> hash -> write hashes -> write manifest -> optional zip
 # -----------------------------
-# Collect file list excluding ZIP (not created yet) and transcript stop marker.
+try { Stop-Transcript | Out-Null } catch {}
+
+# README and bundle hint written before hashing so they are included in the bundle and hashed
+Write-Text -Path (Join-Path $bundleRoot "README.txt") -Content @"
+CUI Evidence Bundle (Elite v2)
+RunId: $RunId
+Collected: $($now.ToString("F"))
+Host: $($env:COMPUTERNAME)
+Admin: $($collector.host.is_admin)
+
+Folders:
+- host      : system metadata, patches, software, services
+- policy    : local policy exports (secpol), users/groups, UAC/LSA/NTLM, RSOP
+- audit     : auditpol + eventlog configuration + samples + ACLs
+- network   : firewall posture, listening ports, SMB posture, RDP config
+- crypto    : FIPS + TLS posture
+- defender  : Defender status/prefs/threat/scan ages
+- storage   : BitLocker + removable storage/USB posture
+- apps      : AppLocker policy
+
+Integrity:
+- meta/hashes.sha256.txt provides SHA-256 hashes for every file in the bundle
+- meta/manifest.json provides a machine-readable manifest (files[] matches hash coverage)
+
+How to test:
+- Verify manifest file count equals hash file count: compare length of meta/manifest.json "files" array to number of lines in meta/hashes.sha256.txt (should be equal).
+- Verify every file under the bundle root appears in meta/hashes.sha256.txt: list all files under the run folder (excluding any .zip in the parent OutRoot) and confirm each path appears in hashes.sha256.txt (paths use forward slashes).
+"@
+
+# Stable bundle root hint for backend ingestion (same RunId/timestamp as collector.json and manifest)
+$bundleHint = @{
+  schema = "bundle.v1"
+  run_id = $RunId
+  bundle_root = "$RunId/"
+  collector_name = "Collect-Cui-Evidence-v2"
+  collector_version = "2.0.0"
+  collected_at = ($now.ToString("o"))
+}
+Write-Json -Path (Join-Path $dirMeta "bundle.json") -Object $bundleHint
+
+# Enumerate EVERY file under bundle root (after transcript + README + bundle.json); exclude nothing except .zip (zip lives in OutRoot, not in bundle)
 $allFiles = Get-ChildItem -LiteralPath $bundleRoot -Recurse -File | Where-Object { $_.Name -notmatch "\.zip$" }
 
 $hashLines = @()
 $fileManifest = @()
-
 foreach ($f in $allFiles) {
-  $rel = $f.FullName.Substring($bundleRoot.Length).TrimStart("\")
+  # Normalize path to forward slashes for portable, consistent hashes and manifest
+  $rel = $f.FullName.Substring($bundleRoot.Length).TrimStart("\").Replace("\", "/")
   $sha = Get-Sha256 $f.FullName
   $hashLines += ("{0}  {1}" -f $sha, $rel)
   $fileManifest += @{
@@ -568,44 +609,20 @@ $manifest = @{
   command_results = $results
   warnings = $warnings
 }
-
 Write-Json -Path (Join-Path $dirMeta "manifest.json") -Object $manifest
-Write-Text -Path (Join-Path $bundleRoot "README.txt") -Content @"
-CUI Evidence Bundle (Elite v2)
-RunId: $RunId
-Collected: $($now.ToString("F"))
-Host: $($env:COMPUTERNAME)
-Admin: $($collector.host.is_admin)
 
-Folders:
-- host      : system metadata, patches, software, services
-- policy    : local policy exports (secpol), users/groups, UAC/LSA/NTLM, RSOP
-- audit     : auditpol + eventlog configuration + samples + ACLs
-- network   : firewall posture, listening ports, SMB posture, RDP config
-- crypto    : FIPS + TLS posture
-- defender  : Defender status/prefs/threat/scan ages
-- storage   : BitLocker + removable storage/USB posture
-- apps      : AppLocker policy
-
-Integrity:
-- meta\hashes.sha256.txt provides SHA-256 hashes for every file
-- meta\manifest.json provides a machine-readable manifest for your Governance Portal
-"@
-
-# Optional ZIP
+# Optional ZIP (unchanged; zip is created in OutRoot. Log to OutRoot so bundle stays 100% hashed.)
 if ($CreateZip) {
   try {
     $zipPath = Join-Path $OutRoot ("{0}.zip" -f $RunId)
     if (Test-Path -LiteralPath $zipPath) { Remove-Item -LiteralPath $zipPath -Force }
     Compress-Archive -Path $bundleRoot -DestinationPath $zipPath -Force
-    Write-Text -Path (Join-Path $dirMeta "zip-created.txt") -Content ("Created ZIP: {0}" -f $zipPath)
+    Write-Text -Path (Join-Path $OutRoot ("{0}-zip-created.txt" -f $RunId)) -Content ("Created ZIP: {0}" -f $zipPath)
   } catch {
     $warnings += "Failed to create ZIP: $($_.Exception.Message)"
-    Write-Text -Path (Join-Path $dirMeta "zip-created.txt") -Content ("ZIP ERROR: {0}" -f $_.Exception.Message)
+    Write-Text -Path (Join-Path $OutRoot ("{0}-zip-created.txt" -f $RunId)) -Content ("ZIP ERROR: {0}" -f $_.Exception.Message)
   }
 }
-
-try { Stop-Transcript | Out-Null } catch {}
 
 Write-Host ""
 Write-Host "✅ Evidence bundle created at: $bundleRoot"

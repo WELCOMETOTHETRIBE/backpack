@@ -1,0 +1,3 @@
+﻿<AppLockerPolicy Version="1"><RuleCollection Type="Dll" EnforcementMode="NotConfigured"><RuleCollectionExtensions><ThresholdExtensions /><RedstoneExtensions><SystemApps Allow="Enabled" /></RedstoneExtensions></RuleCollectionExtensions></RuleCollection><RuleCollection Type="Exe" EnforcementMode="NotConfigured"><RuleCollectionExtensions><ThresholdExtensions /><RedstoneExtensions><SystemApps Allow="Enabled" /></RedstoneExtensions></RuleCollectionExtensions></RuleCollection></AppLockerPolicy>
+
+

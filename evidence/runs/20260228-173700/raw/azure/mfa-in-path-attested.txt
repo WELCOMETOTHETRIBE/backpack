@@ -1,0 +1,1 @@
+MFA is enforced in the enclave access path. Access to the VM requires VPN with Entra sign-in (MFA) or Azure AD login for RDP, or Azure Bastion. Date: 2026-02-28.

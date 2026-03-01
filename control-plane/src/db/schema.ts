@@ -7,6 +7,7 @@ import {
   integer,
   jsonb,
   uniqueIndex,
+  index,
   primaryKey,
   varchar,
   date,
@@ -106,12 +107,30 @@ export const governanceEvidenceTypeEnum = pgEnum("governance_evidence_type", [
   "training_record",
   "incident_report",
   "risk_report",
+  "attestation",
   "other",
 ]);
 export const governanceControlLinkTypeEnum = pgEnum("governance_control_link_type", [
   "document",
   "register_entry",
   "evidence",
+]);
+
+// ============== OS Baselines (technical implementation plane) ==============
+export const osFamilyEnum = pgEnum("os_family", [
+  "windows_server",
+  "windows_client",
+  "linux",
+]);
+export const osAssetRoleEnum = pgEnum("os_asset_role", [
+  "member_server",
+  "domain_controller",
+  "workstation",
+]);
+export const baselineControlApplicabilityEnum = pgEnum("baseline_control_applicability", [
+  "required",
+  "conditional",
+  "na_by_default",
 ]);
 
 export const roles = pgTable("roles", {
@@ -144,6 +163,8 @@ export const controlRecords = pgTable(
     lastValidationDate: timestamp("last_validation_date", { withTimezone: true }),
     /** ConMon: review cadence for "due for review" (Quarterly = 90d, Monthly = 30d, Annual = 365d). */
     monitoringCadence: monitoringCadenceEnum("monitoring_cadence"),
+    /** Hybrid controls: user-modifiable satisfaction of the two criteria (technical/OS + governance). */
+    hybridSatisfaction: jsonb("hybrid_satisfaction").$type<{ technical?: boolean; governance?: boolean }>(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
@@ -182,6 +203,26 @@ export const artifacts = pgTable("artifacts", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+/** Non-upload governance artifact completion (REFERENCE, ATTESTATION, SYSTEM_POINTER). UPLOAD is stored in artifacts. */
+export const governanceArtifactCompletions = pgTable(
+  "governance_artifact_completions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id").references(() => organizations.id, { onDelete: "cascade" }).notNull(),
+    controlRecordId: uuid("control_record_id").references(() => controlRecords.id, { onDelete: "cascade" }).notNull(),
+    artifactLabel: varchar("artifact_label", { length: 255 }).notNull(),
+    artifactType: varchar("artifact_type", { length: 32 }).notNull(), // REFERENCE | ATTESTATION | SYSTEM_POINTER
+    valueText: text("value_text"),
+    attestedBy: uuid("attested_by").references(() => users.id),
+    attestedAt: timestamp("attested_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    uniqueIndex("governance_artifact_completions_record_label").on(t.controlRecordId, t.artifactLabel),
+  ]
+);
+
 export const technicalEvidence = pgTable("technical_evidence", {
   id: uuid("id").primaryKey().defaultRandom(),
   organizationId: uuid("organization_id").references(() => organizations.id).notNull(),
@@ -206,6 +247,10 @@ export const poamEntries = pgTable("poam_entries", {
   remediationPlan: text("remediation_plan"),
   scheduledCompletionDate: date("scheduled_completion_date"),
   responsibleRoleId: uuid("responsible_role_id").references(() => roles.id),
+  /** Set when status becomes closed (manual or auto-close). */
+  closedAt: timestamp("closed_at", { withTimezone: true }),
+  /** Explanation for closure; e.g. "User uploaded required attestation to Governance > Evidence (title)." */
+  closeoutEvidence: text("closeout_evidence"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
@@ -263,6 +308,174 @@ export const boundaryProfiles = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   }
 );
+
+// ============== Boundary Engine: one boundary per account (organization) ==============
+/** One row per organization: current boundary input and last allocation hash. */
+export const accountBoundary = pgTable(
+  "account_boundary",
+  {
+    accountId: uuid("account_id")
+      .primaryKey()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    boundaryId: text("boundary_id").notNull(),
+    providerKey: text("provider_key").notNull(),
+    environmentKey: text("environment_key").notNull(),
+    hostingModel: text("hosting_model").notNull(),
+    boundaryInputJson: jsonb("boundary_input_json").$type<Record<string, unknown>>().notNull(),
+    allocationHashCurrent: text("allocation_hash_current"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [index("account_boundary_provider_env_idx").on(t.providerKey, t.environmentKey)]
+);
+
+/** Append-only allocation snapshots per account. */
+export const boundarySnapshots = pgTable(
+  "boundary_snapshots",
+  {
+    snapshotId: text("snapshot_id").primaryKey(),
+    accountId: uuid("account_id")
+      .references(() => accountBoundary.accountId, { onDelete: "cascade" })
+      .notNull(),
+    boundaryId: text("boundary_id").notNull(),
+    allocationHash: text("allocation_hash").notNull(),
+    registryVersion: text("registry_version").notNull().default(""),
+    snapshotMetadataJson: jsonb("snapshot_metadata_json").$type<Record<string, unknown>>().notNull(),
+    snapshotJson: jsonb("snapshot_json").$type<Record<string, unknown>>().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    snapshotSignature: text("snapshot_signature"),
+    evidenceRunFingerprints: jsonb("evidence_run_fingerprints").$type<string[]>(),
+    coverageSource: text("coverage_source"),
+    coverageEvidenceRunId: text("coverage_evidence_run_id"),
+    coverageRunFingerprint: text("coverage_run_fingerprint"),
+    coverageCollectedAt: timestamp("coverage_collected_at", { withTimezone: true }),
+    coverageHash: text("coverage_hash"),
+    coverageTotals: jsonb("coverage_totals").$type<{
+      enclave_controls: number;
+      pass_fresh: number;
+      pass_stale: number;
+      pass_unknown_layer: number;
+      fail: number;
+      no_finding: number;
+    }>(),
+    coverageTopGaps: jsonb("coverage_top_gaps").$type<{
+      unknown_layer: string[];
+      stale: string[];
+      failed: string[];
+      no_finding: string[];
+    }>(),
+  },
+  (t) => [
+    index("boundary_snapshots_account_created_idx").on(t.accountId, t.createdAt),
+    index("boundary_snapshots_snapshot_signature_idx").on(t.snapshotSignature),
+    index("boundary_snapshots_coverage_hash_idx").on(t.coverageHash),
+    index("boundary_snapshots_coverage_run_fp_idx").on(t.coverageRunFingerprint),
+  ]
+);
+
+/** Drift and allocation-change events per boundary (CONMON). */
+export const boundaryEvents = pgTable(
+  "boundary_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    accountId: uuid("account_id")
+      .references(() => accountBoundary.accountId, { onDelete: "cascade" })
+      .notNull(),
+    boundaryId: text("boundary_id").notNull(),
+    eventType: text("event_type").notNull(),
+    payload: jsonb("payload").$type<Record<string, unknown>>(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    index("boundary_events_account_created_idx").on(t.accountId, t.createdAt),
+    index("boundary_events_boundary_id_idx").on(t.boundaryId),
+  ]
+);
+
+/** CUI enclave / segment (OS Baselines pillar). */
+export const boundaries = pgTable("boundary", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id")
+    .references(() => organizations.id, { onDelete: "cascade" })
+    .notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  /** In-scope components: microsoft_office, windows_server_vm, azure_cloud. */
+  scopeComponents: jsonb("scope_components").$type<string[]>(),
+  /** When azure_cloud is in scope_components: gov | commercial. */
+  azureEnvironment: varchar("azure_environment", { length: 32 }),
+  /** Optional cloud hosting: none | microsoft | google | azure. When microsoft/azure, scope/azure env can apply. */
+  cloudProvider: varchar("cloud_provider", { length: 32 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+/** Baseline template for an OS type/role (e.g. Windows Server 2025 Member Server). */
+export const osBaselineProfiles = pgTable("baseline_profile", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: varchar("name", { length: 255 }).notNull(),
+  version: varchar("version", { length: 50 }).notNull(),
+  osFamily: osFamilyEnum("os_family").notNull(),
+  osVersion: varchar("os_version", { length: 50 }).notNull(),
+  role: osAssetRoleEnum("role").notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+/** Which controls apply to a baseline. */
+export const baselineControls = pgTable(
+  "baseline_control",
+  {
+    baselineProfileId: uuid("baseline_profile_id")
+      .notNull()
+      .references(() => osBaselineProfiles.id, { onDelete: "cascade" }),
+    controlId: text("control_id").notNull(),
+    applicability: baselineControlApplicabilityEnum("applicability").notNull(),
+    rationale: text("rationale"),
+  },
+  (t) => [primaryKey({ columns: [t.baselineProfileId, t.controlId] })]
+);
+
+/** Per-check expected setting and evidence (within a baseline). */
+export const baselineChecks = pgTable(
+  "baseline_check",
+  {
+    baselineProfileId: uuid("baseline_profile_id")
+      .notNull()
+      .references(() => osBaselineProfiles.id, { onDelete: "cascade" }),
+    checkId: varchar("check_id", { length: 120 }).notNull(),
+    controlId: text("control_id").notNull(),
+    expectedSetting: text("expected_setting").notNull(),
+    evidenceRequiredFiles: jsonb("evidence_required_files").$type<string[]>().notNull().default([]),
+    validation: jsonb("validation"), // regex/threshold/value rules
+    remediationGuidance: text("remediation_guidance"),
+    manualCommands: jsonb("manual_commands").$type<string[]>(),
+  },
+  (t) => [uniqueIndex("baseline_check_profile_check_idx").on(t.baselineProfileId, t.checkId)]
+);
+
+/** Host inside a boundary (OS Baselines pillar). */
+export const osAssets = pgTable("os_asset", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id")
+    .references(() => organizations.id, { onDelete: "cascade" })
+    .notNull(),
+  boundaryId: uuid("boundary_id")
+    .references(() => boundaries.id, { onDelete: "cascade" })
+    .notNull(),
+  hostname: varchar("hostname", { length: 255 }).notNull(),
+  osFamily: osFamilyEnum("os_family").notNull(),
+  osVersion: varchar("os_version", { length: 50 }).notNull(),
+  role: osAssetRoleEnum("role").notNull(),
+  baselineProfileId: uuid("baseline_profile_id").references(() => osBaselineProfiles.id, {
+    onDelete: "set null",
+  }),
+  owner: varchar("owner", { length: 255 }),
+  tags: jsonb("tags").$type<string[]>(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -757,6 +970,7 @@ export const governanceControlLinks = pgTable(
 
 // ============== Relations ==============
 export const organizationsRelations = relations(organizations, ({ one, many }) => ({
+  accountBoundary: one(accountBoundary),
   boundaryProfile: one(boundaryProfiles),
   users: many(users),
   userInvitations: many(userInvitations),
@@ -781,10 +995,52 @@ export const organizationsRelations = relations(organizations, ({ one, many }) =
   governanceDocuments: many(governanceDocuments),
   governanceRegisters: many(governanceRegisters),
   governanceEvidenceItems: many(governanceEvidenceItems),
+  boundaries: many(boundaries),
+  osAssets: many(osAssets),
 }));
 
 export const boundaryProfilesRelations = relations(boundaryProfiles, ({ one }) => ({
   organization: one(organizations),
+}));
+
+export const accountBoundaryRelations = relations(accountBoundary, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [accountBoundary.accountId],
+    references: [organizations.id],
+  }),
+  snapshots: many(boundarySnapshots),
+}));
+
+export const boundarySnapshotsRelations = relations(boundarySnapshots, ({ one }) => ({
+  accountBoundary: one(accountBoundary, {
+    fields: [boundarySnapshots.accountId],
+    references: [accountBoundary.accountId],
+  }),
+}));
+
+export const boundariesRelations = relations(boundaries, ({ one, many }) => ({
+  organization: one(organizations),
+  osAssets: many(osAssets),
+}));
+
+export const osBaselineProfilesRelations = relations(osBaselineProfiles, ({ many }) => ({
+  baselineControls: many(baselineControls),
+  baselineChecks: many(baselineChecks),
+  osAssets: many(osAssets),
+}));
+
+export const baselineControlsRelations = relations(baselineControls, ({ one }) => ({
+  baselineProfile: one(osBaselineProfiles),
+}));
+
+export const baselineChecksRelations = relations(baselineChecks, ({ one }) => ({
+  baselineProfile: one(osBaselineProfiles),
+}));
+
+export const osAssetsRelations = relations(osAssets, ({ one }) => ({
+  organization: one(organizations),
+  boundary: one(boundaries),
+  baselineProfile: one(osBaselineProfiles),
 }));
 
 export const usersRelations = relations(users, ({ one, many }) => ({
@@ -909,6 +1165,7 @@ export const controlRecordsRelations = relations(controlRecords, ({ one, many })
   responsibleRole: one(roles),
   assessor: one(users),
   artifacts: many(artifacts),
+  governanceArtifactCompletions: many(governanceArtifactCompletions),
   technicalEvidence: many(technicalEvidence),
   poamEntries: many(poamEntries),
   history: many(controlRecordHistory),
@@ -974,6 +1231,12 @@ export const artifactsRelations = relations(artifacts, ({ one }) => ({
   uploadedByUser: one(users),
 }));
 
+export const governanceArtifactCompletionsRelations = relations(governanceArtifactCompletions, ({ one }) => ({
+  organization: one(organizations),
+  controlRecord: one(controlRecords),
+  attestedByUser: one(users, { fields: [governanceArtifactCompletions.attestedBy], references: [users.id] }),
+}));
+
 export const technicalEvidenceRelations = relations(technicalEvidence, ({ one }) => ({
   organization: one(organizations),
   controlRecord: one(controlRecords),
@@ -996,3 +1259,11 @@ export const poamEntriesRelations = relations(poamEntries, ({ one, many }) => ({
   milestones: many(poamEntryMilestones),
   closureApprovals: many(poamEntryClosureApprovals),
 }));
+
+// ============== Evidence runs (metadata-only) ==============
+export {
+  evidenceRuns,
+  evidenceFiles,
+  evidenceControlTechnicalStatus,
+  evidenceFindings,
+} from "../../drizzle/schema.evidence";

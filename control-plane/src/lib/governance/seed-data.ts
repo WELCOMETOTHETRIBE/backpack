@@ -3,19 +3,48 @@
  * and document master list (required doc keys for "missing required docs").
  */
 
+import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
+
 export const PURE_GOV_CONTROL_IDS = [
   "3.1.4", "3.2.1", "3.2.2", "3.2.3", "3.3.3", "3.4.3", "3.4.4",
   "3.6.1", "3.6.2", "3.6.3", "3.7.6", "3.9.1", "3.9.2", "3.11.1",
   "3.12.1", "3.12.2", "3.12.3", "3.12.4",
 ];
 
+/**
+ * 17 controls that require both enclave (OS) evidence and governance adjudication.
+ * Reconciled with OS-Evidence-to-NIST-Control-Manifest-73-73: all 17 are in the 73 enclave manifest.
+ * (Replaced 3.10.1, 3.10.2, 3.10.3, 3.8.3, 3.8.4 — not in 73 — with 3.4.5, 3.13.2, 3.13.3, 3.14.3, 3.7.5.)
+ */
 export const HYBRID_GOV_CONTROL_IDS = [
   "3.1.1", "3.1.2", "3.1.3", "3.1.5", "3.1.6", "3.1.7",
   "3.5.1", "3.5.2", "3.5.3", "3.5.7",
-  "3.10.1", "3.10.2", "3.10.3",
-  "3.8.3", "3.8.4",
-  "3.13.8", "3.13.11",
+  "3.4.5", "3.7.5",
+  "3.13.2", "3.13.3", "3.13.8", "3.13.11",
+  "3.14.3",
 ];
+
+/**
+ * Hybrid controls counted on the Governance page (gov-centric: policy/process focus).
+ */
+export const HYBRID_GOV_CENTRIC_IDS = [
+  "3.1.1", "3.1.2", "3.1.3", "3.1.5", "3.1.6", "3.1.7",
+  "3.4.5", "3.7.5",
+];
+
+/**
+ * Hybrid controls counted on the Technical page (tech-centric: config/implementation focus).
+ */
+export const HYBRID_TECHNICAL_CENTRIC_IDS = [
+  "3.5.1", "3.5.2", "3.5.3", "3.5.7",
+  "3.13.2", "3.13.3", "3.13.8", "3.13.11",
+  "3.14.3",
+];
+
+/** Pure technical controls (all 110 minus 18 pure gov minus 17 hybrid). */
+export const PURE_TECHNICAL_CONTROL_IDS = ALL_CONTROL_IDS.filter(
+  (id) => !PURE_GOV_CONTROL_IDS.includes(id) && !HYBRID_GOV_CONTROL_IDS.includes(id)
+);
 
 export type ControlMetadataSeed = {
   controlId: string;
@@ -109,21 +138,21 @@ export const REGISTER_KEYS = [
 
 export type RegisterColumn = { key: string; label: string; type: string };
 
-export const REGISTER_DEFINITIONS: { registerKey: string; name: string; requiredColumns: RegisterColumn[]; retainForDays?: number }[] = [
-  { registerKey: "access_authorizations", name: "Access Authorization Register", requiredColumns: [{ key: "person", label: "Person", type: "string" }, { key: "role", label: "Role", type: "string" }, { key: "granted_date", label: "Granted Date", type: "date" }, { key: "expires_date", label: "Expires Date", type: "date" }], retainForDays: 365 * 3 },
-  { registerKey: "role_assignment_matrix", name: "Role Assignment Matrix", requiredColumns: [{ key: "role", label: "Role", type: "string" }, { key: "assignments", label: "Assignments", type: "string" }, { key: "review_date", label: "Review Date", type: "date" }], retainForDays: 365 * 3 },
-  { registerKey: "separation_of_duties_matrix", name: "Separation of Duties Matrix", requiredColumns: [{ key: "duty_pair", label: "Duty Pair", type: "string" }, { key: "status", label: "Status", type: "string" }, { key: "review_date", label: "Review Date", type: "date" }], retainForDays: 365 * 3 },
-  { registerKey: "training_completion", name: "Training Completion Register", requiredColumns: [{ key: "person", label: "Person", type: "string" }, { key: "training", label: "Training", type: "string" }, { key: "completed_date", label: "Completed Date", type: "date" }], retainForDays: 365 * 3 },
-  { registerKey: "incident_log", name: "Incident Log Register", requiredColumns: [{ key: "date", label: "Date", type: "date" }, { key: "description", label: "Description", type: "string" }, { key: "resolution", label: "Resolution", type: "string" }], retainForDays: 365 * 7 },
-  { registerKey: "change_log", name: "Change Log", requiredColumns: [{ key: "date", label: "Date", type: "date" }, { key: "change", label: "Change", type: "string" }, { key: "approval", label: "Approval", type: "string" }], retainForDays: 365 * 3 },
-  { registerKey: "risk_register", name: "Risk Register", requiredColumns: [{ key: "risk", label: "Risk", type: "string" }, { key: "severity", label: "Severity", type: "string" }, { key: "mitigation", label: "Mitigation", type: "string" }], retainForDays: 365 * 3 },
-  { registerKey: "poam_tracker", name: "POA&M Tracker", requiredColumns: [{ key: "finding", label: "Finding", type: "string" }, { key: "due_date", label: "Due Date", type: "date" }, { key: "status", label: "Status", type: "string" }], retainForDays: 365 * 7 },
-  { registerKey: "control_monitoring_log", name: "Control Monitoring Log", requiredColumns: [{ key: "control_id", label: "Control ID", type: "string" }, { key: "review_date", label: "Review Date", type: "date" }, { key: "result", label: "Result", type: "string" }], retainForDays: 365 * 3 },
-  { registerKey: "maintenance_log", name: "Maintenance Activity Log", requiredColumns: [{ key: "date", label: "Date", type: "date" }, { key: "activity", label: "Activity", type: "string" }, { key: "performed_by", label: "Performed By", type: "string" }], retainForDays: 365 * 3 },
-  { registerKey: "personnel_screening", name: "Personnel Screening Log", requiredColumns: [{ key: "person", label: "Person", type: "string" }, { key: "screening_date", label: "Screening Date", type: "date" }, { key: "result", label: "Result", type: "string" }], retainForDays: 365 * 7 },
-  { registerKey: "terminations", name: "Termination Log", requiredColumns: [{ key: "person", label: "Person", type: "string" }, { key: "termination_date", label: "Termination Date", type: "date" }, { key: "access_revoked", label: "Access Revoked", type: "string" }], retainForDays: 365 * 7 },
-  { registerKey: "policy_review_log", name: "Policy Review Log", requiredColumns: [{ key: "document", label: "Document", type: "string" }, { key: "review_date", label: "Review Date", type: "date" }, { key: "reviewer", label: "Reviewer", type: "string" }], retainForDays: 365 * 3 },
-  { registerKey: "audit_log_review_records", name: "Audit Log Review Records", requiredColumns: [{ key: "review_date", label: "Review Date", type: "date" }, { key: "reviewer", label: "Reviewer", type: "string" }, { key: "findings", label: "Findings", type: "string" }], retainForDays: 365 * 3 },
-  { registerKey: "visitor_log", name: "Visitor Log", requiredColumns: [{ key: "date", label: "Date", type: "date" }, { key: "visitor", label: "Visitor", type: "string" }, { key: "purpose", label: "Purpose", type: "string" }], retainForDays: 365 * 3 },
-  { registerKey: "media_destruction_log", name: "Media Destruction Log", requiredColumns: [{ key: "date", label: "Date", type: "date" }, { key: "media", label: "Media", type: "string" }, { key: "method", label: "Method", type: "string" }], retainForDays: 365 * 7 },
+export const REGISTER_DEFINITIONS: { registerKey: string; name: string; description?: string; requiredColumns: RegisterColumn[]; retainForDays?: number }[] = [
+  { registerKey: "access_authorizations", name: "Access Authorization Register", description: "Record who has been granted access to which role and when; required for access control and 3.1.4 separation of duties evidence.", requiredColumns: [{ key: "person", label: "Person", type: "string" }, { key: "role", label: "Role", type: "string" }, { key: "granted_date", label: "Granted Date", type: "date" }, { key: "expires_date", label: "Expires Date", type: "date" }], retainForDays: 365 * 3 },
+  { registerKey: "role_assignment_matrix", name: "Role Assignment Matrix", description: "Document role-to-assignment mappings and review dates for access control evidence.", requiredColumns: [{ key: "role", label: "Role", type: "string" }, { key: "assignments", label: "Assignments", type: "string" }, { key: "review_date", label: "Review Date", type: "date" }], retainForDays: 365 * 3 },
+  { registerKey: "separation_of_duties_matrix", name: "Separation of Duties Matrix", description: "Log duty pairs and review status for separation of duties (3.1.4) evidence.", requiredColumns: [{ key: "duty_pair", label: "Duty Pair", type: "string" }, { key: "status", label: "Status", type: "string" }, { key: "review_date", label: "Review Date", type: "date" }], retainForDays: 365 * 3 },
+  { registerKey: "training_completion", name: "Training Completion Register", description: "Record personnel training completion for awareness and training (3.2.x) evidence.", requiredColumns: [{ key: "person", label: "Person", type: "string" }, { key: "training", label: "Training", type: "string" }, { key: "completed_date", label: "Completed Date", type: "date" }], retainForDays: 365 * 3 },
+  { registerKey: "incident_log", name: "Incident Log Register", description: "Log security incidents, descriptions, and resolutions for incident response evidence.", requiredColumns: [{ key: "date", label: "Date", type: "date" }, { key: "description", label: "Description", type: "string" }, { key: "resolution", label: "Resolution", type: "string" }], retainForDays: 365 * 7 },
+  { registerKey: "change_log", name: "Change Log", description: "Record configuration and system changes with approval for change management evidence.", requiredColumns: [{ key: "date", label: "Date", type: "date" }, { key: "change", label: "Change", type: "string" }, { key: "approval", label: "Approval", type: "string" }], retainForDays: 365 * 3 },
+  { registerKey: "risk_register", name: "Risk Register", description: "Document risks, severity, and mitigations for risk assessment evidence.", requiredColumns: [{ key: "risk", label: "Risk", type: "string" }, { key: "severity", label: "Severity", type: "string" }, { key: "mitigation", label: "Mitigation", type: "string" }], retainForDays: 365 * 3 },
+  { registerKey: "poam_tracker", name: "POA&M Tracker", description: "Track plan of action and milestones: findings, due dates, and status.", requiredColumns: [{ key: "finding", label: "Finding", type: "string" }, { key: "due_date", label: "Due Date", type: "date" }, { key: "status", label: "Status", type: "string" }], retainForDays: 365 * 7 },
+  { registerKey: "control_monitoring_log", name: "Control Monitoring Log", description: "Log control reviews and results for ongoing monitoring evidence.", requiredColumns: [{ key: "control_id", label: "Control ID", type: "string" }, { key: "review_date", label: "Review Date", type: "date" }, { key: "result", label: "Result", type: "string" }], retainForDays: 365 * 3 },
+  { registerKey: "maintenance_log", name: "Maintenance Activity Log", description: "Record maintenance activities, dates, and performers for maintenance policy evidence.", requiredColumns: [{ key: "date", label: "Date", type: "date" }, { key: "activity", label: "Activity", type: "string" }, { key: "performed_by", label: "Performed By", type: "string" }], retainForDays: 365 * 3 },
+  { registerKey: "personnel_screening", name: "Personnel Screening Log", description: "Log personnel screening dates and results for personnel security evidence.", requiredColumns: [{ key: "person", label: "Person", type: "string" }, { key: "screening_date", label: "Screening Date", type: "date" }, { key: "result", label: "Result", type: "string" }], retainForDays: 365 * 7 },
+  { registerKey: "terminations", name: "Termination Log", description: "Record terminations and access revocation for personnel security evidence.", requiredColumns: [{ key: "person", label: "Person", type: "string" }, { key: "termination_date", label: "Termination Date", type: "date" }, { key: "access_revoked", label: "Access Revoked", type: "string" }], retainForDays: 365 * 7 },
+  { registerKey: "policy_review_log", name: "Policy Review Log", description: "Document policy/document reviews and reviewers for document control evidence.", requiredColumns: [{ key: "document", label: "Document", type: "string" }, { key: "review_date", label: "Review Date", type: "date" }, { key: "reviewer", label: "Reviewer", type: "string" }], retainForDays: 365 * 3 },
+  { registerKey: "audit_log_review_records", name: "Audit Log Review Records", description: "Log audit log reviews, reviewers, and findings for audit and accountability evidence.", requiredColumns: [{ key: "review_date", label: "Review Date", type: "date" }, { key: "reviewer", label: "Reviewer", type: "string" }, { key: "findings", label: "Findings", type: "string" }], retainForDays: 365 * 3 },
+  { registerKey: "visitor_log", name: "Visitor Log", description: "Record visitor dates, names, and purpose for physical security evidence.", requiredColumns: [{ key: "date", label: "Date", type: "date" }, { key: "visitor", label: "Visitor", type: "string" }, { key: "purpose", label: "Purpose", type: "string" }], retainForDays: 365 * 3 },
+  { registerKey: "media_destruction_log", name: "Media Destruction Log", description: "Log media destruction date, type, and method for media protection evidence.", requiredColumns: [{ key: "date", label: "Date", type: "date" }, { key: "media", label: "Media", type: "string" }, { key: "method", label: "Method", type: "string" }], retainForDays: 365 * 7 },
 ];

@@ -14,6 +14,20 @@ type Item = {
   isStale: boolean;
 };
 
+const EVIDENCE_TYPE_LABELS: Record<string, string> = {
+  screenshot: "Screenshot",
+  export_file: "Export file",
+  log_snippet: "Log snippet",
+  config_baseline: "Config baseline",
+  policy_export: "Policy export",
+  ticket: "Ticket",
+  training_record: "Training record",
+  incident_report: "Incident report",
+  risk_report: "Risk report",
+  attestation: "Attestation",
+  other: "Other",
+};
+
 export default function EvidenceClient() {
   const searchParams = useSearchParams();
   const evidenceType = searchParams.get("evidence_type") ?? "";
@@ -66,6 +80,7 @@ export default function EvidenceClient() {
           <option value="training_record">Training record</option>
           <option value="incident_report">Incident report</option>
           <option value="risk_report">Risk report</option>
+          <option value="attestation">Attestation</option>
           <option value="other">Other</option>
         </select>
         <label className="ml-4 flex items-center gap-2">
@@ -100,7 +115,7 @@ export default function EvidenceClient() {
                 {(data?.items ?? []).map((item) => (
                   <tr key={item.id} className="border-b border-[var(--color-border-muted)] hover:bg-[var(--color-gray-50)]">
                     <td className="px-4 py-3 font-medium text-[var(--color-gray-900)]">{item.title}</td>
-                    <td className="px-4 py-3 text-[var(--color-gray-600)]">{item.evidenceType}</td>
+                    <td className="px-4 py-3 text-[var(--color-gray-600)]">{EVIDENCE_TYPE_LABELS[item.evidenceType] ?? item.evidenceType}</td>
                     <td className="px-4 py-3 text-[var(--color-gray-600)]">{item.sourceSystem ?? "—"}</td>
                     <td className="px-4 py-3 text-[var(--color-gray-600)]">{new Date(item.collectedAt).toLocaleDateString()}</td>
                     <td className="px-4 py-3 text-[var(--color-gray-600)]">{item.validityEnd ? new Date(item.validityEnd).toLocaleDateString() : "—"}</td>

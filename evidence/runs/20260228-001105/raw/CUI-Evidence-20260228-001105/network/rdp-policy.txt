@@ -1,0 +1,33 @@
+﻿
+
+AllowRemoteRPC                 : 1
+DelayConMgrTimeout             : 0
+DeleteTempDirsOnExit           : 1
+fDenyTSConnections             : 0
+fSingleSessionPerUser          : 1
+NotificationTimeOut            : 0
+PerSessionTempDir              : 1
+ProductVersion                 : 5.1
+RCDependentServices            : {CertPropSvc, SessionEnv}
+SessionDirectoryActive         : 0
+SessionDirectoryCLSID          : {005a9c68-e216-4b27-8f59-b336829b3868}
+SessionDirectoryExCLSID        : {ec98d957-48ad-436d-90be-bc291f42709c}
+SessionDirectoryExposeServerIP : 1
+SnapshotMonitors               : 1
+StartRCM                       : 0
+TSUserEnabled                  : 0
+InstanceID                     : f3a1800a-15eb-4596-8ab8-2a66a6b
+GlassSessionId                 : 1
+LastRemoteLogonTime            : 2026-02-27T21:48:43.170Z
+PSPath                         : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Contro
+                                 l\Terminal Server
+PSParentPath                   : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Contro
+                                 l
+PSChildName                    : Terminal Server
+PSDrive                        : HKLM
+PSProvider                     : Microsoft.PowerShell.Core\Registry
+
+
+
+
+

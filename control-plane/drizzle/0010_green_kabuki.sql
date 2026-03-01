@@ -1,1 +1,1 @@
-ALTER TABLE "mock_assessments" ADD COLUMN "control_ids" jsonb DEFAULT '[]'::jsonb NOT NULL;
+DO $$ BEGIN ALTER TABLE "mock_assessments" ADD COLUMN "control_ids" jsonb DEFAULT '[]'::jsonb NOT NULL; EXCEPTION WHEN duplicate_column THEN NULL; END $$;

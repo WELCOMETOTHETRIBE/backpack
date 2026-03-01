@@ -1,1 +1,1 @@
-ALTER TABLE "technical_evidence" ADD COLUMN "requirement_id" varchar(80);
+DO $$ BEGIN ALTER TABLE "technical_evidence" ADD COLUMN "requirement_id" varchar(80); EXCEPTION WHEN duplicate_column THEN NULL; END $$;

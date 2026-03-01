@@ -1,1 +1,1 @@
-ALTER TABLE "artifacts" ADD COLUMN "storage_key" text;
+DO $$ BEGIN ALTER TABLE "artifacts" ADD COLUMN "storage_key" text; EXCEPTION WHEN duplicate_column THEN NULL; END $$;

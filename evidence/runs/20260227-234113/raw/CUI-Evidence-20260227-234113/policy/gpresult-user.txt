@@ -1,0 +1,54 @@
+﻿
+Microsoft (R) Windows (R) Operating System Group Policy Result tool v2.0
+c Microsoft Corporation. All rights reserved.
+
+Created on ?2/?27/?2026 at 11:41:38 PM
+
+
+RSOP data for cui-win-pilot-0\admin_patrick on cui-win-pilot-0 : Logging Mode
+------------------------------------------------------------------------------
+
+OS Configuration:            Standalone Server
+OS Version:                  10.0.26100
+Site Name:                   N/A
+Roaming Profile:             N/A
+Local Profile:               C:\Users\admin_patrick
+Connected over a slow link?: No
+
+
+USER SETTINGS
+--------------
+    
+    Last time Group Policy was applied: 2/25/2026 at 5:42:51 AM
+    Group Policy was applied from:      N/A
+    Group Policy slow link threshold:   500 kbps
+    Domain Name:                        cui-win-pilot-0
+    Domain Type:                        <Local Computer>
+    
+    Applied Group Policy Objects
+    -----------------------------
+        N/A
+
+    The following GPOs were not applied because they were filtered out
+    -------------------------------------------------------------------
+        Local Group Policy
+            Filtering:  Not Applied (Empty)
+
+    The user is a part of the following security groups
+    ---------------------------------------------------
+        None
+        Everyone
+        Local account and member of Administrators group
+        BUILTIN\Administrators
+        BUILTIN\Users
+        REMOTE INTERACTIVE LOGON
+        NT AUTHORITY\INTERACTIVE
+        NT AUTHORITY\Authenticated Users
+        This Organization
+        Local account
+        LOCAL
+        NTLM Authentication
+        High Mandatory Level
+        
+--- ExitCode: 0 ---
+

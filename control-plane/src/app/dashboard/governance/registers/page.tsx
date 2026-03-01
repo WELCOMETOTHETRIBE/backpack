@@ -1,64 +1,29 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { db } from "@/db";
-import { governanceRegisters, governanceRegisterEntries } from "@/db/schema";
-import { eq, desc, sql } from "drizzle-orm";
 
 export default async function GovernanceRegistersPage() {
   const session = await auth();
   const orgId = (session?.user as { organizationId?: string })?.organizationId;
   if (!orgId) redirect("/auth/signin");
 
-  let list = await db
-    .select()
-    .from(governanceRegisters)
-    .where(eq(governanceRegisters.organizationId, orgId));
-
-  if (list.length === 0) {
-    const templates = await db
-      .select()
-      .from(governanceRegisters)
-      .where(sql`${governanceRegisters.organizationId} IS NULL`);
-    for (const t of templates) {
-      await db.insert(governanceRegisters).values({
-        organizationId: orgId,
-        projectId: null,
-        registerKey: t.registerKey,
-        name: t.name,
-        description: t.description,
-        requiredColumns: t.requiredColumns,
-        retainForDays: t.retainForDays,
-      });
-    }
-    list = await db
-      .select()
-      .from(governanceRegisters)
-      .where(eq(governanceRegisters.organizationId, orgId));
-  }
-
-  const counts = await Promise.all(
-    list.map(async (r) => {
-      const [c] = await db
-        .select({ count: sql<number>`count(*)::int` })
-        .from(governanceRegisterEntries)
-        .where(eq(governanceRegisterEntries.registerId, r.id));
-      return { registerId: r.id, entryCount: c?.count ?? 0 };
-    })
-  );
-  const lastEntry = await Promise.all(
-    list.map(async (r) => {
-      const [last] = await db
-        .select({ createdAt: governanceRegisterEntries.createdAt })
-        .from(governanceRegisterEntries)
-        .where(eq(governanceRegisterEntries.registerId, r.id))
-        .orderBy(desc(governanceRegisterEntries.createdAt))
-        .limit(1);
-      return { registerId: r.id, lastEntryAt: last?.createdAt ?? null };
-    })
-  );
-  const countByReg = Object.fromEntries(counts.map((c) => [c.registerId, c.entryCount]));
-  const lastByReg = Object.fromEntries(lastEntry.map((l) => [l.registerId, l.lastEntryAt]));
+  const base = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
+  const cookie = (await headers()).get("cookie") ?? "";
+  const res = await fetch(`${base}/api/governance/registers`, {
+    cache: "no-store",
+    headers: { cookie },
+  });
+  if (!res.ok) redirect("/auth/signin");
+  const { items: list } = (await res.json()) as {
+    items: Array<{
+      id: string;
+      registerKey: string;
+      name: string;
+      entryCount: number;
+      lastEntryAt: string | null;
+    }>;
+  };
 
   return (
     <div className="space-y-6">
@@ -88,9 +53,9 @@ export default async function GovernanceRegistersPage() {
               <tr key={r.id} className="border-b border-[var(--color-border-muted)] hover:bg-[var(--color-gray-50)]">
                 <td className="px-4 py-3 font-medium text-[var(--color-gray-900)]">{r.name}</td>
                 <td className="px-4 py-3 font-mono text-[var(--color-gray-600)]">{r.registerKey}</td>
-                <td className="px-4 py-3 text-[var(--color-gray-600)]">{countByReg[r.id] ?? 0}</td>
+                <td className="px-4 py-3 text-[var(--color-gray-600)]">{r.entryCount ?? 0}</td>
                 <td className="px-4 py-3 text-[var(--color-gray-600)]">
-                  {lastByReg[r.id] ? new Date(lastByReg[r.id]!).toLocaleDateString() : "—"}
+                  {r.lastEntryAt ? new Date(r.lastEntryAt).toLocaleDateString() : "—"}
                 </td>
                 <td className="px-4 py-3">
                   <Link
@@ -114,7 +79,7 @@ export default async function GovernanceRegistersPage() {
       </div>
       {list.length === 0 && (
         <p className="text-sm text-[var(--color-gray-500)]">
-          No registers yet. Run the governance seed to create the 16 standard registers.
+          No registers available. Ensure you are signed in and have an organization assigned.
         </p>
       )}
     </div>

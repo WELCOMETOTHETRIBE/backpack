@@ -1,6 +1,61 @@
 {
+  "validator": {
+    "name": "validate_azure_entra",
+    "version": "1.1.0",
+    "sha256": "48338be475174060599bd989d331c4455f4699ed7fb78201bf208dbc34314870"
+  },
+  "inputs": [
+    {
+      "filename": "entra-signin.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "size": 3,
+      "mtime_utc": "2026-02-14T21:49:10.785957+00:00"
+    },
+    {
+      "filename": "conditional-access-policies.json",
+      "sha256": "02501986459e2188561bc907693b05d9490040e2dbb5f309f55d9ef87bf9c21c",
+      "size": 111,
+      "mtime_utc": "2026-02-14T21:49:44.903196+00:00"
+    },
+    {
+      "filename": "role-assignments-all.json",
+      "sha256": "6808667886aa2c8b8a649f8e26342737f08c7d538f783415152ff2a3d7fd0091",
+      "size": 9919,
+      "mtime_utc": "2026-02-14T21:49:01.390535+00:00"
+    },
+    {
+      "filename": "keyvault-list.json",
+      "sha256": "e1be1b2d54cdfee00d1e4d38855d7f173dc0b4111dcd1e94e31514297a7b4ed9",
+      "size": 356,
+      "mtime_utc": "2026-02-14T21:49:13.787291+00:00"
+    },
+    {
+      "filename": "nsg-list.json",
+      "sha256": "8a059d86cd9a03b1913043c05920071181dac34f17381e8b48b9cf069410e49e",
+      "size": 9433,
+      "mtime_utc": "2026-02-14T21:49:04.338856+00:00"
+    },
+    {
+      "filename": "keyvault-codex-cui-kv-pilot-access-policies.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "size": 3,
+      "mtime_utc": "2026-02-14T21:49:15.930401+00:00"
+    },
+    {
+      "filename": "keyvault-codex-cui-kv-pilot-role-assignments.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "size": 3,
+      "mtime_utc": "2026-02-14T21:49:18.120605+00:00"
+    },
+    {
+      "filename": "nsg-rules-nsg-cui-pilot.json",
+      "sha256": "cc8f5aa189d36eb80c0a5cb4f0d268e686d09b842beecb269df9d0b250e216ae",
+      "size": 2465,
+      "mtime_utc": "2026-02-14T21:49:07.543285+00:00"
+    }
+  ],
   "summary": {
-    "generated_utc": "2026-02-14T21:53:23.169425+00:00",
+    "generated_utc": "2026-02-27T19:42:43.753028+00:00",
     "computer": "Patricks-MacBook-Pro.local",
     "user": "patrick",
     "azure_entra_dir": "/Users/patrick/cui-pilot/evidence/runs/20260214-214859/raw/azure",
@@ -23,70 +78,91 @@
       "control": "IA.L2-3.5.3",
       "title": "MFA for privileged accounts (Entra evidence)",
       "pass": false,
-      "observed": "Sign-in/CA evidence=True; MFA in access path attested=False",
-      "expected": "entra-signin or CA policy export present AND mfa-in-path-attested.txt (MFA in enclave access path)",
-      "evidence_hint": "entra-signin.json; Conditional Access export; mfa-in-path-attested.txt (add when VPN+Entra or Azure AD login for RDP)",
-      "timestamp_utc": "2026-02-14T21:53:23.167992+00:00"
+      "observed": "Sign-in/CA evidence=True; MFA in path satisfied=False (source=none)",
+      "expected": "entra-signin or CA policy export present AND MFA in enclave access path (evidence or mfa-in-path-attested.txt)",
+      "evidence_hint": "entra-signin.json; Conditional Access export; mfa-in-path-attested.txt or CA+sign-in MFA evidence",
+      "mfa_in_path_source": "none",
+      "mfa_in_path_detail": null,
+      "timestamp_utc": "2026-02-27T19:42:43.751177+00:00"
     },
     {
       "id": "ENTRA-MFA-MA",
       "control": "MA.L2-3.7.5",
       "title": "MFA for nonlocal maintenance (Entra evidence)",
       "pass": false,
-      "observed": "Sign-in/CA evidence=True; MFA in access path attested=False",
-      "expected": "Entra/MFA evidence AND mfa-in-path-attested.txt (MFA in enclave access path)",
-      "evidence_hint": "entra-signin.json; MFA policy; mfa-in-path-attested.txt",
-      "timestamp_utc": "2026-02-14T21:53:23.168197+00:00"
+      "observed": "Sign-in/CA evidence=True; MFA in path satisfied=False (source=none)",
+      "expected": "Entra/MFA evidence AND MFA in enclave access path (evidence or attestation)",
+      "evidence_hint": "entra-signin.json; MFA policy; mfa-in-path-attested.txt or CA+sign-in MFA evidence",
+      "mfa_in_path_source": "none",
+      "mfa_in_path_detail": null,
+      "timestamp_utc": "2026-02-27T19:42:43.751539+00:00"
     },
     {
       "id": "ENTRA-REPLAY",
       "control": "IA.L2-3.5.4",
       "title": "Replay-resistant authentication (Entra evidence)",
       "pass": false,
-      "observed": "Entra/role evidence=True; MFA in access path attested=False",
-      "expected": "Entra/role evidence AND mfa-in-path-attested.txt (MFA in enclave access path)",
-      "evidence_hint": "entra-signin.json; role-assignments-all.json; mfa-in-path-attested.txt",
-      "timestamp_utc": "2026-02-14T21:53:23.168533+00:00"
+      "observed": "Entra/role evidence=True; MFA in path satisfied=False (source=none)",
+      "expected": "Entra/role evidence AND MFA in enclave access path (evidence or attestation)",
+      "evidence_hint": "entra-signin.json; role-assignments-all.json; mfa-in-path-attested.txt or CA+sign-in MFA evidence",
+      "mfa_in_path_source": "none",
+      "mfa_in_path_detail": null,
+      "timestamp_utc": "2026-02-27T19:42:43.751914+00:00"
     },
     {
       "id": "ENTRA-NO-REUSE",
       "control": "IA.L2-3.5.5",
       "title": "Prevent identifier reuse (Entra evidence)",
       "pass": false,
-      "observed": "Entra/role evidence=True; MFA in access path attested=False",
-      "expected": "Entra/role evidence AND mfa-in-path-attested.txt (MFA in enclave access path)",
-      "evidence_hint": "entra-signin.json; role-assignments-all.json; mfa-in-path-attested.txt",
-      "timestamp_utc": "2026-02-14T21:53:23.168538+00:00"
+      "observed": "Entra/role evidence=True; MFA in path satisfied=False (source=none)",
+      "expected": "Entra/role evidence AND MFA in enclave access path (evidence or attestation)",
+      "evidence_hint": "entra-signin.json; role-assignments-all.json; mfa-in-path-attested.txt or CA+sign-in MFA evidence",
+      "mfa_in_path_source": "none",
+      "mfa_in_path_detail": null,
+      "timestamp_utc": "2026-02-27T19:42:43.751920+00:00"
     },
     {
       "id": "ENTRA-INACTIVITY",
       "control": "IA.L2-3.5.6",
       "title": "Disable identifiers after inactivity (Entra evidence)",
       "pass": false,
-      "observed": "Entra/role evidence=True; MFA in access path attested=False",
-      "expected": "Entra/role evidence AND mfa-in-path-attested.txt (MFA in enclave access path)",
-      "evidence_hint": "entra-signin.json; role-assignments-all.json; mfa-in-path-attested.txt",
-      "timestamp_utc": "2026-02-14T21:53:23.168540+00:00"
+      "observed": "Entra/role evidence=True; MFA in path satisfied=False (source=none)",
+      "expected": "Entra/role evidence AND MFA in enclave access path (evidence or attestation)",
+      "evidence_hint": "entra-signin.json; role-assignments-all.json; mfa-in-path-attested.txt or CA+sign-in MFA evidence",
+      "mfa_in_path_source": "none",
+      "mfa_in_path_detail": null,
+      "timestamp_utc": "2026-02-27T19:42:43.751923+00:00"
     },
     {
       "id": "AZ-KEYVAULT",
       "control": "SC.L2-3.13.10",
       "title": "Cryptographic key management (Azure Key Vault evidence)",
       "pass": true,
-      "observed": "keyvault-list.json present and non-empty=True",
-      "expected": "Azure Key Vault list or key management artifact",
-      "evidence_hint": "keyvault-list.json; or document key management approach",
-      "timestamp_utc": "2026-02-14T21:53:23.168771+00:00"
+      "observed": "keyvault-list present and non-empty=True; keyvault_details=1 vault(s); all soft delete and purge protection=True",
+      "expected": "Azure Key Vault list; when keyvault-*-properties.json exported: soft delete and purge protection enabled per vault",
+      "evidence_hint": "keyvault-list.json; keyvault-*-properties.json (optional); keyvault-*-access-policies.json; keyvault-*-role-assignments.json",
+      "keyvault_details": [
+        {
+          "vault_name": "codex-cui-kv-pilot",
+          "soft_delete_enabled": null,
+          "purge_protection_enabled": null,
+          "rbac_or_access_policy": "properties not exported"
+        }
+      ],
+      "timestamp_utc": "2026-02-27T19:42:43.752205+00:00"
     },
     {
       "id": "AZ-NSG",
       "control": "SC.L2-3.13.5",
       "title": "Implement subnetworks (NSG evidence)",
       "pass": true,
-      "observed": "NSG list present=True; RDP open to 0.0.0.0/0=False",
-      "expected": "NSG list/rules present; RDP (3389) not allowed from 0.0.0.0/0",
-      "evidence_hint": "nsg-list.json; nsg-rules-*.json",
-      "timestamp_utc": "2026-02-14T21:53:23.169420+00:00"
+      "observed": "NSG list present=True; effective RDP from public=False; acceptable_alternative=none",
+      "expected": "NSG list/rules present; RDP (3389) not allowed from public, or acceptable alternative (Bastion/JIT/Firewall) attested",
+      "evidence_hint": "nsg-list.json; nsg-rules-*.json; optional: bastion-only-attested.txt, jit-enabled-attested.txt, firewall-enforcement-attested.txt, network-bypass-attested.json",
+      "effective_rdp_public": false,
+      "acceptable_alternative": null,
+      "rationale": null,
+      "timestamp_utc": "2026-02-27T19:42:43.753021+00:00"
     }
   ],
   "azure_entra_dir": "/Users/patrick/cui-pilot/evidence/runs/20260214-214859/raw/azure"

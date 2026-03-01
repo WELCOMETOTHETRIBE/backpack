@@ -1,0 +1,64 @@
+﻿
+=== HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient ===
+
+
+
+EnableMulticast : 0
+PSPath          : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows 
+                  NT\DNSClient
+PSParentPath    : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows NT
+PSChildName     : DNSClient
+PSDrive         : HKLM
+PSProvider      : Microsoft.PowerShell.Core\Registry
+
+
+
+
+
+=== HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters ===
+
+
+
+ServiceDll             : C:\Windows\System32\dnsrslvr.dll
+ServiceDllUnloadOnStop : 1
+extension              : C:\Windows\System32\dnsext.dll
+PSPath                 : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Dnsca
+                         che\Parameters
+PSParentPath           : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Dnsca
+                         che
+PSChildName            : Parameters
+PSDrive                : HKLM
+PSProvider             : Microsoft.PowerShell.Core\Registry
+
+
+
+
+
+=== HKLM:\SYSTEM\CurrentControlSet\Services\NetBT\Parameters ===
+
+
+
+BcastNameQueryCount     : 3
+BcastQueryTimeout       : 750
+CacheTimeout            : 600000
+EnableLMHOSTS           : 1
+NameServerPort          : 137
+NameSrvQueryCount       : 3
+NameSrvQueryTimeout     : 1500
+NbProvider              : _tcp
+SessionKeepAlive        : 3600000
+Size/Small/Medium/Large : 1
+TransportBindName       : \Device\
+UseNewSmb               : 1
+PSPath                  : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\NetB
+                          T\Parameters
+PSParentPath            : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\NetB
+                          T
+PSChildName             : Parameters
+PSDrive                 : HKLM
+PSProvider              : Microsoft.PowerShell.Core\Registry
+
+
+
+
+

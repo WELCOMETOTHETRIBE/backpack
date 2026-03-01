@@ -5,8 +5,39 @@ import { StatusBadge } from "@/components/governance-wizard/StatusBadge";
 import { FileUploadWidget } from "@/components/governance-wizard/FileUploadWidget";
 import { getSpecForControl } from "@/lib/artifact-guide";
 import { CONTROL_FAMILIES } from "@/components/governance-wizard/constants";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, FileText, CheckCircle2, MessageSquare, BookOpen, ListChecks, Lightbulb, Link2 } from "lucide-react";
 import Link from "next/link";
+import {
+  parseAssessmentGuideSections,
+  cleanDisplayText,
+  type GuideSection,
+} from "./assessment-guide-sections";
+import type { SctmOptimizedControl } from "@/lib/sctm-optimized-types";
+import { getHybridCriteriaLabels } from "@/lib/compliance/satisfaction-sources";
+import { getEnclaveEntry } from "@/lib/compliance/os-evidence-manifest";
+import type { ArtifactSpec } from "@/lib/artifact-guide";
+
+function TextWithBold({ text }: { text: string }) {
+  const parts: React.ReactNode[] = [];
+  let remaining = text;
+  let key = 0;
+  while (remaining.length > 0) {
+    const i = remaining.indexOf("**");
+    if (i === -1) {
+      parts.push(<span key={key++}>{remaining}</span>);
+      break;
+    }
+    if (i > 0) parts.push(<span key={key++}>{remaining.slice(0, i)}</span>);
+    const j = remaining.indexOf("**", i + 2);
+    if (j === -1) {
+      parts.push(<span key={key++}>{remaining.slice(i)}</span>);
+      break;
+    }
+    parts.push(<strong key={key++}>{remaining.slice(i + 2, j)}</strong>);
+    remaining = remaining.slice(j + 2);
+  }
+  return <>{parts}</>;
+}
 
 function familyCodeFromControlId(controlId: string): string {
   const prefix = controlId.split(".").slice(0, 2).join(".");
@@ -22,6 +53,13 @@ export type SCTMRecord = {
   responsibleRoleId: string | null;
   roleName: string | null;
   artifactCount: number;
+  evidencePartial?: boolean;
+  satisfiedByOs?: boolean;
+  satisfiedByCloud?: boolean;
+  satisfiedByGovernance?: boolean;
+  satisfiedByHybrid?: boolean;
+  oftenNotApplicable?: boolean;
+  hybridSatisfaction?: { technical?: boolean; governance?: boolean } | null;
 };
 
 export type NistRow = {
@@ -31,25 +69,173 @@ export type NistRow = {
   nistDiscussionGuidance: string | null;
 };
 
-const CARD_CLASS =
-  "rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-sm";
+const SECTION_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  "Assessment objectives": ListChecks,
+  "Potential assessment methods and objects": FileText,
+  "Discussion (NIST SP 800-171 Rev. 2)": BookOpen,
+  "Further discussion": MessageSquare,
+  "Examples": Lightbulb,
+  "Potential assessment considerations": ListChecks,
+  "Key references": Link2,
+  "Overview": FileText,
+  "More": FileText,
+  "What assessors do": ListChecks,
+  "How the Codex Accelerator Helps": Lightbulb,
+};
+
+/** Splits text on "How the Codex Accelerator Helps" so it can be rendered as its own section. */
+function extractCodexAcceleratorSection(text: string): { main: string; codex: string } {
+  const codexMarker = /\s*\*?\s*\*?How the Codex Accelerator Helps\*?\s*:?\s*/i;
+  const idx = text.search(codexMarker);
+  if (idx === -1) return { main: text, codex: "" };
+  const main = text.slice(0, idx).replace(/\s*$/, "");
+  const after = text.slice(idx).replace(codexMarker, "").trim();
+  return { main, codex: after };
+}
+
+/** Renders guide/JSON body with [SELECT FROM: a; b; c] as a readable list; rest as paragraphs. Use bold to support **bold** in text. */
+function FormattedGuideBody({ text, bold = false }: { text: string; bold?: boolean }) {
+  const parts: React.ReactNode[] = [];
+  const selectFromRegex = /\[SELECT FROM:\s*([^\]]+)\]/gi;
+  let lastEnd = 0;
+  let match;
+  let key = 0;
+  while ((match = selectFromRegex.exec(text)) !== null) {
+    if (match.index > lastEnd) {
+      const paragraph = text.slice(lastEnd, match.index).trim();
+      if (paragraph) {
+        parts.push(
+          <p key={key++} className="mb-3 text-[15px] leading-[1.65] text-[var(--color-gray-700)] whitespace-pre-wrap last:mb-0">
+            {bold ? <TextWithBold text={paragraph} /> : paragraph}
+          </p>
+        );
+      }
+    }
+    const optionsText = match[1].trim();
+    const options = optionsText.split(/\s*;\s*/).map((s) => s.trim()).filter(Boolean);
+    parts.push(
+      <div key={key++} className="my-3 rounded-lg bg-[var(--color-gray-50)]/80 border border-[var(--color-border)]/40 px-4 py-3">
+        <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-2">Select from</p>
+        <ul className="list-none space-y-1.5 text-[14px] leading-relaxed text-[var(--color-gray-700)]">
+          {options.map((opt, i) => (
+            <li key={i} className="flex gap-2">
+              <span className="text-[var(--color-gray-400)] shrink-0">·</span>
+              <span>{opt}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+    lastEnd = match.index + match[0].length;
+  }
+  if (lastEnd < text.length) {
+    const paragraph = text.slice(lastEnd).trim();
+    if (paragraph) {
+      parts.push(
+        <p key={key++} className="mb-3 text-[15px] leading-[1.65] text-[var(--color-gray-700)] whitespace-pre-wrap last:mb-0">
+          {bold ? <TextWithBold text={paragraph} /> : paragraph}
+        </p>
+      );
+    }
+  }
+  if (parts.length === 0 && text.trim()) {
+    return (
+      <div className="pt-3 text-[15px] leading-[1.65] text-[var(--color-gray-700)] whitespace-pre-wrap">
+        {bold ? <TextWithBold text={text} /> : text}
+      </div>
+    );
+  }
+  return <div className="pt-3 space-y-0">{parts}</div>;
+}
+
+function CollapsibleSection({ section, defaultOpen = false }: { section: GuideSection; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
+  const Icon = SECTION_ICONS[section.label] ?? FileText;
+  return (
+    <div className="rounded-xl border border-[var(--color-border)]/60 bg-white/90 shadow-sm shadow-black/5 overflow-hidden transition-shadow hover:shadow-md focus-within:ring-2 focus-within:ring-[var(--color-blue-accent)]/20 focus-within:ring-offset-1">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center justify-between gap-2 px-4 py-3 text-left text-sm font-medium text-[var(--color-gray-800)] hover:bg-[var(--color-gray-50)]/80 focus:outline-none focus-visible:ring-0 transition-colors duration-150"
+        aria-expanded={open}
+      >
+        <span className="flex items-center gap-2.5">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-gray-100)] text-[var(--color-gray-500)]">
+            <Icon className="h-4 w-4" />
+          </span>
+          {section.label}
+        </span>
+        <span className="shrink-0 rounded p-1 text-[var(--color-gray-400)] transition-transform duration-200 ease-out" style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}>
+          <ChevronDown className="h-4 w-4" />
+        </span>
+      </button>
+      <div
+        className="grid transition-[grid-template-rows] duration-200 ease-out"
+        style={{ gridTemplateRows: open ? "1fr" : "0fr" }}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <div className="border-t border-[var(--color-border)]/50 bg-[var(--color-gray-50)]/30 px-4 pb-4 pt-3">
+            <FormattedGuideBody text={section.body} bold />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function refreshArtifacts(recordId: string, setArtifacts: (a: { artifactLabel: string }[]) => void) {
+  fetch(`/api/artifacts?controlRecordId=${recordId}`)
+    .then((r) => (r.ok ? r.json() : []))
+    .then(setArtifacts);
+}
 
 export function SCTMControlDetail({
   record,
   nist,
+  sctmOptimized,
   orgUploadedLabels = [],
   onSaved,
 }: {
   record: SCTMRecord;
   nist: NistRow | undefined;
+  sctmOptimized?: SctmOptimizedControl | null;
   orgUploadedLabels?: string[];
   onSaved?: () => void;
 }) {
   const [narrative, setNarrative] = useState(record.governanceNarrative ?? "");
   const [savingNarrative, setSavingNarrative] = useState(false);
   const [savingStatus, setSavingStatus] = useState(false);
-  const [showGuidance, setShowGuidance] = useState(false);
+  const [savingHybrid, setSavingHybrid] = useState(false);
   const [artifacts, setArtifacts] = useState<{ artifactLabel: string }[]>([]);
+
+  const hybridLabels = record.satisfiedByHybrid ? getHybridCriteriaLabels(record.controlId) : null;
+  const enclaveEntry = record.satisfiedByHybrid ? getEnclaveEntry(record.controlId) : undefined;
+  const hybridArtifacts = (() => {
+    if (!record.satisfiedByHybrid) return { technical: [] as string[], governance: [] as string[] };
+    const list: { label: string; handling: string }[] = (sctmOptimized?.compliance_meta?.required_artifacts ?? []).map((a) => ({ label: a.name, handling: a.handling }));
+    if (list.length === 0) {
+      const spec = getSpecForControl(record.controlId);
+      spec?.artifacts?.filter((a) => (a as ArtifactSpec).handling !== "N/A").forEach((a) => {
+        const x = a as ArtifactSpec;
+        list.push({ label: x.label, handling: x.handling });
+      });
+    }
+    // For hybrid: governance = policies/procedures (UPLOAD + REFERENCE + ATTESTATION); technical = OS/config (NATIVE + enclave evidence_files)
+    const governance = list
+      .filter((a) => a.handling === "UPLOAD" || a.handling === "REFERENCE" || a.handling === "ATTESTATION")
+      .map((a) => a.label);
+    const nativeLabels = list.filter((a) => a.handling === "NATIVE").map((a) => a.label);
+    const enclaveFiles = enclaveEntry?.evidence_files ?? [];
+    const technical = [...nativeLabels, ...enclaveFiles];
+    return { technical, governance };
+  })();
+  const technicalDefault = Boolean(record.evidencePartial);
+  const [technicalSatisfied, setTechnicalSatisfied] = useState(
+    record.hybridSatisfaction?.technical ?? technicalDefault
+  );
+  const [governanceSatisfied, setGovernanceSatisfied] = useState(
+    record.hybridSatisfaction?.governance ?? false
+  );
 
   const refresh = useCallback(() => {
     onSaved?.();
@@ -60,16 +246,30 @@ export function SCTMControlDetail({
   }, [record.governanceNarrative]);
 
   useEffect(() => {
-    fetch(`/api/artifacts?controlRecordId=${record.id}`)
-      .then((r) => (r.ok ? r.json() : []))
-      .then(setArtifacts);
+    const techDefault = Boolean(record.evidencePartial);
+    setTechnicalSatisfied(record.hybridSatisfaction?.technical ?? techDefault);
+    setGovernanceSatisfied(record.hybridSatisfaction?.governance ?? false);
+  }, [record.hybridSatisfaction, record.evidencePartial]);
+
+  useEffect(() => {
+    refreshArtifacts(record.id, setArtifacts);
   }, [record.id, record.artifactCount]);
 
   const spec = getSpecForControl(record.controlId);
-  const requiredUpload = spec?.artifacts.filter(
-    (a) => a.handling === "UPLOAD" || a.handling === "NATIVE"
-  ) ?? [];
+  const ultimateArtifacts = sctmOptimized?.compliance_meta?.required_artifacts ?? [];
+  const hasUltimateArtifacts = ultimateArtifacts.length > 0;
+  const requiredUpload = hasUltimateArtifacts
+    ? ultimateArtifacts.filter((a) => a.handling === "UPLOAD" || a.handling === "NATIVE").map((a) => ({ label: a.name, handling: a.handling }))
+    : (spec?.artifacts.filter((a) => a.handling === "UPLOAD" || a.handling === "NATIVE") ?? []);
+  const allEvidenceArtifacts = (hasUltimateArtifacts
+    ? ultimateArtifacts.map((a) => ({ label: a.name, handling: a.handling }))
+    : (spec?.artifacts ?? [])
+  ).filter((a) => a.handling !== "N/A");
   const uploadedSet = new Set(artifacts.map((a) => a.artifactLabel));
+
+  const guideSections = parseAssessmentGuideSections(nist?.nistDiscussionGuidance);
+  const requirementText = sctmOptimized?.requirement ?? cleanDisplayText(nist?.nistExactText);
+  const displayTitle = sctmOptimized?.title ?? (nist?.title ? cleanDisplayText(nist.title) : null);
 
   async function saveNarrative() {
     if (savingNarrative) return;
@@ -102,113 +302,264 @@ export function SCTMControlDetail({
     }
   }
 
+  async function saveHybridSatisfaction(payload: { technical: boolean; governance: boolean }) {
+    if (savingHybrid || !record.satisfiedByHybrid) return;
+    setSavingHybrid(true);
+    try {
+      const res = await fetch(`/api/control-records/${record.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hybridSatisfaction: payload }),
+      });
+      if (res.ok) refresh();
+    } finally {
+      setSavingHybrid(false);
+    }
+  }
+
+  function handleTechnicalToggle() {
+    const next = !technicalSatisfied;
+    setTechnicalSatisfied(next);
+    saveHybridSatisfaction({ technical: next, governance: governanceSatisfied });
+  }
+
+  function handleGovernanceToggle() {
+    const next = !governanceSatisfied;
+    setGovernanceSatisfied(next);
+    saveHybridSatisfaction({ technical: technicalSatisfied, governance: next });
+  }
+
   const familyCode = familyCodeFromControlId(record.controlId);
 
   return (
-    <div className="space-y-6">
-      {/* 1. Summary card */}
-      <section className={CARD_CLASS} aria-labelledby="sctm-summary-heading">
-        <h2 id="sctm-summary-heading" className="text-sm font-semibold uppercase tracking-wide text-[var(--color-gray-600)]">
-          Summary
-        </h2>
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <span className="font-mono text-sm font-medium text-[var(--color-navy-primary)]">{record.controlId}</span>
-          <StatusBadge status={record.implementationStatus} />
-          {familyCode && (
-            <span className="rounded bg-[var(--color-gray-100)] px-2 py-0.5 text-xs font-medium text-[var(--color-gray-700)]">
-              {familyCode}
+    <div className="mx-auto max-w-5xl w-full px-0 py-0">
+      {/* Compact header: ID and meta (title is under Requirement below) */}
+      <div className="flex flex-wrap items-center gap-2 mb-3">
+        <span className="font-mono text-sm font-semibold text-[var(--color-navy-primary)]">{record.controlId}</span>
+        <StatusBadge status={record.implementationStatus} />
+        {familyCode && (
+          <span className="text-xs font-medium text-[var(--color-gray-500)]">{familyCode}</span>
+        )}
+        {sctmOptimized?.compliance_meta?.satisfaction_type && (
+          <span className="rounded-full bg-[var(--color-blue-accent)]/10 px-2.5 py-0.5 text-xs font-medium text-[var(--color-blue-accent)]">
+            {sctmOptimized.compliance_meta.satisfaction_type.replace(/-/g, " ")}
+          </span>
+        )}
+        {record.satisfiedByHybrid ? (
+          <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-teal-100 text-teal-800" title="Hybrid (OS + gov docs or policy + technical).">Hybrid</span>
+        ) : (
+          <>
+            {record.satisfiedByOs && (
+              <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-700" title="Met by OS configuration (73).">OS</span>
+            )}
+            {record.satisfiedByCloud && (
+              <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-sky-100 text-sky-800" title="Met by cloud (5 inherited + 7 Azure/Entra).">Cloud</span>
+            )}
+            {record.satisfiedByGovernance && (
+              <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-violet-100 text-violet-800" title="Met by governance (18).">Governance</span>
+            )}
+          </>
+        )}
+        {record.roleName && <span className="text-xs text-[var(--color-gray-400)]">· {record.roleName}</span>}
+      </div>
+
+      {/* Requirement — the main “field we were working on” */}
+      <section className="mb-4">
+        <div className="flex items-center gap-2 mb-1">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)]">Requirement</h2>
+          {sctmOptimized?.scoring && (
+            <span className="rounded-full bg-white/60 px-2 py-0.5 text-xs font-medium text-[var(--color-gray-700)] backdrop-blur-sm border border-white/40">
+              SPRS {sctmOptimized.scoring.sprs} · {sctmOptimized.scoring.weight}
             </span>
           )}
-          {record.roleName && (
-            <span className="text-sm text-[var(--color-gray-600)]">Responsible: {record.roleName}</span>
+        </div>
+        {displayTitle && <p className="text-base font-medium text-[var(--color-gray-900)] mb-1">{displayTitle}</p>}
+        <div className="rounded-xl border border-[var(--color-border)]/60 bg-white/90 px-4 py-3.5 shadow-sm">
+          {requirementText ? (
+            <p className="text-[15px] leading-[1.7] text-[var(--color-gray-800)] whitespace-pre-wrap max-w-none">{requirementText}</p>
+          ) : (
+            <p className="text-[15px] text-[var(--color-gray-400)] italic">Requirement text will appear here once loaded.</p>
           )}
         </div>
-        {nist?.title && (
-          <p className="mt-2 text-sm text-[var(--color-gray-700)]">{nist.title}</p>
-        )}
       </section>
 
-      {/* 2. NIST card */}
-      <section className={CARD_CLASS} aria-labelledby="sctm-nist-heading">
-        <h2 id="sctm-nist-heading" className="text-sm font-semibold uppercase tracking-wide text-[var(--color-gray-600)]">
-          NIST requirement
-        </h2>
-        <p className="mt-3 text-sm leading-relaxed text-[var(--color-gray-800)] whitespace-pre-wrap">
-          {nist?.nistExactText ?? "—"}
-        </p>
-        {nist?.nistDiscussionGuidance && (
-          <div className="mt-4">
-            <button
-              type="button"
-              onClick={() => setShowGuidance((v) => !v)}
-              className="flex items-center gap-1 text-sm font-medium text-[var(--color-blue-accent)] hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2 rounded"
-            >
-              {showGuidance ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-              {showGuidance ? "Hide" : "Show"} discussion / guidance
-            </button>
-            {showGuidance && (
-              <p className="mt-2 text-sm leading-relaxed text-[var(--color-gray-700)] whitespace-pre-wrap border-t border-[var(--color-border)] pt-3">
-                {nist.nistDiscussionGuidance}
-              </p>
-            )}
+      {(sctmOptimized?.objectives?.length ?? 0) > 0 && (
+        <section className="mb-4">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">Assessment objectives</h2>
+          <div className="rounded-lg border border-white/30 bg-white/70 backdrop-blur-sm px-4 py-3">
+            <ul className="space-y-2" role="list">
+              {(sctmOptimized?.objectives ?? []).map((obj) => (
+                <li key={obj.id} className="flex gap-2 text-[15px] leading-relaxed text-[var(--color-gray-800)]">
+                  <span className="font-mono text-xs text-[var(--color-gray-500)] shrink-0">{obj.id.split("-").pop()}</span>
+                  <span>{obj.text}</span>
+                </li>
+              ))}
+            </ul>
           </div>
-        )}
-      </section>
+        </section>
+      )}
 
-      {/* 3. Evidence card */}
-      <section className={CARD_CLASS} aria-labelledby="sctm-evidence-heading">
-        <h2 id="sctm-evidence-heading" className="text-sm font-semibold uppercase tracking-wide text-[var(--color-gray-600)]">
-          Evidence
-        </h2>
-        {requiredUpload.length > 0 ? (
-          <ul className="mt-3 space-y-1.5 text-sm text-[var(--color-gray-700)]">
-            {requiredUpload.map((a) => (
-              <li key={a.label} className="flex items-center gap-2">
-                {uploadedSet.has(a.label) ? (
-                  <span className="text-[var(--color-status-green)]" aria-hidden>✓</span>
-                ) : (
-                  <span className="text-[var(--color-gray-400)]" aria-hidden>○</span>
+      {sctmOptimized?.nist_guidance && (
+        <section className="mb-4">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">NIST guidance</h2>
+          <div className="rounded-xl border border-[var(--color-border)]/60 bg-white/90 px-4 py-3.5 shadow-sm">
+            <div className="text-[15px] leading-[1.7] text-[var(--color-gray-700)] whitespace-pre-wrap [&_strong]:font-semibold [&_strong]:text-[var(--color-gray-800)]">
+              <TextWithBold text={sctmOptimized.nist_guidance} />
+            </div>
+          </div>
+        </section>
+      )}
+
+      {sctmOptimized?.onboarding_tips && (
+        <section className="mb-4 overflow-visible">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5 flex items-center gap-2">
+            <Lightbulb className="h-3.5 w-3.5 text-amber-500" aria-hidden />
+            Onboarding tips
+          </h2>
+          <div className="rounded-xl border border-[var(--color-border)]/60 bg-gradient-to-b from-amber-50/50 to-white/90 px-4 py-3.5 shadow-sm overflow-visible">
+            <div className="text-[15px] leading-[1.7] text-[var(--color-gray-700)] whitespace-pre-wrap break-words min-h-0 space-y-2 [&_strong]:font-semibold [&_strong]:text-[var(--color-gray-800)]">
+              <TextWithBold text={sctmOptimized.onboarding_tips} />
+            </div>
+          </div>
+        </section>
+      )}
+
+      {(() => {
+        const hasAssessorContent =
+          sctmOptimized?.assessor_interrogation &&
+          (sctmOptimized.assessor_interrogation.assessor_questions ||
+            sctmOptimized.assessor_interrogation.examine_criteria ||
+            sctmOptimized.assessor_interrogation.test_procedures);
+        let assessorSectionBody = "";
+        let codexSection: GuideSection | null = null;
+        if (hasAssessorContent) {
+          const testProcedures = sctmOptimized!.assessor_interrogation!.test_procedures ?? "";
+          const { main: testMain, codex: codexBody } = extractCodexAcceleratorSection(testProcedures);
+          assessorSectionBody = [
+            sctmOptimized!.assessor_interrogation!.assessor_questions && `**Interview**\n\n${sctmOptimized!.assessor_interrogation!.assessor_questions}`,
+            sctmOptimized!.assessor_interrogation!.examine_criteria && `**Examine**\n\n${sctmOptimized!.assessor_interrogation!.examine_criteria}`,
+            testMain && `**Test**\n\n${testMain}`,
+          ]
+            .filter(Boolean)
+            .join("\n\n");
+          if (codexBody.trim()) {
+            codexSection = { label: "How the Codex Accelerator Helps", body: codexBody.trim() };
+          }
+        }
+        const assessorSection: GuideSection | null =
+          assessorSectionBody.trim() ? { label: "What assessors do", body: assessorSectionBody.trim() } : null;
+        const allSections: GuideSection[] = [
+          ...(assessorSection ? [assessorSection] : []),
+          ...(codexSection ? [codexSection] : []),
+          ...guideSections,
+        ];
+
+        if (allSections.length === 0) return null;
+        return (
+          <section className="mb-4">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-2 flex items-center gap-2">
+              <BookOpen className="h-3.5 w-3.5 text-[var(--color-blue-accent)]" aria-hidden />
+              Assessment guide
+            </h2>
+            <div className="space-y-2">
+              {allSections.map((section, i) => (
+                <CollapsibleSection key={`${section.label}-${i}`} section={section} defaultOpen={i < 2} />
+              ))}
+            </div>
+          </section>
+        );
+      })()}
+
+      {/* Fallback when no sections parsed */}
+      {(!nist?.nistDiscussionGuidance || guideSections.length === 0) && nist?.nistDiscussionGuidance && (
+        <section className="mb-4">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">Discussion & guidance</h2>
+          <div className="rounded-xl border border-[var(--color-border)]/60 bg-white/90 px-4 py-3.5 shadow-sm">
+            <div className="text-[15px] leading-[1.7] text-[var(--color-gray-700)] whitespace-pre-wrap [&_strong]:font-semibold [&_strong]:text-[var(--color-gray-800)]">
+              <TextWithBold text={cleanDisplayText(nist.nistDiscussionGuidance)} />
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Hybrid satisfaction criteria — when control is Hybrid */}
+      {record.satisfiedByHybrid && hybridLabels && (
+        <section className="mb-4 rounded-xl border-2 border-teal-200 bg-teal-50/50 overflow-hidden">
+          <div className="px-4 py-2.5 border-b border-teal-200/80 bg-teal-100/50">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-teal-800">Hybrid — satisfaction criteria</h2>
+            <p className="text-xs text-teal-700 mt-0.5">Mark each criterion when satisfied (editable).</p>
+          </div>
+          <div className="px-4 py-3 space-y-4">
+            <div className="space-y-1.5">
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={technicalSatisfied}
+                  onChange={handleTechnicalToggle}
+                  disabled={savingHybrid}
+                  className="h-4 w-4 rounded border-teal-300 text-teal-600 focus:ring-teal-500"
+                />
+                <span className="text-sm font-medium text-teal-900 group-hover:text-teal-800">{hybridLabels.technical}</span>
+                {technicalSatisfied && <span className="text-xs text-teal-600">Satisfied</span>}
+              </label>
+              <div className="ml-7 text-xs text-teal-800 space-y-0.5">
+                {requirementText && (() => {
+                  const firstSentence = requirementText.split(/[.!?]/)[0]?.trim() ?? "";
+                  const hasPunct = /[.!?]/.test(requirementText);
+                  return (
+                    <>
+                      <p className="font-medium">Technical requirement:</p>
+                      <p className="text-teal-700">{firstSentence}{hasPunct ? "." : ""}</p>
+                    </>
+                  );
+                })()}
+                {enclaveEntry && enclaveEntry.evidence_files?.length > 0 && (
+                  <p className="mt-1"><span className="font-medium">Required technical config / evidence files:</span> {enclaveEntry.evidence_files.join(", ")}</p>
                 )}
-                {a.label}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="mt-2 text-sm text-[var(--color-gray-500)]">No upload artifacts required for this control.</p>
-        )}
-        {requiredUpload.length > 0 && (
-          <div className="mt-4 space-y-3">
-            <p className="text-xs font-medium text-[var(--color-gray-600)]">Upload artifact</p>
-            <FileUploadWidget
-              controlRecordId={record.id}
-              artifactLabel={requiredUpload[0]?.label ?? "Document"}
-              onUploaded={() => {
-                refresh();
-                fetch(`/api/artifacts?controlRecordId=${record.id}`)
-                  .then((r) => (r.ok ? r.json() : []))
-                  .then(setArtifacts);
-              }}
-            />
+                {hybridArtifacts.technical.length > 0 && (
+                  <p className="mt-1"><span className="font-medium">Required evidence:</span> {hybridArtifacts.technical.join("; ")}</p>
+                )}
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={governanceSatisfied}
+                  onChange={handleGovernanceToggle}
+                  disabled={savingHybrid}
+                  className="h-4 w-4 rounded border-teal-300 text-teal-600 focus:ring-teal-500"
+                />
+                <span className="text-sm font-medium text-teal-900 group-hover:text-teal-800">{hybridLabels.governance}</span>
+                {governanceSatisfied && <span className="text-xs text-teal-600">Satisfied</span>}
+              </label>
+              <div className="ml-7 text-xs text-teal-800 space-y-0.5">
+                {hybridArtifacts.governance.length > 0 ? (
+                  <p><span className="font-medium">Required governance documentation:</span> {hybridArtifacts.governance.join("; ")}</p>
+                ) : (
+                  <p className="text-teal-700">Policy, procedure, or other documentation that addresses this control.</p>
+                )}
+              </div>
+            </div>
+            {savingHybrid && <p className="text-xs text-teal-600">Saving…</p>}
           </div>
-        )}
-      </section>
+        </section>
+      )}
 
-      {/* 4. Adjudication card */}
-      <section className={CARD_CLASS} aria-labelledby="sctm-adj-heading">
-        <h2 id="sctm-adj-heading" className="text-sm font-semibold uppercase tracking-wide text-[var(--color-gray-600)]">
-          Adjudication
-        </h2>
-        <div className="mt-3 space-y-4">
+      {/* Your response — one card: status, narrative, evidence */}
+      <section className="rounded-lg border border-white/30 bg-white/70 backdrop-blur-sm overflow-hidden">
+        <div className="px-4 py-2.5 border-b border-white/30">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)]">Your response</h2>
+        </div>
+        <div className="px-4 py-3 space-y-3">
           <div>
-            <label htmlFor="sctm-status" className="block text-xs font-medium text-[var(--color-gray-600)]">
-              Implementation status
-            </label>
+            <label htmlFor="sctm-status" className="block text-sm font-medium text-[var(--color-gray-700)] mb-1.5">Implementation status</label>
             <select
               id="sctm-status"
               value={record.implementationStatus}
               onChange={(e) => setStatus(e.target.value as StatusValue)}
               disabled={savingStatus}
-              className="mt-1 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-gray-900)] focus:border-[var(--color-blue-accent)] focus:outline-none focus:ring-2 focus:ring-[var(--color-blue-accent)]/20 disabled:opacity-60"
+              className="rounded-lg border border-[var(--color-border)] bg-white px-3 py-2 text-sm text-[var(--color-gray-900)] focus:border-[var(--color-blue-accent)] focus:outline-none focus:ring-2 focus:ring-[var(--color-blue-accent)]/20"
             >
               <option value="not_started">Not Started</option>
               <option value="in_progress">In Progress</option>
@@ -218,34 +569,69 @@ export function SCTMControlDetail({
               <option value="not_applicable">N/A</option>
             </select>
           </div>
+
           <div>
-            <label htmlFor="sctm-narrative" className="block text-xs font-medium text-[var(--color-gray-600)]">
-              Governance narrative
-            </label>
+            <label htmlFor="sctm-narrative" className="block text-sm font-medium text-[var(--color-gray-700)] mb-1.5">Governance narrative</label>
             <textarea
               id="sctm-narrative"
               value={narrative}
               onChange={(e) => setNarrative(e.target.value)}
-              rows={4}
-              className="mt-1 w-full rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-gray-900)] focus:border-[var(--color-blue-accent)] focus:outline-none focus:ring-2 focus:ring-[var(--color-blue-accent)]/20"
+              rows={3}
+              className="w-full rounded-lg border border-[var(--color-border)] bg-white px-3 py-2.5 text-sm text-[var(--color-gray-900)] placeholder:text-[var(--color-gray-400)] focus:border-[var(--color-blue-accent)] focus:outline-none focus:ring-2 focus:ring-[var(--color-blue-accent)]/20"
               placeholder="Describe how this control is satisfied."
             />
             <button
               type="button"
               onClick={saveNarrative}
               disabled={savingNarrative}
-              className="mt-2 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[var(--color-primary-hover)] disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2"
+              className="mt-2 rounded-lg bg-[var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[var(--color-primary-hover)] disabled:opacity-60"
             >
               {savingNarrative ? "Saving…" : "Save narrative"}
             </button>
           </div>
-          <p className="text-sm text-[var(--color-gray-600)]">
-            <Link
-              href="/dashboard/poam"
-              className="font-medium text-[var(--color-blue-accent)] hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2 rounded"
-            >
+
+          {(allEvidenceArtifacts.length > 0 || requiredUpload.length > 0) && (
+            <div>
+              <p className="text-sm font-medium text-[var(--color-gray-700)] mb-2">Evidence</p>
+              <ul className="space-y-3">
+                {(allEvidenceArtifacts.length > 0 ? allEvidenceArtifacts : requiredUpload).map((a) => {
+                  const needsUpload = (a.handling === "UPLOAD" || a.handling === "NATIVE") && !uploadedSet.has(a.label);
+                  return (
+                    <li key={a.label} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+                      <div className="flex items-center gap-2 min-w-0">
+                        {uploadedSet.has(a.label) ? (
+                          <CheckCircle2 className="h-4 w-4 shrink-0 text-[var(--color-status-green)]" aria-hidden />
+                        ) : (
+                          <span className="w-4 h-4 shrink-0 rounded-full border-2 border-[var(--color-gray-300)]" aria-hidden />
+                        )}
+                        <span className="text-sm text-[var(--color-gray-800)]">{a.label}</span>
+                        {a.handling && a.handling !== "UPLOAD" && a.handling !== "NATIVE" && (
+                          <span className="text-xs text-[var(--color-gray-500)]">({a.handling})</span>
+                        )}
+                      </div>
+                      {needsUpload && (
+                        <FileUploadWidget
+                          compact
+                          controlRecordId={record.id}
+                          artifactLabel={a.label}
+                          onUploaded={() => {
+                            refresh();
+                            refreshArtifacts(record.id, setArtifacts);
+                          }}
+                        />
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+
+          <p className="text-sm text-[var(--color-gray-500)]">
+            <Link href="/dashboard/poam" className="font-medium text-[var(--color-blue-accent)] hover:underline">
               Open POA&M
-            </Link> to manage findings and remediation.
+            </Link>{" "}
+            to manage findings and remediation.
           </p>
         </div>
       </section>

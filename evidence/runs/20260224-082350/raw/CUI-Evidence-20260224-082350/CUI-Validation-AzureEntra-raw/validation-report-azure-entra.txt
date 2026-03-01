@@ -1,0 +1,19 @@
+CUI Pilot — Azure/Entra 7-Controls Validation Report (read-only)
+Generated (UTC): 2026-02-27T19:26:47.464570+00:00
+
+Caveat: The five IA/MA checks (3.5.3, 3.5.4, 3.5.5, 3.5.6, MA 3.7.5) require evidence artifacts
+AND MFA in enclave access path (evidence from CA+sign-in or mfa-in-path-attested.txt).
+Exit code: 0 unless --fail-on-fail is used and there are failures, in which case exit 1.
+Computer: Patricks-MacBook-Pro.local
+User: patrick
+Azure/Entra artifact dir: /Users/patrick/cui-pilot/evidence/runs/20260224-082350/raw/CUI-Evidence-20260224-082350/meta
+PASS: 0  FAIL: 7  TOTAL: 7
+
+Checks:
+[FAIL] MFA for privileged accounts (Entra evidence) (IA.L2-3.5.3) - ENTRA-MFA | Observed: Sign-in/CA evidence=False; MFA in path satisfied=False (source=none) | Expected: entra-signin or CA policy export present AND MFA in enclave access path (evidence or mfa-in-path-attested.txt) | Evidence: entra-signin.json; Conditional Access export; mfa-in-path-attested.txt or CA+sign-in MFA evidence
+[FAIL] MFA for nonlocal maintenance (Entra evidence) (MA.L2-3.7.5) - ENTRA-MFA-MA | Observed: Sign-in/CA evidence=False; MFA in path satisfied=False (source=none) | Expected: Entra/MFA evidence AND MFA in enclave access path (evidence or attestation) | Evidence: entra-signin.json; MFA policy; mfa-in-path-attested.txt or CA+sign-in MFA evidence
+[FAIL] Replay-resistant authentication (Entra evidence) (IA.L2-3.5.4) - ENTRA-REPLAY | Observed: Entra/role evidence=False; MFA in path satisfied=False (source=none) | Expected: Entra/role evidence AND MFA in enclave access path (evidence or attestation) | Evidence: entra-signin.json; role-assignments-all.json; mfa-in-path-attested.txt or CA+sign-in MFA evidence
+[FAIL] Prevent identifier reuse (Entra evidence) (IA.L2-3.5.5) - ENTRA-NO-REUSE | Observed: Entra/role evidence=False; MFA in path satisfied=False (source=none) | Expected: Entra/role evidence AND MFA in enclave access path (evidence or attestation) | Evidence: entra-signin.json; role-assignments-all.json; mfa-in-path-attested.txt or CA+sign-in MFA evidence
+[FAIL] Disable identifiers after inactivity (Entra evidence) (IA.L2-3.5.6) - ENTRA-INACTIVITY | Observed: Entra/role evidence=False; MFA in path satisfied=False (source=none) | Expected: Entra/role evidence AND MFA in enclave access path (evidence or attestation) | Evidence: entra-signin.json; role-assignments-all.json; mfa-in-path-attested.txt or CA+sign-in MFA evidence
+[FAIL] Cryptographic key management (Azure Key Vault evidence) (SC.L2-3.13.10) - AZ-KEYVAULT | Observed: keyvault-list.json present and non-empty=False | Expected: Azure Key Vault list; when keyvault-*-properties.json exported: soft delete and purge protection enabled per vault | Evidence: keyvault-list.json; keyvault-*-properties.json (optional); keyvault-*-access-policies.json; keyvault-*-role-assignments.json
+[FAIL] Implement subnetworks (NSG evidence) (SC.L2-3.13.5) - AZ-NSG | Observed: NSG list present=False; effective RDP from public=False; acceptable_alternative=none | Expected: NSG list/rules present; RDP (3389) not allowed from public, or acceptable alternative (Bastion/JIT/Firewall) attested | Evidence: nsg-list.json; nsg-rules-*.json; optional: bastion-only-attested.txt, jit-enabled-attested.txt, firewall-enforcement-attested.txt, network-bypass-attested.json

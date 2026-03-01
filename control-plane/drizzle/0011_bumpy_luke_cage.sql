@@ -1,2 +1,2 @@
-ALTER TABLE "organizations" ADD COLUMN "organization_type" varchar(20);--> statement-breakpoint
-ALTER TABLE "organizations" ADD COLUMN "cmmc_target_level" varchar(20);
+DO $$ BEGIN ALTER TABLE "organizations" ADD COLUMN "organization_type" varchar(20); EXCEPTION WHEN duplicate_column THEN NULL; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "organizations" ADD COLUMN "cmmc_target_level" varchar(20); EXCEPTION WHEN duplicate_column THEN NULL; END $$;

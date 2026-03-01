@@ -1,0 +1,5862 @@
+{
+  "schema": "portal-control-schema.v1",
+  "generated_at": "2026-02-25T02:15:46Z",
+  "document_templates": {
+    "documents": [
+      {
+        "key": "policy_access_control",
+        "title": "Access Control Policy",
+        "type": "POLICY",
+        "domain": "AC"
+      },
+      {
+        "key": "policy_identity_auth",
+        "title": "Identity & Authentication Policy",
+        "type": "POLICY",
+        "domain": "IA"
+      },
+      {
+        "key": "policy_awareness_training",
+        "title": "Awareness & Training Policy",
+        "type": "POLICY",
+        "domain": "AT"
+      },
+      {
+        "key": "policy_audit_accountability",
+        "title": "Audit & Accountability Policy",
+        "type": "POLICY",
+        "domain": "AU"
+      },
+      {
+        "key": "policy_config_mgmt",
+        "title": "Configuration Management Policy",
+        "type": "POLICY",
+        "domain": "CM"
+      },
+      {
+        "key": "policy_incident_response",
+        "title": "Incident Response Policy",
+        "type": "POLICY",
+        "domain": "IR"
+      },
+      {
+        "key": "policy_maintenance",
+        "title": "Maintenance Policy",
+        "type": "POLICY",
+        "domain": "MA"
+      },
+      {
+        "key": "policy_personnel_security",
+        "title": "Personnel Security Policy",
+        "type": "POLICY",
+        "domain": "PS"
+      },
+      {
+        "key": "policy_risk_assessment",
+        "title": "Risk Assessment Policy",
+        "type": "POLICY",
+        "domain": "RA"
+      },
+      {
+        "key": "policy_security_assessment",
+        "title": "Security Assessment Policy",
+        "type": "POLICY",
+        "domain": "CA"
+      },
+      {
+        "key": "policy_physical_security",
+        "title": "Physical Security Policy",
+        "type": "POLICY",
+        "domain": "PE"
+      },
+      {
+        "key": "policy_media_protection",
+        "title": "Media Protection Policy",
+        "type": "POLICY",
+        "domain": "MP"
+      },
+      {
+        "key": "policy_crypto",
+        "title": "Cryptographic / Encryption Policy",
+        "type": "POLICY",
+        "domain": "SC"
+      },
+      {
+        "key": "policy_pam",
+        "title": "Privileged Access Management Policy",
+        "type": "POLICY",
+        "domain": "AC"
+      },
+      {
+        "key": "policy_document_control",
+        "title": "Document Control Policy",
+        "type": "POLICY",
+        "domain": "CA"
+      },
+      {
+        "key": "policy_records_retention",
+        "title": "Records Retention Policy",
+        "type": "POLICY",
+        "domain": "CA"
+      },
+      {
+        "key": "plan_ssp",
+        "title": "System Security Plan (SSP)",
+        "type": "PLAN",
+        "domain": "CA"
+      }
+    ],
+    "sops": [
+      {
+        "key": "sop_access_provisioning",
+        "title": "Access Provisioning Procedure",
+        "type": "SOP",
+        "domain": "AC"
+      },
+      {
+        "key": "sop_sod",
+        "title": "Separation of Duties Procedure",
+        "type": "SOP",
+        "domain": "AC"
+      },
+      {
+        "key": "sop_training_admin",
+        "title": "Training Administration Procedure",
+        "type": "SOP",
+        "domain": "AT"
+      },
+      {
+        "key": "sop_log_review",
+        "title": "Log Review Procedure",
+        "type": "SOP",
+        "domain": "AU"
+      },
+      {
+        "key": "sop_change_mgmt",
+        "title": "Change Management Procedure",
+        "type": "SOP",
+        "domain": "CM"
+      },
+      {
+        "key": "sop_security_impact",
+        "title": "Security Impact Analysis Procedure",
+        "type": "SOP",
+        "domain": "CM"
+      },
+      {
+        "key": "sop_incident_handling",
+        "title": "Incident Handling Procedure",
+        "type": "SOP",
+        "domain": "IR"
+      },
+      {
+        "key": "sop_ir_testing",
+        "title": "IR Testing Procedure",
+        "type": "SOP",
+        "domain": "IR"
+      },
+      {
+        "key": "sop_screening",
+        "title": "Personnel Screening Procedure",
+        "type": "SOP",
+        "domain": "PS"
+      },
+      {
+        "key": "sop_termination",
+        "title": "Termination Procedure",
+        "type": "SOP",
+        "domain": "PS"
+      },
+      {
+        "key": "sop_risk_method",
+        "title": "Risk Assessment Methodology",
+        "type": "SOP",
+        "domain": "RA"
+      },
+      {
+        "key": "sop_poam",
+        "title": "POA&M Management Procedure",
+        "type": "SOP",
+        "domain": "CA"
+      },
+      {
+        "key": "sop_conmon",
+        "title": "Control Monitoring Procedure",
+        "type": "SOP",
+        "domain": "CA"
+      },
+      {
+        "key": "sop_ssp_maintenance",
+        "title": "SSP Maintenance Procedure",
+        "type": "SOP",
+        "domain": "CA"
+      },
+      {
+        "key": "sop_media_sanitization",
+        "title": "Media Sanitization Procedure",
+        "type": "SOP",
+        "domain": "MP"
+      },
+      {
+        "key": "sop_visitor_control",
+        "title": "Visitor Control Procedure",
+        "type": "SOP",
+        "domain": "PE"
+      },
+      {
+        "key": "sop_encryption_config",
+        "title": "Encryption Configuration Procedure",
+        "type": "SOP",
+        "domain": "SC"
+      },
+      {
+        "key": "sop_mfa_admin",
+        "title": "MFA Administration Procedure",
+        "type": "SOP",
+        "domain": "IA"
+      }
+    ]
+  },
+  "register_definitions": [
+    {
+      "key": "access_authorizations",
+      "title": "Access Authorization Register"
+    },
+    {
+      "key": "role_assignment_matrix",
+      "title": "Role Assignment Matrix"
+    },
+    {
+      "key": "separation_of_duties_matrix",
+      "title": "Separation of Duties Matrix"
+    },
+    {
+      "key": "training_completion",
+      "title": "Training Completion Register"
+    },
+    {
+      "key": "incident_log",
+      "title": "Incident Log Register"
+    },
+    {
+      "key": "change_log",
+      "title": "Change Log"
+    },
+    {
+      "key": "risk_register",
+      "title": "Risk Register"
+    },
+    {
+      "key": "poam_tracker",
+      "title": "POA&M Tracker"
+    },
+    {
+      "key": "control_monitoring_log",
+      "title": "Control Monitoring Log"
+    },
+    {
+      "key": "maintenance_log",
+      "title": "Maintenance Activity Log"
+    },
+    {
+      "key": "personnel_screening",
+      "title": "Personnel Screening Log"
+    },
+    {
+      "key": "terminations",
+      "title": "Termination Log"
+    },
+    {
+      "key": "policy_review_log",
+      "title": "Policy Review Log"
+    },
+    {
+      "key": "audit_log_review_records",
+      "title": "Audit Log Review Records"
+    },
+    {
+      "key": "visitor_log",
+      "title": "Visitor Log"
+    },
+    {
+      "key": "media_destruction_log",
+      "title": "Media Destruction Log"
+    }
+  ],
+  "controls": [
+    {
+      "control_id": "AC.L2-3.1.1",
+      "domain": "AC",
+      "title": "Authorized Access Control",
+      "classification": "HYBRID_GOV",
+      "coverage_type": "hybrid",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_access_control",
+          "policy_pam"
+        ],
+        "required_sops": [
+          "sop_access_provisioning",
+          "sop_sod"
+        ],
+        "required_registers": [
+          "access_authorizations",
+          "role_assignment_matrix",
+          "separation_of_duties_matrix"
+        ]
+      },
+      "technical_validation": {
+        "required_files": [
+          "policy/local-accounts.txt",
+          "policy/local-groups.txt",
+          "policy/local-admins.txt",
+          "policy/gpresult-computer.txt",
+          "policy/gpresult-user.txt"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "policy/local-accounts.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/local-groups.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/local-admins.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/gpresult-computer.txt",
+            "contains_hint": "Expect policy provenance (GPO/RSOP)"
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/gpresult-user.txt",
+            "contains_hint": "Expect policy provenance (GPO/RSOP)"
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_access_control",
+          "required": true
+        },
+        {
+          "slot_type": "governance_document",
+          "key": "policy_pam",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_access_provisioning",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_sod",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "access_authorizations",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "role_assignment_matrix",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "separation_of_duties_matrix",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/local-accounts.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/local-groups.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/local-admins.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/gpresult-computer.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/gpresult-user.txt",
+          "required": true
+        },
+        {
+          "slot_type": "external_export",
+          "key": "idp_mfa_policy_export",
+          "required": false
+        },
+        {
+          "slot_type": "external_export",
+          "key": "cloud_boundary_exports",
+          "required": false
+        }
+      ]
+    },
+    {
+      "control_id": "AC.L2-3.1.10",
+      "domain": "AC",
+      "title": "Session Lock",
+      "classification": "TECHNICAL",
+      "coverage_type": "host_evidence",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_access_control",
+          "policy_pam"
+        ],
+        "required_sops": [
+          "sop_access_provisioning",
+          "sop_sod"
+        ],
+        "required_registers": [
+          "access_authorizations",
+          "role_assignment_matrix",
+          "separation_of_duties_matrix"
+        ]
+      },
+      "technical_validation": {
+        "required_files": [
+          "policy/machine-inactivity-limit.txt",
+          "policy/screensaver-policy.txt",
+          "policy/gpresult.html",
+          "policy/rsop.xml"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "policy/machine-inactivity-limit.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/screensaver-policy.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/gpresult.html",
+            "contains_hint": "Expect policy provenance (GPO/RSOP)"
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/rsop.xml",
+            "contains_hint": "Expect policy provenance (GPO/RSOP)"
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_access_control",
+          "required": true
+        },
+        {
+          "slot_type": "governance_document",
+          "key": "policy_pam",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_access_provisioning",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_sod",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "access_authorizations",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "role_assignment_matrix",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "separation_of_duties_matrix",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/machine-inactivity-limit.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/screensaver-policy.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/gpresult.html",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/rsop.xml",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "AC.L2-3.1.11",
+      "domain": "AC",
+      "title": "Session Termination",
+      "classification": "HYBRID_GOV",
+      "coverage_type": "hybrid",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_access_control",
+          "policy_pam"
+        ],
+        "required_sops": [
+          "sop_access_provisioning",
+          "sop_sod"
+        ],
+        "required_registers": [
+          "access_authorizations",
+          "role_assignment_matrix",
+          "separation_of_duties_matrix"
+        ]
+      },
+      "technical_validation": {
+        "required_files": [
+          "policy/machine-inactivity-limit.txt",
+          "policy/screensaver-policy.txt"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "policy/machine-inactivity-limit.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/screensaver-policy.txt",
+            "contains_hint": null
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_access_control",
+          "required": true
+        },
+        {
+          "slot_type": "governance_document",
+          "key": "policy_pam",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_access_provisioning",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_sod",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "access_authorizations",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "role_assignment_matrix",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "separation_of_duties_matrix",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/machine-inactivity-limit.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/screensaver-policy.txt",
+          "required": true
+        },
+        {
+          "slot_type": "external_export",
+          "key": "idp_mfa_policy_export",
+          "required": false
+        },
+        {
+          "slot_type": "external_export",
+          "key": "cloud_boundary_exports",
+          "required": false
+        }
+      ]
+    },
+    {
+      "control_id": "AC.L2-3.1.12",
+      "domain": "AC",
+      "title": "Control Remote Access",
+      "classification": "HYBRID_GOV",
+      "coverage_type": "hybrid",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_access_control",
+          "policy_pam"
+        ],
+        "required_sops": [
+          "sop_access_provisioning",
+          "sop_sod"
+        ],
+        "required_registers": [
+          "access_authorizations",
+          "role_assignment_matrix",
+          "separation_of_duties_matrix"
+        ]
+      },
+      "technical_validation": {
+        "required_files": [
+          "network/rdp-policy.txt",
+          "network/rdp-tcp.txt",
+          "host/services-remote.txt",
+          "network/firewall-rules-summary.txt",
+          "network/firewall.txt"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "network/rdp-policy.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "network/rdp-tcp.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "host/services-remote.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "network/firewall-rules-summary.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "network/firewall.txt",
+            "contains_hint": "Expect Enabled True and DefaultInboundAction Block"
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_access_control",
+          "required": true
+        },
+        {
+          "slot_type": "governance_document",
+          "key": "policy_pam",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_access_provisioning",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_sod",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "access_authorizations",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "role_assignment_matrix",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "separation_of_duties_matrix",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "network/rdp-policy.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "network/rdp-tcp.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "host/services-remote.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "network/firewall-rules-summary.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "network/firewall.txt",
+          "required": true
+        },
+        {
+          "slot_type": "external_export",
+          "key": "idp_mfa_policy_export",
+          "required": false
+        },
+        {
+          "slot_type": "external_export",
+          "key": "cloud_boundary_exports",
+          "required": false
+        }
+      ]
+    },
+    {
+      "control_id": "AC.L2-3.1.13",
+      "domain": "AC",
+      "title": "Remote Access Confidentiality",
+      "classification": "HYBRID_GOV",
+      "coverage_type": "hybrid",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_access_control",
+          "policy_pam"
+        ],
+        "required_sops": [
+          "sop_access_provisioning",
+          "sop_sod"
+        ],
+        "required_registers": [
+          "access_authorizations",
+          "role_assignment_matrix",
+          "separation_of_duties_matrix"
+        ]
+      },
+      "technical_validation": {
+        "required_files": [
+          "network/rdp-tcp.txt",
+          "crypto/schannel-protocols.txt",
+          "crypto/tls-ciphersuites.txt"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "network/rdp-tcp.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "crypto/schannel-protocols.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "crypto/tls-ciphersuites.txt",
+            "contains_hint": null
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_access_control",
+          "required": true
+        },
+        {
+          "slot_type": "governance_document",
+          "key": "policy_pam",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_access_provisioning",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_sod",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "access_authorizations",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "role_assignment_matrix",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "separation_of_duties_matrix",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "network/rdp-tcp.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "crypto/schannel-protocols.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "crypto/tls-ciphersuites.txt",
+          "required": true
+        },
+        {
+          "slot_type": "external_export",
+          "key": "idp_mfa_policy_export",
+          "required": false
+        },
+        {
+          "slot_type": "external_export",
+          "key": "cloud_boundary_exports",
+          "required": false
+        }
+      ]
+    },
+    {
+      "control_id": "AC.L2-3.1.14",
+      "domain": "AC",
+      "title": "Remote Access Routing",
+      "classification": "TECHNICAL",
+      "coverage_type": "host_evidence",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_access_control",
+          "policy_pam"
+        ],
+        "required_sops": [
+          "sop_access_provisioning",
+          "sop_sod"
+        ],
+        "required_registers": [
+          "access_authorizations",
+          "role_assignment_matrix",
+          "separation_of_duties_matrix"
+        ]
+      },
+      "technical_validation": {
+        "required_files": [],
+        "checks": [],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_access_control",
+          "required": true
+        },
+        {
+          "slot_type": "governance_document",
+          "key": "policy_pam",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_access_provisioning",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_sod",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "access_authorizations",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "role_assignment_matrix",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "separation_of_duties_matrix",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "AC.L2-3.1.15",
+      "domain": "AC",
+      "title": "Privileged Remote Access",
+      "classification": "HYBRID_GOV",
+      "coverage_type": "hybrid",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_access_control",
+          "policy_pam"
+        ],
+        "required_sops": [
+          "sop_access_provisioning",
+          "sop_sod"
+        ],
+        "required_registers": [
+          "access_authorizations",
+          "role_assignment_matrix",
+          "separation_of_duties_matrix"
+        ]
+      },
+      "technical_validation": {
+        "required_files": [
+          "policy/local-admins.txt",
+          "network/rdp-policy.txt",
+          "network/rdp-tcp.txt",
+          "policy/account-policy.txt"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "policy/local-admins.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "network/rdp-policy.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "network/rdp-tcp.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/account-policy.txt",
+            "contains_hint": null
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_access_control",
+          "required": true
+        },
+        {
+          "slot_type": "governance_document",
+          "key": "policy_pam",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_access_provisioning",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_sod",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "access_authorizations",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "role_assignment_matrix",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "separation_of_duties_matrix",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/local-admins.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "network/rdp-policy.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "network/rdp-tcp.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/account-policy.txt",
+          "required": true
+        },
+        {
+          "slot_type": "external_export",
+          "key": "idp_mfa_policy_export",
+          "required": false
+        },
+        {
+          "slot_type": "external_export",
+          "key": "cloud_boundary_exports",
+          "required": false
+        }
+      ]
+    },
+    {
+      "control_id": "AC.L2-3.1.2",
+      "domain": "AC",
+      "title": "Transaction & Function Control",
+      "classification": "HYBRID_GOV",
+      "coverage_type": "hybrid",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_access_control",
+          "policy_pam"
+        ],
+        "required_sops": [
+          "sop_access_provisioning",
+          "sop_sod"
+        ],
+        "required_registers": [
+          "access_authorizations",
+          "role_assignment_matrix",
+          "separation_of_duties_matrix"
+        ]
+      },
+      "technical_validation": {
+        "required_files": [],
+        "checks": [],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_access_control",
+          "required": true
+        },
+        {
+          "slot_type": "governance_document",
+          "key": "policy_pam",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_access_provisioning",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_sod",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "access_authorizations",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "role_assignment_matrix",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "separation_of_duties_matrix",
+          "required": true
+        },
+        {
+          "slot_type": "external_export",
+          "key": "idp_mfa_policy_export",
+          "required": false
+        },
+        {
+          "slot_type": "external_export",
+          "key": "cloud_boundary_exports",
+          "required": false
+        }
+      ]
+    },
+    {
+      "control_id": "AC.L2-3.1.3",
+      "domain": "AC",
+      "title": "Title TBD",
+      "classification": "HYBRID_GOV",
+      "coverage_type": "hybrid",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_access_control",
+          "policy_pam"
+        ],
+        "required_sops": [
+          "sop_access_provisioning",
+          "sop_sod"
+        ],
+        "required_registers": [
+          "access_authorizations",
+          "role_assignment_matrix",
+          "separation_of_duties_matrix"
+        ]
+      },
+      "technical_validation": null,
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_access_control",
+          "required": true
+        },
+        {
+          "slot_type": "governance_document",
+          "key": "policy_pam",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_access_provisioning",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_sod",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "access_authorizations",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "role_assignment_matrix",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "separation_of_duties_matrix",
+          "required": true
+        },
+        {
+          "slot_type": "external_export",
+          "key": "idp_mfa_policy_export",
+          "required": false
+        },
+        {
+          "slot_type": "external_export",
+          "key": "cloud_boundary_exports",
+          "required": false
+        }
+      ]
+    },
+    {
+      "control_id": "AC.L2-3.1.4",
+      "domain": "AC",
+      "title": "Title TBD",
+      "classification": "PURE_GOV",
+      "coverage_type": "governance_only",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_access_control",
+          "policy_pam"
+        ],
+        "required_sops": [
+          "sop_access_provisioning",
+          "sop_sod"
+        ],
+        "required_registers": [
+          "access_authorizations",
+          "role_assignment_matrix",
+          "separation_of_duties_matrix"
+        ]
+      },
+      "technical_validation": null,
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_access_control",
+          "required": true
+        },
+        {
+          "slot_type": "governance_document",
+          "key": "policy_pam",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_access_provisioning",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_sod",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "access_authorizations",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "role_assignment_matrix",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "separation_of_duties_matrix",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "AC.L2-3.1.5",
+      "domain": "AC",
+      "title": "Least Privilege",
+      "classification": "HYBRID_GOV",
+      "coverage_type": "hybrid",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_access_control",
+          "policy_pam"
+        ],
+        "required_sops": [
+          "sop_access_provisioning",
+          "sop_sod"
+        ],
+        "required_registers": [
+          "access_authorizations",
+          "role_assignment_matrix",
+          "separation_of_duties_matrix"
+        ]
+      },
+      "technical_validation": {
+        "required_files": [
+          "policy/local-admins.txt",
+          "policy/uac-policy.txt",
+          "policy/secpol.cfg",
+          "policy/user-rights-assignments.txt",
+          "host/whoami-all.txt",
+          "policy/gpresult.html",
+          "policy/rsop.xml"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "policy/local-admins.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/uac-policy.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/secpol.cfg",
+            "contains_hint": "Expect password/lockout/user rights settings"
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/user-rights-assignments.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "host/whoami-all.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/gpresult.html",
+            "contains_hint": "Expect policy provenance (GPO/RSOP)"
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/rsop.xml",
+            "contains_hint": "Expect policy provenance (GPO/RSOP)"
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_access_control",
+          "required": true
+        },
+        {
+          "slot_type": "governance_document",
+          "key": "policy_pam",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_access_provisioning",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_sod",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "access_authorizations",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "role_assignment_matrix",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "separation_of_duties_matrix",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/local-admins.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/uac-policy.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/secpol.cfg",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/user-rights-assignments.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "host/whoami-all.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/gpresult.html",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/rsop.xml",
+          "required": true
+        },
+        {
+          "slot_type": "external_export",
+          "key": "idp_mfa_policy_export",
+          "required": false
+        },
+        {
+          "slot_type": "external_export",
+          "key": "cloud_boundary_exports",
+          "required": false
+        }
+      ]
+    },
+    {
+      "control_id": "AC.L2-3.1.6",
+      "domain": "AC",
+      "title": "Non-Privileged Account Use",
+      "classification": "HYBRID_GOV",
+      "coverage_type": "hybrid",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_access_control",
+          "policy_pam"
+        ],
+        "required_sops": [
+          "sop_access_provisioning",
+          "sop_sod"
+        ],
+        "required_registers": [
+          "access_authorizations",
+          "role_assignment_matrix",
+          "separation_of_duties_matrix"
+        ]
+      },
+      "technical_validation": {
+        "required_files": [
+          "policy/local-admins.txt",
+          "policy/secpol.cfg",
+          "policy/user-rights-assignments.txt",
+          "host/whoami-all.txt"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "policy/local-admins.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/secpol.cfg",
+            "contains_hint": "Expect password/lockout/user rights settings"
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/user-rights-assignments.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "host/whoami-all.txt",
+            "contains_hint": null
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_access_control",
+          "required": true
+        },
+        {
+          "slot_type": "governance_document",
+          "key": "policy_pam",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_access_provisioning",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_sod",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "access_authorizations",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "role_assignment_matrix",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "separation_of_duties_matrix",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/local-admins.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/secpol.cfg",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/user-rights-assignments.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "host/whoami-all.txt",
+          "required": true
+        },
+        {
+          "slot_type": "external_export",
+          "key": "idp_mfa_policy_export",
+          "required": false
+        },
+        {
+          "slot_type": "external_export",
+          "key": "cloud_boundary_exports",
+          "required": false
+        }
+      ]
+    },
+    {
+      "control_id": "AC.L2-3.1.7",
+      "domain": "AC",
+      "title": "Privileged Functions",
+      "classification": "HYBRID_GOV",
+      "coverage_type": "hybrid",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_access_control",
+          "policy_pam"
+        ],
+        "required_sops": [
+          "sop_access_provisioning",
+          "sop_sod"
+        ],
+        "required_registers": [
+          "access_authorizations",
+          "role_assignment_matrix",
+          "separation_of_duties_matrix"
+        ]
+      },
+      "technical_validation": {
+        "required_files": [
+          "policy/user-rights-assignments.txt",
+          "policy/secpol.cfg",
+          "host/whoami-all.txt",
+          "policy/local-admins.txt"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "policy/user-rights-assignments.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/secpol.cfg",
+            "contains_hint": "Expect password/lockout/user rights settings"
+          },
+          {
+            "type": "file_presence",
+            "file": "host/whoami-all.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/local-admins.txt",
+            "contains_hint": null
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_access_control",
+          "required": true
+        },
+        {
+          "slot_type": "governance_document",
+          "key": "policy_pam",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_access_provisioning",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_sod",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "access_authorizations",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "role_assignment_matrix",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "separation_of_duties_matrix",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/user-rights-assignments.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/secpol.cfg",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "host/whoami-all.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/local-admins.txt",
+          "required": true
+        },
+        {
+          "slot_type": "external_export",
+          "key": "idp_mfa_policy_export",
+          "required": false
+        },
+        {
+          "slot_type": "external_export",
+          "key": "cloud_boundary_exports",
+          "required": false
+        }
+      ]
+    },
+    {
+      "control_id": "AC.L2-3.1.8",
+      "domain": "AC",
+      "title": "Unsuccessful Logon Attempts",
+      "classification": "TECHNICAL",
+      "coverage_type": "host_evidence",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_access_control",
+          "policy_pam"
+        ],
+        "required_sops": [
+          "sop_access_provisioning",
+          "sop_sod"
+        ],
+        "required_registers": [
+          "access_authorizations",
+          "role_assignment_matrix",
+          "separation_of_duties_matrix"
+        ]
+      },
+      "technical_validation": {
+        "required_files": [
+          "policy/account-policy.txt",
+          "audit/eventlog-4625-failed-logons.txt",
+          "audit/eventlog-security.txt"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "policy/account-policy.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "audit/eventlog-4625-failed-logons.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "audit/eventlog-security.txt",
+            "contains_hint": null
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_access_control",
+          "required": true
+        },
+        {
+          "slot_type": "governance_document",
+          "key": "policy_pam",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_access_provisioning",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_sod",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "access_authorizations",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "role_assignment_matrix",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "separation_of_duties_matrix",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/account-policy.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "audit/eventlog-4625-failed-logons.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "audit/eventlog-security.txt",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "AC.L2-3.1.9",
+      "domain": "AC",
+      "title": "Privacy & Security Notices",
+      "classification": "TECHNICAL",
+      "coverage_type": "host_evidence",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_access_control",
+          "policy_pam"
+        ],
+        "required_sops": [
+          "sop_access_provisioning",
+          "sop_sod"
+        ],
+        "required_registers": [
+          "access_authorizations",
+          "role_assignment_matrix",
+          "separation_of_duties_matrix"
+        ]
+      },
+      "technical_validation": {
+        "required_files": [
+          "policy/interactive-logon-notice.txt",
+          "policy/gpresult.html",
+          "policy/rsop.xml"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "policy/interactive-logon-notice.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/gpresult.html",
+            "contains_hint": "Expect policy provenance (GPO/RSOP)"
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/rsop.xml",
+            "contains_hint": "Expect policy provenance (GPO/RSOP)"
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_access_control",
+          "required": true
+        },
+        {
+          "slot_type": "governance_document",
+          "key": "policy_pam",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_access_provisioning",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_sod",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "access_authorizations",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "role_assignment_matrix",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "separation_of_duties_matrix",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/interactive-logon-notice.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/gpresult.html",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/rsop.xml",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "AT.L2-3.2.1",
+      "domain": "AT",
+      "title": "Title TBD",
+      "classification": "PURE_GOV",
+      "coverage_type": "governance_only",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_awareness_training"
+        ],
+        "required_sops": [
+          "sop_training_admin"
+        ],
+        "required_registers": [
+          "training_completion"
+        ]
+      },
+      "technical_validation": null,
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_awareness_training",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_training_admin",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "training_completion",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "AT.L2-3.2.2",
+      "domain": "AT",
+      "title": "Title TBD",
+      "classification": "PURE_GOV",
+      "coverage_type": "governance_only",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_awareness_training"
+        ],
+        "required_sops": [
+          "sop_training_admin"
+        ],
+        "required_registers": [
+          "training_completion"
+        ]
+      },
+      "technical_validation": null,
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_awareness_training",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_training_admin",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "training_completion",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "AT.L2-3.2.3",
+      "domain": "AT",
+      "title": "Title TBD",
+      "classification": "PURE_GOV",
+      "coverage_type": "governance_only",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_awareness_training"
+        ],
+        "required_sops": [
+          "sop_training_admin"
+        ],
+        "required_registers": [
+          "training_completion"
+        ]
+      },
+      "technical_validation": null,
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_awareness_training",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_training_admin",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "training_completion",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "AU.L2-3.3.1",
+      "domain": "AU",
+      "title": "Audit Record Creation & Retention",
+      "classification": "TECHNICAL",
+      "coverage_type": "host_evidence",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_audit_accountability"
+        ],
+        "required_sops": [
+          "sop_log_review"
+        ],
+        "required_registers": [
+          "audit_log_review_records"
+        ]
+      },
+      "technical_validation": {
+        "required_files": [
+          "audit/eventlog-security.txt",
+          "audit/eventlog-system.txt",
+          "audit/eventlog-application.txt",
+          "audit/auditpol.txt"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "audit/eventlog-security.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "audit/eventlog-system.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "audit/eventlog-application.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "audit/auditpol.txt",
+            "contains_hint": "Expect required audit categories enabled"
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_audit_accountability",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_log_review",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "audit_log_review_records",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "audit/eventlog-security.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "audit/eventlog-system.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "audit/eventlog-application.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "audit/auditpol.txt",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "AU.L2-3.3.10",
+      "domain": "AU",
+      "title": "Audit Failure Alert",
+      "classification": "HYBRID_GOV",
+      "coverage_type": "hybrid",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_audit_accountability"
+        ],
+        "required_sops": [
+          "sop_log_review"
+        ],
+        "required_registers": [
+          "audit_log_review_records"
+        ]
+      },
+      "technical_validation": {
+        "required_files": [
+          "audit/eventlog-system-sample.txt",
+          "audit/eventlog-system.txt"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "audit/eventlog-system-sample.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "audit/eventlog-system.txt",
+            "contains_hint": null
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_audit_accountability",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_log_review",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "audit_log_review_records",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "audit/eventlog-system-sample.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "audit/eventlog-system.txt",
+          "required": true
+        },
+        {
+          "slot_type": "external_export",
+          "key": "idp_mfa_policy_export",
+          "required": false
+        },
+        {
+          "slot_type": "external_export",
+          "key": "cloud_boundary_exports",
+          "required": false
+        }
+      ]
+    },
+    {
+      "control_id": "AU.L2-3.3.2",
+      "domain": "AU",
+      "title": "Audit Record Content / Traceability",
+      "classification": "TECHNICAL",
+      "coverage_type": "host_evidence",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_audit_accountability"
+        ],
+        "required_sops": [
+          "sop_log_review"
+        ],
+        "required_registers": [
+          "audit_log_review_records"
+        ]
+      },
+      "technical_validation": {
+        "required_files": [
+          "audit/eventlog-security-sample.txt",
+          "audit/auditpol.txt",
+          "host/whoami-all.txt"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "audit/eventlog-security-sample.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "audit/auditpol.txt",
+            "contains_hint": "Expect required audit categories enabled"
+          },
+          {
+            "type": "file_presence",
+            "file": "host/whoami-all.txt",
+            "contains_hint": null
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_audit_accountability",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_log_review",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "audit_log_review_records",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "audit/eventlog-security-sample.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "audit/auditpol.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "host/whoami-all.txt",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "AU.L2-3.3.3",
+      "domain": "AU",
+      "title": "Review and Update Logged Events",
+      "classification": "PURE_GOV",
+      "coverage_type": "governance_only",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_audit_accountability"
+        ],
+        "required_sops": [
+          "sop_log_review"
+        ],
+        "required_registers": [
+          "audit_log_review_records"
+        ]
+      },
+      "technical_validation": null,
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_audit_accountability",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_log_review",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "audit_log_review_records",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "AU.L2-3.3.4",
+      "domain": "AU",
+      "title": "Audit Log Review/Analysis/Reporting",
+      "classification": "TECHNICAL",
+      "coverage_type": "host_evidence",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_audit_accountability"
+        ],
+        "required_sops": [
+          "sop_log_review"
+        ],
+        "required_registers": [
+          "audit_log_review_records"
+        ]
+      },
+      "technical_validation": {
+        "required_files": [],
+        "checks": [],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_audit_accountability",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_log_review",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "audit_log_review_records",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "AU.L2-3.3.5",
+      "domain": "AU",
+      "title": "Audit Log Correlation",
+      "classification": "TECHNICAL",
+      "coverage_type": "host_evidence",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_audit_accountability"
+        ],
+        "required_sops": [
+          "sop_log_review"
+        ],
+        "required_registers": [
+          "audit_log_review_records"
+        ]
+      },
+      "technical_validation": {
+        "required_files": [],
+        "checks": [],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_audit_accountability",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_log_review",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "audit_log_review_records",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "AU.L2-3.3.6",
+      "domain": "AU",
+      "title": "Audit Reduction and Report Generation",
+      "classification": "TECHNICAL",
+      "coverage_type": "host_evidence",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_audit_accountability"
+        ],
+        "required_sops": [
+          "sop_log_review"
+        ],
+        "required_registers": [
+          "audit_log_review_records"
+        ]
+      },
+      "technical_validation": {
+        "required_files": [],
+        "checks": [],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_audit_accountability",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_log_review",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "audit_log_review_records",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "AU.L2-3.3.7",
+      "domain": "AU",
+      "title": "Time Stamps",
+      "classification": "TECHNICAL",
+      "coverage_type": "host_evidence",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_audit_accountability"
+        ],
+        "required_sops": [
+          "sop_log_review"
+        ],
+        "required_registers": [
+          "audit_log_review_records"
+        ]
+      },
+      "technical_validation": {
+        "required_files": [
+          "host/time-sync.txt",
+          "audit/eventlog-security-sample.txt"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "host/time-sync.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "audit/eventlog-security-sample.txt",
+            "contains_hint": null
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_audit_accountability",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_log_review",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "audit_log_review_records",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "host/time-sync.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "audit/eventlog-security-sample.txt",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "AU.L2-3.3.8",
+      "domain": "AU",
+      "title": "Protect Audit Information",
+      "classification": "TECHNICAL",
+      "coverage_type": "host_evidence",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_audit_accountability"
+        ],
+        "required_sops": [
+          "sop_log_review"
+        ],
+        "required_registers": [
+          "audit_log_review_records"
+        ]
+      },
+      "technical_validation": {
+        "required_files": [
+          "audit/security-evtx-acl.txt",
+          "audit/eventlog-security.txt"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "audit/security-evtx-acl.txt",
+            "contains_hint": "Expect restricted ACLs (SYSTEM/Admin/EventLog)"
+          },
+          {
+            "type": "file_presence",
+            "file": "audit/eventlog-security.txt",
+            "contains_hint": null
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_audit_accountability",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_log_review",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "audit_log_review_records",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "audit/security-evtx-acl.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "audit/eventlog-security.txt",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "AU.L2-3.3.9",
+      "domain": "AU",
+      "title": "Audit Management Restricted",
+      "classification": "TECHNICAL",
+      "coverage_type": "host_evidence",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_audit_accountability"
+        ],
+        "required_sops": [
+          "sop_log_review"
+        ],
+        "required_registers": [
+          "audit_log_review_records"
+        ]
+      },
+      "technical_validation": {
+        "required_files": [
+          "audit/security-evtx-acl.txt",
+          "policy/local-admins.txt",
+          "policy/user-rights-assignments.txt"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "audit/security-evtx-acl.txt",
+            "contains_hint": "Expect restricted ACLs (SYSTEM/Admin/EventLog)"
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/local-admins.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/user-rights-assignments.txt",
+            "contains_hint": null
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_audit_accountability",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_log_review",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "audit_log_review_records",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "audit/security-evtx-acl.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/local-admins.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/user-rights-assignments.txt",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "CA.L2-3.12.1",
+      "domain": "CA",
+      "title": "Title TBD",
+      "classification": "PURE_GOV",
+      "coverage_type": "governance_only",
+      "governance_requirements": {
+        "required_documents": [
+          "plan_ssp",
+          "policy_document_control",
+          "policy_records_retention",
+          "policy_security_assessment"
+        ],
+        "required_sops": [
+          "sop_conmon",
+          "sop_poam",
+          "sop_ssp_maintenance"
+        ],
+        "required_registers": [
+          "control_monitoring_log",
+          "poam_tracker",
+          "policy_review_log"
+        ]
+      },
+      "technical_validation": null,
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "plan_ssp",
+          "required": true
+        },
+        {
+          "slot_type": "governance_document",
+          "key": "policy_document_control",
+          "required": true
+        },
+        {
+          "slot_type": "governance_document",
+          "key": "policy_records_retention",
+          "required": true
+        },
+        {
+          "slot_type": "governance_document",
+          "key": "policy_security_assessment",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_conmon",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_poam",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_ssp_maintenance",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "control_monitoring_log",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "poam_tracker",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "policy_review_log",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "CA.L2-3.12.2",
+      "domain": "CA",
+      "title": "Title TBD",
+      "classification": "PURE_GOV",
+      "coverage_type": "governance_only",
+      "governance_requirements": {
+        "required_documents": [
+          "plan_ssp",
+          "policy_document_control",
+          "policy_records_retention",
+          "policy_security_assessment"
+        ],
+        "required_sops": [
+          "sop_conmon",
+          "sop_poam",
+          "sop_ssp_maintenance"
+        ],
+        "required_registers": [
+          "control_monitoring_log",
+          "poam_tracker",
+          "policy_review_log"
+        ]
+      },
+      "technical_validation": null,
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "plan_ssp",
+          "required": true
+        },
+        {
+          "slot_type": "governance_document",
+          "key": "policy_document_control",
+          "required": true
+        },
+        {
+          "slot_type": "governance_document",
+          "key": "policy_records_retention",
+          "required": true
+        },
+        {
+          "slot_type": "governance_document",
+          "key": "policy_security_assessment",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_conmon",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_poam",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_ssp_maintenance",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "control_monitoring_log",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "poam_tracker",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "policy_review_log",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "CA.L2-3.12.3",
+      "domain": "CA",
+      "title": "Title TBD",
+      "classification": "PURE_GOV",
+      "coverage_type": "governance_only",
+      "governance_requirements": {
+        "required_documents": [
+          "plan_ssp",
+          "policy_document_control",
+          "policy_records_retention",
+          "policy_security_assessment"
+        ],
+        "required_sops": [
+          "sop_conmon",
+          "sop_poam",
+          "sop_ssp_maintenance"
+        ],
+        "required_registers": [
+          "control_monitoring_log",
+          "poam_tracker",
+          "policy_review_log"
+        ]
+      },
+      "technical_validation": null,
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "plan_ssp",
+          "required": true
+        },
+        {
+          "slot_type": "governance_document",
+          "key": "policy_document_control",
+          "required": true
+        },
+        {
+          "slot_type": "governance_document",
+          "key": "policy_records_retention",
+          "required": true
+        },
+        {
+          "slot_type": "governance_document",
+          "key": "policy_security_assessment",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_conmon",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_poam",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_ssp_maintenance",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "control_monitoring_log",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "poam_tracker",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "policy_review_log",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "CA.L2-3.12.4",
+      "domain": "CA",
+      "title": "Title TBD",
+      "classification": "PURE_GOV",
+      "coverage_type": "governance_only",
+      "governance_requirements": {
+        "required_documents": [
+          "plan_ssp",
+          "policy_document_control",
+          "policy_records_retention",
+          "policy_security_assessment"
+        ],
+        "required_sops": [
+          "sop_conmon",
+          "sop_poam",
+          "sop_ssp_maintenance"
+        ],
+        "required_registers": [
+          "control_monitoring_log",
+          "poam_tracker",
+          "policy_review_log"
+        ]
+      },
+      "technical_validation": null,
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "plan_ssp",
+          "required": true
+        },
+        {
+          "slot_type": "governance_document",
+          "key": "policy_document_control",
+          "required": true
+        },
+        {
+          "slot_type": "governance_document",
+          "key": "policy_records_retention",
+          "required": true
+        },
+        {
+          "slot_type": "governance_document",
+          "key": "policy_security_assessment",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_conmon",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_poam",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_ssp_maintenance",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "control_monitoring_log",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "poam_tracker",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "policy_review_log",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "CM.L2-3.4.1",
+      "domain": "CM",
+      "title": "Baseline Configuration & Inventory",
+      "classification": "TECHNICAL",
+      "coverage_type": "host_evidence",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_config_mgmt"
+        ],
+        "required_sops": [
+          "sop_change_mgmt",
+          "sop_security_impact"
+        ],
+        "required_registers": [
+          "change_log"
+        ]
+      },
+      "technical_validation": {
+        "required_files": [
+          "host/systeminfo.txt",
+          "host/computerinfo.txt",
+          "host/installed-software.txt",
+          "host/installed-roles-features.txt",
+          "host/services-security-relevant.txt",
+          "network/listening-ports.txt"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "host/systeminfo.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "host/computerinfo.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "host/installed-software.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "host/installed-roles-features.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "host/services-security-relevant.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "network/listening-ports.txt",
+            "contains_hint": "Review exposed ports align with SSP"
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_config_mgmt",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_change_mgmt",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_security_impact",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "change_log",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "host/systeminfo.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "host/computerinfo.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "host/installed-software.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "host/installed-roles-features.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "host/services-security-relevant.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "network/listening-ports.txt",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "CM.L2-3.4.2",
+      "domain": "CM",
+      "title": "Security Configuration Settings",
+      "classification": "TECHNICAL",
+      "coverage_type": "host_evidence",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_config_mgmt"
+        ],
+        "required_sops": [
+          "sop_change_mgmt",
+          "sop_security_impact"
+        ],
+        "required_registers": [
+          "change_log"
+        ]
+      },
+      "technical_validation": {
+        "required_files": [
+          "policy/secpol.cfg",
+          "policy/uac-policy.txt",
+          "policy/lsa.txt",
+          "policy/ntlm-policy.txt",
+          "network/firewall.txt",
+          "audit/auditpol.txt",
+          "crypto/schannel-protocols.txt",
+          "defender/defender-preferences.txt",
+          "policy/gpresult.html",
+          "policy/rsop.xml"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "policy/secpol.cfg",
+            "contains_hint": "Expect password/lockout/user rights settings"
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/uac-policy.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/lsa.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/ntlm-policy.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "network/firewall.txt",
+            "contains_hint": "Expect Enabled True and DefaultInboundAction Block"
+          },
+          {
+            "type": "file_presence",
+            "file": "audit/auditpol.txt",
+            "contains_hint": "Expect required audit categories enabled"
+          },
+          {
+            "type": "file_presence",
+            "file": "crypto/schannel-protocols.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "defender/defender-preferences.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/gpresult.html",
+            "contains_hint": "Expect policy provenance (GPO/RSOP)"
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/rsop.xml",
+            "contains_hint": "Expect policy provenance (GPO/RSOP)"
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_config_mgmt",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_change_mgmt",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_security_impact",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "change_log",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/secpol.cfg",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/uac-policy.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/lsa.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/ntlm-policy.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "network/firewall.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "audit/auditpol.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "crypto/schannel-protocols.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "defender/defender-preferences.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/gpresult.html",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/rsop.xml",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "CM.L2-3.4.3",
+      "domain": "CM",
+      "title": "Change Control",
+      "classification": "PURE_GOV",
+      "coverage_type": "governance_only",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_config_mgmt"
+        ],
+        "required_sops": [
+          "sop_change_mgmt",
+          "sop_security_impact"
+        ],
+        "required_registers": [
+          "change_log"
+        ]
+      },
+      "technical_validation": null,
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_config_mgmt",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_change_mgmt",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_security_impact",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "change_log",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "CM.L2-3.4.4",
+      "domain": "CM",
+      "title": "Security Impact Analysis",
+      "classification": "PURE_GOV",
+      "coverage_type": "governance_only",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_config_mgmt"
+        ],
+        "required_sops": [
+          "sop_change_mgmt",
+          "sop_security_impact"
+        ],
+        "required_registers": [
+          "change_log"
+        ]
+      },
+      "technical_validation": null,
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_config_mgmt",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_change_mgmt",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_security_impact",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "change_log",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "CM.L2-3.4.5",
+      "domain": "CM",
+      "title": "Least Functionality",
+      "classification": "TECHNICAL",
+      "coverage_type": "host_evidence",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_config_mgmt"
+        ],
+        "required_sops": [
+          "sop_change_mgmt",
+          "sop_security_impact"
+        ],
+        "required_registers": [
+          "change_log"
+        ]
+      },
+      "technical_validation": {
+        "required_files": [
+          "host/services-security-relevant.txt",
+          "host/services-remote.txt",
+          "host/installed-roles-features.txt",
+          "network/listening-ports.txt"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "host/services-security-relevant.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "host/services-remote.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "host/installed-roles-features.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "network/listening-ports.txt",
+            "contains_hint": "Review exposed ports align with SSP"
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_config_mgmt",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_change_mgmt",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_security_impact",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "change_log",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "host/services-security-relevant.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "host/services-remote.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "host/installed-roles-features.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "network/listening-ports.txt",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "CM.L2-3.4.6",
+      "domain": "CM",
+      "title": "Configuration Settings for User-Installed Software",
+      "classification": "HYBRID_GOV",
+      "coverage_type": "hybrid",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_config_mgmt"
+        ],
+        "required_sops": [
+          "sop_change_mgmt",
+          "sop_security_impact"
+        ],
+        "required_registers": [
+          "change_log"
+        ]
+      },
+      "technical_validation": {
+        "required_files": [
+          "apps/applocker-policy.txt",
+          "policy/user-rights-assignments.txt",
+          "policy/local-admins.txt",
+          "host/installed-software.txt"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "apps/applocker-policy.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/user-rights-assignments.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/local-admins.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "host/installed-software.txt",
+            "contains_hint": null
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_config_mgmt",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_change_mgmt",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_security_impact",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "change_log",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "apps/applocker-policy.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/user-rights-assignments.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/local-admins.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "host/installed-software.txt",
+          "required": true
+        },
+        {
+          "slot_type": "external_export",
+          "key": "idp_mfa_policy_export",
+          "required": false
+        },
+        {
+          "slot_type": "external_export",
+          "key": "cloud_boundary_exports",
+          "required": false
+        }
+      ]
+    },
+    {
+      "control_id": "CM.L2-3.4.7",
+      "domain": "CM",
+      "title": "Whitelisting / Restrict Executable Code",
+      "classification": "TECHNICAL",
+      "coverage_type": "host_evidence",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_config_mgmt"
+        ],
+        "required_sops": [
+          "sop_change_mgmt",
+          "sop_security_impact"
+        ],
+        "required_registers": [
+          "change_log"
+        ]
+      },
+      "technical_validation": {
+        "required_files": [
+          "apps/applocker-policy.txt"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "apps/applocker-policy.txt",
+            "contains_hint": null
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_config_mgmt",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_change_mgmt",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_security_impact",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "change_log",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "apps/applocker-policy.txt",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "CM.L2-3.4.8",
+      "domain": "CM",
+      "title": "Install Only Authorized Software",
+      "classification": "HYBRID_GOV",
+      "coverage_type": "hybrid",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_config_mgmt"
+        ],
+        "required_sops": [
+          "sop_change_mgmt",
+          "sop_security_impact"
+        ],
+        "required_registers": [
+          "change_log"
+        ]
+      },
+      "technical_validation": {
+        "required_files": [
+          "host/installed-software.txt",
+          "apps/applocker-policy.txt"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "host/installed-software.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "apps/applocker-policy.txt",
+            "contains_hint": null
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_config_mgmt",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_change_mgmt",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_security_impact",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "change_log",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "host/installed-software.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "apps/applocker-policy.txt",
+          "required": true
+        },
+        {
+          "slot_type": "external_export",
+          "key": "idp_mfa_policy_export",
+          "required": false
+        },
+        {
+          "slot_type": "external_export",
+          "key": "cloud_boundary_exports",
+          "required": false
+        }
+      ]
+    },
+    {
+      "control_id": "CM.L2-3.4.9",
+      "domain": "CM",
+      "title": "Control and Monitor User-Installed Software",
+      "classification": "HYBRID_GOV",
+      "coverage_type": "hybrid",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_config_mgmt"
+        ],
+        "required_sops": [
+          "sop_change_mgmt",
+          "sop_security_impact"
+        ],
+        "required_registers": [
+          "change_log"
+        ]
+      },
+      "technical_validation": {
+        "required_files": [
+          "host/installed-software.txt",
+          "policy/user-rights-assignments.txt",
+          "policy/local-admins.txt"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "host/installed-software.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/user-rights-assignments.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/local-admins.txt",
+            "contains_hint": null
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_config_mgmt",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_change_mgmt",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_security_impact",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "change_log",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "host/installed-software.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/user-rights-assignments.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/local-admins.txt",
+          "required": true
+        },
+        {
+          "slot_type": "external_export",
+          "key": "idp_mfa_policy_export",
+          "required": false
+        },
+        {
+          "slot_type": "external_export",
+          "key": "cloud_boundary_exports",
+          "required": false
+        }
+      ]
+    },
+    {
+      "control_id": "IA.L2-3.5.1",
+      "domain": "IA",
+      "title": "Identify Users/Processes/Devices",
+      "classification": "HYBRID_GOV",
+      "coverage_type": "hybrid",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_identity_auth"
+        ],
+        "required_sops": [
+          "sop_mfa_admin"
+        ],
+        "required_registers": []
+      },
+      "technical_validation": {
+        "required_files": [
+          "policy/local-accounts.txt",
+          "host/whoami-all.txt"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "policy/local-accounts.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "host/whoami-all.txt",
+            "contains_hint": null
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_identity_auth",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_mfa_admin",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/local-accounts.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "host/whoami-all.txt",
+          "required": true
+        },
+        {
+          "slot_type": "external_export",
+          "key": "idp_mfa_policy_export",
+          "required": false
+        },
+        {
+          "slot_type": "external_export",
+          "key": "cloud_boundary_exports",
+          "required": false
+        }
+      ]
+    },
+    {
+      "control_id": "IA.L2-3.5.10",
+      "domain": "IA",
+      "title": "Password Maximum/Minimum Age",
+      "classification": "TECHNICAL",
+      "coverage_type": "host_evidence",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_identity_auth"
+        ],
+        "required_sops": [
+          "sop_mfa_admin"
+        ],
+        "required_registers": []
+      },
+      "technical_validation": {
+        "required_files": [
+          "policy/account-policy.txt",
+          "policy/secpol.cfg"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "policy/account-policy.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/secpol.cfg",
+            "contains_hint": "Expect password/lockout/user rights settings"
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_identity_auth",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_mfa_admin",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/account-policy.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/secpol.cfg",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "IA.L2-3.5.11",
+      "domain": "IA",
+      "title": "Obscure Authenticator Feedback",
+      "classification": "TECHNICAL",
+      "coverage_type": "host_evidence",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_identity_auth"
+        ],
+        "required_sops": [
+          "sop_mfa_admin"
+        ],
+        "required_registers": []
+      },
+      "technical_validation": {
+        "required_files": [
+          "policy/auth-ux-policy.txt"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "policy/auth-ux-policy.txt",
+            "contains_hint": null
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_identity_auth",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_mfa_admin",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/auth-ux-policy.txt",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "IA.L2-3.5.2",
+      "domain": "IA",
+      "title": "Authenticate Users/Processes/Devices",
+      "classification": "HYBRID_GOV",
+      "coverage_type": "hybrid",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_identity_auth"
+        ],
+        "required_sops": [
+          "sop_mfa_admin"
+        ],
+        "required_registers": []
+      },
+      "technical_validation": {
+        "required_files": [
+          "policy/account-policy.txt",
+          "policy/lsa.txt",
+          "policy/ntlm-policy.txt"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "policy/account-policy.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/lsa.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/ntlm-policy.txt",
+            "contains_hint": null
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_identity_auth",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_mfa_admin",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/account-policy.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/lsa.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/ntlm-policy.txt",
+          "required": true
+        },
+        {
+          "slot_type": "external_export",
+          "key": "idp_mfa_policy_export",
+          "required": false
+        },
+        {
+          "slot_type": "external_export",
+          "key": "cloud_boundary_exports",
+          "required": false
+        }
+      ]
+    },
+    {
+      "control_id": "IA.L2-3.5.3",
+      "domain": "IA",
+      "title": "Multi-factor Authentication for Network Access",
+      "classification": "HYBRID_GOV",
+      "coverage_type": "hybrid",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_identity_auth"
+        ],
+        "required_sops": [
+          "sop_mfa_admin"
+        ],
+        "required_registers": []
+      },
+      "technical_validation": {
+        "required_files": [],
+        "checks": [],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_identity_auth",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_mfa_admin",
+          "required": true
+        },
+        {
+          "slot_type": "external_export",
+          "key": "idp_mfa_policy_export",
+          "required": true
+        },
+        {
+          "slot_type": "external_export",
+          "key": "cloud_boundary_exports",
+          "required": false
+        }
+      ]
+    },
+    {
+      "control_id": "IA.L2-3.5.4",
+      "domain": "IA",
+      "title": "Replay-Resistant Authentication",
+      "classification": "TECHNICAL",
+      "coverage_type": "host_evidence",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_identity_auth"
+        ],
+        "required_sops": [
+          "sop_mfa_admin"
+        ],
+        "required_registers": []
+      },
+      "technical_validation": {
+        "required_files": [],
+        "checks": [],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_identity_auth",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_mfa_admin",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "IA.L2-3.5.5",
+      "domain": "IA",
+      "title": "Use of PKI Certificates",
+      "classification": "TECHNICAL",
+      "coverage_type": "host_evidence",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_identity_auth"
+        ],
+        "required_sops": [
+          "sop_mfa_admin"
+        ],
+        "required_registers": []
+      },
+      "technical_validation": {
+        "required_files": [],
+        "checks": [],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_identity_auth",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_mfa_admin",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "IA.L2-3.5.6",
+      "domain": "IA",
+      "title": "Password Complexity & Change",
+      "classification": "TECHNICAL",
+      "coverage_type": "host_evidence",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_identity_auth"
+        ],
+        "required_sops": [
+          "sop_mfa_admin"
+        ],
+        "required_registers": []
+      },
+      "technical_validation": {
+        "required_files": [
+          "policy/account-policy.txt",
+          "policy/secpol.cfg",
+          "policy/gpresult.html",
+          "policy/rsop.xml"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "policy/account-policy.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/secpol.cfg",
+            "contains_hint": "Expect password/lockout/user rights settings"
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/gpresult.html",
+            "contains_hint": "Expect policy provenance (GPO/RSOP)"
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/rsop.xml",
+            "contains_hint": "Expect policy provenance (GPO/RSOP)"
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_identity_auth",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_mfa_admin",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/account-policy.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/secpol.cfg",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/gpresult.html",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/rsop.xml",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "IA.L2-3.5.7",
+      "domain": "IA",
+      "title": "Password Reuse Restriction",
+      "classification": "HYBRID_GOV",
+      "coverage_type": "hybrid",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_identity_auth"
+        ],
+        "required_sops": [
+          "sop_mfa_admin"
+        ],
+        "required_registers": []
+      },
+      "technical_validation": {
+        "required_files": [
+          "policy/account-policy.txt",
+          "policy/secpol.cfg"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "policy/account-policy.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "policy/secpol.cfg",
+            "contains_hint": "Expect password/lockout/user rights settings"
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_identity_auth",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_mfa_admin",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/account-policy.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/secpol.cfg",
+          "required": true
+        },
+        {
+          "slot_type": "external_export",
+          "key": "idp_mfa_policy_export",
+          "required": false
+        },
+        {
+          "slot_type": "external_export",
+          "key": "cloud_boundary_exports",
+          "required": false
+        }
+      ]
+    },
+    {
+      "control_id": "IA.L2-3.5.8",
+      "domain": "IA",
+      "title": "Temporary Passwords",
+      "classification": "TECHNICAL",
+      "coverage_type": "host_evidence",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_identity_auth"
+        ],
+        "required_sops": [
+          "sop_mfa_admin"
+        ],
+        "required_registers": []
+      },
+      "technical_validation": {
+        "required_files": [],
+        "checks": [],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_identity_auth",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_mfa_admin",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "IA.L2-3.5.9",
+      "domain": "IA",
+      "title": "Disable/Lock Inactive Accounts",
+      "classification": "HYBRID_GOV",
+      "coverage_type": "hybrid",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_identity_auth"
+        ],
+        "required_sops": [
+          "sop_mfa_admin"
+        ],
+        "required_registers": []
+      },
+      "technical_validation": {
+        "required_files": [
+          "policy/local-accounts.txt"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "policy/local-accounts.txt",
+            "contains_hint": null
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_identity_auth",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_mfa_admin",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "policy/local-accounts.txt",
+          "required": true
+        },
+        {
+          "slot_type": "external_export",
+          "key": "idp_mfa_policy_export",
+          "required": false
+        },
+        {
+          "slot_type": "external_export",
+          "key": "cloud_boundary_exports",
+          "required": false
+        }
+      ]
+    },
+    {
+      "control_id": "IR.L2-3.6.1",
+      "domain": "IR",
+      "title": "Title TBD",
+      "classification": "PURE_GOV",
+      "coverage_type": "governance_only",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_incident_response"
+        ],
+        "required_sops": [
+          "sop_incident_handling",
+          "sop_ir_testing"
+        ],
+        "required_registers": [
+          "incident_log"
+        ]
+      },
+      "technical_validation": null,
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_incident_response",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_incident_handling",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_ir_testing",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "incident_log",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "IR.L2-3.6.2",
+      "domain": "IR",
+      "title": "Title TBD",
+      "classification": "PURE_GOV",
+      "coverage_type": "governance_only",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_incident_response"
+        ],
+        "required_sops": [
+          "sop_incident_handling",
+          "sop_ir_testing"
+        ],
+        "required_registers": [
+          "incident_log"
+        ]
+      },
+      "technical_validation": null,
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_incident_response",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_incident_handling",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_ir_testing",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "incident_log",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "IR.L2-3.6.3",
+      "domain": "IR",
+      "title": "Title TBD",
+      "classification": "PURE_GOV",
+      "coverage_type": "governance_only",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_incident_response"
+        ],
+        "required_sops": [
+          "sop_incident_handling",
+          "sop_ir_testing"
+        ],
+        "required_registers": [
+          "incident_log"
+        ]
+      },
+      "technical_validation": null,
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_incident_response",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_incident_handling",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_ir_testing",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "incident_log",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "MA.L2-3.7.6",
+      "domain": "MA",
+      "title": "Title TBD",
+      "classification": "PURE_GOV",
+      "coverage_type": "governance_only",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_maintenance"
+        ],
+        "required_sops": [],
+        "required_registers": [
+          "maintenance_log"
+        ]
+      },
+      "technical_validation": null,
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_maintenance",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "maintenance_log",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "MP.L2-3.8.3",
+      "domain": "MP",
+      "title": "Title TBD",
+      "classification": "HYBRID_GOV",
+      "coverage_type": "hybrid",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_media_protection"
+        ],
+        "required_sops": [
+          "sop_media_sanitization"
+        ],
+        "required_registers": [
+          "media_destruction_log"
+        ]
+      },
+      "technical_validation": null,
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_media_protection",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_media_sanitization",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "media_destruction_log",
+          "required": true
+        },
+        {
+          "slot_type": "external_export",
+          "key": "idp_mfa_policy_export",
+          "required": false
+        },
+        {
+          "slot_type": "external_export",
+          "key": "cloud_boundary_exports",
+          "required": false
+        }
+      ]
+    },
+    {
+      "control_id": "MP.L2-3.8.4",
+      "domain": "MP",
+      "title": "Title TBD",
+      "classification": "HYBRID_GOV",
+      "coverage_type": "hybrid",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_media_protection"
+        ],
+        "required_sops": [
+          "sop_media_sanitization"
+        ],
+        "required_registers": [
+          "media_destruction_log"
+        ]
+      },
+      "technical_validation": null,
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_media_protection",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_media_sanitization",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "media_destruction_log",
+          "required": true
+        },
+        {
+          "slot_type": "external_export",
+          "key": "idp_mfa_policy_export",
+          "required": false
+        },
+        {
+          "slot_type": "external_export",
+          "key": "cloud_boundary_exports",
+          "required": false
+        }
+      ]
+    },
+    {
+      "control_id": "PE.L2-3.10.1",
+      "domain": "PE",
+      "title": "Title TBD",
+      "classification": "HYBRID_GOV",
+      "coverage_type": "hybrid",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_physical_security"
+        ],
+        "required_sops": [
+          "sop_visitor_control"
+        ],
+        "required_registers": [
+          "visitor_log"
+        ]
+      },
+      "technical_validation": null,
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_physical_security",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_visitor_control",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "visitor_log",
+          "required": true
+        },
+        {
+          "slot_type": "external_export",
+          "key": "idp_mfa_policy_export",
+          "required": false
+        },
+        {
+          "slot_type": "external_export",
+          "key": "cloud_boundary_exports",
+          "required": false
+        }
+      ]
+    },
+    {
+      "control_id": "PE.L2-3.10.2",
+      "domain": "PE",
+      "title": "Title TBD",
+      "classification": "HYBRID_GOV",
+      "coverage_type": "hybrid",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_physical_security"
+        ],
+        "required_sops": [
+          "sop_visitor_control"
+        ],
+        "required_registers": [
+          "visitor_log"
+        ]
+      },
+      "technical_validation": null,
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_physical_security",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_visitor_control",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "visitor_log",
+          "required": true
+        },
+        {
+          "slot_type": "external_export",
+          "key": "idp_mfa_policy_export",
+          "required": false
+        },
+        {
+          "slot_type": "external_export",
+          "key": "cloud_boundary_exports",
+          "required": false
+        }
+      ]
+    },
+    {
+      "control_id": "PE.L2-3.10.3",
+      "domain": "PE",
+      "title": "Title TBD",
+      "classification": "HYBRID_GOV",
+      "coverage_type": "hybrid",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_physical_security"
+        ],
+        "required_sops": [
+          "sop_visitor_control"
+        ],
+        "required_registers": [
+          "visitor_log"
+        ]
+      },
+      "technical_validation": null,
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_physical_security",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_visitor_control",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "visitor_log",
+          "required": true
+        },
+        {
+          "slot_type": "external_export",
+          "key": "idp_mfa_policy_export",
+          "required": false
+        },
+        {
+          "slot_type": "external_export",
+          "key": "cloud_boundary_exports",
+          "required": false
+        }
+      ]
+    },
+    {
+      "control_id": "PS.L2-3.9.1",
+      "domain": "PS",
+      "title": "Title TBD",
+      "classification": "PURE_GOV",
+      "coverage_type": "governance_only",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_personnel_security"
+        ],
+        "required_sops": [
+          "sop_screening",
+          "sop_termination"
+        ],
+        "required_registers": [
+          "personnel_screening",
+          "terminations"
+        ]
+      },
+      "technical_validation": null,
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_personnel_security",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_screening",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_termination",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "personnel_screening",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "terminations",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "PS.L2-3.9.2",
+      "domain": "PS",
+      "title": "Title TBD",
+      "classification": "PURE_GOV",
+      "coverage_type": "governance_only",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_personnel_security"
+        ],
+        "required_sops": [
+          "sop_screening",
+          "sop_termination"
+        ],
+        "required_registers": [
+          "personnel_screening",
+          "terminations"
+        ]
+      },
+      "technical_validation": null,
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_personnel_security",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_screening",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_termination",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "personnel_screening",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "terminations",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "RA.L2-3.11.1",
+      "domain": "RA",
+      "title": "Title TBD",
+      "classification": "PURE_GOV",
+      "coverage_type": "governance_only",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_risk_assessment"
+        ],
+        "required_sops": [
+          "sop_risk_method"
+        ],
+        "required_registers": [
+          "risk_register"
+        ]
+      },
+      "technical_validation": null,
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_risk_assessment",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_risk_method",
+          "required": true
+        },
+        {
+          "slot_type": "register",
+          "key": "risk_register",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "SC.L2-3.13.1",
+      "domain": "SC",
+      "title": "Boundary Protection",
+      "classification": "HYBRID_GOV",
+      "coverage_type": "hybrid",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_crypto"
+        ],
+        "required_sops": [
+          "sop_encryption_config"
+        ],
+        "required_registers": []
+      },
+      "technical_validation": {
+        "required_files": [
+          "network/firewall.txt",
+          "network/firewall-rules-summary.txt",
+          "network/listening-ports.txt",
+          "network/listening-processes.txt"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "network/firewall.txt",
+            "contains_hint": "Expect Enabled True and DefaultInboundAction Block"
+          },
+          {
+            "type": "file_presence",
+            "file": "network/firewall-rules-summary.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "network/listening-ports.txt",
+            "contains_hint": "Review exposed ports align with SSP"
+          },
+          {
+            "type": "file_presence",
+            "file": "network/listening-processes.txt",
+            "contains_hint": null
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_crypto",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_encryption_config",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "network/firewall.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "network/firewall-rules-summary.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "network/listening-ports.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "network/listening-processes.txt",
+          "required": true
+        },
+        {
+          "slot_type": "external_export",
+          "key": "idp_mfa_policy_export",
+          "required": false
+        },
+        {
+          "slot_type": "external_export",
+          "key": "cloud_boundary_exports",
+          "required": false
+        }
+      ]
+    },
+    {
+      "control_id": "SC.L2-3.13.11",
+      "domain": "SC",
+      "title": "FIPS-Validated Cryptography",
+      "classification": "HYBRID_GOV",
+      "coverage_type": "hybrid",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_crypto"
+        ],
+        "required_sops": [
+          "sop_encryption_config"
+        ],
+        "required_registers": []
+      },
+      "technical_validation": {
+        "required_files": [
+          "crypto/fips.txt"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "crypto/fips.txt",
+            "contains_hint": "Expect Enabled : 1"
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_crypto",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_encryption_config",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "crypto/fips.txt",
+          "required": true
+        },
+        {
+          "slot_type": "external_export",
+          "key": "idp_mfa_policy_export",
+          "required": false
+        },
+        {
+          "slot_type": "external_export",
+          "key": "cloud_boundary_exports",
+          "required": false
+        }
+      ]
+    },
+    {
+      "control_id": "SC.L2-3.13.16",
+      "domain": "SC",
+      "title": "Protect CUI at Rest",
+      "classification": "TECHNICAL",
+      "coverage_type": "host_evidence",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_crypto"
+        ],
+        "required_sops": [
+          "sop_encryption_config"
+        ],
+        "required_registers": []
+      },
+      "technical_validation": {
+        "required_files": [
+          "storage/bitlocker-status.txt"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "storage/bitlocker-status.txt",
+            "contains_hint": "Expect ProtectionStatus On and EncryptionPercentage 100"
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_crypto",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_encryption_config",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "storage/bitlocker-status.txt",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "SC.L2-3.13.5",
+      "domain": "SC",
+      "title": "Public Access Separation",
+      "classification": "TECHNICAL",
+      "coverage_type": "host_evidence",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_crypto"
+        ],
+        "required_sops": [
+          "sop_encryption_config"
+        ],
+        "required_registers": []
+      },
+      "technical_validation": {
+        "required_files": [],
+        "checks": [],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_crypto",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_encryption_config",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "SC.L2-3.13.6",
+      "domain": "SC",
+      "title": "Cryptographic Protection",
+      "classification": "HYBRID_GOV",
+      "coverage_type": "hybrid",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_crypto"
+        ],
+        "required_sops": [
+          "sop_encryption_config"
+        ],
+        "required_registers": []
+      },
+      "technical_validation": {
+        "required_files": [
+          "crypto/schannel-protocols.txt",
+          "crypto/tls-ciphersuites.txt",
+          "crypto/fips.txt"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "crypto/schannel-protocols.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "crypto/tls-ciphersuites.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "crypto/fips.txt",
+            "contains_hint": "Expect Enabled : 1"
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_crypto",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_encryption_config",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "crypto/schannel-protocols.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "crypto/tls-ciphersuites.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "crypto/fips.txt",
+          "required": true
+        },
+        {
+          "slot_type": "external_export",
+          "key": "idp_mfa_policy_export",
+          "required": false
+        },
+        {
+          "slot_type": "external_export",
+          "key": "cloud_boundary_exports",
+          "required": false
+        }
+      ]
+    },
+    {
+      "control_id": "SC.L2-3.13.8",
+      "domain": "SC",
+      "title": "Transmission Confidentiality/Integrity",
+      "classification": "HYBRID_GOV",
+      "coverage_type": "hybrid",
+      "governance_requirements": {
+        "required_documents": [
+          "policy_crypto"
+        ],
+        "required_sops": [
+          "sop_encryption_config"
+        ],
+        "required_registers": []
+      },
+      "technical_validation": {
+        "required_files": [
+          "crypto/schannel-protocols.txt",
+          "crypto/tls-ciphersuites.txt"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "crypto/schannel-protocols.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "crypto/tls-ciphersuites.txt",
+            "contains_hint": null
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "governance_document",
+          "key": "policy_crypto",
+          "required": true
+        },
+        {
+          "slot_type": "governance_sop",
+          "key": "sop_encryption_config",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "crypto/schannel-protocols.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "crypto/tls-ciphersuites.txt",
+          "required": true
+        },
+        {
+          "slot_type": "external_export",
+          "key": "idp_mfa_policy_export",
+          "required": false
+        },
+        {
+          "slot_type": "external_export",
+          "key": "cloud_boundary_exports",
+          "required": false
+        }
+      ]
+    },
+    {
+      "control_id": "SI.L2-3.14.1",
+      "domain": "SI",
+      "title": "Flaw Remediation",
+      "classification": "HYBRID_GOV",
+      "coverage_type": "hybrid",
+      "governance_requirements": {
+        "required_documents": [],
+        "required_sops": [],
+        "required_registers": []
+      },
+      "technical_validation": {
+        "required_files": [
+          "host/hotfixes.txt",
+          "host/windows-update-policy.txt",
+          "host/windows-update-services.txt"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "host/hotfixes.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "host/windows-update-policy.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "host/windows-update-services.txt",
+            "contains_hint": null
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "host/hotfixes.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "host/windows-update-policy.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "host/windows-update-services.txt",
+          "required": true
+        },
+        {
+          "slot_type": "external_export",
+          "key": "idp_mfa_policy_export",
+          "required": false
+        },
+        {
+          "slot_type": "external_export",
+          "key": "cloud_boundary_exports",
+          "required": false
+        }
+      ]
+    },
+    {
+      "control_id": "SI.L2-3.14.2",
+      "domain": "SI",
+      "title": "Malicious Code Protection",
+      "classification": "TECHNICAL",
+      "coverage_type": "host_evidence",
+      "governance_requirements": {
+        "required_documents": [],
+        "required_sops": [],
+        "required_registers": []
+      },
+      "technical_validation": {
+        "required_files": [
+          "defender/defender-status.txt",
+          "defender/defender-preferences.txt"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "defender/defender-status.txt",
+            "contains_hint": "Expect RealTimeProtectionEnabled True"
+          },
+          {
+            "type": "file_presence",
+            "file": "defender/defender-preferences.txt",
+            "contains_hint": null
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "defender/defender-status.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "defender/defender-preferences.txt",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "SI.L2-3.14.3",
+      "domain": "SI",
+      "title": "Security Alerts/Advisories",
+      "classification": "TECHNICAL",
+      "coverage_type": "host_evidence",
+      "governance_requirements": {
+        "required_documents": [],
+        "required_sops": [],
+        "required_registers": []
+      },
+      "technical_validation": {
+        "required_files": [],
+        "checks": [],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": []
+    },
+    {
+      "control_id": "SI.L2-3.14.4",
+      "domain": "SI",
+      "title": "Update Malicious Code Protection",
+      "classification": "TECHNICAL",
+      "coverage_type": "host_evidence",
+      "governance_requirements": {
+        "required_documents": [],
+        "required_sops": [],
+        "required_registers": []
+      },
+      "technical_validation": {
+        "required_files": [
+          "defender/defender-status.txt",
+          "defender/defender-scan-ages.txt"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "defender/defender-status.txt",
+            "contains_hint": "Expect RealTimeProtectionEnabled True"
+          },
+          {
+            "type": "file_presence",
+            "file": "defender/defender-scan-ages.txt",
+            "contains_hint": null
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "defender/defender-status.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "defender/defender-scan-ages.txt",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "SI.L2-3.14.5",
+      "domain": "SI",
+      "title": "Periodic Scanning",
+      "classification": "TECHNICAL",
+      "coverage_type": "host_evidence",
+      "governance_requirements": {
+        "required_documents": [],
+        "required_sops": [],
+        "required_registers": []
+      },
+      "technical_validation": {
+        "required_files": [
+          "defender/defender-scan-ages.txt"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "defender/defender-scan-ages.txt",
+            "contains_hint": null
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "defender/defender-scan-ages.txt",
+          "required": true
+        }
+      ]
+    },
+    {
+      "control_id": "SI.L2-3.14.6",
+      "domain": "SI",
+      "title": "Monitor Communications for Attacks",
+      "classification": "TECHNICAL",
+      "coverage_type": "host_evidence",
+      "governance_requirements": {
+        "required_documents": [],
+        "required_sops": [],
+        "required_registers": []
+      },
+      "technical_validation": {
+        "required_files": [],
+        "checks": [],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": []
+    },
+    {
+      "control_id": "SI.L2-3.14.7",
+      "domain": "SI",
+      "title": "Identify Unauthorized Use",
+      "classification": "HYBRID_GOV",
+      "coverage_type": "hybrid",
+      "governance_requirements": {
+        "required_documents": [],
+        "required_sops": [],
+        "required_registers": []
+      },
+      "technical_validation": {
+        "required_files": [
+          "audit/eventlog-security-sample.txt",
+          "defender/defender-threat-detections.txt",
+          "audit/auditpol.txt"
+        ],
+        "checks": [
+          {
+            "type": "file_presence",
+            "file": "audit/eventlog-security-sample.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "defender/defender-threat-detections.txt",
+            "contains_hint": null
+          },
+          {
+            "type": "file_presence",
+            "file": "audit/auditpol.txt",
+            "contains_hint": "Expect required audit categories enabled"
+          }
+        ],
+        "auto_pass_logic": "PASS if all required_files are present in bundle and checks do not show ERROR banners; otherwise PARTIAL/FAIL. (Portal can implement stricter parsing later.)"
+      },
+      "status_rules": {
+        "pass": "All required governance artifacts present AND (if applicable) all required technical evidence files present.",
+        "partial": "Some required artifacts/evidence present but incomplete.",
+        "fail": "Missing required artifacts/evidence.",
+        "na": "Marked Not Applicable with justification and boundary statement."
+      },
+      "upload_slots": [
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "audit/eventlog-security-sample.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "defender/defender-threat-detections.txt",
+          "required": true
+        },
+        {
+          "slot_type": "technical_evidence_file",
+          "path": "audit/auditpol.txt",
+          "required": true
+        },
+        {
+          "slot_type": "external_export",
+          "key": "idp_mfa_policy_export",
+          "required": false
+        },
+        {
+          "slot_type": "external_export",
+          "key": "cloud_boundary_exports",
+          "required": false
+        }
+      ]
+    }
+  ]
+}
