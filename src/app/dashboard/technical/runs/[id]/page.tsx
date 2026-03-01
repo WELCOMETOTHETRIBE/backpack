@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { db } from "@/db";
+import { displayEvidenceHint } from "@/lib/evidence/validator-report";
 import {
   evidenceRuns,
   evidenceControlTechnicalStatus,
@@ -112,11 +113,13 @@ export default async function TechnicalRunDetailPage({
             run.manifest &&
             typeof run.manifest === "object" &&
             "report_sha256" in run.manifest &&
-            typeof (run.manifest as Record<string, unknown>).report_sha256 === "string" && (
-            <p className="mt-1 text-xs font-mono text-[var(--color-gray-500)]" title={(run.manifest as Record<string, unknown>).report_sha256 as string}>
-              report_sha256: {(run.manifest as Record<string, unknown>).report_sha256 as string}
-            </p>
-          )}
+            typeof (run.manifest as Record<string, unknown>).report_sha256 === "string"
+            ? (
+                <p className="mt-1 text-xs font-mono text-[var(--color-gray-500)]" title={(run.manifest as Record<string, unknown>).report_sha256 as string}>
+                  report_sha256: {(run.manifest as Record<string, unknown>).report_sha256 as string}
+                </p>
+              )
+            : null}
         </div>
 
         <section className={cardClass}>
@@ -233,8 +236,8 @@ export default async function TechnicalRunDetailPage({
                         </p>
                       )}
                       {f.evidenceHint && (
-                        <p className="mt-1 text-xs text-[var(--color-gray-500)]">
-                          <span className="font-medium">Evidence artifacts for this control:</span> {f.evidenceHint}
+                        <p className="mt-1 text-xs text-[var(--color-gray-600)]">
+                          <span className="font-medium">To satisfy this control:</span> {displayEvidenceHint(f.evidenceHint)}
                         </p>
                       )}
                     </li>

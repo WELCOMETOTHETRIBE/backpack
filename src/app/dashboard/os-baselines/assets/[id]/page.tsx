@@ -12,6 +12,7 @@ import {
   evidenceFindings,
   evidenceFiles,
 } from "@/db/schema";
+import { displayEvidenceHint } from "@/lib/evidence/validator-report";
 import { AssignBaselineForm } from "./AssignBaselineForm";
 import { EditAssetForm } from "./EditAssetForm";
 import { DeleteAssetButton } from "./DeleteAssetButton";
@@ -323,8 +324,8 @@ export default async function AssetDetailPage({
                           </div>
                         )}
                         {detail.evidenceHint && (
-                          <p className="mt-1 text-[var(--color-gray-500)]">
-                            <span className="font-medium">Evidence artifacts for this control:</span> {detail.evidenceHint}
+                          <p className="mt-1 text-[var(--color-gray-600)]">
+                            <span className="font-medium">To satisfy this control:</span> {displayEvidenceHint(detail.evidenceHint)}
                           </p>
                         )}
                       </div>

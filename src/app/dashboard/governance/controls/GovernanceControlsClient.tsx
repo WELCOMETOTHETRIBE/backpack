@@ -4,6 +4,17 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { StatusBadge } from "@/components/governance-wizard/StatusBadge";
+import { CONTROL_FAMILIES, getControlFamilyPrefix } from "@/components/governance-wizard/constants";
+
+/** Link to SCTM with this control selected (no separate detail card). */
+function sctmControlUrl(controlId: string): string {
+  const prefix = getControlFamilyPrefix(controlId);
+  const family = CONTROL_FAMILIES.find((f) => f.controlPrefix === prefix)?.code;
+  const params = new URLSearchParams();
+  if (family) params.set("family", family);
+  params.set("control", controlId);
+  return `/dashboard/controls?${params.toString()}`;
+}
 
 type Item = {
   id: string;
@@ -148,7 +159,7 @@ export default function GovernanceControlsClient({ basePath = "/dashboard/govern
                     </td>
                     <td className="px-4 py-3">
                       <Link
-                        href={`${basePath}/${encodeURIComponent(item.controlId)}`}
+                        href={sctmControlUrl(item.controlId)}
                         className="font-medium text-[var(--color-blue-accent)] hover:underline"
                       >
                         View
