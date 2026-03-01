@@ -2,9 +2,31 @@
 
 import { useCallback, useEffect, useState, useMemo } from "react";
 import Link from "next/link";
-import { ChevronDown, ChevronUp, FileText } from "lucide-react";
+import { ChevronDown, FileText, BookOpen } from "lucide-react";
 import { cleanDisplayText, parseAssessmentGuideSections, type GuideSection } from "@/app/dashboard/controls/assessment-guide-sections";
 import { getOptimizedByControlId, type SctmOptimizedControl } from "@/lib/sctm-optimized-types";
+
+function TextWithBold({ text }: { text: string }) {
+  const parts: React.ReactNode[] = [];
+  let remaining = text;
+  let key = 0;
+  while (remaining.length > 0) {
+    const i = remaining.indexOf("**");
+    if (i === -1) {
+      parts.push(<span key={key++}>{remaining}</span>);
+      break;
+    }
+    if (i > 0) parts.push(<span key={key++}>{remaining.slice(0, i)}</span>);
+    const j = remaining.indexOf("**", i + 2);
+    if (j === -1) {
+      parts.push(<span key={key++}>{remaining.slice(i)}</span>);
+      break;
+    }
+    parts.push(<strong key={key++}>{remaining.slice(i + 2, j)}</strong>);
+    remaining = remaining.slice(j + 2);
+  }
+  return <>{parts}</>;
+}
 
 type Record = {
   id: string;
@@ -29,23 +51,35 @@ type AuditItem = { id: string; action: string; resourceType: string; details: un
 function GuideSectionBlock({ section, defaultOpen = false }: { section: GuideSection; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-gray-50)]/50 overflow-hidden">
+    <div className="rounded-xl border border-[var(--color-border)]/60 bg-white shadow-sm overflow-hidden transition-shadow hover:shadow-md focus-within:ring-2 focus-within:ring-[var(--color-blue-accent)]/20 focus-within:ring-offset-1">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center justify-between gap-2 px-3 py-2 text-left text-sm font-medium text-[var(--color-gray-800)] hover:bg-[var(--color-gray-100)]/50"
+        className="w-full flex items-center justify-between gap-2 px-4 py-3 text-left text-sm font-medium text-[var(--color-gray-800)] hover:bg-[var(--color-gray-50)]/80 focus:outline-none transition-colors duration-150"
+        aria-expanded={open}
       >
-        <span className="flex items-center gap-2">
-          <FileText className="h-3.5 w-3.5 text-[var(--color-gray-400)]" />
+        <span className="flex items-center gap-2.5">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-gray-100)] text-[var(--color-gray-500)]">
+            <FileText className="h-4 w-4" />
+          </span>
           {section.label}
         </span>
-        {open ? <ChevronUp className="h-4 w-4 text-[var(--color-gray-400)]" /> : <ChevronDown className="h-4 w-4 text-[var(--color-gray-400)]" />}
+        <span className="shrink-0 rounded p-1 text-[var(--color-gray-400)] transition-transform duration-200 ease-out" style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}>
+          <ChevronDown className="h-4 w-4" />
+        </span>
       </button>
-      {open && (
-        <div className="px-3 py-2 pt-0 border-t border-[var(--color-border)]/50">
-          <p className="whitespace-pre-wrap text-sm text-[var(--color-gray-700)] leading-relaxed">{section.body}</p>
+      <div
+        className="grid transition-[grid-template-rows] duration-200 ease-out"
+        style={{ gridTemplateRows: open ? "1fr" : "0fr" }}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <div className="border-t border-[var(--color-border)]/50 bg-[var(--color-gray-50)]/30 px-4 pb-4 pt-3">
+            <div className="whitespace-pre-wrap text-sm text-[var(--color-gray-700)] leading-[1.7] [&_strong]:font-semibold [&_strong]:text-[var(--color-gray-800)]">
+              <TextWithBold text={section.body} />
+            </div>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -236,12 +270,17 @@ export default function ControlDetailClient({ controlId }: { controlId: string }
       </div>
 
       {(nist?.nistExactText || nist?.nistDiscussionGuidance) && (
-        <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm space-y-4">
-          <h3 className="text-sm font-semibold text-[var(--color-navy-primary)]">NIST 800-171 &amp; assessment guide</h3>
+        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm space-y-5">
+          <h3 className="text-sm font-semibold text-[var(--color-navy-primary)] flex items-center gap-2">
+            <BookOpen className="h-4 w-4 text-[var(--color-blue-accent)]" aria-hidden />
+            NIST 800-171 &amp; assessment guide
+          </h3>
           {nist.nistExactText && (
             <div>
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1">Requirement</h4>
-              <p className="whitespace-pre-wrap text-sm text-[var(--color-gray-700)] leading-relaxed">{cleanDisplayText(nist.nistExactText)}</p>
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">Requirement</h4>
+              <div className="whitespace-pre-wrap text-sm text-[var(--color-gray-700)] leading-[1.7] [&_strong]:font-semibold [&_strong]:text-[var(--color-gray-800)]">
+                <TextWithBold text={cleanDisplayText(nist.nistExactText)} />
+              </div>
             </div>
           )}
           {nist.nistDiscussionGuidance && (() => {
@@ -250,7 +289,7 @@ export default function ControlDetailClient({ controlId }: { controlId: string }
               return (
                 <div>
                   <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-2">Assessment guide</h4>
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     {guideSections.map((section, i) => (
                       <GuideSectionBlock key={`${section.label}-${i}`} section={section} defaultOpen={i < 2} />
                     ))}
@@ -260,8 +299,10 @@ export default function ControlDetailClient({ controlId }: { controlId: string }
             }
             return (
               <div>
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1">Discussion &amp; guidance</h4>
-                <p className="whitespace-pre-wrap text-sm text-[var(--color-gray-700)] leading-relaxed">{cleanDisplayText(nist.nistDiscussionGuidance)}</p>
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">Discussion &amp; guidance</h4>
+                <div className="whitespace-pre-wrap text-sm text-[var(--color-gray-700)] leading-[1.7] [&_strong]:font-semibold [&_strong]:text-[var(--color-gray-800)]">
+                  <TextWithBold text={cleanDisplayText(nist.nistDiscussionGuidance)} />
+                </div>
               </div>
             );
           })()}

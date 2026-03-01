@@ -5,7 +5,7 @@ import { StatusBadge } from "@/components/governance-wizard/StatusBadge";
 import { FileUploadWidget } from "@/components/governance-wizard/FileUploadWidget";
 import { getSpecForControl } from "@/lib/artifact-guide";
 import { CONTROL_FAMILIES } from "@/components/governance-wizard/constants";
-import { ChevronDown, ChevronUp, FileText, CheckCircle2, MessageSquare, BookOpen, ListChecks, Lightbulb, Link2 } from "lucide-react";
+import { ChevronDown, FileText, CheckCircle2, MessageSquare, BookOpen, ListChecks, Lightbulb, Link2 } from "lucide-react";
 import Link from "next/link";
 import {
   parseAssessmentGuideSections,
@@ -131,23 +131,33 @@ function CollapsibleSection({ section, defaultOpen = false }: { section: GuideSe
   const [open, setOpen] = useState(defaultOpen);
   const Icon = SECTION_ICONS[section.label] ?? FileText;
   return (
-    <div className="rounded-lg border border-white/30 bg-white/70 backdrop-blur-sm overflow-hidden">
+    <div className="rounded-xl border border-[var(--color-border)]/60 bg-white/90 shadow-sm shadow-black/5 overflow-hidden transition-shadow hover:shadow-md focus-within:ring-2 focus-within:ring-[var(--color-blue-accent)]/20 focus-within:ring-offset-1">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center justify-between gap-2 px-3 py-2.5 text-left hover:bg-white/40 transition-colors"
+        className="w-full flex items-center justify-between gap-2 px-4 py-3 text-left text-sm font-medium text-[var(--color-gray-800)] hover:bg-[var(--color-gray-50)]/80 focus:outline-none focus-visible:ring-0 transition-colors duration-150"
+        aria-expanded={open}
       >
-        <span className="flex items-center gap-2 text-sm font-medium text-[var(--color-gray-800)]">
-          <Icon className="h-3.5 w-3.5 text-[var(--color-gray-400)]" />
+        <span className="flex items-center gap-2.5">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-gray-100)] text-[var(--color-gray-500)]">
+            <Icon className="h-4 w-4" />
+          </span>
           {section.label}
         </span>
-        {open ? <ChevronUp className="h-4 w-4 text-[var(--color-gray-400)]" /> : <ChevronDown className="h-4 w-4 text-[var(--color-gray-400)]" />}
+        <span className="shrink-0 rounded p-1 text-[var(--color-gray-400)] transition-transform duration-200 ease-out" style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}>
+          <ChevronDown className="h-4 w-4" />
+        </span>
       </button>
-      {open && (
-        <div className="px-3 pb-3 pt-0 border-t border-white/30">
-          <FormattedGuideBody text={section.body} />
+      <div
+        className="grid transition-[grid-template-rows] duration-200 ease-out"
+        style={{ gridTemplateRows: open ? "1fr" : "0fr" }}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <div className="border-t border-[var(--color-border)]/50 bg-[var(--color-gray-50)]/30 px-4 pb-4 pt-3">
+            <FormattedGuideBody text={section.body} bold />
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -264,9 +274,9 @@ export function SCTMControlDetail({
           )}
         </div>
         {displayTitle && <p className="text-base font-medium text-[var(--color-gray-900)] mb-1">{displayTitle}</p>}
-        <div className="rounded-lg border border-white/30 bg-white/70 backdrop-blur-sm px-4 py-3">
+        <div className="rounded-xl border border-[var(--color-border)]/60 bg-white/90 px-4 py-3.5 shadow-sm">
           {requirementText ? (
-            <p className="text-[15px] leading-[1.6] text-[var(--color-gray-800)] whitespace-pre-wrap max-w-none">{requirementText}</p>
+            <p className="text-[15px] leading-[1.7] text-[var(--color-gray-800)] whitespace-pre-wrap max-w-none">{requirementText}</p>
           ) : (
             <p className="text-[15px] text-[var(--color-gray-400)] italic">Requirement text will appear here once loaded.</p>
           )}
@@ -291,20 +301,25 @@ export function SCTMControlDetail({
 
       {sctmOptimized?.nist_guidance && (
         <section className="mb-4">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1">NIST guidance</h2>
-          <div className="rounded-lg border border-white/30 bg-white/70 backdrop-blur-sm px-4 py-3">
-            <p className="text-[15px] leading-relaxed text-[var(--color-gray-700)] whitespace-pre-wrap">{sctmOptimized.nist_guidance}</p>
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">NIST guidance</h2>
+          <div className="rounded-xl border border-[var(--color-border)]/60 bg-white/90 px-4 py-3.5 shadow-sm">
+            <div className="text-[15px] leading-[1.7] text-[var(--color-gray-700)] whitespace-pre-wrap [&_strong]:font-semibold [&_strong]:text-[var(--color-gray-800)]">
+              <TextWithBold text={sctmOptimized.nist_guidance} />
+            </div>
           </div>
         </section>
       )}
 
       {sctmOptimized?.onboarding_tips && (
         <section className="mb-4 overflow-visible">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1">Onboarding tips</h2>
-          <div className="rounded-lg border border-white/30 bg-white/70 backdrop-blur-sm px-4 py-3 overflow-visible">
-            <p className="text-[15px] leading-relaxed text-[var(--color-gray-700)] whitespace-pre-wrap break-words min-h-0">
-              {sctmOptimized.onboarding_tips}
-            </p>
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5 flex items-center gap-2">
+            <Lightbulb className="h-3.5 w-3.5 text-amber-500" aria-hidden />
+            Onboarding tips
+          </h2>
+          <div className="rounded-xl border border-[var(--color-border)]/60 bg-gradient-to-b from-amber-50/50 to-white/90 px-4 py-3.5 shadow-sm overflow-visible">
+            <div className="text-[15px] leading-[1.7] text-[var(--color-gray-700)] whitespace-pre-wrap break-words min-h-0 space-y-2 [&_strong]:font-semibold [&_strong]:text-[var(--color-gray-800)]">
+              <TextWithBold text={sctmOptimized.onboarding_tips} />
+            </div>
           </div>
         </section>
       )}
@@ -331,8 +346,11 @@ export function SCTMControlDetail({
         if (allSections.length === 0) return null;
         return (
           <section className="mb-4">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">Assessment guide</h2>
-            <div className="space-y-1">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-2 flex items-center gap-2">
+              <BookOpen className="h-3.5 w-3.5 text-[var(--color-blue-accent)]" aria-hidden />
+              Assessment guide
+            </h2>
+            <div className="space-y-2">
               {allSections.map((section, i) => (
                 <CollapsibleSection key={`${section.label}-${i}`} section={section} defaultOpen={i < 2} />
               ))}
@@ -344,11 +362,11 @@ export function SCTMControlDetail({
       {/* Fallback when no sections parsed */}
       {(!nist?.nistDiscussionGuidance || guideSections.length === 0) && nist?.nistDiscussionGuidance && (
         <section className="mb-4">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1">Discussion & guidance</h2>
-          <div className="rounded-lg border border-white/30 bg-white/70 backdrop-blur-sm px-4 py-3">
-            <p className="text-[15px] leading-relaxed text-[var(--color-gray-700)] whitespace-pre-wrap">
-              {cleanDisplayText(nist.nistDiscussionGuidance)}
-            </p>
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">Discussion & guidance</h2>
+          <div className="rounded-xl border border-[var(--color-border)]/60 bg-white/90 px-4 py-3.5 shadow-sm">
+            <div className="text-[15px] leading-[1.7] text-[var(--color-gray-700)] whitespace-pre-wrap [&_strong]:font-semibold [&_strong]:text-[var(--color-gray-800)]">
+              <TextWithBold text={cleanDisplayText(nist.nistDiscussionGuidance)} />
+            </div>
           </div>
         </section>
       )}
