@@ -23,7 +23,7 @@ export const CLOUD_12_CONTROL_IDS = new Set([
 ]);
 
 /** 7 controls often not applicable. */
-export const NA_7_CONTROL_IDS = new Set(LIKELY_NA_CONTROL_IDS);
+export const NA_7_CONTROL_IDS = new Set<string>(LIKELY_NA_CONTROL_IDS as readonly string[]);
 
 /** 18 true governance controls (policy/documentation only). */
 export const GOVERNANCE_18_CONTROL_IDS = new Set(PURE_GOV_CONTROL_IDS);
