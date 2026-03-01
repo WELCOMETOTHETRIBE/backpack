@@ -12,13 +12,13 @@ export type GovernanceControlAnalysis = {
   c3paoVerificationFocus: string[];
 };
 
+/** 17 pure governance controls (3.4.3 is hybrid: OS PARTIAL + gov docs). */
 export const GOVERNANCE_18_CONTROL_IDS: string[] = [
   "3.1.4",
   "3.2.1",
   "3.2.2",
   "3.2.3",
   "3.3.3",
-  "3.4.3",
   "3.4.4",
   "3.6.1",
   "3.6.2",

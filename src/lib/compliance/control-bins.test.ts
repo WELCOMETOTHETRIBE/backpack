@@ -25,11 +25,11 @@ describe("control-bins", () => {
     ).toBe(110);
   });
 
-  it("returns correct counts: 18 pure gov, 48 pure technical, 30 hybrid technical, 14 hybrid governance", () => {
+  it("returns correct counts: 17 pure gov, 48 pure technical, 31 hybrid technical, 14 hybrid governance", () => {
     const { counts } = validateControlBins();
-    expect(counts.pure_governance).toBe(18);
+    expect(counts.pure_governance).toBe(17);
     expect(counts.pure_technical).toBe(48);
-    expect(counts.hybrid_technical).toBe(30);
+    expect(counts.hybrid_technical).toBe(31);
     expect(counts.hybrid_governance).toBe(14);
   });
 
@@ -40,8 +40,8 @@ describe("control-bins", () => {
     }
   });
 
-  it("3.4.3 is pure_governance (C3PAO governance-adjudicated takes precedence over manifest PARTIAL)", () => {
-    expect(getControlBin("3.4.3")).toBe("pure_governance");
+  it("3.4.3 is hybrid_technical (OS PARTIAL + governance docs to close)", () => {
+    expect(getControlBin("3.4.3")).toBe("hybrid_technical");
   });
 
   it("3.10.1-3.10.5 inherited are pure_technical", () => {
@@ -51,6 +51,7 @@ describe("control-bins", () => {
 
   it("isHybridControl is true only for hybrid_technical and hybrid_governance", () => {
     expect(isHybridControl("3.1.22")).toBe(true); // OS partial -> hybrid_technical
+    expect(isHybridControl("3.4.3")).toBe(true);  // OS partial -> hybrid_technical
     expect(isHybridControl("3.1.18")).toBe(true);  // delta -> hybrid_governance
     expect(isHybridControl("3.1.4")).toBe(false);  // pure_governance
     expect(isHybridControl("3.10.1")).toBe(false); // pure_technical (inherited)

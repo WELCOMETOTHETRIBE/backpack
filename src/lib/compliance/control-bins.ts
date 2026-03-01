@@ -31,7 +31,7 @@ export type ControlBin =
 /** 18 controls satisfied only by policy/documentation (C3PAO governance-adjudicated). */
 export const PURE_GOVERNANCE_IDS: string[] = [...PURE_GOV_CONTROL_IDS];
 
-/** 30 controls: OS evidence + governance docs to close (enclave manifest PARTIAL; exclude pure gov e.g. 3.4.3). */
+/** 31 controls: OS evidence + governance docs to close (enclave manifest PARTIAL). */
 export const HYBRID_TECHNICAL_IDS: string[] = ALL_CONTROL_IDS.filter(
   (id) => !PURE_GOV.has(id) && OS_73.has(id) && OS_PARTIAL_31.has(id)
 );

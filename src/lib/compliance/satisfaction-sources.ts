@@ -25,7 +25,7 @@ export const CLOUD_12_CONTROL_IDS = new Set([
 /** 7 controls often not applicable. */
 export const NA_7_CONTROL_IDS = new Set<string>(LIKELY_NA_CONTROL_IDS as readonly string[]);
 
-/** 18 true governance controls (policy/documentation only). */
+/** True governance controls (policy/documentation only; 3.4.3 is hybrid so 17). */
 export const GOVERNANCE_18_CONTROL_IDS = new Set(PURE_GOV_CONTROL_IDS);
 
 /** 31 controls in the 73 with support_level PARTIAL (OS evidence + gov docs to close). */
@@ -89,7 +89,7 @@ export interface C3PAOValidationResult {
 const EXPECTED_OS = 73;
 const EXPECTED_CLOUD = 12;
 const EXPECTED_NA = 7;
-const EXPECTED_GOVERNANCE = 18;
+const EXPECTED_GOVERNANCE = 17;
 const EXPECTED_OS_PARTIAL = 31;
 const EXPECTED_TOTAL_CMMC_L2 = 110;
 

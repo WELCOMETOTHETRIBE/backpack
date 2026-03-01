@@ -42,7 +42,7 @@ describe("satisfaction-sources", () => {
       expect(s138.cloud).toBe(true);
     });
 
-    it("returns governance for 18 PURE_GOV controls", () => {
+    it("returns governance for 17 PURE_GOV controls", () => {
       expect(getSatisfactionSources("3.1.4").governance).toBe(true);
       expect(getSatisfactionSources("3.2.1").governance).toBe(true);
     });
@@ -67,8 +67,8 @@ describe("satisfaction-sources", () => {
       expect(result.tally.os).toBe(73);
       expect(result.tally.cloud).toBe(12);
       expect(result.tally.oftenNotApplicable).toBe(7);
-      expect(result.tally.governance).toBe(18);
-      expect(result.tally.hybrid).toBe(45); // 31 OS partial + 7 delta + 7 often-N/A (delta)
+      expect(result.tally.governance).toBe(17);
+      expect(result.tally.hybrid).toBe(45); // 31 OS partial + delta (3.4.3 was already hybrid by os+osPartial)
       expect(result.tally.osAndCloud).toBe(6);
 
       expect(result.unassigned).toHaveLength(0);
@@ -81,7 +81,7 @@ describe("satisfaction-sources", () => {
       expect(OS_73_CONTROL_IDS.size).toBe(73);
       expect(CLOUD_12_CONTROL_IDS.size).toBe(12);
       expect(NA_7_CONTROL_IDS.size).toBe(7);
-      expect(GOVERNANCE_18_CONTROL_IDS.size).toBe(18);
+      expect(GOVERNANCE_18_CONTROL_IDS.size).toBe(17);
       expect(OS_PARTIAL_31_CONTROL_IDS.size).toBe(31);
     });
 
