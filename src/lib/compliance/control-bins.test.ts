@@ -9,6 +9,7 @@ import {
   isHybridControl,
 } from "./control-bins";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
+import { ENCLAVE_OS_PARTIAL_31_NIST_IDS } from "./os-evidence-manifest";
 
 describe("control-bins", () => {
   it("partitions all 110 controls into 4 disjoint bins", () => {
@@ -55,5 +56,33 @@ describe("control-bins", () => {
     expect(isHybridControl("3.1.18")).toBe(true);  // delta -> hybrid_governance
     expect(isHybridControl("3.1.4")).toBe(false);  // pure_governance
     expect(isHybridControl("3.10.1")).toBe(false); // pure_technical (inherited)
+  });
+
+  it("sanity: every OS manifest PARTIAL (31) is hybrid_technical unless in PURE_GOV", () => {
+    expect(ENCLAVE_OS_PARTIAL_31_NIST_IDS.length).toBe(31);
+    const pureGovSet = new Set(PURE_GOVERNANCE_IDS);
+    const hybridTechSet = new Set(HYBRID_TECHNICAL_IDS);
+    for (const id of ENCLAVE_OS_PARTIAL_31_NIST_IDS) {
+      if (pureGovSet.has(id)) continue; // 3.4.3 was moved out of PURE_GOV so none now
+      expect(hybridTechSet.has(id)).toBe(true);
+    }
+  });
+
+  it("sanity: 3.5.5 is pure_technical (OS STRONG in manifest, not PARTIAL)", () => {
+    expect(getControlBin("3.5.5")).toBe("pure_technical");
+    expect(HYBRID_TECHNICAL_IDS).not.toContain("3.5.5");
+  });
+
+  it("sanity: all 110 controls get exactly one bin and sum to 110", () => {
+    const { ok, total, counts, errors } = validateControlBins();
+    expect(errors).toHaveLength(0);
+    expect(ok).toBe(true);
+    expect(total).toBe(110);
+    const sum =
+      counts.pure_governance +
+      counts.pure_technical +
+      counts.hybrid_technical +
+      counts.hybrid_governance;
+    expect(sum).toBe(110);
   });
 });

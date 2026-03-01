@@ -28,7 +28,7 @@ export type ControlBin =
   | "hybrid_technical"
   | "hybrid_governance";
 
-/** 18 controls satisfied only by policy/documentation (C3PAO governance-adjudicated). */
+/** 17 controls satisfied only by policy/documentation (C3PAO governance-adjudicated). */
 export const PURE_GOVERNANCE_IDS: string[] = [...PURE_GOV_CONTROL_IDS];
 
 /** 31 controls: OS evidence + governance docs to close (enclave manifest PARTIAL). */
