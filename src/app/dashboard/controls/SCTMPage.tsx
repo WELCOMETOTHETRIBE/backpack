@@ -334,19 +334,15 @@ export function SCTMPage() {
                   >
                     <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
                       <span className="font-mono text-xs font-semibold text-[var(--color-navy-primary)] shrink-0">{r.controlId}</span>
-                      {r.evidencePartial && r.implementationStatus === "not_started" ? (
-                        <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-800" title="Technical evidence passed; accompanying gov docs, logs, or records required.">
-                          Partial
-                        </span>
-                      ) : (
+                      {r.evidencePartial ? (
                         <>
-                          <StatusBadge status={r.implementationStatus} />
-                          {r.evidencePartial && (
-                            <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-800" title="Technical evidence passed; accompanying gov docs, logs, or records required.">
-                              Partial
-                            </span>
-                          )}
+                          <StatusBadge status="in_progress" />
+                          <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-800" title="Technical evidence passed; accompanying gov docs, logs, or records required.">
+                            Partial
+                          </span>
                         </>
+                      ) : (
+                        <StatusBadge status={r.implementationStatus} />
                       )}
                     </div>
                     <p className="mt-0.5 font-medium text-[var(--color-gray-900)] leading-tight line-clamp-2 text-xs min-w-0">
