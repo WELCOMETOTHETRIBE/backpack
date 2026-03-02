@@ -50,3 +50,4 @@ Access Enforcement and Least Privilege Procedure,No,Yes,Yes,compliance/cmmc/leve
 Record Retention Policy,Yes,Yes,No,compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-001_Record_Retention_Policy.md,,3.3.8;3.3.9
 System Security Plan (SSP),No,Yes,Yes,compliance/cmmc/level2/01-system-security-plan/MAC-IT-307_System_Security_Plan.md,,3.12.4
 System Boundary and Scope Statement,No,Yes,Yes,compliance/cmmc/level2/01-system-security-plan/MAC-IT-308_System_Boundary_and_Scope.md,,3.12.4
+Procedures for Flaw Remediation,No,Yes,Yes,compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-???_Flaw_Remediation_Procedure.md,ADD,3.14.1

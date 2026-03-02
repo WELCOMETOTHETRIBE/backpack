@@ -625,6 +625,17 @@
       "controlsMapped": [
         "3.12.4"
       ]
+    },
+    {
+      "document": "Procedures for Flaw Remediation",
+      "govPure": false,
+      "govHybrid": true,
+      "techHybrid": true,
+      "mactechDocument": "compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-???_Flaw_Remediation_Procedure.md",
+      "missing": true,
+      "controlsMapped": [
+        "3.14.1"
+      ]
     }
   ]
 }
