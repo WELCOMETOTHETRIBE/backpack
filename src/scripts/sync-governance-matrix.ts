@@ -109,7 +109,8 @@ function main() {
     const govHybrid = (cells[govHybridIdx] ?? "").trim().toLowerCase() === "yes";
     const techHybrid = (cells[techHybridIdx] ?? "").trim().toLowerCase() === "yes";
     const mactechDocument = (cells[mactechIdx] ?? "").trim();
-    const missing = !mactechDocument || (cells[missingIdx] ?? "").trim().toLowerCase() === "yes";
+    const missingCell = (cells[missingIdx] ?? "").trim().toLowerCase();
+    const missing = !mactechDocument || missingCell === "yes" || missingCell === "add";
 
     rows.push({
       document,

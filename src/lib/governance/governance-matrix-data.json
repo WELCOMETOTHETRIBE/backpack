@@ -343,6 +343,288 @@
       "controlsMapped": [
         "3.13.12"
       ]
+    },
+    {
+      "document": "Media Handling & Data Disposal Policy",
+      "govPure": true,
+      "govHybrid": true,
+      "techHybrid": false,
+      "mactechDocument": "compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-213_Media_Handling_and_Data_Disposal_Policy.md",
+      "missing": false,
+      "controlsMapped": [
+        "3.8.1",
+        "3.8.2",
+        "3.8.3",
+        "3.8.4",
+        "3.8.5",
+        "3.8.6",
+        "3.8.7",
+        "3.8.8",
+        "3.8.9"
+      ]
+    },
+    {
+      "document": "Procedures for Media Sanitization",
+      "govPure": false,
+      "govHybrid": true,
+      "techHybrid": true,
+      "mactechDocument": "compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-246_Media_Sanitization_Procedure.md",
+      "missing": false,
+      "controlsMapped": [
+        "3.8.3",
+        "3.8.7"
+      ]
+    },
+    {
+      "document": "Procedures for CUI Media Handling and Transport",
+      "govPure": true,
+      "govHybrid": true,
+      "techHybrid": true,
+      "mactechDocument": "compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-247_CUI_Media_Handling_and_Transport_Procedure.md",
+      "missing": false,
+      "controlsMapped": [
+        "3.8.4",
+        "3.8.5",
+        "3.8.6"
+      ]
+    },
+    {
+      "document": "CUI Marking and Handling Procedure",
+      "govPure": true,
+      "govHybrid": true,
+      "techHybrid": true,
+      "mactechDocument": "compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-248_CUI_Marking_and_Handling_Procedure.md",
+      "missing": false,
+      "controlsMapped": [
+        "3.8.1",
+        "3.8.2",
+        "3.8.4",
+        "3.8.5"
+      ]
+    },
+    {
+      "document": "Physical Security Policy",
+      "govPure": true,
+      "govHybrid": true,
+      "techHybrid": false,
+      "mactechDocument": "compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-212_Physical_Security_Policy.md",
+      "missing": false,
+      "controlsMapped": [
+        "3.10.1",
+        "3.10.2",
+        "3.10.3",
+        "3.10.4",
+        "3.10.5",
+        "3.10.6"
+      ]
+    },
+    {
+      "document": "Visitor Control Procedure",
+      "govPure": true,
+      "govHybrid": true,
+      "techHybrid": false,
+      "mactechDocument": "compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-249_Visitor_Control_Procedure.md",
+      "missing": false,
+      "controlsMapped": [
+        "3.10.3"
+      ]
+    },
+    {
+      "document": "Physical Access Control Procedure",
+      "govPure": true,
+      "govHybrid": true,
+      "techHybrid": false,
+      "mactechDocument": "compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-236_Physical_Access_Device_Control_Procedure.md",
+      "missing": false,
+      "controlsMapped": [
+        "3.10.1",
+        "3.10.2",
+        "3.10.4",
+        "3.10.5"
+      ]
+    },
+    {
+      "document": "Personnel Termination Procedure",
+      "govPure": true,
+      "govHybrid": true,
+      "techHybrid": false,
+      "mactechDocument": "compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-234_Personnel_Termination_Procedure.md",
+      "missing": false,
+      "controlsMapped": [
+        "3.9.2"
+      ]
+    },
+    {
+      "document": "Vulnerability Scanning and Remediation Procedure",
+      "govPure": false,
+      "govHybrid": true,
+      "techHybrid": true,
+      "mactechDocument": "compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-230_Vulnerability_Scanning_and_Remediation_Procedure.md",
+      "missing": false,
+      "controlsMapped": [
+        "3.11.2",
+        "3.11.3"
+      ]
+    },
+    {
+      "document": "Plan of Action and Milestones (POA&M) Management Procedure",
+      "govPure": false,
+      "govHybrid": true,
+      "techHybrid": true,
+      "mactechDocument": "compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-231_POAM_Process_Procedure.md",
+      "missing": false,
+      "controlsMapped": [
+        "3.12.2"
+      ]
+    },
+    {
+      "document": "System and Communications Protection Policy",
+      "govPure": false,
+      "govHybrid": true,
+      "techHybrid": true,
+      "mactechDocument": "compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-225_System_and_Communications_Protection_Policy.md",
+      "missing": false,
+      "controlsMapped": [
+        "3.13.1",
+        "3.13.2",
+        "3.13.3",
+        "3.13.4",
+        "3.13.5",
+        "3.13.6",
+        "3.13.7",
+        "3.13.8",
+        "3.13.9",
+        "3.13.10",
+        "3.13.11",
+        "3.13.12",
+        "3.13.13",
+        "3.13.14",
+        "3.13.15",
+        "3.13.16"
+      ]
+    },
+    {
+      "document": "Boundary Protection and Network Segmentation Procedure",
+      "govPure": false,
+      "govHybrid": true,
+      "techHybrid": true,
+      "mactechDocument": "compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-250_Boundary_Protection_and_Network_Segmentation_Procedure.md",
+      "missing": false,
+      "controlsMapped": [
+        "3.13.1",
+        "3.13.5",
+        "3.13.6",
+        "3.13.7"
+      ]
+    },
+    {
+      "document": "Cryptographic Key Management Procedure",
+      "govPure": false,
+      "govHybrid": true,
+      "techHybrid": true,
+      "mactechDocument": "compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-251_Cryptographic_Key_Management_Procedure.md",
+      "missing": false,
+      "controlsMapped": [
+        "3.13.10",
+        "3.13.11"
+      ]
+    },
+    {
+      "document": "MFA Implementation Standard / Guide",
+      "govPure": false,
+      "govHybrid": true,
+      "techHybrid": true,
+      "mactechDocument": "compliance/cmmc/level2/02-policies-and-procedures/MAC-SEC-108_MFA_Implementation_Guide.md",
+      "missing": false,
+      "controlsMapped": [
+        "3.5.3"
+      ]
+    },
+    {
+      "document": "Audit Logging Configuration Standard / Guide",
+      "govPure": false,
+      "govHybrid": true,
+      "techHybrid": true,
+      "mactechDocument": "compliance/cmmc/level2/02-policies-and-procedures/MAC-SEC-109_Audit_Logging_Configuration_Guide.md",
+      "missing": false,
+      "controlsMapped": [
+        "3.3.3",
+        "3.3.4",
+        "3.3.5",
+        "3.3.6",
+        "3.3.7",
+        "3.3.8"
+      ]
+    },
+    {
+      "document": "Software Restriction Policy",
+      "govPure": false,
+      "govHybrid": true,
+      "techHybrid": true,
+      "mactechDocument": "compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-226_Software_Restriction_Policy.md",
+      "missing": false,
+      "controlsMapped": [
+        "3.4.8",
+        "3.4.9"
+      ]
+    },
+    {
+      "document": "System Inventory and Asset Management Procedure",
+      "govPure": false,
+      "govHybrid": true,
+      "techHybrid": true,
+      "mactechDocument": "compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-252_System_Inventory_and_Asset_Management_Procedure.md",
+      "missing": false,
+      "controlsMapped": [
+        "3.4.2"
+      ]
+    },
+    {
+      "document": "Access Enforcement and Least Privilege Procedure",
+      "govPure": false,
+      "govHybrid": true,
+      "techHybrid": true,
+      "mactechDocument": "compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-253_Access_Enforcement_and_Least_Privilege_Procedure.md",
+      "missing": false,
+      "controlsMapped": [
+        "3.1.5",
+        "3.1.6",
+        "3.1.7"
+      ]
+    },
+    {
+      "document": "Record Retention Policy",
+      "govPure": true,
+      "govHybrid": true,
+      "techHybrid": false,
+      "mactechDocument": "compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-001_Record_Retention_Policy.md",
+      "missing": false,
+      "controlsMapped": [
+        "3.3.8",
+        "3.3.9"
+      ]
+    },
+    {
+      "document": "System Security Plan (SSP)",
+      "govPure": false,
+      "govHybrid": true,
+      "techHybrid": true,
+      "mactechDocument": "compliance/cmmc/level2/01-system-security-plan/MAC-IT-307_System_Security_Plan.md",
+      "missing": false,
+      "controlsMapped": [
+        "3.12.4"
+      ]
+    },
+    {
+      "document": "System Boundary and Scope Statement",
+      "govPure": false,
+      "govHybrid": true,
+      "techHybrid": true,
+      "mactechDocument": "compliance/cmmc/level2/01-system-security-plan/MAC-IT-308_System_Boundary_and_Scope.md",
+      "missing": false,
+      "controlsMapped": [
+        "3.12.4"
+      ]
     }
   ]
 }

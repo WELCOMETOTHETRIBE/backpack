@@ -37,6 +37,7 @@ export default function DocumentsPage() {
             <h2 id="doc-matrix-heading" className="flex items-center gap-2 text-sm font-semibold text-[var(--color-navy-primary)]">
               <FileStack className="h-4 w-4" aria-hidden />
               Governance Documents Matrix
+              <span className="font-normal text-[var(--color-gray-600)]">({GOVERNANCE_DOCUMENT_MATRIX.length} documents)</span>
             </h2>
             <p id="doc-matrix-desc" className="mt-1 text-sm text-[var(--color-gray-600)]">
               Required for Gov Pure (18 governance-only controls), Gov Hybrid, and Tech/Hybrid. Upload and map documents below.
@@ -61,7 +62,7 @@ export default function DocumentsPage() {
             </button>
           </div>
         </div>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto max-h-[min(70vh,32rem)] overflow-y-auto">
           <table
             className="w-full table-fixed min-w-[520px] border-collapse text-left text-sm"
             aria-label="Governance Documents Matrix: required for Gov Pure, Gov Hybrid, Tech/Hybrid"
