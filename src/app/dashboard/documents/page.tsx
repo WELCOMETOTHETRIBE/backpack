@@ -5,13 +5,17 @@ import Link from "next/link";
 import { GOVERNANCE_DOCUMENT_MATRIX } from "@/lib/governance/governance-document-matrix";
 import { GovernanceDocumentUploadModal } from "@/components/adjudication/GovernanceDocumentUploadModal";
 import { AssignDocumentModal } from "@/components/adjudication/AssignDocumentModal";
+import { SmartMapperModal } from "@/components/adjudication/SmartMapperModal";
+import { BundleUploadModal } from "@/components/adjudication/BundleUploadModal";
 import { RecordsManagementWidget } from "@/components/adjudication/RecordsManagementWidget";
-import { FileStack, FileText, ClipboardCheck, ChevronRight, Upload, Link2 } from "lucide-react";
+import { FileStack, FileText, ClipboardCheck, ChevronRight, Upload, Link2, Package } from "lucide-react";
 
 export default function DocumentsPage() {
   const [governanceModalOpen, setGovernanceModalOpen] = useState(false);
+  const [bundleModalOpen, setBundleModalOpen] = useState(false);
   const [uploadForRow, setUploadForRow] = useState<string | null>(null);
   const [assignForRow, setAssignForRow] = useState<string | null>(null);
+  const [smartMapperControlIds, setSmartMapperControlIds] = useState<string[] | null>(null);
 
   return (
     <div className="space-y-8">
@@ -38,14 +42,24 @@ export default function DocumentsPage() {
               Required for Gov Pure (18 governance-only controls), Gov Hybrid, and Tech/Hybrid. Upload and map documents below.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => setGovernanceModalOpen(true)}
-            className="inline-flex shrink-0 items-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[var(--color-primary-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2"
-          >
-            <FileText className="h-4 w-4" aria-hidden />
-            Upload & map documents
-          </button>
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setBundleModalOpen(true)}
+              className="inline-flex items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-sm font-medium text-[var(--color-gray-700)] transition-colors hover:bg-[var(--color-gray-50)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2"
+            >
+              <Package className="h-4 w-4" aria-hidden />
+              Upload bundle
+            </button>
+            <button
+              type="button"
+              onClick={() => setGovernanceModalOpen(true)}
+              className="inline-flex shrink-0 items-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[var(--color-primary-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2"
+            >
+              <FileText className="h-4 w-4" aria-hidden />
+              Upload & map documents
+            </button>
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table
@@ -177,11 +191,27 @@ export default function DocumentsPage() {
             setGovernanceModalOpen(false);
             setUploadForRow(null);
           }}
-          onSaved={() => {
+          onSaved={(controlIdsMapped?: string[]) => {
             setGovernanceModalOpen(false);
             setUploadForRow(null);
+            setSmartMapperControlIds(controlIdsMapped ?? []);
           }}
           initialArtifactLabel={uploadForRow ?? undefined}
+        />
+      )}
+      {bundleModalOpen && (
+        <BundleUploadModal
+          onClose={() => setBundleModalOpen(false)}
+          onSaved={(controlIdsMapped: string[]) => {
+            setBundleModalOpen(false);
+            setSmartMapperControlIds(controlIdsMapped ?? []);
+          }}
+        />
+      )}
+      {smartMapperControlIds !== null && (
+        <SmartMapperModal
+          controlIdsMapped={smartMapperControlIds}
+          onClose={() => setSmartMapperControlIds(null)}
         />
       )}
       {assignForRow && (

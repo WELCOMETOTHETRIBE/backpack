@@ -330,3 +330,10 @@ export function getFirstControlRequiringUploadLabel(label: string): string | und
   }
   return undefined;
 }
+
+/** All control IDs that require the given upload label (for multi-control mapping from one document). */
+export function getControlIdsRequiringUploadLabel(label: string): string[] {
+  return ALL_CONTROL_IDS.filter((controlId) =>
+    getRequiredUploadArtifactLabels(controlId).includes(label)
+  );
+}

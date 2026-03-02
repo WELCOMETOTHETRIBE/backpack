@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { ALL_CONTROL_IDS, getRequiredUploadArtifactLabels } from "@/lib/artifact-guide";
 import { CONTROL_FAMILIES } from "@/components/governance-wizard/constants";
+import { parseGovernanceFilename } from "@/lib/governance/document-naming";
 import { X, ChevronDown, ChevronRight, FileUp } from "lucide-react";
 
 const FAMILY_PREFIX: Record<string, string> = {
@@ -50,7 +51,7 @@ export function GovernanceDocumentUploadModal({
   initialArtifactLabel,
 }: {
   onClose: () => void;
-  onSaved: () => void;
+  onSaved: (controlIdsMapped?: string[]) => void;
   initialArtifactLabel?: string;
 }) {
   const [activeFamily, setActiveFamily] = useState("AC");
@@ -64,6 +65,7 @@ export function GovernanceDocumentUploadModal({
   const [approvalDate, setApprovalDate] = useState("");
   const [artifactLabel, setArtifactLabel] = useState(initialArtifactLabel ?? "");
   const [uploading, setUploading] = useState(false);
+  const [mappingInferredFromFilename, setMappingInferredFromFilename] = useState(false);
 
   useEffect(() => {
     if (initialArtifactLabel) setArtifactLabel(initialArtifactLabel);
@@ -94,6 +96,28 @@ export function GovernanceDocumentUploadModal({
 
   const nistByControlId = Object.fromEntries(nist.map((n) => [n.controlId, n]));
   const recordByControlId = Object.fromEntries(records.map((r) => [r.controlId, r]));
+  const recordById = Object.fromEntries(records.map((r) => [r.id, r]));
+
+  // When file or records change, try to infer mapping from filename
+  useEffect(() => {
+    if (!file?.name || records.length === 0) return;
+    const parsed = parseGovernanceFilename(file.name);
+    if (parsed.controlIds.length > 0) {
+      if (parsed.artifactLabel) setArtifactLabel(parsed.artifactLabel);
+      const ids = parsed.controlIds.map((cid) => recordByControlId[cid]?.id).filter(Boolean) as string[];
+      if (ids.length > 0) {
+        setSelectedRecordIds(new Set(ids));
+        setMappingInferredFromFilename(true);
+        const firstId = parsed.controlIds[0];
+        if (firstId) {
+          const fam = CONTROL_FAMILIES.find((f) => firstId.startsWith(FAMILY_PREFIX[f.code] + "."));
+          if (fam) setActiveFamily(fam.code);
+        }
+      }
+    } else {
+      setMappingInferredFromFilename(false);
+    }
+  }, [file?.name, records]);
 
   const familyControls: ControlOption[] = (() => {
     const prefix = FAMILY_PREFIX[activeFamily];
@@ -144,12 +168,14 @@ export function GovernanceDocumentUploadModal({
         body: formData,
       });
       if (res.ok) {
-        onSaved();
+        const controlIdsMapped = [...selectedRecordIds].map((id) => recordById[id]?.controlId).filter(Boolean) as string[];
+        onSaved(controlIdsMapped);
         setFile(null);
         setVersion("");
         setApprovalDate("");
         setArtifactLabel("");
         setSelectedRecordIds(new Set());
+        setMappingInferredFromFilename(false);
       }
     } finally {
       setUploading(false);
@@ -214,6 +240,11 @@ export function GovernanceDocumentUploadModal({
               </div>
             ) : (
               <div className="flex flex-col gap-6 p-6">
+                {mappingInferredFromFilename && (
+                  <p className="rounded-lg border border-[var(--color-blue-accent)]/30 bg-[var(--color-blue-accent)]/5 px-3 py-2 text-sm text-slate-700">
+                    Mapping inferred from filename. You can adjust below.
+                  </p>
+                )}
                 <p className="text-sm text-slate-600">
                   Select one or more controls to map this document to. Add file and metadata above, then choose controls below.
                 </p>
@@ -255,7 +286,11 @@ export function GovernanceDocumentUploadModal({
                       <span className="block text-xs font-medium text-slate-700 mb-1">File</span>
                       <input
                         type="file"
-                        onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                        onChange={(e) => {
+                          const f = e.target.files?.[0] ?? null;
+                          setFile(f);
+                          if (!f) setMappingInferredFromFilename(false);
+                        }}
                         className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-200 file:px-3 file:py-2 file:text-sm file:font-medium file:text-slate-700 hover:file:bg-slate-300"
                       />
                     </label>

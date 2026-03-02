@@ -54,6 +54,25 @@ const MACTECH_MAPPING: Record<string, string> = {
   "Procedures for Configuration Change Control": "compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-225_Configuration_Change_Awareness_Procedure.md",
 };
 
+/** Reverse map: MACTech basename (with or without extension) → artifact label. For Codex bundle filename parsing. */
+export const CODEX_BASENAME_TO_ARTIFACT_LABEL: Record<string, string> = (() => {
+  const out: Record<string, string> = {};
+  for (const [label, path] of Object.entries(MACTECH_MAPPING)) {
+    if (!path) continue;
+    const basename = path.split("/").pop() ?? path;
+    out[basename.toLowerCase()] = label;
+    const withoutExt = basename.replace(/\.[^.]+$/, "").toLowerCase();
+    out[withoutExt] = label;
+  }
+  return out;
+})();
+
+/** Get artifact label from Codex/MACTech filename (basename only). Case-insensitive, with or without extension. */
+export function getArtifactLabelFromCodexFilename(basename: string): string | undefined {
+  const normalized = basename.replace(/^.*[/\\]/, "").toLowerCase();
+  return CODEX_BASENAME_TO_ARTIFACT_LABEL[normalized] ?? CODEX_BASENAME_TO_ARTIFACT_LABEL[normalized.replace(/\.[^.]+$/, "")];
+}
+
 function resolveMactechPath(label: string): string {
   const path = MACTECH_MAPPING[label];
   if (path !== undefined) return path;

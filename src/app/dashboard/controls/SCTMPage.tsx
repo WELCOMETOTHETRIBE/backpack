@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Search, LayoutList, LayoutGrid } from "lucide-react";
-import { getSpecForControl, ALL_CONTROL_IDS } from "@/lib/artifact-guide";
+import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { CONTROL_FAMILIES, getControlFamilyPrefix } from "@/components/governance-wizard/constants";
 import { StatusBadge } from "@/components/governance-wizard/StatusBadge";
 import { type SCTMRecord } from "./SCTMFilters";
@@ -98,13 +98,15 @@ export function SCTMPage() {
     if (type !== "all") {
       if (type === "partial") {
         list = list.filter((r) => r.evidencePartial === true);
-      } else {
-        list = list.filter((r) => {
-          const spec = getSpecForControl(r.controlId);
-          if (!spec) return type === "configuration";
-          if (type === "governance") return spec.satisfactionType === "Governance-Centric";
-          return spec.satisfactionType === "Technical-Centric" || spec.satisfactionType === "Hybrid";
-        });
+      } else if (type === "governance") {
+        // Governance filter: only controls satisfied by governance (PURE_GOV), not OS/Cloud/Hybrid
+        list = list.filter((r) => r.satisfiedByGovernance === true);
+      } else if (type === "configuration") {
+        // Configuration filter: OS, Cloud, or Hybrid (technical implementation)
+        list = list.filter(
+          (r) =>
+            r.satisfiedByOs === true || r.satisfiedByCloud === true || r.satisfiedByHybrid === true
+        );
       }
     }
     const byControlId = new Map<string, SCTMRecord>();
