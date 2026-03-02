@@ -1,6 +1,6 @@
 # MacTech CUI Enclave Governance Documents
 
-This folder contains the **System Boundary and Scope** and the **eight governance documents** for MacTech’s CUI enclave. All documents are production-grade and ready for deployment and sign-off.
+This folder contains the **System Boundary and Scope** and the **sixteen governance documents** (one policy and fifteen procedures) for MacTech’s CUI enclave. All documents are production-grade and ready for deployment and sign-off.
 
 **Boundary:** In scope are Microsoft Azure Government, Windows VM(s) hosted in it, and user access via Entra ID, VPN, and MFA only. User work computers and other clouds/on-premises systems are out of scope.
 
@@ -17,6 +17,14 @@ This folder contains the **System Boundary and Scope** and the **eight governanc
 | MAC-SOP-243_Separation_System_Management_Procedure.md | User vs. system management separation (3.13.3) |
 | MAC-SOP-244_Information_Transfer_Controls_Procedure.md | Information transfer controls (3.13.4) |
 | MAC-SOP-245_RDP_Collaborative_Device_Restrictions_Procedure.md | RDP and collaborative device restrictions (3.13.12) |
+| MAC-SOP-246_Media_Sanitization_Procedure.md | Media sanitization and disposal (3.8.3, 3.8.7) |
+| MAC-SOP-247_CUI_Media_Handling_and_Transport_Procedure.md | CUI media handling and transport (3.8.4, 3.8.5, 3.8.6) |
+| MAC-SOP-248_CUI_Marking_and_Handling_Procedure.md | CUI marking and handling (3.8.1, 3.8.2, 3.8.4, 3.8.5) |
+| MAC-SOP-249_Visitor_Control_Procedure.md | Visitor control (3.10.3) |
+| MAC-SOP-250_Boundary_Protection_and_Network_Segmentation_Procedure.md | Boundary protection and network segmentation (3.13.1, 3.13.5, 3.13.6, 3.13.7) |
+| MAC-SOP-251_Cryptographic_Key_Management_Procedure.md | Cryptographic key management (3.13.10, 3.13.11) |
+| MAC-SOP-252_System_Inventory_and_Asset_Management_Procedure.md | System inventory and asset management (3.4.2) |
+| MAC-SOP-253_Access_Enforcement_and_Least_Privilege_Procedure.md | Access enforcement and least privilege (3.1.5, 3.1.6, 3.1.7) |
 
 ## Production readiness
 

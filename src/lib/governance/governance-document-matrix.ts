@@ -65,6 +65,21 @@ export function getArtifactLabelFromCodexFilename(basename: string): string | un
 
 /** Control IDs that this document type satisfies. Single source of truth: CSV "Controls Mapped" column. */
 export function getControlIdsForDocument(documentLabel: string): string[] {
-  const row = GOVERNANCE_DOCUMENT_MATRIX.find((r) => r.document === documentLabel);
-  return row?.controlsMapped ?? [];
+  const trimmed = documentLabel.trim();
+  if (!trimmed) return [];
+
+  const exact = GOVERNANCE_DOCUMENT_MATRIX.find((r) => r.document === trimmed);
+  if (exact) return exact.controlsMapped;
+
+  const exactLower = GOVERNANCE_DOCUMENT_MATRIX.find(
+    (r) => r.document.toLowerCase() === trimmed.toLowerCase()
+  );
+  if (exactLower) return exactLower.controlsMapped;
+
+  const prefixMatches = GOVERNANCE_DOCUMENT_MATRIX.filter((r) =>
+    r.document.toLowerCase().startsWith(trimmed.toLowerCase())
+  );
+  if (prefixMatches.length === 1) return prefixMatches[0]!.controlsMapped;
+
+  return [];
 }

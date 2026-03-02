@@ -66,7 +66,7 @@
     "List of approved maintenance tools": "compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-238_Maintenance_Tool_Control_Procedure.md",
     "Procedures for Remote Maintenance": "compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-224_Physical_Environment_and_Remote_Work_Controls.md",
     "Records of remote maintenance sessions": "compliance/cmmc/level2/05-evidence/",
-    "Procedures for Media Sanitization": "compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-213_Media_Handling_Policy.md",
+    "Procedures for Media Sanitization": "compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-246_Media_Sanitization_Procedure.md",
     "Records of media sanitization": "compliance/cmmc/level2/05-evidence/",
     "Media Protection Policy": "compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-213_Media_Handling_Policy.md",
     "Procedures for Media Protection": "compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-213_Media_Handling_Policy.md",
@@ -84,7 +84,7 @@
     "Physical and Environmental Protection Policy": "compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-212_Physical_Security_Policy.md",
     "Procedures for Physical Access Authorizations": "compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-224_Physical_Environment_and_Remote_Work_Controls.md",
     "Authorized personnel access list": "",
-    "Procedures for Visitor Control": "compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-224_Physical_Environment_and_Remote_Work_Controls.md",
+    "Procedures for Visitor Control": "compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-249_Visitor_Control_Procedure.md",
     "Visitor access logs": "compliance/cmmc/level2/05-evidence/",
     "Procedures for Physical Access Control": "compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-236_Physical_Access_Device_Control_Procedure.md",
     "Inventory records of physical access devices": "compliance/cmmc/level2/05-evidence/",
@@ -112,7 +112,7 @@
     "Records of SSP reviews and updates": "compliance/cmmc/level2/05-evidence/",
     "Procedures for Security Engineering Principles": "compliance/cmmc/level2/01-system-scope/MAC-IT-301_System_Description_and_Architecture.md",
     "Security architecture documentation": "compliance/cmmc/level2/01-system-scope/MAC-IT-306_CUI_Vault_Architecture_Diagram.md",
-    "Procedures for Cryptographic Key Management": "",
+    "Procedures for Cryptographic Key Management": "compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-251_Cryptographic_Key_Management_Procedure.md",
     "Cryptographic key management plan": "",
     "System and Information Integrity Policy": "compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-214_System_Integrity_Policy.md",
     "Procedures for Flaw Remediation": "compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-214_System_Integrity_Policy.md",
@@ -138,6 +138,13 @@
     "Procedures for transmission integrity (SMB signing/crypto)": "compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-242_Transmission_Integrity_SMB_Procedure.md",
     "Gov docs for separation of duties and system management": "compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-243_Separation_System_Management_Procedure.md",
     "Gov docs for information transfer controls": "compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-244_Information_Transfer_Controls_Procedure.md",
-    "Gov docs for RDP/collaborative device use and restrictions": "compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-245_RDP_Collaborative_Device_Restrictions_Procedure.md"
+    "Gov docs for RDP/collaborative device use and restrictions": "compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-245_RDP_Collaborative_Device_Restrictions_Procedure.md",
+    "Procedures for CUI Media Handling and Transport": "compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-247_CUI_Media_Handling_and_Transport_Procedure.md",
+    "CUI Marking and Handling Procedure": "compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-248_CUI_Marking_and_Handling_Procedure.md",
+    "Visitor Control Procedure": "compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-249_Visitor_Control_Procedure.md",
+    "Boundary Protection and Network Segmentation Procedure": "compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-250_Boundary_Protection_and_Network_Segmentation_Procedure.md",
+    "Cryptographic Key Management Procedure": "compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-251_Cryptographic_Key_Management_Procedure.md",
+    "System Inventory and Asset Management Procedure": "compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-252_System_Inventory_and_Asset_Management_Procedure.md",
+    "Access Enforcement and Least Privilege Procedure": "compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-253_Access_Enforcement_and_Least_Privilege_Procedure.md"
   }
 }
