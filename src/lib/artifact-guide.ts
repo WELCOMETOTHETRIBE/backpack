@@ -66,10 +66,15 @@ export const CMMC_ARTIFACT_SPECS: ControlArtifactSpec[] = [
     { label: "List of defined roles and responsibilities requiring separation", handling: "UPLOAD" },
   ]},
   { controlId: "3.1.5", satisfactionType: "Hybrid", artifacts: [
-    { label: "Procedures for Least Privilege", handling: "UPLOAD" }, { label: "List of privileged accounts and associated individuals", handling: "REFERENCE" },
+    { label: "Procedures for Least Privilege", handling: "UPLOAD" }, { label: "Access Enforcement and Least Privilege Procedure", handling: "UPLOAD" },
+    { label: "List of privileged accounts and associated individuals", handling: "REFERENCE" },
   ]},
-  { controlId: "3.1.6", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
-  { controlId: "3.1.7", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
+  { controlId: "3.1.6", satisfactionType: "Technical-Centric", artifacts: [
+    { label: "Access Enforcement and Least Privilege Procedure", handling: "UPLOAD" },
+  ]},
+  { controlId: "3.1.7", satisfactionType: "Technical-Centric", artifacts: [
+    { label: "Access Enforcement and Least Privilege Procedure", handling: "UPLOAD" },
+  ]},
   { controlId: "3.1.8", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
   { controlId: "3.1.9", satisfactionType: "Governance-Centric", artifacts: [
     { label: "System Use Notification / Warning Banner Text", handling: "UPLOAD" }, { label: "Legal review and approval records for banner content", handling: "UPLOAD" },
@@ -117,17 +122,28 @@ export const CMMC_ARTIFACT_SPECS: ControlArtifactSpec[] = [
   { controlId: "3.3.2", satisfactionType: "Governance-Centric", artifacts: [
     { label: "Procedures for Audit Review, Analysis, and Reporting", handling: "UPLOAD" }, { label: "Records of audit log reviews, analysis, and reporting", handling: "REFERENCE" }, { label: "Records of actions taken in response to audit reviews", handling: "REFERENCE" },
   ]},
-  { controlId: "3.3.3", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
-  { controlId: "3.3.4", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
+  { controlId: "3.3.3", satisfactionType: "Technical-Centric", artifacts: [
+    { label: "Audit Logging Configuration Standard / Guide", handling: "UPLOAD" },
+  ]},
+  { controlId: "3.3.4", satisfactionType: "Technical-Centric", artifacts: [
+    { label: "Audit Logging Configuration Standard / Guide", handling: "UPLOAD" },
+  ]},
   { controlId: "3.3.5", satisfactionType: "Hybrid", artifacts: [
-    { label: "Procedures for Audit Record Protection", handling: "UPLOAD" }, { label: "List of individuals with authorized access to audit records", handling: "UPLOAD" },
+    { label: "Procedures for Audit Record Protection", handling: "UPLOAD" }, { label: "Audit Logging Configuration Standard / Guide", handling: "UPLOAD" },
+    { label: "List of individuals with authorized access to audit records", handling: "UPLOAD" },
   ]},
   { controlId: "3.3.6", satisfactionType: "Governance-Centric", artifacts: [
-    { label: "Procedures for Limiting Audit Report Generation", handling: "UPLOAD" }, { label: "List of individuals/roles authorized to generate audit reports", handling: "UPLOAD" },
+    { label: "Procedures for Limiting Audit Report Generation", handling: "UPLOAD" }, { label: "Audit Logging Configuration Standard / Guide", handling: "UPLOAD" },
+    { label: "List of individuals/roles authorized to generate audit reports", handling: "UPLOAD" },
   ]},
-  { controlId: "3.3.7", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
-  { controlId: "3.3.8", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
+  { controlId: "3.3.7", satisfactionType: "Technical-Centric", artifacts: [
+    { label: "Audit Logging Configuration Standard / Guide", handling: "UPLOAD" },
+  ]},
+  { controlId: "3.3.8", satisfactionType: "Technical-Centric", artifacts: [
+    { label: "Record Retention Policy", handling: "UPLOAD" }, { label: "Audit Logging Configuration Standard / Guide", handling: "UPLOAD" },
+  ]},
   { controlId: "3.3.9", satisfactionType: "Governance-Centric", artifacts: [
+    { label: "Record Retention Policy", handling: "UPLOAD" },
     { label: "Procedures for Session Audit", handling: "UPLOAD" }, { label: "List of privileged accounts to be audited", handling: "UPLOAD" },
   ]},
   // CM
@@ -135,7 +151,8 @@ export const CMMC_ARTIFACT_SPECS: ControlArtifactSpec[] = [
     { label: "Configuration Management Policy", handling: "UPLOAD" }, { label: "Procedures for Configuration Management", handling: "UPLOAD" }, { label: "System Baseline Configuration Document", handling: "REFERENCE" },
   ]},
   { controlId: "3.4.2", satisfactionType: "Governance-Centric", artifacts: [
-    { label: "Procedures for Configuration Change Control", handling: "UPLOAD" }, { label: "Records of configuration change control activities", handling: "REFERENCE" },
+    { label: "Procedures for Configuration Change Control", handling: "UPLOAD" }, { label: "System Inventory and Asset Management Procedure", handling: "UPLOAD" },
+    { label: "Records of configuration change control activities", handling: "REFERENCE" },
   ]},
   { controlId: "3.4.3", satisfactionType: "Hybrid", artifacts: (PARTIAL_DOCS_TO_CLOSE["3.4.3"] ?? []).map((a) => ({ label: a.label, handling: a.type as ArtifactHandling })) },
   { controlId: "3.4.4", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
@@ -146,8 +163,12 @@ export const CMMC_ARTIFACT_SPECS: ControlArtifactSpec[] = [
     { label: "Procedures for Least Functionality", handling: "UPLOAD" }, { label: "List of authorized software & approval records", handling: "UPLOAD" },
   ]},
   { controlId: "3.4.7", satisfactionType: "Governance-Centric", artifacts: [{ label: "List of prohibited or restricted software", handling: "UPLOAD" }] },
-  { controlId: "3.4.8", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
-  { controlId: "3.4.9", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
+  { controlId: "3.4.8", satisfactionType: "Technical-Centric", artifacts: [
+    { label: "Software Restriction Policy", handling: "UPLOAD" },
+  ]},
+  { controlId: "3.4.9", satisfactionType: "Technical-Centric", artifacts: [
+    { label: "Software Restriction Policy", handling: "UPLOAD" },
+  ]},
   // IA
   { controlId: "3.5.1", satisfactionType: "Hybrid", artifacts: [
     { label: "Identification and Authentication Policy", handling: "UPLOAD" }, { label: "Procedures for User Identification and Authentication", handling: "UPLOAD" },
@@ -195,92 +216,155 @@ export const CMMC_ARTIFACT_SPECS: ControlArtifactSpec[] = [
   ]},
   // MP
   { controlId: "3.8.1", satisfactionType: "Governance-Centric", artifacts: [
-    { label: "Media Protection Policy", handling: "UPLOAD" }, { label: "Procedures for Media Protection", handling: "UPLOAD" },
+    { label: "Media Protection Policy", handling: "UPLOAD" }, { label: "Media Handling & Data Disposal Policy", handling: "UPLOAD" },
+    { label: "CUI Marking and Handling Procedure", handling: "UPLOAD" }, { label: "Procedures for Media Protection", handling: "UPLOAD" },
   ]},
-  { controlId: "3.8.2", satisfactionType: "Governance-Centric", artifacts: [{ label: "Procedures for Media Access", handling: "UPLOAD" }] },
+  { controlId: "3.8.2", satisfactionType: "Governance-Centric", artifacts: [
+    { label: "Procedures for Media Access", handling: "UPLOAD" }, { label: "Media Handling & Data Disposal Policy", handling: "UPLOAD" },
+    { label: "CUI Marking and Handling Procedure", handling: "UPLOAD" },
+  ]},
   { controlId: "3.8.3", satisfactionType: "Governance-Centric", artifacts: [
-    { label: "Procedures for Media Sanitization & Disposal", handling: "UPLOAD" }, { label: "Records of media sanitization and disposal", handling: "REFERENCE" },
+    { label: "Procedures for Media Sanitization & Disposal", handling: "UPLOAD" }, { label: "Media Handling & Data Disposal Policy", handling: "UPLOAD" },
+    { label: "Procedures for Media Sanitization", handling: "UPLOAD" }, { label: "Records of media sanitization and disposal", handling: "REFERENCE" },
   ]},
-  { controlId: "3.8.4", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
+  { controlId: "3.8.4", satisfactionType: "Technical-Centric", artifacts: [
+    { label: "Media Handling & Data Disposal Policy", handling: "UPLOAD" }, { label: "Procedures for CUI Media Handling and Transport", handling: "UPLOAD" },
+    { label: "CUI Marking and Handling Procedure", handling: "UPLOAD" },
+  ]},
   { controlId: "3.8.5", satisfactionType: "Governance-Centric", artifacts: [
-    { label: "Procedures for Media Control", handling: "UPLOAD" }, { label: "Records of media accountability (logs, inventories)", handling: "REFERENCE" },
+    { label: "Procedures for Media Control", handling: "UPLOAD" }, { label: "Media Handling & Data Disposal Policy", handling: "UPLOAD" },
+    { label: "Procedures for CUI Media Handling and Transport", handling: "UPLOAD" }, { label: "CUI Marking and Handling Procedure", handling: "UPLOAD" },
+    { label: "Records of media accountability (logs, inventories)", handling: "REFERENCE" },
   ]},
-  { controlId: "3.8.6", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
-  { controlId: "3.8.7", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
-  { controlId: "3.8.8", satisfactionType: "Governance-Centric", artifacts: [{ label: "Procedures for Media Storage and Transport", handling: "UPLOAD" }] },
-  { controlId: "3.8.9", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
+  { controlId: "3.8.6", satisfactionType: "Technical-Centric", artifacts: [
+    { label: "Media Handling & Data Disposal Policy", handling: "UPLOAD" }, { label: "Procedures for CUI Media Handling and Transport", handling: "UPLOAD" },
+  ]},
+  { controlId: "3.8.7", satisfactionType: "Technical-Centric", artifacts: [
+    { label: "Media Handling & Data Disposal Policy", handling: "UPLOAD" }, { label: "Procedures for Media Sanitization", handling: "UPLOAD" },
+  ]},
+  { controlId: "3.8.8", satisfactionType: "Governance-Centric", artifacts: [
+    { label: "Procedures for Media Storage and Transport", handling: "UPLOAD" }, { label: "Media Handling & Data Disposal Policy", handling: "UPLOAD" },
+  ]},
+  { controlId: "3.8.9", satisfactionType: "Technical-Centric", artifacts: [
+    { label: "Media Handling & Data Disposal Policy", handling: "UPLOAD" },
+  ]},
   // PS
   { controlId: "3.9.1", satisfactionType: "Governance-Centric", artifacts: [
     { label: "Personnel Security Policy", handling: "UPLOAD" }, { label: "Procedures for Personnel Screening", handling: "UPLOAD" }, { label: "Records of personnel screening", handling: "REFERENCE" },
   ]},
   { controlId: "3.9.2", satisfactionType: "Governance-Centric", artifacts: [
-    { label: "Procedures for Personnel Termination and Transfer", handling: "UPLOAD" }, { label: "Records of actions taken upon personnel termination or transfer", handling: "REFERENCE" },
+    { label: "Procedures for Personnel Termination and Transfer", handling: "UPLOAD" }, { label: "Personnel Termination Procedure", handling: "UPLOAD" },
+    { label: "Records of actions taken upon personnel termination or transfer", handling: "REFERENCE" },
   ]},
   // PE
   { controlId: "3.10.1", satisfactionType: "Governance-Centric", artifacts: [
-    { label: "Physical and Environmental Protection Policy", handling: "UPLOAD" }, { label: "Procedures for Physical Access Authorizations", handling: "UPLOAD" }, { label: "Authorized personnel access list", handling: "UPLOAD" },
+    { label: "Physical and Environmental Protection Policy", handling: "UPLOAD" }, { label: "Physical Security Policy", handling: "UPLOAD" },
+    { label: "Physical Access Control Procedure", handling: "UPLOAD" }, { label: "Procedures for Physical Access Authorizations", handling: "UPLOAD" }, { label: "Authorized personnel access list", handling: "UPLOAD" },
   ]},
   { controlId: "3.10.2", satisfactionType: "Hybrid", artifacts: [
-    { label: "Procedures for Physical Access Monitoring", handling: "UPLOAD" }, { label: "Physical access logs & monitoring records", handling: "REFERENCE" },
+    { label: "Procedures for Physical Access Monitoring", handling: "UPLOAD" }, { label: "Physical Security Policy", handling: "UPLOAD" },
+    { label: "Physical Access Control Procedure", handling: "UPLOAD" }, { label: "Physical access logs & monitoring records", handling: "REFERENCE" },
   ]},
   { controlId: "3.10.3", satisfactionType: "Governance-Centric", artifacts: [
-    { label: "Procedures for Visitor Control", handling: "UPLOAD" }, { label: "Visitor access logs", handling: "UPLOAD" },
+    { label: "Procedures for Visitor Control", handling: "UPLOAD" }, { label: "Physical Security Policy", handling: "UPLOAD" },
+    { label: "Visitor Control Procedure", handling: "UPLOAD" }, { label: "Visitor access logs", handling: "UPLOAD" },
   ]},
   { controlId: "3.10.4", satisfactionType: "Governance-Centric", artifacts: [
-    { label: "Procedures for Physical Access Control", handling: "UPLOAD" }, { label: "Inventory records of physical access devices", handling: "UPLOAD" },
+    { label: "Procedures for Physical Access Control", handling: "UPLOAD" }, { label: "Physical Security Policy", handling: "UPLOAD" },
+    { label: "Physical Access Control Procedure", handling: "UPLOAD" }, { label: "Inventory records of physical access devices", handling: "UPLOAD" },
   ]},
   { controlId: "3.10.5", satisfactionType: "Governance-Centric", artifacts: [
-    { label: "Procedures for CUI Asset Control", handling: "UPLOAD" }, { label: "Records of CUI asset inventories", handling: "REFERENCE" },
+    { label: "Procedures for CUI Asset Control", handling: "UPLOAD" }, { label: "Physical Security Policy", handling: "UPLOAD" },
+    { label: "Records of CUI asset inventories", handling: "REFERENCE" },
   ]},
-  { controlId: "3.10.6", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
+  { controlId: "3.10.6", satisfactionType: "Technical-Centric", artifacts: [
+    { label: "Physical Security Policy", handling: "UPLOAD" },
+  ]},
   // RA
   { controlId: "3.11.1", satisfactionType: "Governance-Centric", artifacts: [
     { label: "Risk Assessment Policy", handling: "UPLOAD" }, { label: "Procedures for Risk Assessment", handling: "UPLOAD" }, { label: "Risk assessment reports", handling: "REFERENCE" }, { label: "Records of vulnerability scans", handling: "REFERENCE" },
   ]},
   { controlId: "3.11.2", satisfactionType: "Governance-Centric", artifacts: [
-    { label: "Procedures for Vulnerability Management", handling: "UPLOAD" }, { label: "Records of vulnerability remediation activities", handling: "REFERENCE" },
+    { label: "Procedures for Vulnerability Management", handling: "UPLOAD" }, { label: "Vulnerability Scanning and Remediation Procedure", handling: "UPLOAD" },
+    { label: "Records of vulnerability remediation activities", handling: "REFERENCE" },
   ]},
   { controlId: "3.11.3", satisfactionType: "Governance-Centric", artifacts: [
-    { label: "Procedures for Malicious Code Protection", handling: "UPLOAD" }, { label: "Records of malicious code protection updates and scans", handling: "REFERENCE" },
+    { label: "Procedures for Malicious Code Protection", handling: "UPLOAD" }, { label: "Vulnerability Scanning and Remediation Procedure", handling: "UPLOAD" },
+    { label: "Records of malicious code protection updates and scans", handling: "REFERENCE" },
   ]},
   // CA
   { controlId: "3.12.1", satisfactionType: "Governance-Centric", artifacts: [
     { label: "Security Assessment and Authorization Policy", handling: "UPLOAD" }, { label: "Procedures for Security Assessments", handling: "UPLOAD" }, { label: "Security assessment plans", handling: "REFERENCE" }, { label: "Security assessment reports", handling: "REFERENCE" },
   ]},
   { controlId: "3.12.2", satisfactionType: "Governance-Centric", artifacts: [
-    { label: "Procedures for Plan of Action and Milestones (POA&M)", handling: "UPLOAD" }, { label: "POA&M Document", handling: "NATIVE" },
+    { label: "Procedures for Plan of Action and Milestones (POA&M)", handling: "UPLOAD" }, { label: "Plan of Action and Milestones (POA&M) Management Procedure", handling: "UPLOAD" },
+    { label: "POA&M Document", handling: "NATIVE" },
   ]},
   { controlId: "3.12.3", satisfactionType: "Governance-Centric", artifacts: [
     { label: "Procedures for Continuous Monitoring", handling: "UPLOAD" }, { label: "Continuous monitoring plan", handling: "REFERENCE" }, { label: "Records of continuous monitoring activities", handling: "REFERENCE" },
   ]},
   { controlId: "3.12.4", satisfactionType: "Governance-Centric", artifacts: [
-    { label: "Security Planning Policy", handling: "UPLOAD" }, { label: "Procedures for System Security Plan Development and Review", handling: "UPLOAD" }, { label: "Records of SSP reviews and updates", handling: "REFERENCE" },
+    { label: "Security Planning Policy", handling: "UPLOAD" }, { label: "System Security Plan (SSP)", handling: "UPLOAD" },
+    { label: "System Boundary and Scope Statement", handling: "UPLOAD" }, { label: "Procedures for System Security Plan Development and Review", handling: "UPLOAD" }, { label: "Records of SSP reviews and updates", handling: "REFERENCE" },
   ]},
   // SC
   { controlId: "3.13.1", satisfactionType: "Hybrid", artifacts: [
-    { label: "System and Communications Protection Policy", handling: "UPLOAD" }, { label: "Procedures for Boundary Protection", handling: "UPLOAD" }, { label: "System design & enterprise security architecture documentation", handling: "REFERENCE" },
+    { label: "System and Communications Protection Policy", handling: "UPLOAD" }, { label: "Procedures for Boundary Protection", handling: "UPLOAD" },
+    { label: "Boundary Protection and Network Segmentation Procedure", handling: "UPLOAD" }, { label: "System design & enterprise security architecture documentation", handling: "REFERENCE" },
   ]},
   { controlId: "3.13.2", satisfactionType: "Governance-Centric", artifacts: [
-    { label: "Procedures for Security Engineering Principles", handling: "UPLOAD" }, { label: "Security architecture documentation", handling: "REFERENCE" },
+    { label: "System and Communications Protection Policy", handling: "UPLOAD" }, { label: "Procedures for Security Engineering Principles", handling: "UPLOAD" }, { label: "Security architecture documentation", handling: "REFERENCE" },
   ]},
-  { controlId: "3.13.3", satisfactionType: "Hybrid", artifacts: (PARTIAL_DOCS_TO_CLOSE["3.13.3"] ?? []).map((a) => ({ label: a.label, handling: a.type as ArtifactHandling })) },
-  { controlId: "3.13.4", satisfactionType: "Hybrid", artifacts: (PARTIAL_DOCS_TO_CLOSE["3.13.4"] ?? []).map((a) => ({ label: a.label, handling: a.type as ArtifactHandling })) },
-  { controlId: "3.13.5", satisfactionType: "Hybrid", artifacts: (PARTIAL_DOCS_TO_CLOSE["3.13.5"] ?? []).map((a) => ({ label: a.label, handling: a.type as ArtifactHandling })) },
-  { controlId: "3.13.6", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
-  { controlId: "3.13.7", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
+  { controlId: "3.13.3", satisfactionType: "Hybrid", artifacts: [
+    ...(PARTIAL_DOCS_TO_CLOSE["3.13.3"] ?? []).map((a) => ({ label: a.label, handling: a.type as ArtifactHandling })),
+    { label: "System and Communications Protection Policy", handling: "UPLOAD" },
+  ]},
+  { controlId: "3.13.4", satisfactionType: "Hybrid", artifacts: [
+    ...(PARTIAL_DOCS_TO_CLOSE["3.13.4"] ?? []).map((a) => ({ label: a.label, handling: a.type as ArtifactHandling })),
+    { label: "System and Communications Protection Policy", handling: "UPLOAD" },
+  ]},
+  { controlId: "3.13.5", satisfactionType: "Hybrid", artifacts: [
+    ...(PARTIAL_DOCS_TO_CLOSE["3.13.5"] ?? []).map((a) => ({ label: a.label, handling: a.type as ArtifactHandling })),
+    { label: "System and Communications Protection Policy", handling: "UPLOAD" }, { label: "Boundary Protection and Network Segmentation Procedure", handling: "UPLOAD" },
+  ]},
+  { controlId: "3.13.6", satisfactionType: "Technical-Centric", artifacts: [
+    { label: "System and Communications Protection Policy", handling: "UPLOAD" }, { label: "Boundary Protection and Network Segmentation Procedure", handling: "UPLOAD" },
+  ]},
+  { controlId: "3.13.7", satisfactionType: "Technical-Centric", artifacts: [
+    { label: "System and Communications Protection Policy", handling: "UPLOAD" }, { label: "Boundary Protection and Network Segmentation Procedure", handling: "UPLOAD" },
+  ]},
   { controlId: "3.13.8", satisfactionType: "Hybrid", artifacts: [
-    { label: "Procedures for Transmission Confidentiality", handling: "UPLOAD" }, { label: "List of alternative physical safeguards", handling: "UPLOAD" },
+    { label: "System and Communications Protection Policy", handling: "UPLOAD" }, { label: "Procedures for Transmission Confidentiality", handling: "UPLOAD" }, { label: "List of alternative physical safeguards", handling: "UPLOAD" },
   ]},
-  { controlId: "3.13.9", satisfactionType: "Hybrid", artifacts: (PARTIAL_DOCS_TO_CLOSE["3.13.9"] ?? []).map((a) => ({ label: a.label, handling: a.type as ArtifactHandling })) },
+  { controlId: "3.13.9", satisfactionType: "Hybrid", artifacts: [
+    ...(PARTIAL_DOCS_TO_CLOSE["3.13.9"] ?? []).map((a) => ({ label: a.label, handling: a.type as ArtifactHandling })),
+    { label: "System and Communications Protection Policy", handling: "UPLOAD" },
+  ]},
   { controlId: "3.13.10", satisfactionType: "Governance-Centric", artifacts: [
-    { label: "Procedures for Cryptographic Key Management", handling: "UPLOAD" }, { label: "Cryptographic key management plan", handling: "REFERENCE" },
+    { label: "Procedures for Cryptographic Key Management", handling: "UPLOAD" }, { label: "System and Communications Protection Policy", handling: "UPLOAD" },
+    { label: "Cryptographic Key Management Procedure", handling: "UPLOAD" }, { label: "Cryptographic key management plan", handling: "REFERENCE" },
   ]},
-  { controlId: "3.13.11", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
-  { controlId: "3.13.12", satisfactionType: "Hybrid", artifacts: (PARTIAL_DOCS_TO_CLOSE["3.13.12"] ?? []).map((a) => ({ label: a.label, handling: a.type as ArtifactHandling })) },
-  { controlId: "3.13.13", satisfactionType: "Hybrid", artifacts: (PARTIAL_DOCS_TO_CLOSE["3.13.13"] ?? []).map((a) => ({ label: a.label, handling: a.type as ArtifactHandling })) },
-  { controlId: "3.13.14", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
-  { controlId: "3.13.15", satisfactionType: "Hybrid", artifacts: (PARTIAL_DOCS_TO_CLOSE["3.13.15"] ?? []).map((a) => ({ label: a.label, handling: a.type as ArtifactHandling })) },
-  { controlId: "3.13.16", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
+  { controlId: "3.13.11", satisfactionType: "Technical-Centric", artifacts: [
+    { label: "System and Communications Protection Policy", handling: "UPLOAD" }, { label: "Cryptographic Key Management Procedure", handling: "UPLOAD" },
+  ]},
+  { controlId: "3.13.12", satisfactionType: "Hybrid", artifacts: [
+    ...(PARTIAL_DOCS_TO_CLOSE["3.13.12"] ?? []).map((a) => ({ label: a.label, handling: a.type as ArtifactHandling })),
+    { label: "System and Communications Protection Policy", handling: "UPLOAD" },
+  ]},
+  { controlId: "3.13.13", satisfactionType: "Hybrid", artifacts: [
+    ...(PARTIAL_DOCS_TO_CLOSE["3.13.13"] ?? []).map((a) => ({ label: a.label, handling: a.type as ArtifactHandling })),
+    { label: "System and Communications Protection Policy", handling: "UPLOAD" },
+  ]},
+  { controlId: "3.13.14", satisfactionType: "Technical-Centric", artifacts: [
+    { label: "System and Communications Protection Policy", handling: "UPLOAD" },
+  ]},
+  { controlId: "3.13.15", satisfactionType: "Hybrid", artifacts: [
+    ...(PARTIAL_DOCS_TO_CLOSE["3.13.15"] ?? []).map((a) => ({ label: a.label, handling: a.type as ArtifactHandling })),
+    { label: "System and Communications Protection Policy", handling: "UPLOAD" },
+  ]},
+  { controlId: "3.13.16", satisfactionType: "Technical-Centric", artifacts: [
+    { label: "System and Communications Protection Policy", handling: "UPLOAD" },
+  ]},
   // SI
   { controlId: "3.14.1", satisfactionType: "Governance-Centric", artifacts: [
     { label: "System and Information Integrity Policy", handling: "UPLOAD" }, { label: "Procedures for Flaw Remediation", handling: "UPLOAD" }, { label: "Records of flaw remediation activities", handling: "REFERENCE" },
