@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { GOVERNANCE_DOCUMENT_MATRIX } from "@/lib/governance/governance-document-matrix";
 import { GovernanceDocumentUploadModal } from "@/components/adjudication/GovernanceDocumentUploadModal";
@@ -8,7 +8,7 @@ import { AssignDocumentModal } from "@/components/adjudication/AssignDocumentMod
 import { SmartMapperModal } from "@/components/adjudication/SmartMapperModal";
 import { BundleUploadModal } from "@/components/adjudication/BundleUploadModal";
 import { RecordsManagementWidget } from "@/components/adjudication/RecordsManagementWidget";
-import { FileStack, FileText, ClipboardCheck, ChevronRight, Upload, Link2, Package } from "lucide-react";
+import { FileStack, FileText, ClipboardCheck, ChevronRight, Upload, Link2, Package, CheckCircle2 } from "lucide-react";
 
 export default function DocumentsPage() {
   const [governanceModalOpen, setGovernanceModalOpen] = useState(false);
@@ -16,6 +16,23 @@ export default function DocumentsPage() {
   const [uploadForRow, setUploadForRow] = useState<string | null>(null);
   const [assignForRow, setAssignForRow] = useState<string | null>(null);
   const [smartMapperControlIds, setSmartMapperControlIds] = useState<string[] | null>(null);
+  const [assignedLabels, setAssignedLabels] = useState<Set<string>>(new Set());
+
+  const refreshAssignedLabels = useCallback(async () => {
+    try {
+      const res = await fetch("/api/governance-documents/uploaded-labels");
+      if (res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setAssignedLabels(new Set((data.uploadedLabels ?? []) as string[]));
+      }
+    } catch {
+      // keep previous set
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshAssignedLabels();
+  }, [refreshAssignedLabels]);
 
   return (
     <div className="space-y-8">
@@ -97,7 +114,15 @@ export default function DocumentsPage() {
               {GOVERNANCE_DOCUMENT_MATRIX.map((row, i) => (
                 <tr key={i} className="border-b border-[var(--color-border)] last:border-0">
                   <td className="max-w-72 py-2.5 pl-5 pr-3 font-medium text-[var(--color-gray-800)]">
-                    <span className="block truncate" title={row.document}>{row.document}</span>
+                    <div className="flex flex-wrap items-center gap-2 gap-y-1">
+                      <span className="min-w-0 truncate" title={row.document}>{row.document}</span>
+                      {assignedLabels.has(row.document) && (
+                        <span className="inline-flex shrink-0 items-center gap-1 rounded bg-emerald-50 px-1.5 py-0.5 text-xs font-medium text-emerald-700" title="Document uploaded or assigned for this type">
+                          <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
+                          Assigned
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="py-2.5 pr-2 text-center">
                     {row.govPure ? (
@@ -196,6 +221,7 @@ export default function DocumentsPage() {
             setGovernanceModalOpen(false);
             setUploadForRow(null);
             setSmartMapperControlIds(controlIdsMapped ?? []);
+            refreshAssignedLabels();
           }}
           initialArtifactLabel={uploadForRow ?? undefined}
         />
@@ -206,6 +232,7 @@ export default function DocumentsPage() {
           onSaved={(controlIdsMapped: string[]) => {
             setBundleModalOpen(false);
             setSmartMapperControlIds(controlIdsMapped ?? []);
+            refreshAssignedLabels();
           }}
         />
       )}
@@ -219,7 +246,10 @@ export default function DocumentsPage() {
         <AssignDocumentModal
           artifactLabel={assignForRow}
           onClose={() => setAssignForRow(null)}
-          onSaved={() => setAssignForRow(null)}
+          onSaved={() => {
+            setAssignForRow(null);
+            refreshAssignedLabels();
+          }}
         />
       )}
     </div>
