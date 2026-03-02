@@ -76,7 +76,7 @@ export default function DocumentsPage() {
             </colgroup>
             <thead>
               <tr className="border-b border-[var(--color-border)]">
-                <th className="pb-3 pr-3 pt-4 font-semibold text-[var(--color-navy-primary)]">
+                <th className="pl-5 pb-3 pr-3 pt-4 font-semibold text-[var(--color-navy-primary)]">
                   Governance Document
                 </th>
                 <th className="w-20 pb-3 pr-2 pt-4 text-center font-semibold text-[var(--color-gray-700)]" scope="col">
@@ -96,7 +96,7 @@ export default function DocumentsPage() {
             <tbody>
               {GOVERNANCE_DOCUMENT_MATRIX.map((row, i) => (
                 <tr key={i} className="border-b border-[var(--color-border)] last:border-0">
-                  <td className="max-w-72 py-2.5 pr-3 font-medium text-[var(--color-gray-800)]">
+                  <td className="max-w-72 py-2.5 pl-5 pr-3 font-medium text-[var(--color-gray-800)]">
                     <span className="block truncate" title={row.document}>{row.document}</span>
                   </td>
                   <td className="py-2.5 pr-2 text-center">
