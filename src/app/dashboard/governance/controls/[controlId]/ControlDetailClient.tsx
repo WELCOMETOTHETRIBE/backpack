@@ -291,7 +291,7 @@ export default function ControlDetailClient({ controlId }: { controlId: string }
                   <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-2">Assessment guide</h4>
                   <div className="space-y-2">
                     {guideSections.map((section, i) => (
-                      <GuideSectionBlock key={`${section.label}-${i}`} section={section} defaultOpen={i < 2} />
+                      <GuideSectionBlock key={`${section.label}-${i}`} section={section} defaultOpen={false} />
                     ))}
                   </div>
                 </div>

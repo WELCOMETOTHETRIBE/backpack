@@ -83,26 +83,32 @@ const SECTION_ICONS: Record<string, React.ComponentType<{ className?: string }>>
   "How the Codex Accelerator Helps": Lightbulb,
 };
 
+/** Strip leading stray parsing chars (e.g. "*:") from section body text; does not remove markdown **bold**. */
+function stripStraySectionPrefix(s: string): string {
+  return s.replace(/^\s*\*:\s*/i, "").trim();
+}
+
 /** Splits text on "How the Codex Accelerator Helps" so it can be rendered as its own section. */
 function extractCodexAcceleratorSection(text: string): { main: string; codex: string } {
   const codexMarker = /\s*\*?\s*\*?How the Codex Accelerator Helps\*?\s*:?\s*/i;
   const idx = text.search(codexMarker);
   if (idx === -1) return { main: text, codex: "" };
   const main = text.slice(0, idx).replace(/\s*$/, "");
-  const after = text.slice(idx).replace(codexMarker, "").trim();
+  const after = stripStraySectionPrefix(text.slice(idx).replace(codexMarker, "").trim());
   return { main, codex: after };
 }
 
 /** Renders guide/JSON body with [SELECT FROM: a; b; c] as a readable list; rest as paragraphs. Use bold to support **bold** in text. */
 function FormattedGuideBody({ text, bold = false }: { text: string; bold?: boolean }) {
+  const cleaned = stripStraySectionPrefix(text) || text.trim();
   const parts: React.ReactNode[] = [];
   const selectFromRegex = /\[SELECT FROM:\s*([^\]]+)\]/gi;
   let lastEnd = 0;
   let match;
   let key = 0;
-  while ((match = selectFromRegex.exec(text)) !== null) {
+  while ((match = selectFromRegex.exec(cleaned)) !== null) {
     if (match.index > lastEnd) {
-      const paragraph = text.slice(lastEnd, match.index).trim();
+      const paragraph = cleaned.slice(lastEnd, match.index).trim();
       if (paragraph) {
         parts.push(
           <p key={key++} className="mb-3 text-[15px] leading-[1.65] text-[var(--color-gray-700)] whitespace-pre-wrap last:mb-0">
@@ -128,8 +134,8 @@ function FormattedGuideBody({ text, bold = false }: { text: string; bold?: boole
     );
     lastEnd = match.index + match[0].length;
   }
-  if (lastEnd < text.length) {
-    const paragraph = text.slice(lastEnd).trim();
+  if (lastEnd < cleaned.length) {
+    const paragraph = cleaned.slice(lastEnd).trim();
     if (paragraph) {
       parts.push(
         <p key={key++} className="mb-3 text-[15px] leading-[1.65] text-[var(--color-gray-700)] whitespace-pre-wrap last:mb-0">
@@ -138,10 +144,10 @@ function FormattedGuideBody({ text, bold = false }: { text: string; bold?: boole
       );
     }
   }
-  if (parts.length === 0 && text.trim()) {
+  if (parts.length === 0 && cleaned) {
     return (
       <div className="pt-3 text-[15px] leading-[1.65] text-[var(--color-gray-700)] whitespace-pre-wrap">
-        {bold ? <TextWithBold text={text} /> : text}
+        {bold ? <TextWithBold text={cleaned} /> : cleaned}
       </div>
     );
   }
@@ -443,7 +449,7 @@ export function SCTMControlDetail({
             .filter(Boolean)
             .join("\n\n");
           if (codexBody.trim()) {
-            codexSection = { label: "How the Codex Accelerator Helps", body: codexBody.trim() };
+            codexSection = { label: "How the Codex Accelerator Helps", body: stripStraySectionPrefix(codexBody) };
           }
         }
         const assessorSection: GuideSection | null =
@@ -463,7 +469,7 @@ export function SCTMControlDetail({
             </h2>
             <div className="space-y-2">
               {allSections.map((section, i) => (
-                <CollapsibleSection key={`${section.label}-${i}`} section={section} defaultOpen={i < 2} />
+                <CollapsibleSection key={`${section.label}-${i}`} section={section} defaultOpen={false} />
               ))}
             </div>
           </section>
