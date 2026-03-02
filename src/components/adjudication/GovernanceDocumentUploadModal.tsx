@@ -276,19 +276,21 @@ export function GovernanceDocumentUploadModal({
                       No controls require &quot;{labelTrimmed}&quot;. Check the document type or choose another.
                     </p>
                   ) : (
-                    <p className="mb-3 text-xs text-slate-500">
-                      This document type satisfies the following controls. All are selected by default; you can deselect if needed.
-                    </p>
-                    <ul className="space-y-2">
-                      {documentControls.map((opt) => (
-                        <ControlRow
-                          key={opt.controlRecordId}
-                          opt={opt}
-                          selected={selectedRecordIds.has(opt.controlRecordId)}
-                          onToggle={() => toggleRecord(opt.controlRecordId)}
-                        />
-                      ))}
-                    </ul>
+                    <>
+                      <p className="mb-3 text-xs text-slate-500">
+                        This document type satisfies the following controls. All are selected by default; you can deselect if needed.
+                      </p>
+                      <ul className="space-y-2">
+                        {documentControls.map((opt) => (
+                          <ControlRow
+                            key={opt.controlRecordId}
+                            opt={opt}
+                            selected={selectedRecordIds.has(opt.controlRecordId)}
+                            onToggle={() => toggleRecord(opt.controlRecordId)}
+                          />
+                        ))}
+                      </ul>
+                    </>
                   )}
                 </section>
               </div>
