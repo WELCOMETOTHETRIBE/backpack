@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { ALL_CONTROL_IDS, getRequiredUploadArtifactLabels, getControlIdsRequiringUploadLabel } from "@/lib/artifact-guide";
+import { getRequiredUploadArtifactLabels } from "@/lib/artifact-guide";
+import { getControlIdsForDocument } from "@/lib/governance/governance-document-matrix";
 import { parseGovernanceFilename } from "@/lib/governance/document-naming";
 import { X, ChevronDown, ChevronRight, FileUp } from "lucide-react";
 
@@ -99,7 +100,7 @@ export function GovernanceDocumentUploadModal({
   const labelTrimmed = artifactLabel.trim();
   useEffect(() => {
     if (!labelTrimmed || records.length === 0) return;
-    const controlIds = getControlIdsRequiringUploadLabel(labelTrimmed);
+    const controlIds = getControlIdsForDocument(labelTrimmed);
     const ids = controlIds.map((cid) => recordByControlId[cid]?.id).filter(Boolean) as string[];
     setSelectedRecordIds((prev) => {
       const next = new Set(ids);
@@ -111,7 +112,7 @@ export function GovernanceDocumentUploadModal({
   /** Controls that this document type satisfies — only these are shown and selectable. */
   const documentControls: ControlOption[] = (() => {
     if (!labelTrimmed) return [];
-    const controlIds = getControlIdsRequiringUploadLabel(labelTrimmed);
+    const controlIds = getControlIdsForDocument(labelTrimmed);
     const out: ControlOption[] = [];
     for (const controlId of controlIds) {
       const rec = recordByControlId[controlId];

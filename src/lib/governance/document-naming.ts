@@ -4,8 +4,8 @@
  *           (2) Codex/MACTech e.g. MAC-SOP-239_System_Monitoring_Procedure.md
  */
 
-import { ALL_CONTROL_IDS, getRequiredUploadArtifactLabels, getControlIdsRequiringUploadLabel } from "@/lib/artifact-guide";
-import { getArtifactLabelFromCodexFilename } from "@/lib/governance/governance-document-matrix";
+import { ALL_CONTROL_IDS, getRequiredUploadArtifactLabels } from "@/lib/artifact-guide";
+import { getArtifactLabelFromCodexFilename, getControlIdsForDocument } from "@/lib/governance/governance-document-matrix";
 
 function slug(s: string): string {
   return s
@@ -60,7 +60,7 @@ export function parseGovernanceFilename(filename: string): ParsedGovernanceFilen
       const labelBySlug = SLUG_TO_LABEL[slugPart.toLowerCase()] ?? SLUG_TO_LABEL[slugLower];
       if (labelBySlug) {
         result.artifactLabel = labelBySlug;
-        result.controlIds = getControlIdsRequiringUploadLabel(labelBySlug);
+        result.controlIds = getControlIdsForDocument(labelBySlug);
       } else {
         result.controlIds = [controlId];
       }
@@ -72,7 +72,7 @@ export function parseGovernanceFilename(filename: string): ParsedGovernanceFilen
   const codexLabel = getArtifactLabelFromCodexFilename(basename);
   if (codexLabel) {
     result.artifactLabel = codexLabel;
-    result.controlIds = getControlIdsRequiringUploadLabel(codexLabel);
+    result.controlIds = getControlIdsForDocument(codexLabel);
     return result;
   }
 

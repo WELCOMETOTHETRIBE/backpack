@@ -1,31 +1,31 @@
-Governance Document,Gov Pure,Gov Hybrid,Tech/Hybrid,MACTech Document,Missing
-Access Control Policy,Yes,Yes,No,compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-210_Access_Control_Policy.md,
-Awareness and Training Policy,Yes,No,No,compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-219_Awareness_and_Training_Policy.md,
-Security Awareness Training Procedure,Yes,No,No,compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-227_Security_Awareness_Training_Procedure.md,
-Audit and Accountability Policy,Yes,No,No,compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-218_Audit_and_Accountability_Policy.md,
-Audit Log Review Procedure,Yes,No,No,compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-226_Audit_Log_Review_Procedure.md,
-Configuration Management Policy,Yes,Yes,Yes,compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-220_Configuration_Management_Policy.md,
-Configuration Change Procedure,Yes,Yes,No,compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-225_Configuration_Change_Awareness_Procedure.md,
-Incident Response Policy,Yes,No,No,compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-215_Incident_Response_Policy.md,
-Incident Response Testing Procedure,Yes,No,No,compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-232_Incident_Response_Testing_Procedure.md,
-Maintenance Policy,Yes,Yes,Yes,compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-221_Maintenance_Policy.md,
-Personnel Security Policy,Yes,No,No,compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-222_Personnel_Security_Policy.md,
-Personnel Screening Procedure,Yes,No,No,compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-233_Personnel_Screening_Procedure.md,
-Risk Assessment Policy,Yes,No,No,compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-223_Risk_Assessment_Policy.md,
-Security Assessment Policy,Yes,Yes,No,compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-224_Security_Assessment_Policy.md,
-Procedures for Configuration Management,No,Yes,Yes,compliance/cmmc/level2/02-policies-and-procedures/MAC-CMP-001_Configuration_Management_Plan.md,
-Identification and Authentication Policy,No,Yes,Yes,compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-211_Identification_and_Authentication_Policy.md,
-Procedures for User Identification and Authentication,No,Yes,Yes,compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-221_User_Account_Provisioning_and_Deprovisioning_Procedure.md,
-Procedures for Remote Access,No,Yes,Yes,compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-224_Physical_Environment_and_Remote_Work_Controls.md,
-Procedures for Authenticator Management,No,Yes,Yes,compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-211_Identification_and_Authentication_Policy.md,
-"Procedures for establishing, changing, and revoking authenticators",No,No,Yes,compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-221_User_Account_Provisioning_and_Deprovisioning_Procedure.md,
-Procedures for Malicious Code Protection,No,No,Yes,compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-214_System_Integrity_Policy.md,
-"Policy for authentication feedback (obscure feedback)",No,No,Yes,compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-228_Authentication_Feedback_Obscure_Policy.md,
-Procedures for System Monitoring,No,No,Yes,compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-239_System_Monitoring_Procedure.md,
-Procedures for session/connection termination,No,No,Yes,compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-240_Session_Connection_Termination_Procedure.md,
-Procedures for mobile code/script control,No,No,Yes,compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-241_Mobile_Code_Script_Control_Procedure.md,
-"Procedures for transmission integrity (SMB signing/crypto)",No,No,Yes,compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-242_Transmission_Integrity_SMB_Procedure.md,
-Gov docs for separation of duties and system management,No,Yes,Yes,compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-243_Separation_System_Management_Procedure.md,
-Gov docs for information transfer controls,No,No,Yes,compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-244_Information_Transfer_Controls_Procedure.md,
-Network/security architecture documentation and procedures,No,No,Yes,compliance/cmmc/level2/01-system-scope/,
-Gov docs for RDP/collaborative device use and restrictions,No,No,Yes,compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-245_RDP_Collaborative_Device_Restrictions_Procedure.md,
+Governance Document,Gov Pure,Gov Hybrid,Tech/Hybrid,MACTech Document,Missing,Controls Mapped
+Access Control Policy,Yes,Yes,No,compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-210_Access_Control_Policy.md,,3.1.1;3.1.2;3.1.4
+Awareness and Training Policy,Yes,No,No,compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-219_Awareness_and_Training_Policy.md,,3.2.1
+Security Awareness Training Procedure,Yes,No,No,compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-227_Security_Awareness_Training_Procedure.md,,3.2.1
+Audit and Accountability Policy,Yes,No,No,compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-218_Audit_and_Accountability_Policy.md,,3.3.1
+Audit Log Review Procedure,Yes,No,No,compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-226_Audit_Log_Review_Procedure.md,,3.3.2
+Configuration Management Policy,Yes,Yes,Yes,compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-220_Configuration_Management_Policy.md,,3.4.1;3.4.3
+Configuration Change Procedure,Yes,Yes,No,compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-225_Configuration_Change_Awareness_Procedure.md,,3.4.2
+Incident Response Policy,Yes,No,No,compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-215_Incident_Response_Policy.md,,3.6.1
+Incident Response Testing Procedure,Yes,No,No,compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-232_Incident_Response_Testing_Procedure.md,,3.6.3
+Maintenance Policy,Yes,Yes,Yes,compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-221_Maintenance_Policy.md,,3.7.1
+Personnel Security Policy,Yes,No,No,compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-222_Personnel_Security_Policy.md,,3.9.1
+Personnel Screening Procedure,Yes,No,No,compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-233_Personnel_Screening_Procedure.md,,3.9.1
+Risk Assessment Policy,Yes,No,No,compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-223_Risk_Assessment_Policy.md,,3.11.1
+Security Assessment Policy,Yes,Yes,No,compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-224_Security_Assessment_Policy.md,,3.12.1
+Procedures for Configuration Management,No,Yes,Yes,compliance/cmmc/level2/02-policies-and-procedures/MAC-CMP-001_Configuration_Management_Plan.md,,3.4.1;3.4.3
+Identification and Authentication Policy,No,Yes,Yes,compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-211_Identification_and_Authentication_Policy.md,,3.5.1;3.5.3;3.5.4
+Procedures for User Identification and Authentication,No,Yes,Yes,compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-221_User_Account_Provisioning_and_Deprovisioning_Procedure.md,,3.5.1;3.5.4
+Procedures for Remote Access,No,Yes,Yes,compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-224_Physical_Environment_and_Remote_Work_Controls.md,,3.1.12;3.5.3
+Procedures for Authenticator Management,No,Yes,Yes,compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-211_Identification_and_Authentication_Policy.md,,3.5.3;3.5.7
+"Procedures for establishing, changing, and revoking authenticators",No,No,Yes,compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-221_User_Account_Provisioning_and_Deprovisioning_Procedure.md,,3.5.9;3.5.10
+Procedures for Malicious Code Protection,No,No,Yes,compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-214_System_Integrity_Policy.md,,3.11.3;3.13.13;3.14.2
+Policy for authentication feedback (obscure feedback),No,No,Yes,compliance/cmmc/level2/02-policies-and-procedures/MAC-POL-228_Authentication_Feedback_Obscure_Policy.md,,3.5.11
+Procedures for System Monitoring,No,No,Yes,compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-239_System_Monitoring_Procedure.md,,3.14.3;3.14.6;3.14.7
+Procedures for session/connection termination,No,No,Yes,compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-240_Session_Connection_Termination_Procedure.md,,3.13.9
+Procedures for mobile code/script control,No,No,Yes,compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-241_Mobile_Code_Script_Control_Procedure.md,,3.13.13
+Procedures for transmission integrity (SMB signing/crypto),No,No,Yes,compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-242_Transmission_Integrity_SMB_Procedure.md,,3.13.15
+Gov docs for separation of duties and system management,No,Yes,Yes,compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-243_Separation_System_Management_Procedure.md,,3.13.3
+Gov docs for information transfer controls,No,No,Yes,compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-244_Information_Transfer_Controls_Procedure.md,,3.13.4
+Network/security architecture documentation and procedures,No,No,Yes,compliance/cmmc/level2/01-system-scope/,,3.13.5
+Gov docs for RDP/collaborative device use and restrictions,No,No,Yes,compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-245_RDP_Collaborative_Device_Restrictions_Procedure.md,,3.13.12

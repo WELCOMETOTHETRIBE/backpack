@@ -20,7 +20,8 @@
     "fix-control-titles": "tsx src/scripts/fix-control-titles.ts",
     "validate-os-evidence-manifest": "tsx src/scripts/validate-os-evidence-manifest.ts",
     "validate-satisfaction-sources": "tsx src/scripts/validate-satisfaction-sources.ts",
-    "governance-inventory": "tsx src/scripts/governance-inventory.ts"
+    "governance-inventory": "tsx src/scripts/governance-inventory.ts",
+    "sync-matrix": "tsx src/scripts/sync-governance-matrix.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.995.0",

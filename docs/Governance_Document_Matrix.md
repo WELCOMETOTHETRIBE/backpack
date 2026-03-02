@@ -1,5 +1,7 @@
 # Governance Document Matrix
 
+**Single source of truth:** `docs/Governance_Document_Matrix.csv`. The CSV includes a **Controls Mapped** column (semicolon-separated control IDs, e.g. `3.1.1;3.1.2;3.1.4`) that defines which controls each document satisfies. Edit the CSV and run `npm run sync-matrix` to update the app.
+
 Governance documents required for **Gov Pure**, **Gov Hybrid**, and **Tech/Hybrid**, with the MACTech document that serves as each artifact and a **Missing** indicator when no MACTech artifact exists.
 
 - **Gov Pure** — Required for the 18 governance-only controls (policy/documentation only).
