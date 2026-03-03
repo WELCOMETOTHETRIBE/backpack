@@ -81,7 +81,12 @@ const SECTION_ICONS: Record<string, React.ComponentType<{ className?: string }>>
   "More": FileText,
   "What assessors do": ListChecks,
   "How the Codex Accelerator Helps": Lightbulb,
+  "How this platform helps": Lightbulb,
 };
+
+/** Single accurate description of what this control plane does (no unfulfilled product claims). */
+const PLATFORM_HELP_BODY =
+  "This control plane helps you manage control status, upload evidence bundles and governance documents, map documents to the governance matrix, and view drift (regressions) from previous evidence runs. Use Evidence and Evidence Library for attestations and technical evidence.";
 
 /** Strip leading stray parsing chars (e.g. "*:") from section body text; does not remove markdown **bold**. */
 function stripStraySectionPrefix(s: string): string {
@@ -448,8 +453,9 @@ export function SCTMControlDetail({
           ]
             .filter(Boolean)
             .join("\n\n");
+          // Replace Codex/Evidence Auto-Pilot etc. copy with accurate platform description only (no false claims).
           if (codexBody.trim()) {
-            codexSection = { label: "How the Codex Accelerator Helps", body: stripStraySectionPrefix(codexBody) };
+            codexSection = { label: "How this platform helps", body: PLATFORM_HELP_BODY };
           }
         }
         const assessorSection: GuideSection | null =

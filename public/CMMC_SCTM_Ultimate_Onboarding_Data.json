@@ -63,6 +63,10 @@
                     "handling": "REFERENCE"
                 },
                 {
+                    "name": "Inherited Control Statement (Azure Infrastructure and Physical Security)",
+                    "handling": "REFERENCE"
+                },
+                {
                     "name": "List of active system accounts & associated individuals",
                     "handling": "REFERENCE"
                 },

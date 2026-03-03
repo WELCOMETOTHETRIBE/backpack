@@ -49,3 +49,4 @@ Record Retention Policy,Yes,Yes,No,compliance/cmmc/level2/02-policies-and-proced
 System Security Plan (SSP),No,Yes,Yes,compliance/cmmc/level2/01-system-security-plan/MAC-IT-307_System_Security_Plan.md,,3.12.4
 System Boundary and Scope Statement,No,Yes,Yes,compliance/cmmc/level2/01-system-security-plan/MAC-IT-308_System_Boundary_and_Scope.md,,3.12.4
 Procedures for Flaw Remediation,No,Yes,Yes,compliance/cmmc/level2/02-policies-and-procedures/MAC-SOP-254_Flaw_Remediation_Procedure.md,,3.14.1
+Inherited Control Statement (Azure Infrastructure and Physical Security),No,Yes,Yes,compliance/cmmc/level2/03-control-responsibility/MAC-SEC-312_Inherited_Control_Statement_Azure_Infrastructure_and_Physical_Security.md,,3.1.1;3.10.1;3.10.2;3.10.3;3.10.4;3.10.5
