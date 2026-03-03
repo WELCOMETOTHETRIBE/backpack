@@ -11,7 +11,7 @@ export default function GovernanceDocumentsPage() {
           </Link>
           <h2 className="mt-1 text-xl font-semibold text-[var(--color-navy-primary)]">Document control</h2>
           <p className="mt-0.5 text-sm text-[var(--color-gray-600)]">
-            Policies, SOPs, and plans; versioning and approval workflow.
+            Policies, SOPs, and plans; versioning and approval workflow. Upload and map to the governance matrix.
           </p>
         </div>
         <Link

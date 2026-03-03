@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { Upload, Trash2 } from "lucide-react";
+import { DocumentControlUploadModal } from "@/components/governance/DocumentControlUploadModal";
 
 type Doc = {
   id: string;
@@ -24,19 +26,27 @@ export default function GovernanceDocumentsClient() {
 
   const [data, setData] = useState<{ items: Doc[]; total: number; limit: number } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchDocuments = useCallback(() => {
     const params = new URLSearchParams();
     if (type) params.set("type", type);
     if (status) params.set("status", status);
     params.set("page", String(page));
     params.set("limit", "20");
+    setLoading(true);
     fetch(`/api/governance/documents?${params}`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then(setData)
       .catch(() => setData({ items: [], total: 0, limit: 20 }))
       .finally(() => setLoading(false));
   }, [type, status, page]);
+
+  useEffect(() => {
+    fetchDocuments();
+  }, [fetchDocuments, refreshTrigger]);
 
   const total = data?.total ?? 0;
   const limit = data?.limit ?? 20;
@@ -51,9 +61,34 @@ export default function GovernanceDocumentsClient() {
 
   const today = new Date().toISOString().slice(0, 10);
 
+  async function handleDelete(doc: Doc) {
+    if (!confirm(`Delete "${doc.title}"? This cannot be undone.`)) return;
+    setDeletingId(doc.id);
+    try {
+      const res = await fetch(`/api/governance/documents/${doc.id}`, { method: "DELETE" });
+      if (res.ok) setRefreshTrigger((t) => t + 1);
+      else {
+        const err = await res.json().catch(() => ({}));
+        alert((err as { error?: string }).error ?? "Delete failed");
+      }
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={() => setUploadModalOpen(true)}
+          title="Upload one or many documents and map each to a required matrix row. Use filenames like MAC-POL-210_Access_Control_Policy.md for auto-mapping."
+          className="inline-flex items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 text-sm font-medium text-[var(--color-gray-700)] transition-colors hover:bg-[var(--color-gray-50)]"
+        >
+          <Upload className="h-4 w-4" aria-hidden />
+          Upload & map to matrix
+        </button>
+        <span className="text-sm text-[var(--color-gray-500)]">|</span>
         <label className="text-sm font-medium text-[var(--color-gray-700)]">Type</label>
         <select
           value={type}
@@ -123,12 +158,24 @@ export default function GovernanceDocumentsClient() {
                         : "—"}
                     </td>
                     <td className="px-4 py-3">
-                      <Link
-                        href={`/dashboard/governance/documents/${doc.id}`}
-                        className="font-medium text-[var(--color-blue-accent)] hover:underline"
-                      >
-                        View
-                      </Link>
+                      <div className="flex items-center gap-2">
+                        <Link
+                          href={`/dashboard/governance/documents/${doc.id}`}
+                          className="font-medium text-[var(--color-blue-accent)] hover:underline"
+                        >
+                          View
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(doc)}
+                          disabled={deletingId === doc.id}
+                          className="inline-flex items-center gap-1 rounded-md border border-[var(--color-border)] bg-white px-2 py-1 text-xs font-medium text-[var(--color-gray-700)] hover:bg-red-50 hover:text-red-700 disabled:opacity-50"
+                          title="Delete document"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" aria-hidden />
+                          Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -144,6 +191,15 @@ export default function GovernanceDocumentsClient() {
             </div>
           )}
         </>
+      )}
+      {uploadModalOpen && (
+        <DocumentControlUploadModal
+          onClose={() => setUploadModalOpen(false)}
+          onSaved={() => {
+            setUploadModalOpen(false);
+            setRefreshTrigger((t) => t + 1);
+          }}
+        />
       )}
     </div>
   );
