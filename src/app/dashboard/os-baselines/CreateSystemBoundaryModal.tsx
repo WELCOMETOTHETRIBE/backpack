@@ -2,39 +2,77 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  X,
-  FileText,
-  Server,
-  Cloud,
-  Check,
-  Shield,
-  Building2,
-} from "lucide-react";
+import { X, Cloud, Check, Shield, Building2 } from "lucide-react";
 import { AZURE_ENTRA_BASELINE } from "@/lib/compliance/azure-entra-controls";
+import type { ScopeComponent } from "@/types/boundary";
 
-const SCOPE_OPTIONS = [
+export const SCOPE_OPTIONS: { label: string; items: { value: ScopeComponent; label: string }[] }[] = [
   {
-    value: "microsoft_office",
-    label: "Microsoft Office",
-    description: "Office 365 / Microsoft 365 (email, documents, collaboration in scope).",
-    icon: FileText,
+    label: "Compute",
+    items: [
+      { value: "windows_server_vm", label: "Windows Server VM(s)" },
+      { value: "linux_server_vm", label: "Linux Server VM(s)" },
+      { value: "virtual_desktop", label: "Virtual Desktop / VDI" },
+    ],
   },
   {
-    value: "windows_server_vm",
-    label: "Windows Server VM(s)",
-    description: "Windows Server systems (on-prem or IaaS) in this enclave.",
-    icon: Server,
+    label: "Cloud Hosting",
+    items: [{ value: "azure_cloud", label: "Azure Cloud" }],
   },
   {
-    value: "azure_cloud",
-    label: "Azure Cloud",
-    description: "Azure workloads (IaaS/PaaS); identity and access via Entra ID.",
-    icon: Cloud,
+    label: "Identity & Access",
+    items: [
+      { value: "identity_provider", label: "Identity Provider (Entra / AD)" },
+      { value: "privileged_access_management", label: "Privileged Access Management" },
+    ],
   },
-] as const;
-
-type ScopeValue = (typeof SCOPE_OPTIONS)[number]["value"];
+  {
+    label: "Administrative Access",
+    items: [
+      { value: "remote_access_bastion", label: "Bastion / Jump Host" },
+      { value: "vpn_gateway", label: "VPN Gateway" },
+      { value: "admin_workstations", label: "Privileged Access Workstations" },
+    ],
+  },
+  {
+    label: "Network Protection",
+    items: [
+      { value: "network_security_grouping", label: "Network Security Groups / Firewalls" },
+      { value: "network_devices", label: "Routers / Switches / Network Devices" },
+    ],
+  },
+  {
+    label: "Storage",
+    items: [
+      { value: "file_storage", label: "File Storage / SMB Shares" },
+      { value: "object_storage", label: "Object Storage" },
+    ],
+  },
+  {
+    label: "Crypto",
+    items: [{ value: "key_management", label: "Key Management / HSM" }],
+  },
+  {
+    label: "Monitoring & Detection",
+    items: [
+      { value: "siem_logging", label: "Centralized Logging / SIEM" },
+      { value: "endpoint_detection_response", label: "Endpoint Detection & Response" },
+      { value: "vulnerability_management", label: "Vulnerability Scanning" },
+      { value: "configuration_compliance", label: "Configuration Compliance / STIG scanning" },
+    ],
+  },
+  {
+    label: "Recovery",
+    items: [{ value: "backup_recovery", label: "Backup / Recovery System" }],
+  },
+  {
+    label: "Productivity",
+    items: [
+      { value: "microsoft_office", label: "Microsoft Office / M365" },
+      { value: "collaboration_suite", label: "Collaboration Platform" },
+    ],
+  },
+];
 
 export function CreateSystemBoundaryModal({
   open,
@@ -46,7 +84,7 @@ export function CreateSystemBoundaryModal({
   const router = useRouter();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [scopeComponents, setScopeComponents] = useState<ScopeValue[]>([]);
+  const [scopeComponents, setScopeComponents] = useState<ScopeComponent[]>([]);
   const [azureEnvironment, setAzureEnvironment] = useState<"gov" | "commercial" | "">("");
   const [cloudProvider, setCloudProvider] = useState<"" | "none" | "microsoft" | "google" | "azure">("");
   const [saving, setSaving] = useState(false);
@@ -55,7 +93,7 @@ export function CreateSystemBoundaryModal({
   const hasMicrosoftOrAzureCloud = cloudProvider === "microsoft" || cloudProvider === "azure";
   const showAzureSection = hasAzure || hasMicrosoftOrAzureCloud;
 
-  function toggleScope(value: ScopeValue) {
+  function toggleScope(value: ScopeComponent) {
     setScopeComponents((prev) =>
       prev.includes(value) ? prev.filter((s) => s !== value) : [...prev, value]
     );
@@ -138,7 +176,7 @@ export function CreateSystemBoundaryModal({
         {/* Body */}
         <form onSubmit={handleSubmit} className="min-h-0 flex-1 overflow-y-auto">
           <div className="space-y-6 px-6 py-5">
-            {/* Section 1 â€” Name and description */}
+            {/* Section 1 — Name and description */}
             <section>
               <h3 className="text-sm font-medium text-[var(--color-gray-700)]">
                 Name and description
@@ -173,7 +211,7 @@ export function CreateSystemBoundaryModal({
               </div>
             </section>
 
-            {/* Section 2 â€” What's in this boundary */}
+            {/* Section 2 — What's in this boundary */}
             <section className="rounded-lg border border-[var(--color-border-muted)] bg-[var(--color-surface-muted)]/50 p-4">
               <h3 className="text-sm font-medium text-[var(--color-gray-700)]">
                 What&apos;s in this boundary?
@@ -181,44 +219,43 @@ export function CreateSystemBoundaryModal({
               <p className="mt-0.5 text-xs text-[var(--color-gray-600)]">
                 Select all components that are in scope for this enclave.
               </p>
-              <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                {SCOPE_OPTIONS.map((opt) => {
-                  const selected = scopeComponents.includes(opt.value);
-                  const Icon = opt.icon;
-                  return (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => toggleScope(opt.value)}
-                      className={`flex flex-col items-start rounded-xl border-2 p-4 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-blue-accent)] ${
-                        selected
-                          ? "border-[var(--color-blue-accent)] bg-[var(--color-blue-accent)]/5"
-                          : "border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-gray-300)]"
-                      }`}
-                      aria-pressed={selected}
-                    >
-                      <span className="flex w-full items-center justify-between">
-                        <Icon
-                          className={`h-5 w-5 ${selected ? "text-[var(--color-blue-accent)]" : "text-[var(--color-gray-500)]"}`}
-                          aria-hidden
-                        />
-                        {selected && (
-                          <Check className="h-5 w-5 text-[var(--color-blue-accent)]" aria-hidden />
-                        )}
-                      </span>
-                      <span className="mt-2 font-medium text-[var(--color-gray-900)]">
-                        {opt.label}
-                      </span>
-                      <span className="mt-0.5 text-xs text-[var(--color-gray-600)]">
-                        {opt.description}
-                      </span>
-                    </button>
-                  );
-                })}
+              <div className="mt-4 space-y-4">
+                {SCOPE_OPTIONS.map((group) => (
+                  <div key={group.label}>
+                    <h4 className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--color-gray-500)]">
+                      {group.label}
+                    </h4>
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                      {group.items.map((item) => {
+                        const selected = scopeComponents.includes(item.value);
+                        return (
+                          <button
+                            key={item.value}
+                            type="button"
+                            onClick={() => toggleScope(item.value)}
+                            className={`flex items-center justify-between gap-2 rounded-xl border-2 p-3 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-blue-accent)] ${
+                              selected
+                                ? "border-[var(--color-blue-accent)] bg-[var(--color-blue-accent)]/5"
+                                : "border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-gray-300)]"
+                            }`}
+                            aria-pressed={selected}
+                          >
+                            <span className="font-medium text-[var(--color-gray-900)]">
+                              {item.label}
+                            </span>
+                            {selected && (
+                              <Check className="h-5 w-5 shrink-0 text-[var(--color-blue-accent)]" aria-hidden />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
               </div>
             </section>
 
-            {/* Section 2b â€” Cloud hosting (optional) */}
+            {/* Section 2b — Cloud hosting (optional) */}
             <section className="rounded-lg border border-[var(--color-border-muted)] bg-[var(--color-surface-muted)]/50 p-4">
               <h3 className="text-sm font-medium text-[var(--color-gray-700)]">
                 Cloud hosting <span className="text-[var(--color-gray-500)]">(optional)</span>
@@ -255,7 +292,7 @@ export function CreateSystemBoundaryModal({
               </div>
             </section>
 
-            {/* Section 3 â€” Azure environment (conditional) */}
+            {/* Section 3 — Azure environment (conditional) */}
             {showAzureSection && (
               <section className="rounded-lg border border-[var(--color-border-muted)] bg-[var(--color-surface-muted)]/50 p-4">
                 <h3 className="text-sm font-medium text-[var(--color-gray-700)]">
@@ -293,12 +330,12 @@ export function CreateSystemBoundaryModal({
               </section>
             )}
 
-            {/* Section 4 â€” Azure/Entra baseline (conditional) */}
+            {/* Section 4 — Azure/Entra baseline (conditional) */}
             {showAzureSection && (
               <section className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
                 <h3 className="flex items-center gap-2 text-sm font-medium text-[var(--color-gray-700)]">
                   <Shield className="h-4 w-4 text-[var(--color-blue-accent)]" aria-hidden />
-                  Azure/Entra baseline â€” 7 controls
+                  Azure/Entra baseline — 7 controls
                 </h3>
                 <p className="mt-0.5 text-xs text-[var(--color-gray-600)]">
                   Configuration in Entra ID and Azure satisfies these NIST 800-171 requirements.
@@ -339,7 +376,7 @@ export function CreateSystemBoundaryModal({
               disabled={saving || !name.trim()}
               className="rounded-lg bg-[var(--color-blue-accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-blue-accent)]"
             >
-              {saving ? "Creatingâ€¦" : "Create boundary"}
+              {saving ? "Creating…" : "Create boundary"}
             </button>
           </div>
         </form>

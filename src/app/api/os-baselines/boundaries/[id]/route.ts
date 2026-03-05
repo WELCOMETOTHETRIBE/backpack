@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { boundaries } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { syncOrgAzureInheritedControls } from "@/lib/compliance/azure-inherited-controls";
+import { validateScopeComponents } from "@/types/boundary";
 
 /**
  * GET /api/os-baselines/boundaries/[id]
@@ -31,7 +32,7 @@ const AZURE_ENV_VALUES = ["gov", "commercial"] as const;
 
 /**
  * PATCH /api/os-baselines/boundaries/[id]
- * Body: { name?: string; description?: string; cloud_provider?: "none" | "microsoft" | "google" | "azure" | null; azure_environment?: "gov" | "commercial" | null }
+ * Body: { name?: string; description?: string; scope_components?: string[] | null; cloud_provider?: "none" | "microsoft" | "google" | "azure" | null; azure_environment?: "gov" | "commercial" | null }
  */
 export async function PATCH(
   req: Request,
@@ -52,12 +53,14 @@ export async function PATCH(
   const body = (await req.json()) as {
     name?: string;
     description?: string;
+    scope_components?: string[] | null;
     cloud_provider?: string | null;
     azure_environment?: string | null;
   };
   const updates: {
     name?: string;
     description?: string | null;
+    scopeComponents?: string[] | null;
     cloudProvider?: string | null;
     azureEnvironment?: string | null;
     updatedAt: Date;
@@ -66,6 +69,17 @@ export async function PATCH(
   };
   if (body.name !== undefined) updates.name = body.name.trim();
   if (body.description !== undefined) updates.description = body.description?.trim() ?? null;
+  if (body.scope_components !== undefined) {
+    if (body.scope_components === null || body.scope_components.length === 0) {
+      updates.scopeComponents = null;
+    } else {
+      const result = validateScopeComponents(body.scope_components);
+      if (!result.ok) {
+        return NextResponse.json({ error: result.error }, { status: 400 });
+      }
+      updates.scopeComponents = result.value.length > 0 ? result.value : null;
+    }
+  }
   if (body.cloud_provider !== undefined) {
     updates.cloudProvider =
       body.cloud_provider === null || body.cloud_provider === ""

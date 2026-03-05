@@ -149,13 +149,13 @@ export default async function EvidenceEngineControlDetailPage({ params, searchPa
               </span>
               <span className="text-[var(--color-gray-500)]">Run: {technicalStatus.runId}</span>
             </div>
-            {technicalStatus.result.title && (
+            {technicalStatus.result?.title && (
               <p className="text-[var(--color-gray-700)]">{technicalStatus.result.title}</p>
             )}
-            {technicalStatus.result.observed && (
+            {technicalStatus.result?.observed && (
               <p className="text-[var(--color-gray-600)]"><strong>Observed:</strong> {String(technicalStatus.result.observed).slice(0, 300)}</p>
             )}
-            {technicalStatus.result.remediation && (
+            {technicalStatus.result?.remediation && (
               <p className="text-[var(--color-gray-600)]"><strong>Remediation:</strong> {String(technicalStatus.result.remediation).slice(0, 300)}</p>
             )}
             <Link

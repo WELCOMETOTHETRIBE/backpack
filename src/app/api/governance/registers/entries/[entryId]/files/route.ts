@@ -60,6 +60,7 @@ export async function POST(
       .insert(governanceRegisterEntryFiles)
       .values({
         registerEntryId: entryId,
+        boundaryId: entry.boundaryId,
         fileUrl: result.fileUrl,
         storageKey: result.fileId,
         sha256Hash: hash,

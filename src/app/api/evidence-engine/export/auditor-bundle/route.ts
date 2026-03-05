@@ -22,6 +22,7 @@ import {
   getFallbackSummary,
 } from "@/data/cmmc/field-labels-and-summaries";
 import { requireBoundaryForOrg } from "@/lib/evidence-engine/validate-boundary";
+import { getEvidenceFamiliesForScopeComponents } from "@/lib/compliance/scope-component-evidence";
 
 function csvEscape(s: string | null | undefined): string {
   if (s == null) return "";
@@ -94,12 +95,14 @@ export async function GET(request: Request) {
       ].join("\n");
       archive.append(readme, { name: "README.txt" });
 
+      const expectedEvidenceFamilies = getEvidenceFamiliesForScopeComponents(boundary.scopeComponents ?? null);
       archive.append(
         JSON.stringify(
           {
             boundary_id: boundary.id,
             name: boundary.name,
             scope_components: boundary.scopeComponents ?? [],
+            expected_evidence_families: Array.from(expectedEvidenceFamilies).sort(),
             cloud_provider: boundary.cloudProvider ?? null,
             azure_environment: boundary.azureEnvironment ?? null,
             boundary_type: boundary.boundaryType ?? "cui_enclave",

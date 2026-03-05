@@ -97,6 +97,11 @@ function* walkDir(dir: string, baseDir: string): Generator<{ full: string; relat
 }
 
 function buildEvidenceIndex(outDir: string, runId: string, orgId: string, boundaryId: string): {
+  schema: string;
+  version: string;
+  run_id: string;
+  organization_id: string;
+  boundary_id: string;
   files: Array<{
     path: string;
     sha256: string;
