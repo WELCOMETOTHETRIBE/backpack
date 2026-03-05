@@ -1,4 +1,7 @@
-ALTER TYPE "public"."governance_evidence_type" ADD VALUE 'attestation' BEFORE 'other';--> statement-breakpoint
+DO $$ BEGIN
+  ALTER TYPE "public"."governance_evidence_type" ADD VALUE 'attestation' BEFORE 'other';
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;--> statement-breakpoint
 CREATE TABLE "boundary_events" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"account_id" uuid NOT NULL,
