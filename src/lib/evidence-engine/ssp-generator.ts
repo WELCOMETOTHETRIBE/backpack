@@ -4,11 +4,11 @@
  * frequency = cadence from register stats. implementation_summary, tools, responsible_roles, artifacts = placeholder (user-fillable).
  */
 import { db } from "@/db";
-import { governanceRegisters, governanceRegisterEntries } from "@/db/schema";
+import { boundaries, governanceRegisters, governanceRegisterEntries } from "@/db/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { getSSPNarrativeTemplates } from "@/data/cmmc";
 import { getSummaryTemplate, renderSummary, getFallbackSummary } from "@/data/cmmc/field-labels-and-summaries";
-import { getRegisterStatsForOrg } from "./control-dashboard";
+import { getRegisterStatsForOrgAndBoundary } from "./control-dashboard";
 
 const USER_FILLABLE = "[To be completed]";
 
@@ -19,12 +19,22 @@ function substitutePlaceholders(template: string, values: Record<string, string>
   return template.replace(/\{\{(\w+)\}\}/g, (_, key) => values[key] ?? USER_FILLABLE);
 }
 
+function cloudProviderLabel(cloudProvider: string | null, azureEnvironment: string | null): string {
+  if (!cloudProvider || cloudProvider === "none") return "On Prem";
+  if (cloudProvider === "microsoft" || cloudProvider === "azure") {
+    return azureEnvironment === "gov" ? "Microsoft Azure Government" : "Microsoft Azure Commercial";
+  }
+  if (cloudProvider === "google") return "Google Cloud";
+  return cloudProvider;
+}
+
 /**
  * For each register key, get the latest final entry that is "in cadence" (finalizedAt within cadence window, or any final if event-driven).
- * Returns map registerKey -> { entryData, entryType } for building summary.
+ * Scoped to boundaryId. Returns map registerKey -> { entryData, entryType } for building summary.
  */
 async function getLatestFinalEntryPerRegister(
   orgId: string,
+  boundaryId: string,
   statsByRegister: Map<string, { lastFinalizedAt: Date | null; cadenceDays: number; registerHealth: string }>
 ): Promise<Map<string, { entryData: Record<string, unknown>; entryType: string }>> {
   const orgRegs = await db
@@ -49,6 +59,7 @@ async function getLatestFinalEntryPerRegister(
     .where(
       and(
         eq(governanceRegisters.organizationId, orgId),
+        eq(governanceRegisterEntries.boundaryId, boundaryId),
         eq(governanceRegisterEntries.status, "final"),
         sql`${governanceRegisterEntries.finalizedAt} IS NOT NULL`
       )
@@ -85,11 +96,18 @@ async function getLatestFinalEntryPerRegister(
 }
 
 /**
- * Build full SSP draft MDX for the org. Substitutes operational_evidence_summary and frequency from Evidence Engine; other placeholders get USER_FILLABLE.
+ * Build full SSP draft MDX for the org and boundary. Includes System Boundary section and substitutes
+ * operational_evidence_summary and frequency from Evidence Engine; other placeholders get USER_FILLABLE.
  */
-export async function buildSSPMdx(orgId: string): Promise<string> {
+export async function buildSSPMdx(orgId: string, boundaryId: string): Promise<string> {
+  const [boundary] = await db
+    .select()
+    .from(boundaries)
+    .where(and(eq(boundaries.id, boundaryId), eq(boundaries.organizationId, orgId)));
+  if (!boundary) throw new Error("Boundary not found");
+
   const templates = getSSPNarrativeTemplates();
-  const statsByRegister = await getRegisterStatsForOrg(orgId);
+  const statsByRegister = await getRegisterStatsForOrgAndBoundary(orgId, boundaryId);
   const statsForSubst = new Map(
     [...statsByRegister.entries()].map(([k, v]) => [
       k,
@@ -100,9 +118,28 @@ export async function buildSSPMdx(orgId: string): Promise<string> {
       },
     ])
   );
-  const latestEntryByRegister = await getLatestFinalEntryPerRegister(orgId, statsForSubst);
+  const latestEntryByRegister = await getLatestFinalEntryPerRegister(orgId, boundaryId, statsForSubst);
 
-  const sections: string[] = [];
+  const componentsStr = Array.isArray(boundary.scopeComponents) && boundary.scopeComponents.length > 0
+    ? boundary.scopeComponents.join(", ")
+    : "—";
+  const hostingPlatform = cloudProviderLabel(boundary.cloudProvider, boundary.azureEnvironment);
+  const cloudEnv = boundary.azureEnvironment === "gov" ? "Gov" : boundary.azureEnvironment === "commercial" ? "Commercial" : "—";
+
+  const boundarySection = [
+    "## System Boundary",
+    "",
+    "**Name:** " + boundary.name,
+    "",
+    "**Components:** " + componentsStr,
+    "",
+    "**Cloud Provider:** " + hostingPlatform,
+    "",
+    "**Cloud Environment:** " + cloudEnv,
+    "",
+  ].join("\n");
+
+  const sections: string[] = [boundarySection];
   for (const control of templates.controls) {
     const parts: string[] = [];
     for (const registerKey of control.mapped_registers) {

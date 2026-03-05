@@ -396,22 +396,28 @@ export const boundaryEvents = pgTable(
 );
 
 /** CUI enclave / segment (OS Baselines pillar). */
-export const boundaries = pgTable("boundary", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  organizationId: uuid("organization_id")
-    .references(() => organizations.id, { onDelete: "cascade" })
-    .notNull(),
-  name: varchar("name", { length: 255 }).notNull(),
-  description: text("description"),
-  /** In-scope components: microsoft_office, windows_server_vm, azure_cloud. */
-  scopeComponents: jsonb("scope_components").$type<string[]>(),
-  /** When azure_cloud is in scope_components: gov | commercial. */
-  azureEnvironment: varchar("azure_environment", { length: 32 }),
-  /** Optional cloud hosting: none | microsoft | google | azure. When microsoft/azure, scope/azure env can apply. */
-  cloudProvider: varchar("cloud_provider", { length: 32 }),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-});
+export const boundaries = pgTable(
+  "boundary",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id")
+      .references(() => organizations.id, { onDelete: "cascade" })
+      .notNull(),
+    name: varchar("name", { length: 255 }).notNull(),
+    description: text("description"),
+    /** In-scope components: microsoft_office, windows_server_vm, azure_cloud. */
+    scopeComponents: jsonb("scope_components").$type<string[]>(),
+    /** When azure_cloud is in scope_components: gov | commercial. */
+    azureEnvironment: varchar("azure_environment", { length: 32 }),
+    /** Optional cloud hosting: none | microsoft | google | azure. When microsoft/azure, scope/azure env can apply. */
+    cloudProvider: varchar("cloud_provider", { length: 32 }),
+    /** Boundary classification: cui_enclave | corporate_it | lab_environment | other. */
+    boundaryType: varchar("boundary_type", { length: 32 }).notNull().default("cui_enclave"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [index("boundary_org_type_idx").on(t.organizationId, t.boundaryType)]
+);
 
 /** Baseline template for an OS type/role (e.g. Windows Server 2025 Member Server). */
 export const osBaselineProfiles = pgTable("baseline_profile", {
@@ -905,59 +911,80 @@ export const governanceRegisters = pgTable("governance_registers", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-export const governanceRegisterEntries = pgTable("governance_register_entries", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  registerId: uuid("register_id")
-    .references(() => governanceRegisters.id, { onDelete: "cascade" })
-    .notNull(),
-  entryData: jsonb("entry_data").$type<Record<string, unknown>>().notNull(),
-  /** Evidence Engine: entry type from schema (e.g. grant_access, offboarding_completed). */
-  entryType: varchar("entry_type", { length: 80 }),
-  /** Evidence Engine: draft | final | void; default draft. */
-  status: registerEntryStatusEnum("status").default("draft").notNull(),
-  finalizedAt: timestamp("finalized_at", { withTimezone: true }),
-  approvedById: uuid("approved_by_id").references(() => users.id),
-  lockedAt: timestamp("locked_at", { withTimezone: true }),
-  lockedById: uuid("locked_by_id").references(() => users.id),
-  voidedAt: timestamp("voided_at", { withTimezone: true }),
-  voidedById: uuid("voided_by_id").references(() => users.id),
-  voidReason: text("void_reason"),
-  exportable: boolean("exportable").default(false).notNull(),
-  createdById: uuid("created_by_id").references(() => users.id),
-  hold: integer("hold").default(0).notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-});
+export const governanceRegisterEntries = pgTable(
+  "governance_register_entries",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    registerId: uuid("register_id")
+      .references(() => governanceRegisters.id, { onDelete: "cascade" })
+      .notNull(),
+    boundaryId: uuid("boundary_id")
+      .references(() => boundaries.id, { onDelete: "cascade" })
+      .notNull(),
+    entryData: jsonb("entry_data").$type<Record<string, unknown>>().notNull(),
+    /** Evidence Engine: entry type from schema (e.g. grant_access, offboarding_completed). */
+    entryType: varchar("entry_type", { length: 80 }),
+    /** Evidence Engine: draft | final | void; default draft. */
+    status: registerEntryStatusEnum("status").default("draft").notNull(),
+    finalizedAt: timestamp("finalized_at", { withTimezone: true }),
+    approvedById: uuid("approved_by_id").references(() => users.id),
+    lockedAt: timestamp("locked_at", { withTimezone: true }),
+    lockedById: uuid("locked_by_id").references(() => users.id),
+    voidedAt: timestamp("voided_at", { withTimezone: true }),
+    voidedById: uuid("voided_by_id").references(() => users.id),
+    voidReason: text("void_reason"),
+    exportable: boolean("exportable").default(false).notNull(),
+    createdById: uuid("created_by_id").references(() => users.id),
+    hold: integer("hold").default(0).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [index("gov_register_entries_boundary_register_idx").on(t.boundaryId, t.registerId)]
+);
 
-export const governanceRegisterEntryFiles = pgTable("governance_register_entry_files", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  registerEntryId: uuid("register_entry_id")
-    .references(() => governanceRegisterEntries.id, { onDelete: "cascade" })
-    .notNull(),
-  fileUrl: text("file_url").notNull(),
-  storageKey: text("storage_key"),
-  sha256Hash: varchar("sha256_hash", { length: 64 }),
-  fileSize: integer("file_size"),
-  originalFilename: varchar("original_filename", { length: 255 }),
-  uploadedById: uuid("uploaded_by_id").references(() => users.id),
-  uploadedAt: timestamp("uploaded_at", { withTimezone: true }).defaultNow(),
-  exportable: boolean("exportable").default(false).notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-});
+export const governanceRegisterEntryFiles = pgTable(
+  "governance_register_entry_files",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    registerEntryId: uuid("register_entry_id")
+      .references(() => governanceRegisterEntries.id, { onDelete: "cascade" })
+      .notNull(),
+    boundaryId: uuid("boundary_id")
+      .references(() => boundaries.id, { onDelete: "cascade" })
+      .notNull(),
+    fileUrl: text("file_url").notNull(),
+    storageKey: text("storage_key"),
+    sha256Hash: varchar("sha256_hash", { length: 64 }),
+    fileSize: integer("file_size"),
+    originalFilename: varchar("original_filename", { length: 255 }),
+    uploadedById: uuid("uploaded_by_id").references(() => users.id),
+    uploadedAt: timestamp("uploaded_at", { withTimezone: true }).defaultNow(),
+    exportable: boolean("exportable").default(false).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [index("gov_entry_files_boundary_entry_idx").on(t.boundaryId, t.registerEntryId)]
+);
 
-export const governanceEntryEvents = pgTable("governance_entry_events", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  orgId: uuid("org_id")
-    .references(() => organizations.id, { onDelete: "cascade" })
-    .notNull(),
-  entryId: uuid("entry_id")
-    .references(() => governanceRegisterEntries.id, { onDelete: "cascade" })
-    .notNull(),
-  actorUserId: uuid("actor_user_id").references(() => users.id),
-  eventType: text("event_type").notNull(),
-  eventAt: timestamp("event_at", { withTimezone: true }).defaultNow().notNull(),
-  eventJson: jsonb("event_json").$type<Record<string, unknown>>(),
-});
+export const governanceEntryEvents = pgTable(
+  "governance_entry_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: uuid("org_id")
+      .references(() => organizations.id, { onDelete: "cascade" })
+      .notNull(),
+    boundaryId: uuid("boundary_id")
+      .references(() => boundaries.id, { onDelete: "cascade" })
+      .notNull(),
+    entryId: uuid("entry_id")
+      .references(() => governanceRegisterEntries.id, { onDelete: "cascade" })
+      .notNull(),
+    actorUserId: uuid("actor_user_id").references(() => users.id),
+    eventType: text("event_type").notNull(),
+    eventAt: timestamp("event_at", { withTimezone: true }).defaultNow().notNull(),
+    eventJson: jsonb("event_json").$type<Record<string, unknown>>(),
+  },
+  (t) => [index("gov_entry_events_org_boundary_entry_idx").on(t.orgId, t.boundaryId, t.entryId)]
+);
 
 export const governanceEvidenceItems = pgTable("governance_evidence_items", {
   id: uuid("id").primaryKey().defaultRandom(),

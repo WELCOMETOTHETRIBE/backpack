@@ -3,11 +3,18 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import {
   ensureEvidenceEngineRegistersForOrg,
-  getRegisterStatsForOrg,
+  getRegisterStatsForOrgAndBoundary,
 } from "@/lib/evidence-engine/control-dashboard";
 import { computeScoring, type ResponsibilityByControl } from "@/lib/evidence-engine/scoring";
 import { getResponsibilitiesForOrg } from "@/lib/evidence-engine/responsibilities";
+import { resolveEffectiveBoundary } from "@/lib/evidence-engine/resolve-boundary";
+import {
+  getTechnicalRunsForBoundary,
+  getLatestTechnicalRunForBoundary,
+} from "@/lib/evidence-engine/technical-runs";
+import type { TechnicalResultsByControl } from "@/lib/evidence-engine/scoring";
 import { getEvidenceMap } from "@/data/cmmc";
+import { BoundarySelector } from "./BoundarySelector";
 
 const RESPONSIBILITY_LABELS: Record<string, string> = {
   azure_inherited: "Azure inherited",
@@ -16,14 +23,48 @@ const RESPONSIBILITY_LABELS: Record<string, string> = {
   shared: "Shared",
 };
 
-type PageProps = { searchParams: Promise<{ overdue?: string; status?: string; responsibility?: string }> };
+type PageProps = { searchParams: Promise<{ boundary?: string; overdue?: string; status?: string; responsibility?: string }> };
+
+function buildBaseQuery(boundaryId: string | null, extra: Record<string, string> = {}) {
+  const q = new URLSearchParams(extra);
+  if (boundaryId) q.set("boundary", boundaryId);
+  const s = q.toString();
+  return s ? `?${s}` : "";
+}
 
 export default async function EvidenceEngineDashboardPage({ searchParams }: PageProps) {
   const session = await auth();
   const orgId = (session?.user as { organizationId?: string })?.organizationId;
   if (!orgId) redirect("/auth/signin");
 
-  const { overdue, status: statusFilter, responsibility: responsibilityFilter } = await searchParams;
+  const { boundary: boundaryParam, overdue, status: statusFilter, responsibility: responsibilityFilter } = await searchParams;
+  const { effectiveBoundaryId, boundaries } = await resolveEffectiveBoundary(orgId, boundaryParam);
+
+  if (boundaries.length === 0) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-xl font-semibold text-[var(--color-navy-primary)]">Evidence Engine</h1>
+        <p className="text-[var(--color-gray-600)]">Select a system boundary to view evidence.</p>
+        <p className="text-sm text-[var(--color-gray-500)]">
+          <Link href="/dashboard/os-baselines" className="text-[var(--color-blue-accent)] hover:underline">
+            Create a boundary in System Boundary
+          </Link>{" "}
+          to get started.
+        </p>
+      </div>
+    );
+  }
+
+  if (!effectiveBoundaryId) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-xl font-semibold text-[var(--color-navy-primary)]">Evidence Engine</h1>
+        <p className="text-[var(--color-gray-600)]">Select a system boundary to view evidence.</p>
+        <BoundarySelector boundaries={boundaries} currentBoundaryId={null} />
+      </div>
+    );
+  }
+
   const onlyOverdue = overdue === "1";
   const filterStatus = statusFilter === "pass" || statusFilter === "partial" || statusFilter === "fail" ? statusFilter : null;
   const filterResponsibility =
@@ -32,16 +73,34 @@ export default async function EvidenceEngineDashboardPage({ searchParams }: Page
       : null;
 
   await ensureEvidenceEngineRegistersForOrg(orgId);
-  const statsByRegister = await getRegisterStatsForOrg(orgId);
-  const responsibilitiesMap = await getResponsibilitiesForOrg(orgId);
+  const [statsByRegister, responsibilitiesMap, technicalRuns, latestTechnicalRun] = await Promise.all([
+    getRegisterStatsForOrgAndBoundary(orgId, effectiveBoundaryId),
+    getResponsibilitiesForOrg(orgId, effectiveBoundaryId),
+    getTechnicalRunsForBoundary(effectiveBoundaryId, 5),
+    getLatestTechnicalRunForBoundary(effectiveBoundaryId),
+  ]);
   const responsibilitiesByControl: ResponsibilityByControl = new Map();
   for (const [controlId, info] of responsibilitiesMap) {
     responsibilitiesByControl.set(controlId, { responsibilityModel: info.responsibilityModel });
   }
+  const technicalResultsByControl: TechnicalResultsByControl = new Map();
+  if (latestTechnicalRun?.controlResults && typeof latestTechnicalRun.controlResults === "object") {
+    for (const [controlId, result] of Object.entries(latestTechnicalRun.controlResults)) {
+      if (result && typeof result === "object" && "status" in result && typeof (result as { status: string }).status === "string") {
+        technicalResultsByControl.set(controlId, { status: (result as { status: string }).status });
+      }
+    }
+  }
 
   const evidenceMap = getEvidenceMap();
-  const scoring = computeScoring(statsByRegister, { responsibilitiesByControl });
+  const scoring = computeScoring(statsByRegister, {
+    responsibilitiesByControl,
+    technicalResultsByControl: technicalResultsByControl.size > 0 ? technicalResultsByControl : undefined,
+  });
   let rows = scoring.controls;
+
+  const q = (overdue?: string, status?: string, responsibility?: string) =>
+    buildBaseQuery(effectiveBoundaryId, { ...(overdue && { overdue }), ...(status && { status }), ...(responsibility && { responsibility }) });
   if (filterStatus) rows = rows.filter((r) => r.controlStatus === filterStatus);
   if (filterResponsibility) rows = rows.filter((r) => r.responsibilityModel === filterResponsibility);
   if (onlyOverdue) {
@@ -62,37 +121,83 @@ export default async function EvidenceEngineDashboardPage({ searchParams }: Page
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold text-[var(--color-navy-primary)]">
-          Evidence Engine
-        </h1>
-        <p className="mt-0.5 text-sm text-[var(--color-gray-600)]">
-          Operational evidence for all 110 NIST SP 800-171 controls. Readiness is automated from
-          finalized register entries and cadence; do not interpret as &quot;compliant&quot;.
-        </p>
-        <p className="mt-1 text-xs text-[var(--color-gray-500)]">
-          Readiness (automated): {scoring.overallReadinessExcludingNa}% pass (excluding N/A) · {scoring.overallReadiness}% overall
-        </p>
-        {isAdmin && (
-          <p className="mt-1 text-xs text-[var(--color-amber-700)]">
-            Export may contain sensitive data. Only include non-CUI or explicitly exportable items.
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-semibold text-[var(--color-navy-primary)]">
+            Evidence Engine
+          </h1>
+          <p className="mt-0.5 text-sm text-[var(--color-gray-600)]">
+            Operational evidence for all 110 NIST SP 800-171 controls. Readiness is automated from
+            finalized register entries and cadence; do not interpret as &quot;compliant&quot;.
           </p>
+          <p className="mt-1 text-xs text-[var(--color-gray-500)]">
+            Readiness (automated): {scoring.overallReadinessExcludingNa}% pass (excluding N/A) · {scoring.overallReadiness}% overall
+          </p>
+          {isAdmin && (
+            <p className="mt-1 text-xs text-[var(--color-amber-700)]">
+              Export may contain sensitive data. Only include non-CUI or explicitly exportable items.
+            </p>
+          )}
+        </div>
+        <BoundarySelector boundaries={boundaries} currentBoundaryId={effectiveBoundaryId} />
+      </div>
+      <div>
+        {technicalRuns.length > 0 && (
+          <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
+            <h2 className="text-sm font-semibold text-[var(--color-gray-700)]">Technical runs</h2>
+            <p className="mt-1 text-xs text-[var(--color-gray-600)]">Latest collector runs for this boundary.</p>
+            <ul className="mt-2 space-y-1 text-sm">
+              {technicalRuns.map((run) => (
+                <li key={run.id} className="flex flex-wrap items-center gap-2">
+                  <Link
+                    href={`/dashboard/evidence-engine/entries/${run.id}${buildBaseQuery(effectiveBoundaryId)}`}
+                    className="font-mono text-[var(--color-gray-700)] hover:text-[var(--color-blue-accent)] hover:underline"
+                  >
+                    {run.runId}
+                  </Link>
+                  <span className="text-[var(--color-gray-500)]">{run.createdAt.toLocaleDateString()}</span>
+                  <span
+                    className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+                      run.overallStatus === "pass"
+                        ? "bg-green-100 text-green-800"
+                        : run.overallStatus === "fail"
+                          ? "bg-red-100 text-red-800"
+                          : run.overallStatus === "warn"
+                            ? "bg-amber-100 text-amber-800"
+                            : "bg-[var(--color-gray-100)] text-[var(--color-gray-700)]"
+                    }`}
+                  >
+                    {run.overallStatus}
+                  </span>
+                  <span className="text-[var(--color-gray-500)]">
+                    {run.pass} pass, {run.fail} fail, {run.warn} warn
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <Link
+              href={`/dashboard/evidence-engine/registers/technical_compliance_run${buildBaseQuery(effectiveBoundaryId)}`}
+              className="mt-2 inline-block text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
+            >
+              View all technical runs
+            </Link>
+          </section>
         )}
         <div className="mt-3 flex flex-wrap items-center gap-4">
           <Link
-            href="/dashboard/evidence-engine/registers"
+            href={`/dashboard/evidence-engine/registers${buildBaseQuery(effectiveBoundaryId)}`}
             className="text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
           >
             View registers
           </Link>
           <Link
-            href="/dashboard/evidence-engine/registers?auditor=1"
+            href={`/dashboard/evidence-engine/registers${buildBaseQuery(effectiveBoundaryId, { auditor: "1" })}`}
             className="text-sm font-medium text-[var(--color-gray-600)] hover:underline"
           >
             View registers (auditor)
           </Link>
           <a
-            href="/api/evidence-engine/ssp?download=1"
+            href={`/api/evidence-engine/ssp?download=1&boundary_id=${encodeURIComponent(effectiveBoundaryId)}`}
             className="text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
             download
           >
@@ -101,7 +206,7 @@ export default async function EvidenceEngineDashboardPage({ searchParams }: Page
           {isAdmin && (
             <>
               <a
-                href="/api/evidence-engine/export/auditor-bundle"
+                href={`/api/evidence-engine/export/auditor-bundle?boundary_id=${encodeURIComponent(effectiveBoundaryId)}`}
                 className="text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
                 download
               >
@@ -111,14 +216,14 @@ export default async function EvidenceEngineDashboardPage({ searchParams }: Page
           )}
           {onlyOverdue ? (
             <Link
-              href={filterStatus ? `/dashboard/evidence-engine?status=${filterStatus}` : "/dashboard/evidence-engine"}
+              href={`/dashboard/evidence-engine${q(undefined, filterStatus ?? undefined)}`}
               className="text-sm font-medium text-[var(--color-gray-600)] hover:underline"
             >
               Show all controls
             </Link>
           ) : (
             <Link
-              href={filterStatus ? `/dashboard/evidence-engine?overdue=1&status=${filterStatus}` : "/dashboard/evidence-engine?overdue=1"}
+              href={`/dashboard/evidence-engine${q("1", filterStatus ?? undefined)}`}
               className="text-sm font-medium text-[var(--color-amber-700)] hover:underline"
             >
               Only overdue controls
@@ -127,25 +232,21 @@ export default async function EvidenceEngineDashboardPage({ searchParams }: Page
           <span className="text-[var(--color-gray-400)]">|</span>
           <span className="text-xs text-[var(--color-gray-600)]">Filter by status:</span>
           {filterStatus ? (
-            <Link href={onlyOverdue ? "/dashboard/evidence-engine?overdue=1" : "/dashboard/evidence-engine"} className="text-sm font-medium text-[var(--color-gray-600)] hover:underline">
+            <Link href={`/dashboard/evidence-engine${q(onlyOverdue ? "1" : undefined)}`} className="text-sm font-medium text-[var(--color-gray-600)] hover:underline">
               All
             </Link>
           ) : (
             <span className="text-sm text-[var(--color-gray-400)]">All</span>
           )}
-          <Link href={onlyOverdue ? "/dashboard/evidence-engine?overdue=1&status=pass" : "/dashboard/evidence-engine?status=pass"} className="text-sm font-medium text-[var(--color-green-800)] hover:underline">Pass</Link>
-          <Link href={onlyOverdue ? "/dashboard/evidence-engine?overdue=1&status=partial" : "/dashboard/evidence-engine?status=partial"} className="text-sm font-medium text-[var(--color-amber-700)] hover:underline">Partial</Link>
-          <Link href={onlyOverdue ? "/dashboard/evidence-engine?overdue=1&status=fail" : "/dashboard/evidence-engine?status=fail"} className="text-sm font-medium text-[var(--color-red-700)] hover:underline">Fail</Link>
+          <Link href={`/dashboard/evidence-engine${q(onlyOverdue ? "1" : undefined, "pass")}`} className="text-sm font-medium text-[var(--color-green-800)] hover:underline">Pass</Link>
+          <Link href={`/dashboard/evidence-engine${q(onlyOverdue ? "1" : undefined, "partial")}`} className="text-sm font-medium text-[var(--color-amber-700)] hover:underline">Partial</Link>
+          <Link href={`/dashboard/evidence-engine${q(onlyOverdue ? "1" : undefined, "fail")}`} className="text-sm font-medium text-[var(--color-red-700)] hover:underline">Fail</Link>
           <span className="text-[var(--color-gray-400)]">|</span>
           <span className="text-xs text-[var(--color-gray-600)]">Responsibility:</span>
           {["azure_inherited", "mactech_provided", "customer_managed", "shared"].map((rm) => (
             <Link
               key={rm}
-              href={
-                onlyOverdue
-                  ? `/dashboard/evidence-engine?overdue=1&responsibility=${rm}${filterStatus ? `&status=${filterStatus}` : ""}`
-                  : `/dashboard/evidence-engine?responsibility=${rm}${filterStatus ? `&status=${filterStatus}` : ""}`
-              }
+              href={`/dashboard/evidence-engine${q(onlyOverdue ? "1" : undefined, filterStatus ?? undefined, rm)}`}
               className={`text-sm font-medium ${filterResponsibility === rm ? "text-[var(--color-gray-900)]" : "text-[var(--color-blue-accent)] hover:underline"}`}
             >
               {RESPONSIBILITY_LABELS[rm]}
@@ -153,7 +254,7 @@ export default async function EvidenceEngineDashboardPage({ searchParams }: Page
           ))}
           {filterResponsibility && (
             <Link
-              href={onlyOverdue ? `/dashboard/evidence-engine?overdue=1${filterStatus ? `&status=${filterStatus}` : ""}` : filterStatus ? `/dashboard/evidence-engine?status=${filterStatus}` : "/dashboard/evidence-engine"}
+              href={`/dashboard/evidence-engine${q(onlyOverdue ? "1" : undefined, filterStatus ?? undefined)}`}
               className="text-sm font-medium text-[var(--color-gray-600)] hover:underline"
             >
               All
@@ -197,7 +298,7 @@ export default async function EvidenceEngineDashboardPage({ searchParams }: Page
                   className="border-b border-[var(--color-border-muted)] hover:bg-[var(--color-gray-50)]"
                 >
                   <td className="px-4 py-3 font-medium text-[var(--color-gray-900)]">
-                    <Link href={`/dashboard/evidence-engine/controls/${encodeURIComponent(row.controlId)}`} className="text-[var(--color-blue-accent)] hover:underline">
+                    <Link href={`/dashboard/evidence-engine/controls/${encodeURIComponent(row.controlId)}${buildBaseQuery(effectiveBoundaryId)}`} className="text-[var(--color-blue-accent)] hover:underline">
                       {row.controlId}
                     </Link>
                   </td>

@@ -196,6 +196,14 @@
       "warning_days": 30,
       "expected_entries_per_year": 1,
       "notes": "Review policies/procedures at least annually and after significant changes/incidents."
+    },
+    {
+      "register_id": "technical_compliance_run",
+      "cadence_type": "event_driven",
+      "cadence_days": 0,
+      "warning_days": 0,
+      "expected_entries_per_year": 0,
+      "notes": "Per collector run (no fixed cadence)."
     }
   ]
 }

@@ -2,34 +2,73 @@ import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import { getEvidenceMap } from "@/data/cmmc";
-import { getRegisterStatsForOrg } from "@/lib/evidence-engine/control-dashboard";
+import { getRegisterStatsForOrgAndBoundary } from "@/lib/evidence-engine/control-dashboard";
 import { getResponsibilityForControl } from "@/lib/evidence-engine/responsibilities";
+import { resolveEffectiveBoundary } from "@/lib/evidence-engine/resolve-boundary";
+import { getCombinedTechnicalStatus } from "@/lib/evidence-engine/technical-runs";
+import { BoundarySelector } from "../../BoundarySelector";
 
-type PageProps = { params: Promise<{ controlId: string }> };
+type PageProps = { params: Promise<{ controlId: string }>; searchParams: Promise<{ boundary?: string }> };
 
-export default async function EvidenceEngineControlDetailPage({ params }: PageProps) {
+function buildBaseQuery(boundaryId: string | null) {
+  return boundaryId ? `?boundary=${encodeURIComponent(boundaryId)}` : "";
+}
+
+export default async function EvidenceEngineControlDetailPage({ params, searchParams }: PageProps) {
   const session = await auth();
   const orgId = (session?.user as { organizationId?: string })?.organizationId;
   if (!orgId) redirect("/auth/signin");
 
   const { controlId } = await params;
+  const { boundary: boundaryParam } = await searchParams;
+  const { effectiveBoundaryId, boundaries } = await resolveEffectiveBoundary(orgId, boundaryParam);
+
   const evidenceMap = getEvidenceMap();
   const controlMeta = evidenceMap.controls.find((c) => c.control_id === controlId);
   if (!controlMeta) notFound();
 
+  if (boundaries.length === 0) {
+    return (
+      <div className="space-y-6">
+        <Link href="/dashboard/evidence-engine" className="text-sm text-[var(--color-gray-600)] hover:underline">← Evidence Engine</Link>
+        <h1 className="text-xl font-semibold text-[var(--color-navy-primary)]">Control {controlId}</h1>
+        <p className="text-[var(--color-gray-600)]">Select a system boundary to view evidence.</p>
+        <Link href="/dashboard/os-baselines" className="text-sm text-[var(--color-blue-accent)] hover:underline">Create a boundary in System Boundary</Link>
+      </div>
+    );
+  }
+
+  if (!effectiveBoundaryId) {
+    return (
+      <div className="space-y-6">
+        <Link href="/dashboard/evidence-engine" className="text-sm text-[var(--color-gray-600)] hover:underline">← Evidence Engine</Link>
+        <h1 className="text-xl font-semibold text-[var(--color-navy-primary)]">Control {controlId}</h1>
+        <p className="text-[var(--color-gray-600)]">Select a system boundary to view evidence.</p>
+        <BoundarySelector boundaries={boundaries} currentBoundaryId={null} />
+      </div>
+    );
+  }
+
   const [responsibility, statsByRegister] = await Promise.all([
-    getResponsibilityForControl(orgId, controlId),
-    getRegisterStatsForOrg(orgId),
+    getResponsibilityForControl(orgId, controlId, effectiveBoundaryId),
+    getRegisterStatsForOrgAndBoundary(orgId, effectiveBoundaryId),
   ]);
+  const technicalStatus = await getCombinedTechnicalStatus(
+    effectiveBoundaryId,
+    controlId,
+    responsibility?.responsibilityModel ?? null
+  );
 
   const registers = controlMeta.registers ?? [];
   const registerNameById = new Map(evidenceMap.registers.map((r) => [r.id, r.name]));
+  const baseQuery = buildBaseQuery(effectiveBoundaryId);
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
         <Link
-          href="/dashboard/evidence-engine"
+          href={`/dashboard/evidence-engine${baseQuery}`}
           className="text-sm text-[var(--color-gray-600)] hover:underline"
         >
           ← Evidence Engine
@@ -40,6 +79,8 @@ export default async function EvidenceEngineControlDetailPage({ params }: PagePr
         <p className="mt-0.5 text-sm text-[var(--color-gray-600)]">
           {controlMeta.family} · Responsibility: {responsibility?.responsibilityModel ? formatResponsibility(responsibility.responsibilityModel) : "—"}
         </p>
+        </div>
+        <BoundarySelector boundaries={boundaries} currentBoundaryId={effectiveBoundaryId} />
       </div>
 
       <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
@@ -79,6 +120,53 @@ export default async function EvidenceEngineControlDetailPage({ params }: PagePr
           </ul>
         </section>
       )}
+
+      <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
+        <h2 className="text-sm font-semibold text-[var(--color-gray-700)]">Technical evidence status</h2>
+        {technicalStatus.kind === "azure_inherited" && (
+          <p className="mt-2 text-sm text-[var(--color-gray-600)]">N/A — {technicalStatus.note}</p>
+        )}
+        {technicalStatus.kind === "no_run" && (
+          <p className="mt-2 text-sm text-[var(--color-gray-600)]">{technicalStatus.note}</p>
+        )}
+        {technicalStatus.kind === "result" && (
+          <div className="mt-2 space-y-2 text-sm">
+            <div className="flex flex-wrap items-center gap-2">
+              <span
+                className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+                  technicalStatus.status === "pass"
+                    ? "bg-green-100 text-green-800"
+                    : technicalStatus.status === "fail"
+                      ? "bg-red-100 text-red-800"
+                      : technicalStatus.status === "warn"
+                        ? "bg-amber-100 text-amber-800"
+                        : technicalStatus.status === "na"
+                          ? "bg-[var(--color-gray-100)] text-[var(--color-gray-700)]"
+                          : "bg-[var(--color-gray-100)] text-[var(--color-gray-700)]"
+                }`}
+              >
+                {technicalStatus.status}
+              </span>
+              <span className="text-[var(--color-gray-500)]">Run: {technicalStatus.runId}</span>
+            </div>
+            {technicalStatus.result.title && (
+              <p className="text-[var(--color-gray-700)]">{technicalStatus.result.title}</p>
+            )}
+            {technicalStatus.result.observed && (
+              <p className="text-[var(--color-gray-600)]"><strong>Observed:</strong> {String(technicalStatus.result.observed).slice(0, 300)}</p>
+            )}
+            {technicalStatus.result.remediation && (
+              <p className="text-[var(--color-gray-600)]"><strong>Remediation:</strong> {String(technicalStatus.result.remediation).slice(0, 300)}</p>
+            )}
+            <Link
+              href={`/dashboard/evidence-engine/registers/technical_compliance_run${baseQuery}`}
+              className="inline-block text-[var(--color-blue-accent)] hover:underline"
+            >
+              View technical runs
+            </Link>
+          </div>
+        )}
+      </section>
 
       <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
         <h2 className="text-sm font-semibold text-[var(--color-gray-700)]">Mapped registers & evidence</h2>
@@ -132,7 +220,7 @@ export default async function EvidenceEngineControlDetailPage({ params }: PagePr
                     </td>
                     <td className="py-2">
                       <Link
-                        href={`/dashboard/evidence-engine/registers/${encodeURIComponent(rk)}`}
+                        href={`/dashboard/evidence-engine/registers/${encodeURIComponent(rk)}${baseQuery}`}
                         className="text-[var(--color-blue-accent)] hover:underline"
                       >
                         View / Add entry

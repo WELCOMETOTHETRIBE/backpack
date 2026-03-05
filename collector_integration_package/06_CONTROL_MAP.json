@@ -1,0 +1,111 @@
+{
+  "schema": "control-map.v1",
+  "description": "Mapping of NIST 800-171 / CMMC L2 control IDs to scripts and evidence files. Derived from os-evidence-nist-manifest.json and Azure/Entra collection scripts.",
+  "os_evidence_script": "Collect-Cui-Evidence-v2.ps1",
+  "os_validation_script": "validate_windows_server_hardening.py",
+  "azure_evidence_scripts": ["Collect-AzureEntraEvidence.ps1", "export_azure_evidence.sh"],
+  "azure_validation_scripts": ["Test-AzureEntraControls.ps1", "validate_azure_entra.py"],
+  "control_mappings": {
+    "AC.L2-3.1.1": [
+      { "check_id": "AC.L2-3.1.1", "script": "Collect-Cui-Evidence-v2.ps1", "evidence": ["policy/local-accounts.txt", "policy/local-groups.txt", "policy/secpol.cfg"] }
+    ],
+    "AC.L2-3.1.2": [
+      { "check_id": "AC.L2-3.1.2", "script": "Collect-Cui-Evidence-v2.ps1", "evidence": ["apps/applocker-policy.txt"] }
+    ],
+    "AC.L2-3.1.3": [
+      { "check_id": "AC.L2-3.1.3", "script": "Collect-Cui-Evidence-v2.ps1", "evidence": ["network/firewall-rules-summary.txt", "network/listening-ports.txt", "policy/secpol.cfg"] }
+    ],
+    "AC.L2-3.1.5": [
+      { "check_id": "AC.L2-3.1.5", "script": "Collect-Cui-Evidence-v2.ps1", "evidence": ["policy/local-groups.txt", "policy/local-accounts.txt", "policy/user-rights-assignments.txt"] }
+    ],
+    "AC.L2-3.1.6": [
+      { "check_id": "AC.L2-3.1.6", "script": "Collect-Cui-Evidence-v2.ps1", "evidence": ["policy/local-accounts.txt", "policy/local-admins.txt", "policy/user-rights-assignments.txt"] }
+    ],
+    "AC.L2-3.1.7": [
+      { "check_id": "AC.L2-3.1.7", "script": "Collect-Cui-Evidence-v2.ps1", "evidence": ["policy/secpol.cfg", "policy/user-rights-assignments.txt"] }
+    ],
+    "AC.L2-3.1.8": [
+      { "check_id": "AC.L2-3.1.8", "script": "Collect-Cui-Evidence-v2.ps1", "evidence": ["policy/account-policy.txt", "policy/secpol.cfg"] }
+    ],
+    "AC.L2-3.1.9": [
+      { "check_id": "AC.L2-3.1.9", "script": "Collect-Cui-Evidence-v2.ps1", "evidence": ["policy/interactive-logon-notice.txt", "policy/auth-ux-policy.txt"] }
+    ],
+    "AC.L2-3.1.10": [
+      { "check_id": "AC.L2-3.1.10", "script": "Collect-Cui-Evidence-v2.ps1", "evidence": ["policy/secpol.cfg", "policy/rsop.xml", "policy/machine-inactivity-limit.txt", "policy/screensaver-policy.txt"] }
+    ],
+    "AC.L2-3.1.11": [
+      { "check_id": "AC.L2-3.1.11", "script": "Collect-Cui-Evidence-v2.ps1", "evidence": ["network/firewall-rules-summary.txt", "network/listening-ports.txt", "policy/secpol.cfg"] }
+    ],
+    "AC.L2-3.1.12": [
+      { "check_id": "AC.L2-3.1.12", "script": "Collect-Cui-Evidence-v2.ps1", "evidence": ["audit/auditpol.txt", "network/rdp-policy.txt", "network/listening-ports.txt"] }
+    ],
+    "AC.L2-3.1.13": [
+      { "check_id": "AC.L2-3.1.13", "script": "Collect-Cui-Evidence-v2.ps1", "evidence": ["network/firewall.txt", "network/firewall-rules-summary.txt", "crypto/fips.txt", "crypto/schannel-protocols.txt"] }
+    ],
+    "AU.L2-3.3.1": [
+      { "check_id": "AU.L2-3.3.1", "script": "Collect-Cui-Evidence-v2.ps1", "evidence": ["audit/auditpol.txt", "audit/auditpol-subcategories.txt", "audit/eventlog-security.txt", "audit/eventlog-system.txt"] }
+    ],
+    "AU.L2-3.3.4": [
+      { "check_id": "AU.L2-3.3.4", "script": "Collect-Cui-Evidence-v2.ps1", "evidence": ["audit/auditpol.txt", "audit/eventlog-security.txt"] }
+    ],
+    "AU.L2-3.3.8": [
+      { "check_id": "AU.L2-3.3.8", "script": "Collect-Cui-Evidence-v2.ps1", "evidence": ["audit/security-evtx-acl.txt"] }
+    ],
+    "CM.L2-3.4.1": [
+      { "check_id": "CM.L2-3.4.1", "script": "Collect-Cui-Evidence-v2.ps1", "evidence": ["policy/secpol.cfg", "policy/rsop.xml", "meta/manifest.json", "meta/bundle.json"] }
+    ],
+    "CM.L2-3.4.6": [
+      { "check_id": "CM.L2-3.4.6", "script": "Collect-Cui-Evidence-v2.ps1", "evidence": ["network/listening-ports.txt", "host/services-security-relevant.txt", "host/installed-software.txt"] }
+    ],
+    "SC.L2-3.13.1": [
+      { "check_id": "SC.L2-3.13.1", "script": "Collect-Cui-Evidence-v2.ps1", "evidence": ["network/firewall.txt", "network/firewall-rules-summary.txt"] }
+    ],
+    "SC.L2-3.13.2": [
+      { "check_id": "SC.L2-3.13.2", "script": "Collect-Cui-Evidence-v2.ps1", "evidence": ["network/listening-ports.txt", "network/firewall-rules-summary.txt", "meta/manifest.json"] }
+    ],
+    "SC.L2-3.13.5": [
+      { "check_id": "SC.L2-3.13.5", "script": "Collect-Cui-Evidence-v2.ps1", "evidence": ["network/listening-ports.txt", "network/firewall-rules-summary.txt"] },
+      { "check_id": "AZURE-SC-3.13.5", "script": "Collect-AzureEntraEvidence.ps1", "evidence": ["nsg-list.json", "nsg-rules-*.json"] }
+    ],
+    "SC.L2-3.13.6": [
+      { "check_id": "SC.L2-3.13.6", "script": "Collect-Cui-Evidence-v2.ps1", "evidence": ["network/firewall.txt", "network/firewall-rules-summary.txt"] }
+    ],
+    "SC.L2-3.13.8": [
+      { "check_id": "SC.L2-3.13.8", "script": "Collect-Cui-Evidence-v2.ps1", "evidence": ["crypto/fips.txt", "crypto/tls-ciphersuites.txt", "crypto/schannel-protocols.txt"] }
+    ],
+    "SC.L2-3.13.10": [
+      { "check_id": "SC.L2-3.13.10", "script": "Collect-Cui-Evidence-v2.ps1", "evidence": ["crypto/fips.txt", "crypto/schannel-protocols.txt"] },
+      { "check_id": "AZURE-SC-3.13.10", "script": "Collect-AzureEntraEvidence.ps1", "evidence": ["keyvault-list.json", "keyvault-*-properties.json", "keyvault-*-role-assignments.json"] }
+    ],
+    "SC.L2-3.13.11": [
+      { "check_id": "SC.L2-3.13.11", "script": "Collect-Cui-Evidence-v2.ps1", "evidence": ["crypto/fips.txt"] }
+    ],
+    "SI.L2-3.14.2": [
+      { "check_id": "SI.L2-3.14.2", "script": "Collect-Cui-Evidence-v2.ps1", "evidence": ["defender/defender-status.txt", "defender/defender-preferences.txt"] }
+    ],
+    "MP.L2-3.8.1": [
+      { "check_id": "MP.L2-3.8.1", "script": "Collect-Cui-Evidence-v2.ps1", "evidence": ["storage/bitlocker-status.txt", "storage/removable-storage-policies.txt"] }
+    ],
+    "IA.L2-3.5.3": [
+      { "check_id": "IA.L2-3.5.3", "script": "Collect-Cui-Evidence-v2.ps1", "evidence": ["policy/local-admins.txt", "network/rdp-policy.txt"] },
+      { "check_id": "AZURE-IA-3.5.3", "script": "Collect-AzureEntraEvidence.ps1", "evidence": ["conditional-access-policies.json", "entra-signin.json"] }
+    ],
+    "IA.L2-3.5.4": [
+      { "check_id": "IA.L2-3.5.4", "script": "Collect-Cui-Evidence-v2.ps1", "evidence": ["policy/secpol.cfg", "policy/lsa.txt", "policy/ntlm-policy.txt"] },
+      { "check_id": "AZURE-IA-3.5.4", "script": "Collect-AzureEntraEvidence.ps1", "evidence": ["conditional-access-policies.json"] }
+    ],
+    "IA.L2-3.5.5": [
+      { "check_id": "IA.L2-3.5.5", "script": "Collect-Cui-Evidence-v2.ps1", "evidence": ["policy/secpol.cfg", "policy/local-accounts.txt"] },
+      { "check_id": "AZURE-IA-3.5.5", "script": "Collect-AzureEntraEvidence.ps1", "evidence": ["entra-signin.json", "conditional-access-policies.json"] }
+    ],
+    "IA.L2-3.5.6": [
+      { "check_id": "IA.L2-3.5.6", "script": "Collect-Cui-Evidence-v2.ps1", "evidence": ["network/firewall-rules-summary.txt", "policy/account-policy.txt"] },
+      { "check_id": "AZURE-IA-3.5.6", "script": "Collect-AzureEntraEvidence.ps1", "evidence": ["entra-signin.json", "conditional-access-policies.json"] }
+    ],
+    "MA.L2-3.7.5": [
+      { "check_id": "MA.L2-3.7.5", "script": "Collect-Cui-Evidence-v2.ps1", "evidence": ["network/rdp-policy.txt", "network/rdp-tcp.txt", "policy/local-remote-desktop-users.txt"] },
+      { "check_id": "AZURE-MA-3.7.5", "script": "Collect-AzureEntraEvidence.ps1", "evidence": ["conditional-access-policies.json", "role-assignments-all.json"] }
+    ]
+  },
+  "note": "Full 73-control to evidence_files mapping is in src/data/os-evidence-nist-manifest.json. This file summarizes representative controls and the seven Azure/Entra controls with dual (OS + Azure) evidence."
+}

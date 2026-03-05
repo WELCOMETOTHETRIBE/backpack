@@ -3,18 +3,56 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { governanceRegisters, governanceRegisterEntries } from "@/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { getEvidenceMap } from "@/data/cmmc";
-import { ensureEvidenceEngineRegistersForOrg, getRegisterStatsForOrg } from "@/lib/evidence-engine/control-dashboard";
+import { ensureEvidenceEngineRegistersForOrg, getRegisterStatsForOrgAndBoundary } from "@/lib/evidence-engine/control-dashboard";
+import { resolveEffectiveBoundary } from "@/lib/evidence-engine/resolve-boundary";
+import { BoundarySelector } from "../BoundarySelector";
 
-export default async function EvidenceEngineRegistersPage() {
+type PageProps = { searchParams: Promise<{ boundary?: string; auditor?: string }> };
+
+function buildBaseQuery(boundaryId: string | null, extra: Record<string, string> = {}) {
+  const q = new URLSearchParams(extra);
+  if (boundaryId) q.set("boundary", boundaryId);
+  const s = q.toString();
+  return s ? `?${s}` : "";
+}
+
+export default async function EvidenceEngineRegistersPage({ searchParams }: PageProps) {
   const session = await auth();
   const orgId = (session?.user as { organizationId?: string })?.organizationId;
   if (!orgId) redirect("/auth/signin");
 
+  const { boundary: boundaryParam } = await searchParams;
+  const { effectiveBoundaryId, boundaries } = await resolveEffectiveBoundary(orgId, boundaryParam);
+
+  if (boundaries.length === 0) {
+    return (
+      <div className="space-y-6">
+        <Link href="/dashboard/evidence-engine" className="text-sm text-[var(--color-gray-600)] hover:underline">← Evidence Engine</Link>
+        <h2 className="text-xl font-semibold text-[var(--color-navy-primary)]">Registers</h2>
+        <p className="text-[var(--color-gray-600)]">Select a system boundary to view evidence.</p>
+        <p className="text-sm">
+          <Link href="/dashboard/os-baselines" className="text-[var(--color-blue-accent)] hover:underline">Create a boundary in System Boundary</Link> to get started.
+        </p>
+      </div>
+    );
+  }
+
+  if (!effectiveBoundaryId) {
+    return (
+      <div className="space-y-6">
+        <Link href="/dashboard/evidence-engine" className="text-sm text-[var(--color-gray-600)] hover:underline">← Evidence Engine</Link>
+        <h2 className="text-xl font-semibold text-[var(--color-navy-primary)]">Registers</h2>
+        <p className="text-[var(--color-gray-600)]">Select a system boundary to view evidence.</p>
+        <BoundarySelector boundaries={boundaries} currentBoundaryId={null} />
+      </div>
+    );
+  }
+
   await ensureEvidenceEngineRegistersForOrg(orgId);
   const evidenceMap = getEvidenceMap();
-  const registerStats = await getRegisterStatsForOrg(orgId);
+  const registerStats = await getRegisterStatsForOrgAndBoundary(orgId, effectiveBoundaryId);
 
   const orgRegs = await db
     .select({
@@ -33,7 +71,12 @@ export default async function EvidenceEngineRegistersPage() {
     })
     .from(governanceRegisterEntries)
     .innerJoin(governanceRegisters, eq(governanceRegisterEntries.registerId, governanceRegisters.id))
-    .where(eq(governanceRegisters.organizationId, orgId))
+    .where(
+      and(
+        eq(governanceRegisters.organizationId, orgId),
+        eq(governanceRegisterEntries.boundaryId, effectiveBoundaryId)
+      )
+    )
     .groupBy(governanceRegisterEntries.registerId);
 
   const idToKey = new Map(orgRegs.map((r) => [r.id, r.registerKey]));
@@ -47,22 +90,28 @@ export default async function EvidenceEngineRegistersPage() {
     }
   }
 
+  const { auditor } = await searchParams;
+  const baseQuery = buildBaseQuery(effectiveBoundaryId, auditor === "1" ? { auditor: "1" } : {});
+
   return (
     <div className="space-y-6">
-      <div>
-        <Link
-          href="/dashboard/evidence-engine"
-          className="text-sm text-[var(--color-gray-600)] hover:underline"
-        >
-          ← Evidence Engine
-        </Link>
-        <h2 className="mt-1 text-xl font-semibold text-[var(--color-navy-primary)]">
-          Registers
-        </h2>
-        <p className="mt-0.5 text-sm text-[var(--color-gray-600)]">
-          Create and view entries for each register. Entries provide operational evidence for
-          controls.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <Link
+            href={`/dashboard/evidence-engine${buildBaseQuery(effectiveBoundaryId)}`}
+            className="text-sm text-[var(--color-gray-600)] hover:underline"
+          >
+            ← Evidence Engine
+          </Link>
+          <h2 className="mt-1 text-xl font-semibold text-[var(--color-navy-primary)]">
+            Registers
+          </h2>
+          <p className="mt-0.5 text-sm text-[var(--color-gray-600)]">
+            Create and view entries for each register. Entries provide operational evidence for
+            controls.
+          </p>
+        </div>
+        <BoundarySelector boundaries={boundaries} currentBoundaryId={effectiveBoundaryId} />
       </div>
 
       <div className="overflow-x-auto rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)]">
@@ -121,7 +170,7 @@ export default async function EvidenceEngineRegistersPage() {
                   </td>
                   <td className="px-4 py-3">
                     <Link
-                      href={`/dashboard/evidence-engine/registers/${encodeURIComponent(reg.id)}`}
+                      href={`/dashboard/evidence-engine/registers/${encodeURIComponent(reg.id)}${baseQuery}`}
                       className="font-medium text-[var(--color-blue-accent)] hover:underline"
                     >
                       View / Add entry

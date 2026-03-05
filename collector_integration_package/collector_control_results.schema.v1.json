@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mactech.collector.control-results.schema.v1",
+  "title": "MacTech Collector Control Results v1",
+  "type": "object",
+  "required": [
+    "schema",
+    "version",
+    "run_id",
+    "boundary_id",
+    "organization_id",
+    "results"
+  ],
+  "properties": {
+    "schema": {
+      "const": "mactech.collector.control-results.v1"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "organization_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "boundary_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "results": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "pass",
+              "fail",
+              "warn",
+              "error",
+              "na"
+            ]
+          },
+          "check_id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high",
+              "critical"
+            ]
+          },
+          "observed": {
+            "type": [
+              "string",
+              "number",
+              "boolean",
+              "object",
+              "array",
+              "null"
+            ]
+          },
+          "expected": {
+            "type": [
+              "string",
+              "number",
+              "boolean",
+              "object",
+              "array",
+              "null"
+            ]
+          },
+          "remediation": {
+            "type": "string"
+          },
+          "evidence_files": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "evidence_hashes": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "windows",
+              "azure",
+              "entra",
+              "m365",
+              "network",
+              "other"
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -149,6 +149,7 @@ export async function POST(
       .insert(governanceRegisterEntryFiles)
       .values({
         registerEntryId: entryId,
+        boundaryId: entry.boundaryId,
         fileUrl: result.fileUrl,
         storageKey: result.fileId,
         sha256Hash: hash,
@@ -159,7 +160,7 @@ export async function POST(
       })
       .returning();
 
-    await logEntryEvent(orgId, entryId, "attachment_added", user?.id ?? null, {
+    await logEntryEvent(orgId, entryId, entry.boundaryId, "attachment_added", user?.id ?? null, {
       fileId: row?.id,
       originalFilename,
       sha256: hash,

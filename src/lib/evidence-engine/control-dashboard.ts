@@ -3,8 +3,8 @@
  * All control/register definitions come from artifacts; DB holds entries only.
  */
 import { db } from "@/db";
-import { governanceRegisters, governanceRegisterEntries } from "@/db/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { boundaries, governanceRegisters, governanceRegisterEntries } from "@/db/schema";
+import { eq, and, sql, asc } from "drizzle-orm";
 import { getEvidenceMap } from "@/data/cmmc";
 import { getRegisterSchemaByRegisterId } from "@/data/cmmc/register-schemas";
 import { getRegisterCadenceRules, getCadenceRuleByRegisterId } from "@/data/cmmc/register-cadence-rules";
@@ -119,10 +119,13 @@ export async function ensureEvidenceEngineRegistersForOrg(orgId: string): Promis
 }
 
 /**
- * Get per-register stats for the org: has final entry in cadence window, and last finalized_at.
- * Keys are register_key (from evidence map id).
+ * Get per-register stats for the org and boundary: has final entry in cadence window, and last finalized_at.
+ * Keys are register_key (from evidence map id). All entry queries are scoped to boundaryId.
  */
-export async function getRegisterStatsForOrg(orgId: string): Promise<Map<string, RegisterStats>> {
+export async function getRegisterStatsForOrgAndBoundary(
+  orgId: string,
+  boundaryId: string
+): Promise<Map<string, RegisterStats>> {
   const evidenceMap = getEvidenceMap();
   const registerIds = evidenceMap.registers.map((r) => r.id);
 
@@ -215,7 +218,7 @@ export async function getRegisterStatsForOrg(orgId: string): Promise<Map<string,
     SELECT DISTINCT ON (e.register_id) e.register_id, e.status, e.created_at
     FROM governance_register_entries e
     INNER JOIN governance_registers r ON r.id = e.register_id
-    WHERE r.organization_id = ${orgId}
+    WHERE r.organization_id = ${orgId} AND e.boundary_id = ${boundaryId}
     ORDER BY e.register_id, e.created_at DESC
   `);
   const latestRows = Array.isArray(latestEntryResult)
@@ -238,7 +241,12 @@ export async function getRegisterStatsForOrg(orgId: string): Promise<Map<string,
     })
     .from(governanceRegisterEntries)
     .innerJoin(governanceRegisters, eq(governanceRegisterEntries.registerId, governanceRegisters.id))
-    .where(eq(governanceRegisters.organizationId, orgId))
+    .where(
+      and(
+        eq(governanceRegisters.organizationId, orgId),
+        eq(governanceRegisterEntries.boundaryId, boundaryId)
+      )
+    )
     .groupBy(governanceRegisterEntries.registerId);
 
   const totalByRegId = new Map(totalCountByRegister.map((r) => [r.registerId, r.total ?? 0]));
@@ -253,6 +261,7 @@ export async function getRegisterStatsForOrg(orgId: string): Promise<Map<string,
     .where(
       and(
         eq(governanceRegisters.organizationId, orgId),
+        eq(governanceRegisterEntries.boundaryId, boundaryId),
         eq(governanceRegisterEntries.status, "final"),
         sql`${governanceRegisterEntries.finalizedAt} IS NOT NULL`
       )
@@ -304,6 +313,22 @@ export async function getRegisterStatsForOrg(orgId: string): Promise<Map<string,
     }
   }
   return result;
+}
+
+/**
+ * Get per-register stats for the org (uses first boundary for backward compatibility).
+ * Prefer getRegisterStatsForOrgAndBoundary(orgId, boundaryId) when boundary is known.
+ */
+export async function getRegisterStatsForOrg(orgId: string): Promise<Map<string, RegisterStats>> {
+  const first = await db
+    .select({ id: boundaries.id })
+    .from(boundaries)
+    .where(eq(boundaries.organizationId, orgId))
+    .orderBy(asc(boundaries.createdAt))
+    .limit(1);
+  const boundaryId = first[0]?.id;
+  if (!boundaryId) return new Map();
+  return getRegisterStatsForOrgAndBoundary(orgId, boundaryId);
 }
 
 /**

@@ -24,7 +24,8 @@
     "validate-os-evidence-manifest": "tsx src/scripts/validate-os-evidence-manifest.ts",
     "validate-satisfaction-sources": "tsx src/scripts/validate-satisfaction-sources.ts",
     "governance-inventory": "tsx src/scripts/governance-inventory.ts",
-    "sync-matrix": "tsx src/scripts/sync-governance-matrix.ts"
+    "sync-matrix": "tsx src/scripts/sync-governance-matrix.ts",
+    "normalize-collector-run": "tsx src/scripts/normalize-collector-run.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.995.0",
@@ -48,7 +49,9 @@
     "react-hot-toast": "^2.6.0",
     "recharts": "^3.7.0",
     "resend": "^6.9.2",
-    "zod": "^4.3.6"
+    "zod": "^4.3.6",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

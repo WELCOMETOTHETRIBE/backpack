@@ -6,12 +6,14 @@ import { requireOrg, requireRole } from "@/lib/auth";
 import { logGovernanceAudit } from "@/lib/governance/audit";
 import { errorResponse } from "@/lib/evidence-engine/api-errors";
 import { logEntryEvent } from "@/lib/evidence-engine/entry-events";
+import { requireBoundaryForOrg } from "@/lib/evidence-engine/validate-boundary";
 
 /**
  * GET /api/evidence-engine/entries/[entryId] — get single entry with register key for summary/labels.
+ * Query: boundary_id (required).
  */
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ entryId: string }> }
 ) {
   try {
@@ -20,11 +22,19 @@ export async function GET(
     const { entryId } = await params;
     if (!entryId) return errorResponse("entryId required", 400);
 
+    const { searchParams } = new URL(req.url);
+    const boundaryResult = await requireBoundaryForOrg(orgId, searchParams.get("boundary_id"));
+    if (boundaryResult instanceof NextResponse) return boundaryResult;
+    const { boundary } = boundaryResult;
+
     const [entry] = await db
       .select()
       .from(governanceRegisterEntries)
       .where(eq(governanceRegisterEntries.id, entryId));
     if (!entry) return errorResponse("Entry not found", 404);
+    if (entry.boundaryId !== boundary.id) {
+      return errorResponse("Invalid or unauthorized boundary", 400, { code: "VALIDATION_ERROR" });
+    }
 
     const [register] = await db
       .select()
@@ -50,8 +60,8 @@ export async function GET(
 
 /**
  * PATCH /api/evidence-engine/entries/[entryId]
- * Body: { status: "final" } — finalize entry (approver only: Admin).
- * Optionally { entryData } to update draft entry (editor: Compliance or Admin).
+ * Body: { boundary_id: string, status?: "final", entryData?: ..., void?: boolean, voidReason?: string }
+ * boundary_id required. Finalize/void/update as documented.
  */
 export async function PATCH(
   req: Request,
@@ -69,6 +79,15 @@ export async function PATCH(
       .where(eq(governanceRegisterEntries.id, entryId));
     if (!entry) return errorResponse("Entry not found", 404);
 
+    const body = await req.json().catch(() => ({}));
+    const boundaryId = (body.boundary_id ?? body.boundaryId ?? new URL(req.url).searchParams.get("boundary_id")) as string | undefined;
+    const boundaryResult = await requireBoundaryForOrg(orgId, boundaryId);
+    if (boundaryResult instanceof NextResponse) return boundaryResult;
+    const { boundary } = boundaryResult;
+    if (entry.boundaryId !== boundary.id) {
+      return errorResponse("Invalid or unauthorized boundary", 400, { code: "VALIDATION_ERROR" });
+    }
+
     const [register] = await db
       .select()
       .from(governanceRegisters)
@@ -79,8 +98,6 @@ export async function PATCH(
         )
       );
     if (!register) return errorResponse("Register not found", 404);
-
-    const body = await req.json().catch(() => ({}));
 
     if (body.status === "final") {
       const role = (user as { role?: string }).role;
@@ -106,7 +123,7 @@ export async function PATCH(
         })
         .where(eq(governanceRegisterEntries.id, entryId));
       await logGovernanceAudit(orgId, user.id ?? null, "governance_register_entry_finalized", "governance_register_entry", entryId, { registerKey: register.registerKey });
-      await logEntryEvent(orgId, entryId, "finalized", user.id ?? null, { summary: "Entry finalized" });
+      await logEntryEvent(orgId, entryId, entry.boundaryId, "finalized", user.id ?? null, { summary: "Entry finalized" });
       const [updated] = await db
         .select()
         .from(governanceRegisterEntries)
@@ -138,7 +155,7 @@ export async function PATCH(
         })
         .where(eq(governanceRegisterEntries.id, entryId));
       await logGovernanceAudit(orgId, user.id ?? null, "governance_register_entry_voided", "governance_register_entry", entryId, { registerKey: register.registerKey, voidReason });
-      await logEntryEvent(orgId, entryId, "voided", user.id ?? null, { voidReason });
+      await logEntryEvent(orgId, entryId, entry.boundaryId, "voided", user.id ?? null, { voidReason });
       const [updated] = await db
         .select()
         .from(governanceRegisterEntries)
@@ -163,7 +180,7 @@ export async function PATCH(
         })
         .where(eq(governanceRegisterEntries.id, entryId));
       await logGovernanceAudit(orgId, user.id ?? null, "governance_register_entry_updated", "governance_register_entry", entryId, { registerKey: register.registerKey });
-      await logEntryEvent(orgId, entryId, "updated", user.id ?? null, { summary: "Fields updated" });
+      await logEntryEvent(orgId, entryId, entry.boundaryId, "updated", user.id ?? null, { summary: "Fields updated" });
       const [updated] = await db
         .select()
         .from(governanceRegisterEntries)

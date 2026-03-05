@@ -1945,6 +1945,37 @@
           ]
         }
       ]
+    },
+    {
+      "register_id": "technical_compliance_run",
+      "description": "Technical compliance collector run (event-driven). One entry per run.",
+      "default_cadence_days": 0,
+      "entry_types": [
+        {
+          "type": "collector_run",
+          "short_help": "Ingested collector run with run_manifest, control_results, evidence_index.",
+          "required": [
+            "run_id",
+            "overall_status",
+            "checks_total",
+            "pass",
+            "fail",
+            "warn",
+            "error",
+            "na",
+            "collector_version",
+            "vault_outputs_root"
+          ],
+          "optional": [
+            "boundary_id",
+            "run_manifest_summary"
+          ],
+          "enums": {
+            "overall_status": ["pass", "fail", "warn", "error"]
+          },
+          "recommended_attachments": []
+        }
+      ]
     }
   ]
 }

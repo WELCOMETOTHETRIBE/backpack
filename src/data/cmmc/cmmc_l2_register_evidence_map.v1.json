@@ -120,6 +120,11 @@
       "id": "policy_review",
       "name": "Policy Review Log",
       "cadence_hint": "Annually + after major changes/incidents"
+    },
+    {
+      "id": "technical_compliance_run",
+      "name": "Technical Compliance Run",
+      "cadence_hint": "Event-driven (per collector run)."
     }
   ],
   "controls": [

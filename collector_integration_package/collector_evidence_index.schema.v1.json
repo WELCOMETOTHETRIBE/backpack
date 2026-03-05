@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mactech.collector.evidence-index.schema.v1",
+  "title": "MacTech Collector Evidence Index v1",
+  "type": "object",
+  "required": [
+    "schema",
+    "version",
+    "run_id",
+    "boundary_id",
+    "organization_id",
+    "files"
+  ],
+  "properties": {
+    "schema": {
+      "const": "mactech.collector.evidence-index.v1"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "organization_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "boundary_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "path",
+          "sha256",
+          "bytes"
+        ],
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[A-Fa-f0-9]{64}$"
+          },
+          "bytes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "content_type": {
+            "type": "string"
+          },
+          "exportable": {
+            "type": "boolean"
+          },
+          "contains_sensitive": {
+            "type": "boolean"
+          },
+          "produced_by": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

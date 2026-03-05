@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { requireOrg, requireRole } from "@/lib/auth";
 import { buildSSPMdx } from "@/lib/evidence-engine/ssp-generator";
+import { requireBoundaryForOrg } from "@/lib/evidence-engine/validate-boundary";
 
 /**
  * GET /api/evidence-engine/ssp — Build SSP draft MDX with placeholder substitution.
- * ?download=1 returns attachment with filename SSP_Draft_<date>.mdx
+ * Query: boundary_id (required). ?download=1 returns attachment with filename SSP_Draft_<date>.mdx
  */
 export async function GET(request: Request) {
   try {
@@ -12,9 +13,13 @@ export async function GET(request: Request) {
     await requireRole(["Admin", "Compliance", "Assessor"]);
 
     const { searchParams } = new URL(request.url);
+    const boundaryResult = await requireBoundaryForOrg(orgId, searchParams.get("boundary_id"));
+    if (boundaryResult instanceof NextResponse) return boundaryResult;
+    const { boundary } = boundaryResult;
+
     const download = searchParams.get("download") === "1";
 
-    const mdx = await buildSSPMdx(orgId);
+    const mdx = await buildSSPMdx(orgId, boundary.id);
 
     if (download) {
       const date = new Date().toISOString().slice(0, 10);

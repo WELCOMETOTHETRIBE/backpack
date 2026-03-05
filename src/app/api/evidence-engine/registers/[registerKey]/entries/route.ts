@@ -8,10 +8,11 @@ import { logGovernanceAudit } from "@/lib/governance/audit";
 import { errorResponse } from "@/lib/evidence-engine/api-errors";
 import { validateEntryData } from "@/lib/evidence-engine/validate-entry-data";
 import { logEntryEvent } from "@/lib/evidence-engine/entry-events";
+import { requireBoundaryForOrg } from "@/lib/evidence-engine/validate-boundary";
 
 /**
  * GET /api/evidence-engine/registers/[registerKey]/entries
- * Query: page, limit, auditor=1 to show only finalized entries.
+ * Query: boundary_id (required), page, limit, auditor=1 to show only finalized entries.
  */
 export async function GET(
   req: Request,
@@ -22,6 +23,12 @@ export async function GET(
     await requireRole(["Admin", "Compliance", "Assessor"]);
     const { registerKey } = await params;
     if (!registerKey) return errorResponse("registerKey required", 400);
+
+    const { searchParams } = new URL(req.url);
+    const boundaryId = searchParams.get("boundary_id");
+    const boundaryResult = await requireBoundaryForOrg(orgId, boundaryId);
+    if (boundaryResult instanceof NextResponse) return boundaryResult;
+    const { boundary: _boundary } = boundaryResult;
 
     const [register] = await db
       .select()
@@ -35,13 +42,15 @@ export async function GET(
 
     if (!register) return errorResponse("Register not found", 404);
 
-    const { searchParams } = new URL(req.url);
     const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10));
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") ?? "20", 10)));
     const offset = (page - 1) * limit;
     const auditorOnly = searchParams.get("auditor") === "1";
 
-    const conditions = [eq(governanceRegisterEntries.registerId, register.id)];
+    const conditions = [
+      eq(governanceRegisterEntries.registerId, register.id),
+      eq(governanceRegisterEntries.boundaryId, _boundary.id),
+    ];
     if (auditorOnly) {
       conditions.push(eq(governanceRegisterEntries.status, "final"));
     }
@@ -79,7 +88,7 @@ export async function GET(
 
 /**
  * POST /api/evidence-engine/registers/[registerKey]/entries
- * Body: { entry_type: string, entryData: Record<string, unknown> }
+ * Body: { boundary_id: string, entry_type: string, entryData: Record<string, unknown> }
  * Validates against register schema (required fields, enums), creates entry as draft.
  */
 export async function POST(
@@ -91,6 +100,12 @@ export async function POST(
     const user = await requireRole(["Admin", "Compliance"]);
     const { registerKey } = await params;
     if (!registerKey) return errorResponse("registerKey required", 400);
+
+    const body = await req.json().catch(() => ({}));
+    const boundaryId = (body.boundary_id ?? body.boundaryId) as string | undefined;
+    const boundaryResult = await requireBoundaryForOrg(orgId, boundaryId);
+    if (boundaryResult instanceof NextResponse) return boundaryResult;
+    const { boundary } = boundaryResult;
 
     const schema = getRegisterSchemaByRegisterId(registerKey);
     if (!schema) return errorResponse("Register schema not found", 404);
@@ -106,7 +121,6 @@ export async function POST(
       );
     if (!register) return errorResponse("Register not found", 404);
 
-    const body = await req.json().catch(() => ({}));
     const entryType = (body.entry_type ?? body.entryType) as string | undefined;
     const entryData = (body.entryData ?? {}) as Record<string, unknown>;
 
@@ -129,6 +143,7 @@ export async function POST(
       .insert(governanceRegisterEntries)
       .values({
         registerId: register.id,
+        boundaryId: boundary.id,
         entryType,
         status: "draft",
         entryData: validatedData,
@@ -139,7 +154,7 @@ export async function POST(
 
     await logGovernanceAudit(orgId, user.id ?? null, "governance_register_entry_created", "governance_register_entry", entry?.id ?? null, { registerKey, entry_type: entryType });
     if (entry?.id) {
-      await logEntryEvent(orgId, entry.id, "created", user.id ?? null, { entry_type: entryType });
+      await logEntryEvent(orgId, entry.id, boundary.id, "created", user.id ?? null, { entry_type: entryType });
     }
 
     return NextResponse.json(entry);

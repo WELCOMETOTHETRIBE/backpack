@@ -6,11 +6,13 @@ export type EntryEventType =
   | "updated"
   | "finalized"
   | "attachment_added"
-  | "voided";
+  | "voided"
+  | "collector_run_ingested";
 
 export async function logEntryEvent(
   orgId: string,
   entryId: string,
+  boundaryId: string,
   eventType: EntryEventType,
   actorUserId: string | null,
   eventJson?: Record<string, unknown>
@@ -18,6 +20,7 @@ export async function logEntryEvent(
   await db.insert(governanceEntryEvents).values({
     orgId,
     entryId,
+    boundaryId,
     actorUserId: actorUserId ?? null,
     eventType,
     eventJson: eventJson ?? null,

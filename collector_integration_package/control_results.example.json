@@ -1,0 +1,37 @@
+{
+  "schema": "mactech.collector.control-results.v1",
+  "version": "1.0.0",
+  "run_id": "20260305T074916Z-a00d8782",
+  "organization_id": "b6e1b0e2-c589-4c72-8cd2-43de8619fced",
+  "boundary_id": "e2a587cf-fd7d-4ce6-b224-a56db31fa52d",
+  "results": {
+    "AC.L2-3.1.3": {
+      "status": "pass",
+      "check_id": "WIN-AC-003",
+      "title": "Network access is controlled (firewall on, inbound rules restricted)",
+      "severity": "high",
+      "source": "windows",
+      "evidence_files": [
+        "network/firewall-rules-summary.txt",
+        "network/listening-ports.txt"
+      ],
+      "evidence_hashes": {
+        "network/firewall-rules-summary.txt": "<sha256>",
+        "network/listening-ports.txt": "<sha256>"
+      }
+    },
+    "IA.L2-3.5.3": {
+      "status": "fail",
+      "check_id": "ENTRA-IA-005",
+      "title": "MFA enforced for privileged access",
+      "severity": "critical",
+      "source": "entra",
+      "observed": "Conditional Access policy not enforcing MFA for Admin roles",
+      "expected": "MFA required for all privileged roles",
+      "remediation": "Create/enable Conditional Access policy requiring MFA for privileged roles and verify exclusion list is empty or justified.",
+      "evidence_files": [
+        "entra/conditional-access.json"
+      ]
+    }
+  }
+}

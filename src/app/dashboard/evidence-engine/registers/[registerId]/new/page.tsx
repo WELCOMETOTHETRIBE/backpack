@@ -8,14 +8,16 @@ import { getRegisterSchemaByRegisterId } from "@/data/cmmc/register-schemas";
 import { getFieldLabelsAndSummaries } from "@/data/cmmc/field-labels-and-summaries";
 import { CreateEntryForm } from "./CreateEntryForm";
 
-type PageProps = { params: Promise<{ registerId: string }> };
+type PageProps = { params: Promise<{ registerId: string }>; searchParams: Promise<{ boundary?: string }> };
 
-export default async function NewEvidenceEntryPage({ params }: PageProps) {
+export default async function NewEvidenceEntryPage({ params, searchParams }: PageProps) {
   const session = await auth();
   const orgId = (session?.user as { organizationId?: string })?.organizationId;
   if (!orgId) redirect("/auth/signin");
 
   const { registerId: registerKey } = await params;
+  const { boundary: boundaryParam } = await searchParams;
+  const boundaryId = boundaryParam?.trim() ?? null;
   const schema = getRegisterSchemaByRegisterId(registerKey);
 
   const [register] = await db
@@ -42,13 +44,14 @@ export default async function NewEvidenceEntryPage({ params }: PageProps) {
     );
   }
 
+  const backHref = boundaryId
+    ? `/dashboard/evidence-engine/registers/${encodeURIComponent(registerKey)}?boundary=${encodeURIComponent(boundaryId)}`
+    : `/dashboard/evidence-engine/registers/${encodeURIComponent(registerKey)}`;
+
   return (
     <div className="space-y-6">
       <div>
-        <Link
-          href={`/dashboard/evidence-engine/registers/${encodeURIComponent(registerKey)}`}
-          className="text-sm text-[var(--color-gray-600)] hover:underline"
-        >
+        <Link href={backHref} className="text-sm text-[var(--color-gray-600)] hover:underline">
           ← {register.name}
         </Link>
         <h2 className="mt-1 text-xl font-semibold text-[var(--color-navy-primary)]">
@@ -64,6 +67,7 @@ export default async function NewEvidenceEntryPage({ params }: PageProps) {
         registerName={register.name}
         schema={schema}
         fieldLabels={getFieldLabelsAndSummaries().fields}
+        boundaryId={boundaryId}
       />
     </div>
   );

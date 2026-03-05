@@ -63,16 +63,21 @@ function controlConfidence(
 
 export type ResponsibilityByControl = Map<string, { responsibilityModel: string }>;
 
+/** Optional technical evidence from latest collector run: control_id -> status (pass/fail/warn/error/na). */
+export type TechnicalResultsByControl = Map<string, { status: string }>;
+
 /**
  * Score all controls from the assessment logic artifact using current register stats.
  * Optional responsibilitiesByControl: when azure_inherited, do not set fail solely for missing operational evidence.
+ * Optional technicalResultsByControl: technical check result from latest run; fail -> control fail (unless azure_inherited), pass -> can raise confidence.
  */
 export function computeScoring(
   statsByRegister: Map<string, RegisterStats>,
-  options?: { responsibilitiesByControl?: ResponsibilityByControl }
+  options?: { responsibilitiesByControl?: ResponsibilityByControl; technicalResultsByControl?: TechnicalResultsByControl }
 ): ScoringResult {
   const assessmentLogic = getControlAssessmentLogic();
   const responsibilitiesByControl = options?.responsibilitiesByControl;
+  const technicalResultsByControl = options?.technicalResultsByControl;
   const controls: ControlScore[] = [];
   const familyCounts: Record<string, { pass: number; partial: number; fail: number; na: number }> = {};
 
@@ -149,7 +154,21 @@ export function computeScoring(
       }
     }
 
-    const confidencePercent = controlConfidence(registerKeys, statsByRegister);
+    // Technical evidence: fail overrides to fail (unless azure_inherited); pass can raise confidence.
+    const techResult = technicalResultsByControl?.get(c.control_id);
+    if (techResult) {
+      if (techResult.status === "fail" && responsibilityModel !== "azure_inherited") {
+        controlStatus = "fail";
+        reasons.push("Technical check failed (collector run).");
+      } else if (techResult.status === "pass" && controlStatus !== "fail") {
+        reasons.push("Technical check passed.");
+      }
+    }
+
+    let confidencePercent = controlConfidence(registerKeys, statsByRegister);
+    if (techResult?.status === "pass" && confidencePercent < 100) {
+      confidencePercent = Math.min(100, confidencePercent + 10);
+    }
     controls.push({
       controlId: c.control_id,
       family: c.family,

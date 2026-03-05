@@ -9,13 +9,14 @@ type Props = {
   registerName: string;
   schema: RegisterSchema;
   fieldLabels: Record<string, string>;
+  boundaryId: string | null;
 };
 
 function isDateLikeKey(key: string): boolean {
   return /_at$|_date$|date|period_start|period_end|effective_date|completed_at|reviewed_at|approved_at|created_at/i.test(key);
 }
 
-export function CreateEntryForm({ registerKey, registerName, schema, fieldLabels }: Props) {
+export function CreateEntryForm({ registerKey, registerName, schema, fieldLabels, boundaryId }: Props) {
   const router = useRouter();
   const [selectedEntryType, setSelectedEntryType] = useState<string | null>(null);
   const [formData, setFormData] = useState<Record<string, string>>({});
@@ -56,11 +57,16 @@ export function CreateEntryForm({ registerKey, registerName, schema, fieldLabels
       setSubmitting(false);
       return;
     }
+    if (!boundaryId) {
+      setError("Boundary is required. Go back and select a boundary.");
+      setSubmitting(false);
+      return;
+    }
     try {
       const res = await fetch(`/api/evidence-engine/registers/${encodeURIComponent(registerKey)}/entries`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ entry_type: selectedEntryType, entryData }),
+        body: JSON.stringify({ boundary_id: boundaryId, entry_type: selectedEntryType, entryData }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -71,7 +77,7 @@ export function CreateEntryForm({ registerKey, registerName, schema, fieldLabels
         setSubmitting(false);
         return;
       }
-      router.push(`/dashboard/evidence-engine/registers/${encodeURIComponent(registerKey)}`);
+      router.push(`/dashboard/evidence-engine/registers/${encodeURIComponent(registerKey)}?boundary=${encodeURIComponent(boundaryId)}`);
       router.refresh();
     } catch {
       setError("Request failed");

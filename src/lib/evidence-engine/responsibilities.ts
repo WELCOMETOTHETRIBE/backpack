@@ -62,9 +62,17 @@ export async function getResponsibilitiesForOrg(orgId: string, boundaryId: strin
   return map;
 }
 
-/** Get responsibility for a single control (DB or template). */
+/**
+ * Get responsibility for a single control (DB or template).
+ * Lookup order: 1) (org_id, boundary_id, control_id) 2) (org_id, boundary_id = null, control_id).
+ */
 export async function getResponsibilityForControl(orgId: string, controlId: string, boundaryId: string | null = null): Promise<ResponsibilityInfo | null> {
-  const byOrg = await getResponsibilitiesForOrg(orgId, boundaryId);
+  if (boundaryId != null && boundaryId !== "") {
+    const byBoundary = await getResponsibilitiesForOrg(orgId, boundaryId);
+    const fromBoundary = byBoundary.get(controlId);
+    if (fromBoundary) return fromBoundary;
+  }
+  const byOrg = await getResponsibilitiesForOrg(orgId, null);
   const fromDb = byOrg.get(controlId);
   if (fromDb) return fromDb;
   const template = getResponsibilityByControlId(controlId);

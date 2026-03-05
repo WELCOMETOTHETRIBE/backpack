@@ -10,7 +10,7 @@ import {
 import { eq, and, desc } from "drizzle-orm";
 import archiver from "archiver";
 import { getStorageService } from "@/lib/storage";
-import { ensureEvidenceEngineRegistersForOrg, getRegisterStatsForOrg } from "@/lib/evidence-engine/control-dashboard";
+import { ensureEvidenceEngineRegistersForOrg, getRegisterStatsForOrgAndBoundary } from "@/lib/evidence-engine/control-dashboard";
 import { computeScoring } from "@/lib/evidence-engine/scoring";
 import { getEvidenceMap } from "@/data/cmmc/evidence-map";
 import { getRegisterSchemas } from "@/data/cmmc/register-schemas";
@@ -21,6 +21,7 @@ import {
   renderSummary,
   getFallbackSummary,
 } from "@/data/cmmc/field-labels-and-summaries";
+import { requireBoundaryForOrg } from "@/lib/evidence-engine/validate-boundary";
 
 function csvEscape(s: string | null | undefined): string {
   if (s == null) return "";
@@ -34,14 +35,19 @@ function safeZipName(prefix: string, name: string): string {
   return `${prefix}/${safe}`.slice(0, 120);
 }
 
-/** GET /api/evidence-engine/export/auditor-bundle — C3PAO auditor export ZIP (Admin only) */
-export async function GET() {
+/** GET /api/evidence-engine/export/auditor-bundle — C3PAO auditor export ZIP (Admin only). Query: boundary_id (required). */
+export async function GET(request: Request) {
   try {
     const orgId = await requireOrg();
     await requireRole(["Admin"]);
 
+    const { searchParams } = new URL(request.url);
+    const boundaryResult = await requireBoundaryForOrg(orgId, searchParams.get("boundary_id"));
+    if (boundaryResult instanceof NextResponse) return boundaryResult;
+    const { boundary } = boundaryResult;
+
     await ensureEvidenceEngineRegistersForOrg(orgId);
-    const statsByRegister = await getRegisterStatsForOrg(orgId);
+    const statsByRegister = await getRegisterStatsForOrgAndBoundary(orgId, boundary.id);
     const scoring = computeScoring(statsByRegister);
 
     const date = new Date().toISOString().slice(0, 10);
@@ -73,18 +79,36 @@ export async function GET() {
         "==============================",
         "",
         `Organization ID: ${orgId}`,
+        `Boundary ID: ${boundary.id}`,
         `Export timestamp: ${new Date().toISOString()}`,
         "",
         "WARNING: This export must not contain CUI unless explicitly allowed.",
         "Only non-CUI or explicitly exportable items should be included.",
         "",
         "Contents:",
+        "- boundary.json   Boundary metadata",
         "- evidence_model/  Artifact definitions (no CUI)",
         "- reports/        control_dashboard.csv, registers.csv, entries.csv",
         "- entries/        One JSON per entry (metadata, rendered summary, timeline, attachments)",
         "- attachments/    Exportable files or attachments_metadata.csv",
       ].join("\n");
       archive.append(readme, { name: "README.txt" });
+
+      archive.append(
+        JSON.stringify(
+          {
+            boundary_id: boundary.id,
+            name: boundary.name,
+            scope_components: boundary.scopeComponents ?? [],
+            cloud_provider: boundary.cloudProvider ?? null,
+            azure_environment: boundary.azureEnvironment ?? null,
+            boundary_type: boundary.boundaryType ?? "cui_enclave",
+          },
+          null,
+          2
+        ),
+        { name: "boundary.json" }
+      );
 
       // ----- evidence_model/ -----
       const evidenceMap = getEvidenceMap();
@@ -120,7 +144,7 @@ export async function GET() {
         const entries = await db
           .select({ id: governanceRegisterEntries.id, status: governanceRegisterEntries.status, finalizedAt: governanceRegisterEntries.finalizedAt })
           .from(governanceRegisterEntries)
-          .where(eq(governanceRegisterEntries.registerId, reg.id));
+          .where(and(eq(governanceRegisterEntries.registerId, reg.id), eq(governanceRegisterEntries.boundaryId, boundary.id)));
         entryCountByReg.set(reg.registerKey, entries.length);
         const lastFinal = entries
           .filter((e) => e.status === "final" && e.finalizedAt)
@@ -144,12 +168,17 @@ export async function GET() {
       const regCsv = [regHeader.join(","), ...regRows.map((r) => r.map(csvEscape).join(","))].join("\n");
       archive.append(regCsv, { name: "reports/registers.csv" });
 
-      // ----- reports/entries.csv + entries/*.json + attachments -----
+      // ----- reports/entries.csv + entries/*.json + attachments (boundary-scoped) -----
       const allEntries = await db
         .select()
         .from(governanceRegisterEntries)
         .innerJoin(governanceRegisters, eq(governanceRegisterEntries.registerId, governanceRegisters.id))
-        .where(eq(governanceRegisters.organizationId, orgId))
+        .where(
+          and(
+            eq(governanceRegisters.organizationId, orgId),
+            eq(governanceRegisterEntries.boundaryId, boundary.id)
+          )
+        )
         .orderBy(desc(governanceRegisterEntries.createdAt));
 
       const entriesHeader = ["entry_id", "register_key", "entry_type", "status", "finalized_at", "created_at", "exportable", "attachment_count"];
@@ -186,7 +215,13 @@ export async function GET() {
             eventJson: governanceEntryEvents.eventJson,
           })
           .from(governanceEntryEvents)
-          .where(and(eq(governanceEntryEvents.entryId, entryId), eq(governanceEntryEvents.orgId, orgId)))
+          .where(
+            and(
+              eq(governanceEntryEvents.entryId, entryId),
+              eq(governanceEntryEvents.orgId, orgId),
+              eq(governanceEntryEvents.boundaryId, boundary.id)
+            )
+          )
           .orderBy(desc(governanceEntryEvents.eventAt));
 
         const data = (entry.entryData ?? {}) as Record<string, unknown>;
