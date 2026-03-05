@@ -176,7 +176,7 @@ export function CreateSystemBoundaryModal({
         {/* Body */}
         <form onSubmit={handleSubmit} className="min-h-0 flex-1 overflow-y-auto">
           <div className="space-y-6 px-6 py-5">
-            {/* Section 1 — Name and description */}
+            {/* Section 1 - Name and description */}
             <section>
               <h3 className="text-sm font-medium text-[var(--color-gray-700)]">
                 Name and description
@@ -211,7 +211,7 @@ export function CreateSystemBoundaryModal({
               </div>
             </section>
 
-            {/* Section 2 — What's in this boundary */}
+            {/* Section 2 - What's in this boundary */}
             <section className="rounded-lg border border-[var(--color-border-muted)] bg-[var(--color-surface-muted)]/50 p-4">
               <h3 className="text-sm font-medium text-[var(--color-gray-700)]">
                 What&apos;s in this boundary?
@@ -255,7 +255,7 @@ export function CreateSystemBoundaryModal({
               </div>
             </section>
 
-            {/* Section 2b — Cloud hosting (optional) */}
+            {/* Section 2b - Cloud hosting (optional) */}
             <section className="rounded-lg border border-[var(--color-border-muted)] bg-[var(--color-surface-muted)]/50 p-4">
               <h3 className="text-sm font-medium text-[var(--color-gray-700)]">
                 Cloud hosting <span className="text-[var(--color-gray-500)]">(optional)</span>
@@ -292,7 +292,7 @@ export function CreateSystemBoundaryModal({
               </div>
             </section>
 
-            {/* Section 3 — Azure environment (conditional) */}
+            {/* Section 3 - Azure environment (conditional) */}
             {showAzureSection && (
               <section className="rounded-lg border border-[var(--color-border-muted)] bg-[var(--color-surface-muted)]/50 p-4">
                 <h3 className="text-sm font-medium text-[var(--color-gray-700)]">
@@ -330,12 +330,12 @@ export function CreateSystemBoundaryModal({
               </section>
             )}
 
-            {/* Section 4 — Azure/Entra baseline (conditional) */}
+            {/* Section 4 - Azure/Entra baseline (conditional) */}
             {showAzureSection && (
               <section className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
                 <h3 className="flex items-center gap-2 text-sm font-medium text-[var(--color-gray-700)]">
                   <Shield className="h-4 w-4 text-[var(--color-blue-accent)]" aria-hidden />
-                  Azure/Entra baseline — 7 controls
+                  Azure/Entra baseline - 7 controls
                 </h3>
                 <p className="mt-0.5 text-xs text-[var(--color-gray-600)]">
                   Configuration in Entra ID and Azure satisfies these NIST 800-171 requirements.
@@ -376,7 +376,7 @@ export function CreateSystemBoundaryModal({
               disabled={saving || !name.trim()}
               className="rounded-lg bg-[var(--color-blue-accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-blue-accent)]"
             >
-              {saving ? "Creating…" : "Create boundary"}
+              {saving ? "Creating..." : "Create boundary"}
             </button>
           </div>
         </form>
