@@ -11,6 +11,7 @@ import {
   primaryKey,
   varchar,
   date,
+  boolean,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -115,6 +116,8 @@ export const governanceControlLinkTypeEnum = pgEnum("governance_control_link_typ
   "register_entry",
   "evidence",
 ]);
+/** Evidence Engine: register entry lifecycle (draft → final → void). */
+export const registerEntryStatusEnum = pgEnum("register_entry_status", ["draft", "final", "void"]);
 
 // ============== OS Baselines (technical implementation plane) ==============
 export const osFamilyEnum = pgEnum("os_family", [
@@ -894,6 +897,10 @@ export const governanceRegisters = pgTable("governance_registers", {
   description: text("description"),
   requiredColumns: jsonb("required_columns").$type<{ key: string; label: string; type: string }[]>().default([]),
   retainForDays: integer("retain_for_days"),
+  /** Evidence Engine: default cadence in days for coverage window (from register_entry_schemas). */
+  defaultCadenceDays: integer("default_cadence_days"),
+  /** Evidence Engine: org override for cadence days; takes precedence over defaultCadenceDays. */
+  cadenceOverrideDays: integer("cadence_override_days"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
@@ -904,6 +911,18 @@ export const governanceRegisterEntries = pgTable("governance_register_entries", 
     .references(() => governanceRegisters.id, { onDelete: "cascade" })
     .notNull(),
   entryData: jsonb("entry_data").$type<Record<string, unknown>>().notNull(),
+  /** Evidence Engine: entry type from schema (e.g. grant_access, offboarding_completed). */
+  entryType: varchar("entry_type", { length: 80 }),
+  /** Evidence Engine: draft | final | void; default draft. */
+  status: registerEntryStatusEnum("status").default("draft").notNull(),
+  finalizedAt: timestamp("finalized_at", { withTimezone: true }),
+  approvedById: uuid("approved_by_id").references(() => users.id),
+  lockedAt: timestamp("locked_at", { withTimezone: true }),
+  lockedById: uuid("locked_by_id").references(() => users.id),
+  voidedAt: timestamp("voided_at", { withTimezone: true }),
+  voidedById: uuid("voided_by_id").references(() => users.id),
+  voidReason: text("void_reason"),
+  exportable: boolean("exportable").default(false).notNull(),
   createdById: uuid("created_by_id").references(() => users.id),
   hold: integer("hold").default(0).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -920,7 +939,24 @@ export const governanceRegisterEntryFiles = pgTable("governance_register_entry_f
   sha256Hash: varchar("sha256_hash", { length: 64 }),
   fileSize: integer("file_size"),
   originalFilename: varchar("original_filename", { length: 255 }),
+  uploadedById: uuid("uploaded_by_id").references(() => users.id),
+  uploadedAt: timestamp("uploaded_at", { withTimezone: true }).defaultNow(),
+  exportable: boolean("exportable").default(false).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const governanceEntryEvents = pgTable("governance_entry_events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  orgId: uuid("org_id")
+    .references(() => organizations.id, { onDelete: "cascade" })
+    .notNull(),
+  entryId: uuid("entry_id")
+    .references(() => governanceRegisterEntries.id, { onDelete: "cascade" })
+    .notNull(),
+  actorUserId: uuid("actor_user_id").references(() => users.id),
+  eventType: text("event_type").notNull(),
+  eventAt: timestamp("event_at", { withTimezone: true }).defaultNow().notNull(),
+  eventJson: jsonb("event_json").$type<Record<string, unknown>>(),
 });
 
 export const governanceEvidenceItems = pgTable("governance_evidence_items", {
@@ -968,6 +1004,31 @@ export const governanceControlLinks = pgTable(
   }
 );
 
+/** Evidence Engine: control responsibility (CUI Vault model) per org and optional boundary. */
+export const governanceControlResponsibilities = pgTable(
+  "governance_control_responsibilities",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: uuid("org_id")
+      .references(() => organizations.id, { onDelete: "cascade" })
+      .notNull(),
+    boundaryId: text("boundary_id"),
+    controlId: text("control_id").notNull(),
+    responsibilityModel: text("responsibility_model").notNull(),
+    azureInheritedJson: jsonb("azure_inherited_json").$type<string[]>(),
+    mactechProvidedJson: jsonb("mactech_provided_json").$type<string[]>(),
+    customerRequiredJson: jsonb("customer_required_json").$type<string[]>(),
+    notesJson: jsonb("notes_json").$type<string[]>(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    index("governance_control_responsibilities_org_id_idx").on(t.orgId),
+    index("governance_control_responsibilities_boundary_id_idx").on(t.boundaryId),
+    index("governance_control_responsibilities_control_id_idx").on(t.controlId),
+  ]
+);
+
 // ============== Relations ==============
 export const organizationsRelations = relations(organizations, ({ one, many }) => ({
   accountBoundary: one(accountBoundary),
@@ -995,6 +1056,7 @@ export const organizationsRelations = relations(organizations, ({ one, many }) =
   governanceDocuments: many(governanceDocuments),
   governanceRegisters: many(governanceRegisters),
   governanceEvidenceItems: many(governanceEvidenceItems),
+  governanceControlResponsibilities: many(governanceControlResponsibilities),
   boundaries: many(boundaries),
   osAssets: many(osAssets),
 }));
@@ -1202,8 +1264,18 @@ export const governanceRegistersRelations = relations(governanceRegisters, ({ on
 
 export const governanceRegisterEntriesRelations = relations(governanceRegisterEntries, ({ one, many }) => ({
   register: one(governanceRegisters),
-  createdBy: one(users),
+  createdBy: one(users, { fields: [governanceRegisterEntries.createdById], references: [users.id] }),
+  approvedBy: one(users, { fields: [governanceRegisterEntries.approvedById], references: [users.id] }),
+  lockedBy: one(users, { fields: [governanceRegisterEntries.lockedById], references: [users.id] }),
+  voidedBy: one(users, { fields: [governanceRegisterEntries.voidedById], references: [users.id] }),
   files: many(governanceRegisterEntryFiles),
+  events: many(governanceEntryEvents),
+}));
+
+export const governanceEntryEventsRelations = relations(governanceEntryEvents, ({ one }) => ({
+  organization: one(organizations, { fields: [governanceEntryEvents.orgId], references: [organizations.id] }),
+  entry: one(governanceRegisterEntries, { fields: [governanceEntryEvents.entryId], references: [governanceRegisterEntries.id] }),
+  actor: one(users, { fields: [governanceEntryEvents.actorUserId], references: [users.id] }),
 }));
 
 export const governanceRegisterEntryFilesRelations = relations(governanceRegisterEntryFiles, ({ one }) => ({
@@ -1223,6 +1295,10 @@ export const governanceEvidenceFilesRelations = relations(governanceEvidenceFile
 
 export const governanceControlLinksRelations = relations(governanceControlLinks, ({ one }) => ({
   controlRecord: one(controlRecords),
+}));
+
+export const governanceControlResponsibilitiesRelations = relations(governanceControlResponsibilities, ({ one }) => ({
+  organization: one(organizations, { fields: [governanceControlResponsibilities.orgId], references: [organizations.id] }),
 }));
 
 export const artifactsRelations = relations(artifacts, ({ one }) => ({

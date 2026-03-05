@@ -1,0 +1,201 @@
+{
+  "schema": "mactech.cmmc.register-cadence-rules.v1",
+  "version": "1.0.0",
+  "generated_at": "2026-03-05T05:54:47Z",
+  "defaults": {
+    "due_soon_days": 14,
+    "health_states": [
+      "healthy",
+      "due_soon",
+      "overdue",
+      "event_driven"
+    ],
+    "notes": "cadence_days=0 indicates event-driven. expected_entries_per_year=0 indicates not cadence-based."
+  },
+  "rules": [
+    {
+      "register_id": "access_authorization",
+      "cadence_type": "quarterly",
+      "cadence_days": 90,
+      "warning_days": 14,
+      "expected_entries_per_year": 4,
+      "notes": "Per-access events are recorded continuously; perform a periodic access review at least quarterly (90 days)."
+    },
+    {
+      "register_id": "role_assignment_matrix",
+      "cadence_type": "quarterly",
+      "cadence_days": 90,
+      "warning_days": 14,
+      "expected_entries_per_year": 4,
+      "notes": "Review role-to-privilege mappings at least quarterly or upon significant change."
+    },
+    {
+      "register_id": "sod_matrix",
+      "cadence_type": "annual",
+      "cadence_days": 365,
+      "warning_days": 30,
+      "expected_entries_per_year": 1,
+      "notes": "Review separation-of-duties matrix at least annually and upon major role/process changes."
+    },
+    {
+      "register_id": "authenticator_mgmt",
+      "cadence_type": "monthly",
+      "cadence_days": 30,
+      "warning_days": 7,
+      "expected_entries_per_year": 12,
+      "notes": "Review credential hygiene and privileged authenticator posture at least monthly; record resets/revocations per event."
+    },
+    {
+      "register_id": "training_completion",
+      "cadence_type": "annual",
+      "cadence_days": 365,
+      "warning_days": 30,
+      "expected_entries_per_year": 1,
+      "notes": "Annual security awareness training completion cycle; new-hire training per onboarding."
+    },
+    {
+      "register_id": "personnel_screening",
+      "cadence_type": "event_driven",
+      "cadence_days": 0,
+      "warning_days": 0,
+      "expected_entries_per_year": 0,
+      "notes": "Per onboarding or screening event (no fixed cadence)."
+    },
+    {
+      "register_id": "termination",
+      "cadence_type": "event_driven",
+      "cadence_days": 0,
+      "warning_days": 0,
+      "expected_entries_per_year": 0,
+      "notes": "Per offboarding/termination event; access revocation should be same-day where possible."
+    },
+    {
+      "register_id": "audit_log_review",
+      "cadence_type": "weekly",
+      "cadence_days": 7,
+      "warning_days": 2,
+      "expected_entries_per_year": 52,
+      "notes": "Routine audit/SIEM review at least weekly (daily is recommended for higher-risk environments)."
+    },
+    {
+      "register_id": "audit_config",
+      "cadence_type": "quarterly",
+      "cadence_days": 90,
+      "warning_days": 14,
+      "expected_entries_per_year": 4,
+      "notes": "Review logging sources, retention, and time-sync at least quarterly; record changes per event."
+    },
+    {
+      "register_id": "control_monitoring",
+      "cadence_type": "monthly",
+      "cadence_days": 30,
+      "warning_days": 7,
+      "expected_entries_per_year": 12,
+      "notes": "Periodic operational control checks/attestations at least monthly (or per internal policy)."
+    },
+    {
+      "register_id": "incident_log",
+      "cadence_type": "event_driven",
+      "cadence_days": 0,
+      "warning_days": 0,
+      "expected_entries_per_year": 0,
+      "notes": "Per incident and per IR test/tabletop exercise (no fixed cadence)."
+    },
+    {
+      "register_id": "maintenance_log",
+      "cadence_type": "event_driven",
+      "cadence_days": 0,
+      "warning_days": 0,
+      "expected_entries_per_year": 0,
+      "notes": "Per maintenance event (scheduled or emergency)."
+    },
+    {
+      "register_id": "media_access",
+      "cadence_type": "monthly",
+      "cadence_days": 30,
+      "warning_days": 7,
+      "expected_entries_per_year": 12,
+      "notes": "Review removable media/external connection activity at least monthly; record each use/exception per event."
+    },
+    {
+      "register_id": "media_destruction",
+      "cadence_type": "event_driven",
+      "cadence_days": 0,
+      "warning_days": 0,
+      "expected_entries_per_year": 0,
+      "notes": "Per sanitization/destruction/return-to-vendor event."
+    },
+    {
+      "register_id": "visitor_log",
+      "cadence_type": "event_driven",
+      "cadence_days": 0,
+      "warning_days": 0,
+      "expected_entries_per_year": 0,
+      "notes": "Per visitor entry/exit event."
+    },
+    {
+      "register_id": "facility_access",
+      "cadence_type": "monthly",
+      "cadence_days": 30,
+      "warning_days": 7,
+      "expected_entries_per_year": 12,
+      "notes": "Review facility/badge access at least monthly; record physical security issues per event."
+    },
+    {
+      "register_id": "baseline_config",
+      "cadence_type": "semiannual",
+      "cadence_days": 180,
+      "warning_days": 21,
+      "expected_entries_per_year": 2,
+      "notes": "Review and refresh baselines at least semiannually or when upstream requirements change (e.g., STIG updates)."
+    },
+    {
+      "register_id": "change_log",
+      "cadence_type": "event_driven",
+      "cadence_days": 0,
+      "warning_days": 0,
+      "expected_entries_per_year": 0,
+      "notes": "Per change request/approval/implementation/rollback event."
+    },
+    {
+      "register_id": "risk_register",
+      "cadence_type": "quarterly",
+      "cadence_days": 90,
+      "warning_days": 14,
+      "expected_entries_per_year": 4,
+      "notes": "Review and update risk register at least quarterly; update after major changes/incidents."
+    },
+    {
+      "register_id": "assessment_findings",
+      "cadence_type": "semiannual",
+      "cadence_days": 180,
+      "warning_days": 21,
+      "expected_entries_per_year": 2,
+      "notes": "Perform formal security assessments at least semiannually or per risk; record findings/retests as performed."
+    },
+    {
+      "register_id": "poam",
+      "cadence_type": "biweekly",
+      "cadence_days": 14,
+      "warning_days": 3,
+      "expected_entries_per_year": 26,
+      "notes": "Update POA&M status at least biweekly until closure (weekly is recommended during active remediation)."
+    },
+    {
+      "register_id": "vuln_remediation",
+      "cadence_type": "weekly",
+      "cadence_days": 7,
+      "warning_days": 2,
+      "expected_entries_per_year": 52,
+      "notes": "Vulnerability triage/remediation cycle at least weekly; critical items may require faster SLAs."
+    },
+    {
+      "register_id": "policy_review",
+      "cadence_type": "annual",
+      "cadence_days": 365,
+      "warning_days": 30,
+      "expected_entries_per_year": 1,
+      "notes": "Review policies/procedures at least annually and after significant changes/incidents."
+    }
+  ]
+}

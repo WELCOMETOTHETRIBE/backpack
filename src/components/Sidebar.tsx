@@ -15,12 +15,14 @@ import {
   BookMarked,
   Server,
   Cpu,
+  ClipboardList,
 } from "lucide-react";
 
 const navigation = [
   { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
   { name: "SCTM", href: "/dashboard/controls", icon: Shield },
   { name: "Governance", href: "/dashboard/governance", icon: BookMarked },
+  { name: "Evidence Engine", href: "/dashboard/evidence-engine", icon: ClipboardList },
   { name: "System Boundary", href: "/dashboard/os-baselines", icon: Server },
   { name: "Technical", href: "/dashboard/technical", icon: Cpu },
   { name: "Documents", href: "/dashboard/documents", icon: FileStack },

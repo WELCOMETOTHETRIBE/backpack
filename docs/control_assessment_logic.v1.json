@@ -1,0 +1,2068 @@
+{
+  "schema": "mactech.cmmc.control-assessment-logic.v1",
+  "version": "1.0.0",
+  "generated_at": "2026-03-05T05:38:39Z",
+  "defaults": {
+    "cadence_window_days": 90,
+    "min_final_entries_per_register": 1,
+    "due_soon_days": 14
+  },
+  "controls": [
+    {
+      "control_id": "3.1.1",
+      "family": "AC",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "access_authorization",
+          "min_final_entries": 1,
+          "cadence_days": 90
+        },
+        {
+          "register_id": "termination",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.1.2",
+      "family": "AC",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "access_authorization",
+          "min_final_entries": 1,
+          "cadence_days": 90
+        },
+        {
+          "register_id": "termination",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.1.3",
+      "family": "AC",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "control_monitoring",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.1.4",
+      "family": "AC",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "role_assignment_matrix",
+          "min_final_entries": 1,
+          "cadence_days": 90
+        },
+        {
+          "register_id": "sod_matrix",
+          "min_final_entries": 1,
+          "cadence_days": 365
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.1.5",
+      "family": "AC",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "access_authorization",
+          "min_final_entries": 1,
+          "cadence_days": 90
+        },
+        {
+          "register_id": "role_assignment_matrix",
+          "min_final_entries": 1,
+          "cadence_days": 90
+        },
+        {
+          "register_id": "termination",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.1.6",
+      "family": "AC",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "access_authorization",
+          "min_final_entries": 1,
+          "cadence_days": 90
+        },
+        {
+          "register_id": "termination",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.1.7",
+      "family": "AC",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "access_authorization",
+          "min_final_entries": 1,
+          "cadence_days": 90
+        },
+        {
+          "register_id": "termination",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.1.8",
+      "family": "AC",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "control_monitoring",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.1.9",
+      "family": "AC",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "control_monitoring",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.1.10",
+      "family": "AC",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "control_monitoring",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.1.11",
+      "family": "AC",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "control_monitoring",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.1.12",
+      "family": "AC",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "control_monitoring",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.1.13",
+      "family": "AC",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "control_monitoring",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.1.14",
+      "family": "AC",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "control_monitoring",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.1.15",
+      "family": "AC",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "access_authorization",
+          "min_final_entries": 1,
+          "cadence_days": 90
+        },
+        {
+          "register_id": "change_log",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        },
+        {
+          "register_id": "termination",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.1.16",
+      "family": "AC",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "access_authorization",
+          "min_final_entries": 1,
+          "cadence_days": 90
+        },
+        {
+          "register_id": "change_log",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        },
+        {
+          "register_id": "termination",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.1.17",
+      "family": "AC",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "control_monitoring",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.1.18",
+      "family": "AC",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "media_access",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.1.19",
+      "family": "AC",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "control_monitoring",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.1.20",
+      "family": "AC",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "access_authorization",
+          "min_final_entries": 1,
+          "cadence_days": 90
+        },
+        {
+          "register_id": "change_log",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.1.21",
+      "family": "AC",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "media_access",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.1.22",
+      "family": "AC",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "control_monitoring",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.2.1",
+      "family": "AT",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "training_completion",
+          "min_final_entries": 1,
+          "cadence_days": 365
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.2.2",
+      "family": "AT",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "training_completion",
+          "min_final_entries": 1,
+          "cadence_days": 365
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.2.3",
+      "family": "AT",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "training_completion",
+          "min_final_entries": 1,
+          "cadence_days": 365
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.3.1",
+      "family": "AU",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "audit_config",
+          "min_final_entries": 1,
+          "cadence_days": 90
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.3.2",
+      "family": "AU",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "audit_config",
+          "min_final_entries": 1,
+          "cadence_days": 90
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.3.3",
+      "family": "AU",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "audit_config",
+          "min_final_entries": 1,
+          "cadence_days": 90
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.3.4",
+      "family": "AU",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "audit_config",
+          "min_final_entries": 1,
+          "cadence_days": 90
+        },
+        {
+          "register_id": "incident_log",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.3.5",
+      "family": "AU",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "audit_log_review",
+          "min_final_entries": 1,
+          "cadence_days": 7
+        },
+        {
+          "register_id": "incident_log",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.3.6",
+      "family": "AU",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "audit_config",
+          "min_final_entries": 1,
+          "cadence_days": 90
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.3.7",
+      "family": "AU",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "audit_config",
+          "min_final_entries": 1,
+          "cadence_days": 90
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.3.8",
+      "family": "AU",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "audit_config",
+          "min_final_entries": 1,
+          "cadence_days": 90
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.3.9",
+      "family": "AU",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "audit_config",
+          "min_final_entries": 1,
+          "cadence_days": 90
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.4.1",
+      "family": "CM",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "baseline_config",
+          "min_final_entries": 1,
+          "cadence_days": 180
+        },
+        {
+          "register_id": "policy_review",
+          "min_final_entries": 1,
+          "cadence_days": 365
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.4.2",
+      "family": "CM",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "baseline_config",
+          "min_final_entries": 1,
+          "cadence_days": 180
+        },
+        {
+          "register_id": "policy_review",
+          "min_final_entries": 1,
+          "cadence_days": 365
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.4.3",
+      "family": "CM",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "baseline_config",
+          "min_final_entries": 1,
+          "cadence_days": 180
+        },
+        {
+          "register_id": "policy_review",
+          "min_final_entries": 1,
+          "cadence_days": 365
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.4.4",
+      "family": "CM",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "baseline_config",
+          "min_final_entries": 1,
+          "cadence_days": 180
+        },
+        {
+          "register_id": "policy_review",
+          "min_final_entries": 1,
+          "cadence_days": 365
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.4.5",
+      "family": "CM",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "change_log",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        },
+        {
+          "register_id": "assessment_findings",
+          "min_final_entries": 1,
+          "cadence_days": 180
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.4.6",
+      "family": "CM",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "change_log",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        },
+        {
+          "register_id": "assessment_findings",
+          "min_final_entries": 1,
+          "cadence_days": 180
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.4.7",
+      "family": "CM",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "change_log",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        },
+        {
+          "register_id": "assessment_findings",
+          "min_final_entries": 1,
+          "cadence_days": 180
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.4.8",
+      "family": "CM",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "change_log",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        },
+        {
+          "register_id": "assessment_findings",
+          "min_final_entries": 1,
+          "cadence_days": 180
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.4.9",
+      "family": "CM",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "change_log",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        },
+        {
+          "register_id": "assessment_findings",
+          "min_final_entries": 1,
+          "cadence_days": 180
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.5.1",
+      "family": "IA",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "access_authorization",
+          "min_final_entries": 1,
+          "cadence_days": 90
+        },
+        {
+          "register_id": "termination",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.5.2",
+      "family": "IA",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "authenticator_mgmt",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        },
+        {
+          "register_id": "audit_log_review",
+          "min_final_entries": 1,
+          "cadence_days": 7
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.5.3",
+      "family": "IA",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "authenticator_mgmt",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        },
+        {
+          "register_id": "audit_log_review",
+          "min_final_entries": 1,
+          "cadence_days": 7
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.5.4",
+      "family": "IA",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "authenticator_mgmt",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.5.5",
+      "family": "IA",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "authenticator_mgmt",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.5.6",
+      "family": "IA",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "authenticator_mgmt",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.5.7",
+      "family": "IA",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "authenticator_mgmt",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.5.8",
+      "family": "IA",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "authenticator_mgmt",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.5.9",
+      "family": "IA",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "authenticator_mgmt",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.5.10",
+      "family": "IA",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "authenticator_mgmt",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.5.11",
+      "family": "IA",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "authenticator_mgmt",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.6.1",
+      "family": "IR",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "incident_log",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.6.2",
+      "family": "IR",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "incident_log",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.6.3",
+      "family": "IR",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "incident_log",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        },
+        {
+          "register_id": "assessment_findings",
+          "min_final_entries": 1,
+          "cadence_days": 180
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.7.1",
+      "family": "MA",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "maintenance_log",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.7.2",
+      "family": "MA",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "maintenance_log",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.7.3",
+      "family": "MA",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "maintenance_log",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        },
+        {
+          "register_id": "change_log",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.7.4",
+      "family": "MA",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "maintenance_log",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        },
+        {
+          "register_id": "change_log",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.7.5",
+      "family": "MA",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "maintenance_log",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.7.6",
+      "family": "MA",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "maintenance_log",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.8.1",
+      "family": "MP",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "media_access",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.8.2",
+      "family": "MP",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "media_access",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.8.3",
+      "family": "MP",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "media_access",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.8.4",
+      "family": "MP",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "media_access",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.8.5",
+      "family": "MP",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "media_destruction",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.8.6",
+      "family": "MP",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "media_destruction",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.8.7",
+      "family": "MP",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "media_destruction",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.8.8",
+      "family": "MP",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "media_destruction",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.8.9",
+      "family": "MP",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "media_destruction",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.9.1",
+      "family": "PS",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "personnel_screening",
+          "min_final_entries": 1,
+          "cadence_days": 9999
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.9.2",
+      "family": "PS",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "termination",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.10.1",
+      "family": "PE",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "facility_access",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.10.2",
+      "family": "PE",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "facility_access",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.10.3",
+      "family": "PE",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "visitor_log",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.10.4",
+      "family": "PE",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "visitor_log",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        },
+        {
+          "register_id": "facility_access",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.10.5",
+      "family": "PE",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "visitor_log",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        },
+        {
+          "register_id": "facility_access",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.10.6",
+      "family": "PE",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "facility_access",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.11.1",
+      "family": "RA",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "risk_register",
+          "min_final_entries": 1,
+          "cadence_days": 90
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.11.2",
+      "family": "RA",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "risk_register",
+          "min_final_entries": 1,
+          "cadence_days": 90
+        },
+        {
+          "register_id": "vuln_remediation",
+          "min_final_entries": 1,
+          "cadence_days": 7
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.11.3",
+      "family": "RA",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "risk_register",
+          "min_final_entries": 1,
+          "cadence_days": 90
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.12.1",
+      "family": "CA",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "assessment_findings",
+          "min_final_entries": 1,
+          "cadence_days": 180
+        },
+        {
+          "register_id": "control_monitoring",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.12.2",
+      "family": "CA",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "poam",
+          "min_final_entries": 1,
+          "cadence_days": 14
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.12.3",
+      "family": "CA",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "assessment_findings",
+          "min_final_entries": 1,
+          "cadence_days": 180
+        },
+        {
+          "register_id": "control_monitoring",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.12.4",
+      "family": "CA",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "policy_review",
+          "min_final_entries": 1,
+          "cadence_days": 365
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.13.1",
+      "family": "SC",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "control_monitoring",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.13.2",
+      "family": "SC",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "control_monitoring",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.13.3",
+      "family": "SC",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "control_monitoring",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.13.5",
+      "family": "SC",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "control_monitoring",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.13.7",
+      "family": "SC",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "control_monitoring",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.13.8",
+      "family": "SC",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "control_monitoring",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.13.10",
+      "family": "SC",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "control_monitoring",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.13.11",
+      "family": "SC",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "control_monitoring",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.13.12",
+      "family": "SC",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "control_monitoring",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.13.13",
+      "family": "SC",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "control_monitoring",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.13.14",
+      "family": "SC",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "control_monitoring",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.13.15",
+      "family": "SC",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "control_monitoring",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.13.16",
+      "family": "SC",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "control_monitoring",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.13.4",
+      "family": "SC",
+      "requires_operational_evidence": false,
+      "register_requirements": [],
+      "scoring": {
+        "na": "no_operational_registers_mapped"
+      }
+    },
+    {
+      "control_id": "3.13.6",
+      "family": "SC",
+      "requires_operational_evidence": false,
+      "register_requirements": [],
+      "scoring": {
+        "na": "no_operational_registers_mapped"
+      }
+    },
+    {
+      "control_id": "3.13.9",
+      "family": "SC",
+      "requires_operational_evidence": false,
+      "register_requirements": [],
+      "scoring": {
+        "na": "no_operational_registers_mapped"
+      }
+    },
+    {
+      "control_id": "3.14.1",
+      "family": "SI",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "vuln_remediation",
+          "min_final_entries": 1,
+          "cadence_days": 7
+        },
+        {
+          "register_id": "control_monitoring",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.14.2",
+      "family": "SI",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "vuln_remediation",
+          "min_final_entries": 1,
+          "cadence_days": 7
+        },
+        {
+          "register_id": "control_monitoring",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.14.3",
+      "family": "SI",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "vuln_remediation",
+          "min_final_entries": 1,
+          "cadence_days": 7
+        },
+        {
+          "register_id": "control_monitoring",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.14.4",
+      "family": "SI",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "vuln_remediation",
+          "min_final_entries": 1,
+          "cadence_days": 7
+        },
+        {
+          "register_id": "control_monitoring",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.14.5",
+      "family": "SI",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "vuln_remediation",
+          "min_final_entries": 1,
+          "cadence_days": 7
+        },
+        {
+          "register_id": "control_monitoring",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.14.6",
+      "family": "SI",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "vuln_remediation",
+          "min_final_entries": 1,
+          "cadence_days": 7
+        },
+        {
+          "register_id": "control_monitoring",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    },
+    {
+      "control_id": "3.14.7",
+      "family": "SI",
+      "requires_operational_evidence": true,
+      "register_requirements": [
+        {
+          "register_id": "vuln_remediation",
+          "min_final_entries": 1,
+          "cadence_days": 7
+        },
+        {
+          "register_id": "control_monitoring",
+          "min_final_entries": 1,
+          "cadence_days": 30
+        },
+        {
+          "register_id": "incident_log",
+          "min_final_entries": 1,
+          "cadence_days": 0
+        }
+      ],
+      "scoring": {
+        "pass": "all_requirements_met",
+        "partial": "some_requirements_met",
+        "fail": "no_requirements_met"
+      }
+    }
+  ]
+}

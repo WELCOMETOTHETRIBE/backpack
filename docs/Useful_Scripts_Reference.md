@@ -21,6 +21,8 @@ Personal reference for scripts in the control-plane and related tooling. Run fro
 | **seed-controls-from-parsed-json.ts** | `npm run seed-controls-from-json` or `npx tsx src/scripts/seed-controls-from-parsed-json.ts <path-to-parsed.json>` | Seeds controls from a parsed JSON file (e.g. from assessment guide or evidence run). |
 | **seed-governance.ts** | `npx tsx src/scripts/seed-governance.ts` | Seeds governance-related data. |
 | **apply-governance-migration.ts** | `npm run db:apply-governance` or `npx tsx src/scripts/apply-governance-migration.ts` | Applies governance migration to the database (requires DATABASE_URL). |
+| **seed-evidence-engine.ts** | `npm run seed-evidence-engine` or `npx tsx src/scripts/seed-evidence-engine.ts` | Seeds 23 Evidence Engine registers (org-null templates) from `src/data/cmmc/` artifacts. Run after schema has Evidence Engine columns. |
+| **apply-evidence-engine-migration.ts** | `npm run apply-evidence-engine-migration` or `DATABASE_URL='...' npx tsx src/scripts/apply-evidence-engine-migration.ts` | Applies Evidence Engine schema (register_entry_status enum, default_cadence_days, entry_type, status, finalized_at, approved_by_id). Use if `db:migrate` fails. Safe to run multiple times. |
 
 ---
 
@@ -68,6 +70,8 @@ Personal reference for scripts in the control-plane and related tooling. Run fro
   `src/scripts/seed-controls-from-parsed-json.ts`  
   `src/scripts/seed-governance.ts`  
   `src/scripts/apply-governance-migration.ts`  
+  `src/scripts/seed-evidence-engine.ts`  
+  `src/scripts/apply-evidence-engine-migration.ts`  
   `src/scripts/sync-governance-matrix.ts`  
   `src/scripts/parse-controls-from-guide.ts`  
   `src/scripts/fix-control-titles.ts`  

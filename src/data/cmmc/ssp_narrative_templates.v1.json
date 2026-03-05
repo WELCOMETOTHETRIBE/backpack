@@ -1,0 +1,931 @@
+{
+  "schema": "mactech.cmmc.ssp-templates.v1",
+  "version": "1.0.0",
+  "generated_at": "2026-03-05T05:38:39Z",
+  "placeholders": {
+    "implementation_summary": "Short narrative describing how the requirement is implemented.",
+    "operational_evidence_summary": "Auto-generated narrative from latest finalized register entries (where applicable).",
+    "tools": "Systems/services used to implement and monitor this control (e.g., Entra ID, Sentinel, Defender).",
+    "responsible_roles": "Roles responsible for implementation and ongoing operations.",
+    "frequency": "Expected frequency/cadence (from register schema defaults and org overrides).",
+    "artifacts": "Links/IDs to governance docs, procedures, tickets, and evidence entries."
+  },
+  "controls": [
+    {
+      "control_id": "3.1.1",
+      "family": "AC",
+      "mapped_registers": [
+        "access_authorization",
+        "termination"
+      ],
+      "template_mdx": "# 3.1.1 \u2014 Access Control\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** access_authorization, termination\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.1.2",
+      "family": "AC",
+      "mapped_registers": [
+        "access_authorization",
+        "termination"
+      ],
+      "template_mdx": "# 3.1.2 \u2014 Access Control\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** access_authorization, termination\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.1.3",
+      "family": "AC",
+      "mapped_registers": [
+        "control_monitoring"
+      ],
+      "template_mdx": "# 3.1.3 \u2014 Access Control\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** control_monitoring\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.1.4",
+      "family": "AC",
+      "mapped_registers": [
+        "role_assignment_matrix",
+        "sod_matrix"
+      ],
+      "template_mdx": "# 3.1.4 \u2014 Access Control\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** role_assignment_matrix, sod_matrix\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.1.5",
+      "family": "AC",
+      "mapped_registers": [
+        "access_authorization",
+        "role_assignment_matrix",
+        "termination"
+      ],
+      "template_mdx": "# 3.1.5 \u2014 Access Control\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** access_authorization, role_assignment_matrix, termination\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.1.6",
+      "family": "AC",
+      "mapped_registers": [
+        "access_authorization",
+        "termination"
+      ],
+      "template_mdx": "# 3.1.6 \u2014 Access Control\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** access_authorization, termination\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.1.7",
+      "family": "AC",
+      "mapped_registers": [
+        "access_authorization",
+        "termination"
+      ],
+      "template_mdx": "# 3.1.7 \u2014 Access Control\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** access_authorization, termination\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.1.8",
+      "family": "AC",
+      "mapped_registers": [
+        "control_monitoring"
+      ],
+      "template_mdx": "# 3.1.8 \u2014 Access Control\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** control_monitoring\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.1.9",
+      "family": "AC",
+      "mapped_registers": [
+        "control_monitoring"
+      ],
+      "template_mdx": "# 3.1.9 \u2014 Access Control\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** control_monitoring\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.1.10",
+      "family": "AC",
+      "mapped_registers": [
+        "control_monitoring"
+      ],
+      "template_mdx": "# 3.1.10 \u2014 Access Control\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** control_monitoring\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.1.11",
+      "family": "AC",
+      "mapped_registers": [
+        "control_monitoring"
+      ],
+      "template_mdx": "# 3.1.11 \u2014 Access Control\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** control_monitoring\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.1.12",
+      "family": "AC",
+      "mapped_registers": [
+        "control_monitoring"
+      ],
+      "template_mdx": "# 3.1.12 \u2014 Access Control\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** control_monitoring\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.1.13",
+      "family": "AC",
+      "mapped_registers": [
+        "control_monitoring"
+      ],
+      "template_mdx": "# 3.1.13 \u2014 Access Control\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** control_monitoring\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.1.14",
+      "family": "AC",
+      "mapped_registers": [
+        "control_monitoring"
+      ],
+      "template_mdx": "# 3.1.14 \u2014 Access Control\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** control_monitoring\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.1.15",
+      "family": "AC",
+      "mapped_registers": [
+        "access_authorization",
+        "change_log",
+        "termination"
+      ],
+      "template_mdx": "# 3.1.15 \u2014 Access Control\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** access_authorization, change_log, termination\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.1.16",
+      "family": "AC",
+      "mapped_registers": [
+        "access_authorization",
+        "change_log",
+        "termination"
+      ],
+      "template_mdx": "# 3.1.16 \u2014 Access Control\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** access_authorization, change_log, termination\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.1.17",
+      "family": "AC",
+      "mapped_registers": [
+        "control_monitoring"
+      ],
+      "template_mdx": "# 3.1.17 \u2014 Access Control\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** control_monitoring\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.1.18",
+      "family": "AC",
+      "mapped_registers": [
+        "media_access"
+      ],
+      "template_mdx": "# 3.1.18 \u2014 Access Control\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** media_access\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.1.19",
+      "family": "AC",
+      "mapped_registers": [
+        "control_monitoring"
+      ],
+      "template_mdx": "# 3.1.19 \u2014 Access Control\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** control_monitoring\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.1.20",
+      "family": "AC",
+      "mapped_registers": [
+        "access_authorization",
+        "change_log"
+      ],
+      "template_mdx": "# 3.1.20 \u2014 Access Control\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** access_authorization, change_log\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.1.21",
+      "family": "AC",
+      "mapped_registers": [
+        "media_access"
+      ],
+      "template_mdx": "# 3.1.21 \u2014 Access Control\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** media_access\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.1.22",
+      "family": "AC",
+      "mapped_registers": [
+        "control_monitoring"
+      ],
+      "template_mdx": "# 3.1.22 \u2014 Access Control\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** control_monitoring\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.2.1",
+      "family": "AT",
+      "mapped_registers": [
+        "training_completion"
+      ],
+      "template_mdx": "# 3.2.1 \u2014 Awareness and Training\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** training_completion\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.2.2",
+      "family": "AT",
+      "mapped_registers": [
+        "training_completion"
+      ],
+      "template_mdx": "# 3.2.2 \u2014 Awareness and Training\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** training_completion\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.2.3",
+      "family": "AT",
+      "mapped_registers": [
+        "training_completion"
+      ],
+      "template_mdx": "# 3.2.3 \u2014 Awareness and Training\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** training_completion\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.3.1",
+      "family": "AU",
+      "mapped_registers": [
+        "audit_config"
+      ],
+      "template_mdx": "# 3.3.1 \u2014 Audit and Accountability\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** audit_config\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.3.2",
+      "family": "AU",
+      "mapped_registers": [
+        "audit_config"
+      ],
+      "template_mdx": "# 3.3.2 \u2014 Audit and Accountability\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** audit_config\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.3.3",
+      "family": "AU",
+      "mapped_registers": [
+        "audit_config"
+      ],
+      "template_mdx": "# 3.3.3 \u2014 Audit and Accountability\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** audit_config\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.3.4",
+      "family": "AU",
+      "mapped_registers": [
+        "audit_config",
+        "incident_log"
+      ],
+      "template_mdx": "# 3.3.4 \u2014 Audit and Accountability\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** audit_config, incident_log\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.3.5",
+      "family": "AU",
+      "mapped_registers": [
+        "audit_log_review",
+        "incident_log"
+      ],
+      "template_mdx": "# 3.3.5 \u2014 Audit and Accountability\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** audit_log_review, incident_log\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.3.6",
+      "family": "AU",
+      "mapped_registers": [
+        "audit_config"
+      ],
+      "template_mdx": "# 3.3.6 \u2014 Audit and Accountability\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** audit_config\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.3.7",
+      "family": "AU",
+      "mapped_registers": [
+        "audit_config"
+      ],
+      "template_mdx": "# 3.3.7 \u2014 Audit and Accountability\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** audit_config\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.3.8",
+      "family": "AU",
+      "mapped_registers": [
+        "audit_config"
+      ],
+      "template_mdx": "# 3.3.8 \u2014 Audit and Accountability\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** audit_config\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.3.9",
+      "family": "AU",
+      "mapped_registers": [
+        "audit_config"
+      ],
+      "template_mdx": "# 3.3.9 \u2014 Audit and Accountability\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** audit_config\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.4.1",
+      "family": "CM",
+      "mapped_registers": [
+        "baseline_config",
+        "policy_review"
+      ],
+      "template_mdx": "# 3.4.1 \u2014 Configuration Management\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** baseline_config, policy_review\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.4.2",
+      "family": "CM",
+      "mapped_registers": [
+        "baseline_config",
+        "policy_review"
+      ],
+      "template_mdx": "# 3.4.2 \u2014 Configuration Management\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** baseline_config, policy_review\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.4.3",
+      "family": "CM",
+      "mapped_registers": [
+        "baseline_config",
+        "policy_review"
+      ],
+      "template_mdx": "# 3.4.3 \u2014 Configuration Management\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** baseline_config, policy_review\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.4.4",
+      "family": "CM",
+      "mapped_registers": [
+        "baseline_config",
+        "policy_review"
+      ],
+      "template_mdx": "# 3.4.4 \u2014 Configuration Management\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** baseline_config, policy_review\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.4.5",
+      "family": "CM",
+      "mapped_registers": [
+        "change_log",
+        "assessment_findings"
+      ],
+      "template_mdx": "# 3.4.5 \u2014 Configuration Management\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** change_log, assessment_findings\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.4.6",
+      "family": "CM",
+      "mapped_registers": [
+        "change_log",
+        "assessment_findings"
+      ],
+      "template_mdx": "# 3.4.6 \u2014 Configuration Management\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** change_log, assessment_findings\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.4.7",
+      "family": "CM",
+      "mapped_registers": [
+        "change_log",
+        "assessment_findings"
+      ],
+      "template_mdx": "# 3.4.7 \u2014 Configuration Management\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** change_log, assessment_findings\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.4.8",
+      "family": "CM",
+      "mapped_registers": [
+        "change_log",
+        "assessment_findings"
+      ],
+      "template_mdx": "# 3.4.8 \u2014 Configuration Management\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** change_log, assessment_findings\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.4.9",
+      "family": "CM",
+      "mapped_registers": [
+        "change_log",
+        "assessment_findings"
+      ],
+      "template_mdx": "# 3.4.9 \u2014 Configuration Management\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** change_log, assessment_findings\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.5.1",
+      "family": "IA",
+      "mapped_registers": [
+        "access_authorization",
+        "termination"
+      ],
+      "template_mdx": "# 3.5.1 \u2014 Identification and Authentication\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** access_authorization, termination\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.5.2",
+      "family": "IA",
+      "mapped_registers": [
+        "authenticator_mgmt",
+        "audit_log_review"
+      ],
+      "template_mdx": "# 3.5.2 \u2014 Identification and Authentication\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** authenticator_mgmt, audit_log_review\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.5.3",
+      "family": "IA",
+      "mapped_registers": [
+        "authenticator_mgmt",
+        "audit_log_review"
+      ],
+      "template_mdx": "# 3.5.3 \u2014 Identification and Authentication\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** authenticator_mgmt, audit_log_review\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.5.4",
+      "family": "IA",
+      "mapped_registers": [
+        "authenticator_mgmt"
+      ],
+      "template_mdx": "# 3.5.4 \u2014 Identification and Authentication\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** authenticator_mgmt\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.5.5",
+      "family": "IA",
+      "mapped_registers": [
+        "authenticator_mgmt"
+      ],
+      "template_mdx": "# 3.5.5 \u2014 Identification and Authentication\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** authenticator_mgmt\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.5.6",
+      "family": "IA",
+      "mapped_registers": [
+        "authenticator_mgmt"
+      ],
+      "template_mdx": "# 3.5.6 \u2014 Identification and Authentication\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** authenticator_mgmt\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.5.7",
+      "family": "IA",
+      "mapped_registers": [
+        "authenticator_mgmt"
+      ],
+      "template_mdx": "# 3.5.7 \u2014 Identification and Authentication\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** authenticator_mgmt\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.5.8",
+      "family": "IA",
+      "mapped_registers": [
+        "authenticator_mgmt"
+      ],
+      "template_mdx": "# 3.5.8 \u2014 Identification and Authentication\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** authenticator_mgmt\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.5.9",
+      "family": "IA",
+      "mapped_registers": [
+        "authenticator_mgmt"
+      ],
+      "template_mdx": "# 3.5.9 \u2014 Identification and Authentication\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** authenticator_mgmt\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.5.10",
+      "family": "IA",
+      "mapped_registers": [
+        "authenticator_mgmt"
+      ],
+      "template_mdx": "# 3.5.10 \u2014 Identification and Authentication\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** authenticator_mgmt\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.5.11",
+      "family": "IA",
+      "mapped_registers": [
+        "authenticator_mgmt"
+      ],
+      "template_mdx": "# 3.5.11 \u2014 Identification and Authentication\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** authenticator_mgmt\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.6.1",
+      "family": "IR",
+      "mapped_registers": [
+        "incident_log"
+      ],
+      "template_mdx": "# 3.6.1 \u2014 Incident Response\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** incident_log\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.6.2",
+      "family": "IR",
+      "mapped_registers": [
+        "incident_log"
+      ],
+      "template_mdx": "# 3.6.2 \u2014 Incident Response\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** incident_log\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.6.3",
+      "family": "IR",
+      "mapped_registers": [
+        "incident_log",
+        "assessment_findings"
+      ],
+      "template_mdx": "# 3.6.3 \u2014 Incident Response\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** incident_log, assessment_findings\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.7.1",
+      "family": "MA",
+      "mapped_registers": [
+        "maintenance_log"
+      ],
+      "template_mdx": "# 3.7.1 \u2014 Maintenance\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** maintenance_log\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.7.2",
+      "family": "MA",
+      "mapped_registers": [
+        "maintenance_log"
+      ],
+      "template_mdx": "# 3.7.2 \u2014 Maintenance\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** maintenance_log\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.7.3",
+      "family": "MA",
+      "mapped_registers": [
+        "maintenance_log",
+        "change_log"
+      ],
+      "template_mdx": "# 3.7.3 \u2014 Maintenance\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** maintenance_log, change_log\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.7.4",
+      "family": "MA",
+      "mapped_registers": [
+        "maintenance_log",
+        "change_log"
+      ],
+      "template_mdx": "# 3.7.4 \u2014 Maintenance\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** maintenance_log, change_log\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.7.5",
+      "family": "MA",
+      "mapped_registers": [
+        "maintenance_log"
+      ],
+      "template_mdx": "# 3.7.5 \u2014 Maintenance\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** maintenance_log\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.7.6",
+      "family": "MA",
+      "mapped_registers": [
+        "maintenance_log"
+      ],
+      "template_mdx": "# 3.7.6 \u2014 Maintenance\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** maintenance_log\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.8.1",
+      "family": "MP",
+      "mapped_registers": [
+        "media_access"
+      ],
+      "template_mdx": "# 3.8.1 \u2014 Media Protection\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** media_access\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.8.2",
+      "family": "MP",
+      "mapped_registers": [
+        "media_access"
+      ],
+      "template_mdx": "# 3.8.2 \u2014 Media Protection\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** media_access\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.8.3",
+      "family": "MP",
+      "mapped_registers": [
+        "media_access"
+      ],
+      "template_mdx": "# 3.8.3 \u2014 Media Protection\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** media_access\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.8.4",
+      "family": "MP",
+      "mapped_registers": [
+        "media_access"
+      ],
+      "template_mdx": "# 3.8.4 \u2014 Media Protection\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** media_access\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.8.5",
+      "family": "MP",
+      "mapped_registers": [
+        "media_destruction"
+      ],
+      "template_mdx": "# 3.8.5 \u2014 Media Protection\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** media_destruction\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.8.6",
+      "family": "MP",
+      "mapped_registers": [
+        "media_destruction"
+      ],
+      "template_mdx": "# 3.8.6 \u2014 Media Protection\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** media_destruction\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.8.7",
+      "family": "MP",
+      "mapped_registers": [
+        "media_destruction"
+      ],
+      "template_mdx": "# 3.8.7 \u2014 Media Protection\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** media_destruction\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.8.8",
+      "family": "MP",
+      "mapped_registers": [
+        "media_destruction"
+      ],
+      "template_mdx": "# 3.8.8 \u2014 Media Protection\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** media_destruction\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.8.9",
+      "family": "MP",
+      "mapped_registers": [
+        "media_destruction"
+      ],
+      "template_mdx": "# 3.8.9 \u2014 Media Protection\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** media_destruction\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.9.1",
+      "family": "PS",
+      "mapped_registers": [
+        "personnel_screening"
+      ],
+      "template_mdx": "# 3.9.1 \u2014 Personnel Security\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** personnel_screening\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.9.2",
+      "family": "PS",
+      "mapped_registers": [
+        "termination"
+      ],
+      "template_mdx": "# 3.9.2 \u2014 Personnel Security\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** termination\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.10.1",
+      "family": "PE",
+      "mapped_registers": [
+        "facility_access"
+      ],
+      "template_mdx": "# 3.10.1 \u2014 Physical Protection\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** facility_access\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.10.2",
+      "family": "PE",
+      "mapped_registers": [
+        "facility_access"
+      ],
+      "template_mdx": "# 3.10.2 \u2014 Physical Protection\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** facility_access\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.10.3",
+      "family": "PE",
+      "mapped_registers": [
+        "visitor_log"
+      ],
+      "template_mdx": "# 3.10.3 \u2014 Physical Protection\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** visitor_log\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.10.4",
+      "family": "PE",
+      "mapped_registers": [
+        "visitor_log",
+        "facility_access"
+      ],
+      "template_mdx": "# 3.10.4 \u2014 Physical Protection\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** visitor_log, facility_access\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.10.5",
+      "family": "PE",
+      "mapped_registers": [
+        "visitor_log",
+        "facility_access"
+      ],
+      "template_mdx": "# 3.10.5 \u2014 Physical Protection\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** visitor_log, facility_access\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.10.6",
+      "family": "PE",
+      "mapped_registers": [
+        "facility_access"
+      ],
+      "template_mdx": "# 3.10.6 \u2014 Physical Protection\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** facility_access\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.11.1",
+      "family": "RA",
+      "mapped_registers": [
+        "risk_register"
+      ],
+      "template_mdx": "# 3.11.1 \u2014 Risk Assessment\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** risk_register\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.11.2",
+      "family": "RA",
+      "mapped_registers": [
+        "risk_register",
+        "vuln_remediation"
+      ],
+      "template_mdx": "# 3.11.2 \u2014 Risk Assessment\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** risk_register, vuln_remediation\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.11.3",
+      "family": "RA",
+      "mapped_registers": [
+        "risk_register"
+      ],
+      "template_mdx": "# 3.11.3 \u2014 Risk Assessment\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** risk_register\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.12.1",
+      "family": "CA",
+      "mapped_registers": [
+        "assessment_findings",
+        "control_monitoring"
+      ],
+      "template_mdx": "# 3.12.1 \u2014 Security Assessment\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** assessment_findings, control_monitoring\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.12.2",
+      "family": "CA",
+      "mapped_registers": [
+        "poam"
+      ],
+      "template_mdx": "# 3.12.2 \u2014 Security Assessment\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** poam\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.12.3",
+      "family": "CA",
+      "mapped_registers": [
+        "assessment_findings",
+        "control_monitoring"
+      ],
+      "template_mdx": "# 3.12.3 \u2014 Security Assessment\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** assessment_findings, control_monitoring\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.12.4",
+      "family": "CA",
+      "mapped_registers": [
+        "policy_review"
+      ],
+      "template_mdx": "# 3.12.4 \u2014 Security Assessment\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** policy_review\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.13.1",
+      "family": "SC",
+      "mapped_registers": [
+        "control_monitoring"
+      ],
+      "template_mdx": "# 3.13.1 \u2014 System and Communications Protection\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** control_monitoring\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.13.2",
+      "family": "SC",
+      "mapped_registers": [
+        "control_monitoring"
+      ],
+      "template_mdx": "# 3.13.2 \u2014 System and Communications Protection\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** control_monitoring\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.13.3",
+      "family": "SC",
+      "mapped_registers": [
+        "control_monitoring"
+      ],
+      "template_mdx": "# 3.13.3 \u2014 System and Communications Protection\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** control_monitoring\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.13.5",
+      "family": "SC",
+      "mapped_registers": [
+        "control_monitoring"
+      ],
+      "template_mdx": "# 3.13.5 \u2014 System and Communications Protection\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** control_monitoring\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.13.7",
+      "family": "SC",
+      "mapped_registers": [
+        "control_monitoring"
+      ],
+      "template_mdx": "# 3.13.7 \u2014 System and Communications Protection\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** control_monitoring\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.13.8",
+      "family": "SC",
+      "mapped_registers": [
+        "control_monitoring"
+      ],
+      "template_mdx": "# 3.13.8 \u2014 System and Communications Protection\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** control_monitoring\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.13.10",
+      "family": "SC",
+      "mapped_registers": [
+        "control_monitoring"
+      ],
+      "template_mdx": "# 3.13.10 \u2014 System and Communications Protection\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** control_monitoring\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.13.11",
+      "family": "SC",
+      "mapped_registers": [
+        "control_monitoring"
+      ],
+      "template_mdx": "# 3.13.11 \u2014 System and Communications Protection\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** control_monitoring\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.13.12",
+      "family": "SC",
+      "mapped_registers": [
+        "control_monitoring"
+      ],
+      "template_mdx": "# 3.13.12 \u2014 System and Communications Protection\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** control_monitoring\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.13.13",
+      "family": "SC",
+      "mapped_registers": [
+        "control_monitoring"
+      ],
+      "template_mdx": "# 3.13.13 \u2014 System and Communications Protection\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** control_monitoring\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.13.14",
+      "family": "SC",
+      "mapped_registers": [
+        "control_monitoring"
+      ],
+      "template_mdx": "# 3.13.14 \u2014 System and Communications Protection\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** control_monitoring\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.13.15",
+      "family": "SC",
+      "mapped_registers": [
+        "control_monitoring"
+      ],
+      "template_mdx": "# 3.13.15 \u2014 System and Communications Protection\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** control_monitoring\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.13.16",
+      "family": "SC",
+      "mapped_registers": [
+        "control_monitoring"
+      ],
+      "template_mdx": "# 3.13.16 \u2014 System and Communications Protection\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** control_monitoring\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.13.4",
+      "family": "SC",
+      "mapped_registers": [],
+      "template_mdx": "# 3.13.4 \u2014 System and Communications Protection\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** None (operational registers not mapped)\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.13.6",
+      "family": "SC",
+      "mapped_registers": [],
+      "template_mdx": "# 3.13.6 \u2014 System and Communications Protection\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** None (operational registers not mapped)\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.13.9",
+      "family": "SC",
+      "mapped_registers": [],
+      "template_mdx": "# 3.13.9 \u2014 System and Communications Protection\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** None (operational registers not mapped)\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.14.1",
+      "family": "SI",
+      "mapped_registers": [
+        "vuln_remediation",
+        "control_monitoring"
+      ],
+      "template_mdx": "# 3.14.1 \u2014 System and Information Integrity\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** vuln_remediation, control_monitoring\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.14.2",
+      "family": "SI",
+      "mapped_registers": [
+        "vuln_remediation",
+        "control_monitoring"
+      ],
+      "template_mdx": "# 3.14.2 \u2014 System and Information Integrity\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** vuln_remediation, control_monitoring\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.14.3",
+      "family": "SI",
+      "mapped_registers": [
+        "vuln_remediation",
+        "control_monitoring"
+      ],
+      "template_mdx": "# 3.14.3 \u2014 System and Information Integrity\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** vuln_remediation, control_monitoring\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.14.4",
+      "family": "SI",
+      "mapped_registers": [
+        "vuln_remediation",
+        "control_monitoring"
+      ],
+      "template_mdx": "# 3.14.4 \u2014 System and Information Integrity\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** vuln_remediation, control_monitoring\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.14.5",
+      "family": "SI",
+      "mapped_registers": [
+        "vuln_remediation",
+        "control_monitoring"
+      ],
+      "template_mdx": "# 3.14.5 \u2014 System and Information Integrity\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** vuln_remediation, control_monitoring\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.14.6",
+      "family": "SI",
+      "mapped_registers": [
+        "vuln_remediation",
+        "control_monitoring"
+      ],
+      "template_mdx": "# 3.14.6 \u2014 System and Information Integrity\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** vuln_remediation, control_monitoring\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    },
+    {
+      "control_id": "3.14.7",
+      "family": "SI",
+      "mapped_registers": [
+        "vuln_remediation",
+        "control_monitoring",
+        "incident_log"
+      ],
+      "template_mdx": "# 3.14.7 \u2014 System and Information Integrity\n\n## Requirement Implementation\n**Implementation Summary:** {{implementation_summary}}\n\n**Tools / Services:** {{tools}}\n\n**Responsible Roles:** {{responsible_roles}}\n\n## Operational Evidence\n**Mapped Registers:** vuln_remediation, control_monitoring, incident_log\n\n**Operational Evidence Summary:** {{operational_evidence_summary}}\n\n**Cadence / Frequency:** {{frequency}}\n\n## Evidence References\n{{artifacts}}\n\n## Notes / Assumptions\n- If this control is primarily technical/configuration-based and no operational registers are mapped, reference the applicable baseline configuration artifacts and automated checks.\n"
+    }
+  ]
+}
