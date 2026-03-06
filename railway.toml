@@ -1,0 +1,9 @@
+# Railway config-as-code. Overrides dashboard settings.
+# See https://docs.railway.app/deploy/config-as-code
+
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "npm start"
+preDeployCommand = "npm run release"
