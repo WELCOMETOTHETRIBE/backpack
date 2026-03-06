@@ -333,7 +333,7 @@ export default function TechnicalUploadPage() {
                   <option value="">Select a boundary</option>
                   {cloudBoundaries.map((b) => (
                     <option key={b.id} value={b.id}>
-                      {b.name} ({b.cloudProvider})
+                      {b.name}
                     </option>
                   ))}
                 </select>

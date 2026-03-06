@@ -12,6 +12,8 @@ import { CloudHostingCard } from "./CloudHostingCard";
 import { LikelyNaQuestionnaire } from "./LikelyNaQuestionnaire";
 import { DeleteBoundaryButton } from "./DeleteBoundaryButton";
 import { DeleteAssetButton } from "./DeleteAssetButton";
+import { InScopeSection } from "./InScopeSection";
+import { AdditionalBoundaryAssetsSection } from "./AdditionalBoundaryAssetsSection";
 
 export default async function BoundaryDetailPage({
   params,
@@ -123,25 +125,29 @@ export default async function BoundaryDetailPage({
           </section>
         )}
 
-        <CloudHostingCard
-          boundaryId={id}
-          cloudProvider={boundary.cloudProvider}
-          azureEnvironment={boundary.azureEnvironment}
-        />
+        <section className={cardClass}>
+          <CloudHostingCard
+            boundaryId={id}
+            cloudProvider={boundary.cloudProvider}
+            azureEnvironment={boundary.azureEnvironment}
+          />
+        </section>
 
-        <LikelyNaQuestionnaire
-          boundaryId={id}
-          initialRecords={likelyNaRecords}
-        />
+        <section className={cardClass}>
+          <InScopeSection
+            boundaryId={id}
+            initialScopeComponents={boundary.scopeComponents}
+          />
+        </section>
 
         <section className={cardClass}>
           <h2 className="text-lg font-semibold text-[var(--color-gray-800)]">
-            OS assets
+            OS endpoints (VMs, servers)
           </h2>
           <AddAssetForm boundaryId={id} />
           {assets.length === 0 ? (
             <p className="mt-4 text-sm text-[var(--color-gray-500)]">
-              No assets yet. Add a host (hostname, OS, role, baseline) above.
+              No endpoints yet. Add a host (hostname, OS, role, baseline) above.
             </p>
           ) : (
             <ul className="mt-4 space-y-3">
@@ -176,6 +182,15 @@ export default async function BoundaryDetailPage({
             </ul>
           )}
         </section>
+
+        <section className={cardClass}>
+          <AdditionalBoundaryAssetsSection boundaryId={id} />
+        </section>
+
+        <LikelyNaQuestionnaire
+          boundaryId={id}
+          initialRecords={likelyNaRecords}
+        />
       </div>
     </div>
   );

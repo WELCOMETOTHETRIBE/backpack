@@ -92,6 +92,7 @@ export default async function EvidenceEngineRegistersPage({ searchParams }: Page
 
   const { auditor } = await searchParams;
   const baseQuery = buildBaseQuery(effectiveBoundaryId, auditor === "1" ? { auditor: "1" } : {});
+  const effectiveBoundaryName = boundaries.find((b) => b.id === effectiveBoundaryId)?.name ?? null;
 
   return (
     <div className="space-y-6">
@@ -106,6 +107,11 @@ export default async function EvidenceEngineRegistersPage({ searchParams }: Page
           <h2 className="mt-1 text-xl font-semibold text-[var(--color-navy-primary)]">
             Registers
           </h2>
+          {effectiveBoundaryName && (
+            <p className="mt-0.5 text-sm font-medium text-[var(--color-gray-700)]">
+              Boundary: {effectiveBoundaryName}
+            </p>
+          )}
           <p className="mt-0.5 text-sm text-[var(--color-gray-600)]">
             Create and view entries for each register. Entries provide operational evidence for
             controls.

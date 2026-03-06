@@ -93,6 +93,7 @@ export default async function EvidenceEngineRegisterEntriesPage({ params, search
     .orderBy(desc(governanceRegisterEntries.createdAt))
     .limit(100);
 
+  const effectiveBoundaryName = boundaries.find((b) => b.id === effectiveBoundaryId)?.name ?? null;
   const entriesWithSummary = entries.map((e) => {
     const data = (e.entryData ?? {}) as Record<string, unknown>;
     const entryType = e.entryType ?? "unknown";
@@ -125,6 +126,11 @@ export default async function EvidenceEngineRegisterEntriesPage({ params, search
           <h2 className="mt-1 text-xl font-semibold text-[var(--color-navy-primary)]">
             {register.name}
           </h2>
+          {effectiveBoundaryName && (
+            <p className="mt-0.5 text-sm font-medium text-[var(--color-gray-700)]">
+              Boundary: {effectiveBoundaryName}
+            </p>
+          )}
           <p className="mt-0.5 font-mono text-sm text-[var(--color-gray-600)]">
             {register.registerKey}
           </p>

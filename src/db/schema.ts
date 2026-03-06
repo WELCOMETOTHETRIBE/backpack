@@ -486,6 +486,24 @@ export const osAssets = pgTable("os_asset", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+/** Additional boundary components (networking devices, VMs, bare metal) not modeled as OS assets. */
+export const boundaryComponents = pgTable(
+  "boundary_component",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    boundaryId: uuid("boundary_id")
+      .references(() => boundaries.id, { onDelete: "cascade" })
+      .notNull(),
+    name: varchar("name", { length: 255 }).notNull(),
+    /** network_device | vm | bare_metal */
+    componentType: varchar("component_type", { length: 32 }).notNull(),
+    notes: text("notes"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [index("boundary_component_boundary_id_idx").on(t.boundaryId)]
+);
+
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   organizationId: uuid("organization_id").references(() => organizations.id).notNull(),
@@ -1110,6 +1128,11 @@ export const boundarySnapshotsRelations = relations(boundarySnapshots, ({ one })
 export const boundariesRelations = relations(boundaries, ({ one, many }) => ({
   organization: one(organizations),
   osAssets: many(osAssets),
+  boundaryComponents: many(boundaryComponents),
+}));
+
+export const boundaryComponentsRelations = relations(boundaryComponents, ({ one }) => ({
+  boundary: one(boundaries),
 }));
 
 export const osBaselineProfilesRelations = relations(osBaselineProfiles, ({ many }) => ({

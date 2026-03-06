@@ -12,24 +12,6 @@ export type BoundaryOption = {
   azureEnvironment: string | null;
 };
 
-function formatBoundaryLabel(b: BoundaryOption): string {
-  const parts: string[] = [b.name];
-  if (b.cloudProvider && b.cloudProvider !== "none") {
-    const cloud =
-      b.cloudProvider === "azure" || b.cloudProvider === "microsoft"
-        ? b.azureEnvironment === "gov"
-          ? "Azure Gov"
-          : "Azure Commercial"
-        : b.cloudProvider === "google"
-          ? "Google Cloud"
-          : b.cloudProvider;
-    parts.push(cloud);
-  } else {
-    parts.push("On Prem");
-  }
-  return parts.join(" – ");
-}
-
 type Props = {
   boundaries: BoundaryOption[];
   currentBoundaryId: string | null;
@@ -81,7 +63,7 @@ export function BoundarySelector({ boundaries, currentBoundaryId }: Props) {
         <option value="">Select a boundary</option>
         {boundaries.map((b) => (
           <option key={b.id} value={b.id}>
-            {formatBoundaryLabel(b)}
+            {b.name}
           </option>
         ))}
       </select>

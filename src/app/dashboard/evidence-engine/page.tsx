@@ -118,6 +118,7 @@ export default async function EvidenceEngineDashboardPage({ searchParams }: Page
   const registerNameById = new Map(evidenceMap.registers.map((r) => [r.id, r.name]));
   const userRole = (session?.user as { role?: string })?.role;
   const isAdmin = userRole === "Admin";
+  const effectiveBoundaryName = boundaries.find((b) => b.id === effectiveBoundaryId)?.name ?? null;
 
   return (
     <div className="space-y-6">
@@ -126,6 +127,11 @@ export default async function EvidenceEngineDashboardPage({ searchParams }: Page
           <h1 className="text-xl font-semibold text-[var(--color-navy-primary)]">
             Evidence Engine
           </h1>
+          {effectiveBoundaryName && (
+            <p className="mt-0.5 text-sm font-medium text-[var(--color-gray-700)]">
+              Boundary: {effectiveBoundaryName}
+            </p>
+          )}
           <p className="mt-0.5 text-sm text-[var(--color-gray-600)]">
             Operational evidence for all 110 NIST SP 800-171 controls. Readiness is automated from
             finalized register entries and cadence; do not interpret as &quot;compliant&quot;.

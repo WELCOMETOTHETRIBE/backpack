@@ -62,6 +62,7 @@ export default async function EvidenceEngineControlDetailPage({ params, searchPa
   const registers = controlMeta.registers ?? [];
   const registerNameById = new Map(evidenceMap.registers.map((r) => [r.id, r.name]));
   const baseQuery = buildBaseQuery(effectiveBoundaryId);
+  const effectiveBoundaryName = boundaries.find((b) => b.id === effectiveBoundaryId)?.name ?? null;
 
   return (
     <div className="space-y-6">
@@ -76,6 +77,11 @@ export default async function EvidenceEngineControlDetailPage({ params, searchPa
         <h1 className="mt-1 text-xl font-semibold text-[var(--color-navy-primary)]">
           Control {controlId}
         </h1>
+        {effectiveBoundaryName && (
+          <p className="mt-0.5 text-sm font-medium text-[var(--color-gray-700)]">
+            Boundary: {effectiveBoundaryName}
+          </p>
+        )}
         <p className="mt-0.5 text-sm text-[var(--color-gray-600)]">
           {controlMeta.family} · Responsibility: {responsibility?.responsibilityModel ? formatResponsibility(responsibility.responsibilityModel) : "—"}
         </p>
