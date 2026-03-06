@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start -h 0.0.0.0 -p ${PORT:-3000}",
+    "start": "node scripts/start-server.mjs",
     "lint": "eslint",
     "test": "vitest run",
     "db:generate": "drizzle-kit generate",
