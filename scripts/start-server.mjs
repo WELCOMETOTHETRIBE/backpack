@@ -10,9 +10,10 @@ import { dirname, join } from "path";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const appRoot = join(__dirname, "..");
 const port = String(process.env.PORT || "3000");
-const host = process.env.HOSTNAME || "0.0.0.0";
+// Bind to 0.0.0.0 so the proxy can reach us (Railway/Docker set HOSTNAME to container id)
+const host = process.env.HOST || "0.0.0.0";
 
-console.log(`[start-server] cwd=${appRoot} host=${host} port=${port} (PORT env: ${process.env.PORT ?? "not set"})`);
+console.log(`[start-server] cwd=${appRoot} host=${host} port=${port}`);
 
 const nextBin = join(appRoot, "node_modules/next/dist/bin/next");
 const child = spawn(
