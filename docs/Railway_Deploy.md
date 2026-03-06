@@ -1,5 +1,9 @@
 # Railway deployment
 
+## Start command
+
+The app uses `next start -h 0.0.0.0 -p ${PORT:-3000}` so it listens on all interfaces and on the port Railway assigns. Railway sets `PORT` automatically; do not override it unless needed.
+
 ## Run migrations on deploy
 
 The app expects these DB objects (from Drizzle migrations):
