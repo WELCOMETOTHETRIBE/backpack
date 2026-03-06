@@ -40,6 +40,9 @@ export default async function OSBaselinesPage() {
     organizationId: string;
     createdAt: Date;
     updatedAt: Date;
+    scopeComponents: string[] | null;
+    cloudProvider: string | null;
+    azureEnvironment: string | null;
     assetCount: number;
     assetsWithBaselineCount: number;
   }> = list.map((b) => ({ ...b, assetCount: 0, assetsWithBaselineCount: 0 }));

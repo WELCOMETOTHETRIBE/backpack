@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
-import { SCOPE_OPTIONS } from "../../CreateSystemBoundaryModal";
+import { SCOPE_OPTIONS } from "@/types/boundary";
 import type { ScopeComponent } from "@/types/boundary";
 
 export function EditScopeModal({
