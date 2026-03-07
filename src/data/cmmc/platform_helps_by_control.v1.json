@@ -1,0 +1,6 @@
+{
+  "schema": "cmmc.platform-helps-by-control.v1",
+  "version": "1.0.0",
+  "note": "Per-control 'How this platform helps' text. Keys are NIST 800-171 control IDs (e.g. 3.1.1). Missing keys use the generic fallback in getPlatformHelpForControl.",
+  "platform_helps": {}
+}

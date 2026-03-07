@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { ChevronDown, FileText, BookOpen } from "lucide-react";
-import { cleanDisplayText, parseAssessmentGuideSections, type GuideSection } from "@/app/dashboard/controls/assessment-guide-sections";
+import { CollapsibleBlock } from "@/app/dashboard/controls/CollapsibleBlock";
+import { cleanDisplayText, parseAssessmentGuideSections, buildAssessmentGuideSections, type GuideSection } from "@/app/dashboard/controls/assessment-guide-sections";
 import { getOptimizedByControlId, type SctmOptimizedControl } from "@/lib/sctm-optimized-types";
+import { getPlatformHelpForControl } from "@/lib/compliance/platform-helps";
 
 function TextWithBold({ text }: { text: string }) {
   const parts: React.ReactNode[] = [];
@@ -276,34 +278,38 @@ export default function ControlDetailClient({ controlId }: { controlId: string }
             NIST 800-171 &amp; assessment guide
           </h3>
           {nist.nistExactText && (
-            <div>
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">Requirement</h4>
+            <CollapsibleBlock label="Requirement" defaultOpen={false} icon={BookOpen} contentClassName="bg-[var(--color-surface)]">
               <div className="whitespace-pre-wrap text-sm text-[var(--color-gray-700)] leading-[1.7] [&_strong]:font-semibold [&_strong]:text-[var(--color-gray-800)]">
                 <TextWithBold text={cleanDisplayText(nist.nistExactText)} />
               </div>
-            </div>
+            </CollapsibleBlock>
           )}
           {nist.nistDiscussionGuidance && (() => {
-            const guideSections = parseAssessmentGuideSections(nist.nistDiscussionGuidance);
-            if (guideSections.length > 0) {
-              return (
+            const allSections = buildAssessmentGuideSections(
+              controlId,
+              nist.nistDiscussionGuidance,
+              sctmOptimized,
+              getPlatformHelpForControl
+            );
+            const parsedCount = parseAssessmentGuideSections(nist.nistDiscussionGuidance).length;
+            return (
+              <>
                 <div>
                   <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-2">Assessment guide</h4>
                   <div className="space-y-2">
-                    {guideSections.map((section, i) => (
+                    {allSections.map((section, i) => (
                       <GuideSectionBlock key={`${section.label}-${i}`} section={section} defaultOpen={false} />
                     ))}
                   </div>
                 </div>
-              );
-            }
-            return (
-              <div>
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">Discussion &amp; guidance</h4>
-                <div className="whitespace-pre-wrap text-sm text-[var(--color-gray-700)] leading-[1.7] [&_strong]:font-semibold [&_strong]:text-[var(--color-gray-800)]">
-                  <TextWithBold text={cleanDisplayText(nist.nistDiscussionGuidance)} />
-                </div>
-              </div>
+                {parsedCount === 0 && (
+                  <CollapsibleBlock label="Discussion &amp; guidance" defaultOpen={false} icon={FileText} contentClassName="bg-[var(--color-surface)]">
+                    <div className="whitespace-pre-wrap text-sm text-[var(--color-gray-700)] leading-[1.7] [&_strong]:font-semibold [&_strong]:text-[var(--color-gray-800)]">
+                      <TextWithBold text={cleanDisplayText(nist.nistDiscussionGuidance)} />
+                    </div>
+                  </CollapsibleBlock>
+                )}
+              </>
             );
           })()}
         </div>

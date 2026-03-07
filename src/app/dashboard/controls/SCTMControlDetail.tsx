@@ -6,15 +6,18 @@ import { FileUploadWidget } from "@/components/governance-wizard/FileUploadWidge
 import { getSpecForControl } from "@/lib/artifact-guide";
 import { CONTROL_FAMILIES } from "@/components/governance-wizard/constants";
 import { ChevronDown, FileText, CheckCircle2, MessageSquare, BookOpen, ListChecks, Lightbulb, Link2 } from "lucide-react";
+import { CollapsibleBlock } from "./CollapsibleBlock";
 import Link from "next/link";
 import {
   parseAssessmentGuideSections,
   cleanDisplayText,
+  buildAssessmentGuideSections,
   type GuideSection,
 } from "./assessment-guide-sections";
 import type { SctmOptimizedControl } from "@/lib/sctm-optimized-types";
 import { getHybridCriteriaLabels } from "@/lib/compliance/satisfaction-sources";
 import { getEnclaveEntry } from "@/lib/compliance/os-evidence-manifest";
+import { getPlatformHelpForControl } from "@/lib/compliance/platform-helps";
 import type { ArtifactSpec } from "@/lib/artifact-guide";
 
 function TextWithBold({ text }: { text: string }) {
@@ -84,23 +87,9 @@ const SECTION_ICONS: Record<string, React.ComponentType<{ className?: string }>>
   "How this platform helps": Lightbulb,
 };
 
-/** Single accurate description of what this control plane does (no unfulfilled product claims). */
-const PLATFORM_HELP_BODY =
-  "This control plane helps you manage control status, upload evidence bundles and governance documents, map documents to the governance matrix, and view drift (regressions) from previous evidence runs. Use Evidence and Evidence Library for attestations and technical evidence.";
-
 /** Strip leading stray parsing chars (e.g. "*:") from section body text; does not remove markdown **bold**. */
 function stripStraySectionPrefix(s: string): string {
   return s.replace(/^\s*\*:\s*/i, "").trim();
-}
-
-/** Splits text on "How the Codex Accelerator Helps" so it can be rendered as its own section. */
-function extractCodexAcceleratorSection(text: string): { main: string; codex: string } {
-  const codexMarker = /\s*\*?\s*\*?How the Codex Accelerator Helps\*?\s*:?\s*/i;
-  const idx = text.search(codexMarker);
-  if (idx === -1) return { main: text, codex: "" };
-  const main = text.slice(0, idx).replace(/\s*$/, "");
-  const after = stripStraySectionPrefix(text.slice(idx).replace(codexMarker, "").trim());
-  return { main, codex: after };
 }
 
 /** Renders guide/JSON body with [SELECT FROM: a; b; c] as a readable list; rest as paragraphs. Use bold to support **bold** in text. */
@@ -375,29 +364,27 @@ export function SCTMControlDetail({
       </div>
 
       {/* Requirement — the main “field we were working on” */}
-      <section className="mb-4">
-        <div className="flex items-center gap-2 mb-1">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)]">Requirement</h2>
-          {sctmOptimized?.scoring && (
-            <span className="rounded-full bg-white/60 px-2 py-0.5 text-xs font-medium text-[var(--color-gray-700)] backdrop-blur-sm border border-white/40">
-              SPRS {sctmOptimized.scoring.sprs} · {sctmOptimized.scoring.weight}
-            </span>
-          )}
-        </div>
-        {displayTitle && <p className="text-base font-medium text-[var(--color-gray-900)] mb-1">{displayTitle}</p>}
-        <div className="rounded-xl border border-[var(--color-border)]/60 bg-white/90 px-4 py-3.5 shadow-sm">
+      <div className="mb-4">
+        <CollapsibleBlock label="Requirement" defaultOpen={false} icon={BookOpen} contentClassName="bg-white/90">
+          <div className="flex items-center gap-2 mb-2">
+            {sctmOptimized?.scoring && (
+              <span className="rounded-full bg-white/60 px-2 py-0.5 text-xs font-medium text-[var(--color-gray-700)] backdrop-blur-sm border border-white/40">
+                SPRS {sctmOptimized.scoring.sprs} · {sctmOptimized.scoring.weight}
+              </span>
+            )}
+          </div>
+          {displayTitle && <p className="text-base font-medium text-[var(--color-gray-900)] mb-1">{displayTitle}</p>}
           {requirementText ? (
             <p className="text-[15px] leading-[1.7] text-[var(--color-gray-800)] whitespace-pre-wrap max-w-none">{requirementText}</p>
           ) : (
             <p className="text-[15px] text-[var(--color-gray-400)] italic">Requirement text will appear here once loaded.</p>
           )}
-        </div>
-      </section>
+        </CollapsibleBlock>
+      </div>
 
       {(sctmOptimized?.objectives?.length ?? 0) > 0 && (
-        <section className="mb-4">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">Assessment objectives</h2>
-          <div className="rounded-lg border border-white/30 bg-white/70 backdrop-blur-sm px-4 py-3">
+        <div className="mb-4">
+          <CollapsibleBlock label="Assessment objectives" defaultOpen={false} icon={ListChecks}>
             <ul className="space-y-2" role="list">
               {(sctmOptimized?.objectives ?? []).map((obj) => (
                 <li key={obj.id} className="flex gap-2 text-[15px] leading-relaxed text-[var(--color-gray-800)]">
@@ -406,102 +393,73 @@ export function SCTMControlDetail({
                 </li>
               ))}
             </ul>
-          </div>
-        </section>
+          </CollapsibleBlock>
+        </div>
       )}
 
       {sctmOptimized?.nist_guidance && (
-        <section className="mb-4">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">NIST guidance</h2>
-          <div className="rounded-xl border border-[var(--color-border)]/60 bg-white/90 px-4 py-3.5 shadow-sm">
+        <div className="mb-4">
+          <CollapsibleBlock label="NIST guidance" defaultOpen={false} icon={BookOpen} contentClassName="bg-white/90">
             <div className="text-[15px] leading-[1.7] text-[var(--color-gray-700)] whitespace-pre-wrap [&_strong]:font-semibold [&_strong]:text-[var(--color-gray-800)]">
               <TextWithBold text={sctmOptimized.nist_guidance} />
             </div>
-          </div>
-        </section>
+          </CollapsibleBlock>
+        </div>
       )}
 
       {sctmOptimized?.onboarding_tips && (
-        <section className="mb-4 overflow-visible">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5 flex items-center gap-2">
-            <Lightbulb className="h-3.5 w-3.5 text-amber-500" aria-hidden />
-            Onboarding tips
-          </h2>
-          <div className="rounded-xl border border-[var(--color-border)]/60 bg-gradient-to-b from-amber-50/50 to-white/90 px-4 py-3.5 shadow-sm overflow-visible">
+        <div className="mb-4">
+          <CollapsibleBlock label="Onboarding tips" defaultOpen={false} icon={Lightbulb} contentClassName="bg-gradient-to-b from-amber-50/50 to-white/90">
             <div className="text-[15px] leading-[1.7] text-[var(--color-gray-700)] whitespace-pre-wrap break-words min-h-0 space-y-2 [&_strong]:font-semibold [&_strong]:text-[var(--color-gray-800)]">
               <TextWithBold text={sctmOptimized.onboarding_tips} />
             </div>
-          </div>
-        </section>
+          </CollapsibleBlock>
+        </div>
       )}
 
       {(() => {
-        const hasAssessorContent =
-          sctmOptimized?.assessor_interrogation &&
-          (sctmOptimized.assessor_interrogation.assessor_questions ||
-            sctmOptimized.assessor_interrogation.examine_criteria ||
-            sctmOptimized.assessor_interrogation.test_procedures);
-        let assessorSectionBody = "";
-        let codexSection: GuideSection | null = null;
-        if (hasAssessorContent) {
-          const testProcedures = sctmOptimized!.assessor_interrogation!.test_procedures ?? "";
-          const { main: testMain, codex: codexBody } = extractCodexAcceleratorSection(testProcedures);
-          assessorSectionBody = [
-            sctmOptimized!.assessor_interrogation!.assessor_questions && `**Interview**\n\n${sctmOptimized!.assessor_interrogation!.assessor_questions}`,
-            sctmOptimized!.assessor_interrogation!.examine_criteria && `**Examine**\n\n${sctmOptimized!.assessor_interrogation!.examine_criteria}`,
-            testMain && `**Test**\n\n${testMain}`,
-          ]
-            .filter(Boolean)
-            .join("\n\n");
-          // Replace Codex/Evidence Auto-Pilot etc. copy with accurate platform description only (no false claims).
-          if (codexBody.trim()) {
-            codexSection = { label: "How this platform helps", body: PLATFORM_HELP_BODY };
-          }
-        }
-        const assessorSection: GuideSection | null =
-          assessorSectionBody.trim() ? { label: "What assessors do", body: assessorSectionBody.trim() } : null;
-        const allSections: GuideSection[] = [
-          ...(assessorSection ? [assessorSection] : []),
-          ...(codexSection ? [codexSection] : []),
-          ...guideSections,
-        ];
-
-        if (allSections.length === 0) return null;
+        const allSections = buildAssessmentGuideSections(
+          record.controlId,
+          nist?.nistDiscussionGuidance,
+          sctmOptimized,
+          getPlatformHelpForControl
+        );
         return (
-          <section className="mb-4">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-2 flex items-center gap-2">
-              <BookOpen className="h-3.5 w-3.5 text-[var(--color-blue-accent)]" aria-hidden />
-              Assessment guide
-            </h2>
-            <div className="space-y-2">
-              {allSections.map((section, i) => (
-                <CollapsibleSection key={`${section.label}-${i}`} section={section} defaultOpen={false} />
-              ))}
-            </div>
-          </section>
+          <div className="mb-4">
+            <CollapsibleBlock label="Assessment guide" defaultOpen={false} icon={BookOpen} contentClassName="bg-transparent pt-0">
+              <div className="space-y-2">
+                {allSections.map((section, i) => (
+                  <CollapsibleSection key={`${section.label}-${i}`} section={section} defaultOpen={false} />
+                ))}
+              </div>
+            </CollapsibleBlock>
+          </div>
         );
       })()}
 
       {/* Fallback when no sections parsed */}
       {(!nist?.nistDiscussionGuidance || guideSections.length === 0) && nist?.nistDiscussionGuidance && (
-        <section className="mb-4">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">Discussion & guidance</h2>
-          <div className="rounded-xl border border-[var(--color-border)]/60 bg-white/90 px-4 py-3.5 shadow-sm">
+        <div className="mb-4">
+          <CollapsibleBlock label="Discussion & guidance" defaultOpen={false} icon={FileText} contentClassName="bg-white/90">
             <div className="text-[15px] leading-[1.7] text-[var(--color-gray-700)] whitespace-pre-wrap [&_strong]:font-semibold [&_strong]:text-[var(--color-gray-800)]">
               <TextWithBold text={cleanDisplayText(nist.nistDiscussionGuidance)} />
             </div>
-          </div>
-        </section>
+          </CollapsibleBlock>
+        </div>
       )}
 
       {/* Hybrid satisfaction criteria — when control is Hybrid */}
       {record.satisfiedByHybrid && hybridLabels && (
-        <section className="mb-4 rounded-xl border-2 border-teal-200 bg-teal-50/50 overflow-hidden">
-          <div className="px-4 py-2.5 border-b border-teal-200/80 bg-teal-100/50">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-teal-800">Hybrid — satisfaction criteria</h2>
-            <p className="text-xs text-teal-700 mt-0.5">Mark each criterion when satisfied (editable).</p>
-          </div>
-          <div className="px-4 py-3 space-y-4">
+        <div className="mb-4">
+          <CollapsibleBlock
+            label="Hybrid — satisfaction criteria"
+            defaultOpen={false}
+            icon={ListChecks}
+            className="rounded-xl border-2 border-teal-200 overflow-hidden"
+            contentClassName="bg-teal-50/30 border-teal-200/50"
+          >
+            <p className="text-xs text-teal-700 mb-3">Mark each criterion when satisfied (editable).</p>
+            <div className="space-y-4">
             <div className="space-y-1.5">
               <label className="flex items-center gap-3 cursor-pointer group">
                 <input
@@ -554,16 +512,15 @@ export function SCTMControlDetail({
               </div>
             </div>
             {savingHybrid && <p className="text-xs text-teal-600">Saving…</p>}
-          </div>
-        </section>
+            </div>
+          </CollapsibleBlock>
+        </div>
       )}
 
-      {/* Your response — one card: status, narrative, evidence */}
-      <section className="rounded-lg border border-white/30 bg-white/70 backdrop-blur-sm overflow-hidden">
-        <div className="px-4 py-2.5 border-b border-white/30">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-gray-500)]">Your response</h2>
-        </div>
-        <div className="px-4 py-3 space-y-3">
+      {/* Your response — collapsible */}
+      <div className="mb-4">
+        <CollapsibleBlock label="Your response" defaultOpen={false} icon={FileText}>
+          <div className="space-y-3">
           <div>
             <label htmlFor="sctm-status" className="block text-sm font-medium text-[var(--color-gray-700)] mb-1.5">Implementation status</label>
             <select
@@ -651,7 +608,8 @@ export function SCTMControlDetail({
             to manage findings and remediation.
           </p>
         </div>
-      </section>
+        </CollapsibleBlock>
+      </div>
     </div>
   );
 }
