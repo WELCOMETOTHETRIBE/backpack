@@ -4,7 +4,7 @@ import { db } from "@/db";
 import { boundaries, osAssets } from "@/db/schema";
 import { eq, inArray } from "drizzle-orm";
 import Link from "next/link";
-import { LayoutGrid, Server, Upload, Cloud, Settings2 } from "lucide-react";
+import { LayoutGrid, Server, Upload, Cloud, Settings2, ChevronRight } from "lucide-react";
 import { CreateBoundaryButton } from "./CreateBoundaryButton";
 import { BoundaryDiagramModal } from "./BoundaryDiagramModal";
 import { DeleteBoundaryButton } from "./boundaries/[id]/DeleteBoundaryButton";
@@ -78,19 +78,27 @@ export default async function OSBaselinesPage() {
   return (
     <div className="min-h-0">
       <div className="mx-auto max-w-4xl space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-[var(--color-gray-900)]">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-[var(--color-gray-900)]">OS Baselines</h1>
+            <p className="mt-2 text-[var(--color-gray-600)]">
+              Manage in-scope OS endpoints, assign baselines, and track technical evidence.
+            </p>
+          </div>
+          <Link
+            href="/dashboard/boundary"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-white px-3.5 py-2 text-sm font-medium text-[var(--color-gray-700)] hover:bg-[var(--color-gray-50)] transition-colors"
+          >
             System Boundary
-          </h1>
-          <p className="mt-2 text-[var(--color-gray-600)]">
-            Your system boundary defines the in-scope systems and components for CUI. Evidence from endpoints in this boundary is used for technical control validation.
-          </p>
+            <ChevronRight className="h-4 w-4" />
+          </Link>
         </div>
 
+        {/* ── Endpoint Boundary ────────────────────────────────────────────── */}
         {list.length === 0 && (
           <>
             <section className={cardClass}>
-              <h2 className="text-sm font-semibold text-[var(--color-gray-800)]">Workflow</h2>
+              <h2 className="text-sm font-semibold text-[var(--color-gray-800)]">Endpoint Workflow</h2>
               <ol className="mt-3 list-inside list-decimal space-y-2 text-sm text-[var(--color-gray-600)]">
                 <li>Create a boundary.</li>
                 <li>Add endpoints (hostname, OS, role) to the boundary.</li>
@@ -116,87 +124,83 @@ export default async function OSBaselinesPage() {
         )}
 
         {singleBoundary && (
-          <>
-            <section className={cardClass}>
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--color-gray-600)]">
-                Your system boundary
-              </h2>
-              <div className="mt-4 space-y-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-[var(--color-gray-900)]">
-                    {singleBoundary.name}
-                  </h3>
-                  {singleBoundary.description && (
-                    <p className="mt-1 text-sm text-[var(--color-gray-600)]">
-                      {singleBoundary.description}
-                    </p>
-                  )}
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2 text-sm">
-                  <span className="flex items-center gap-1.5 text-[var(--color-gray-600)]">
-                    <Cloud className="h-4 w-4 text-[var(--color-gray-500)]" />
-                    {cloudProviderDisplay(singleBoundary.cloudProvider, singleBoundary.azureEnvironment)}
-                  </span>
-                </div>
-
-                <div>
-                  <p className="text-sm font-medium text-[var(--color-gray-700)]">OS &amp; endpoints</p>
-                  <p className="mt-0.5 text-sm text-[var(--color-gray-600)]">
-                    {singleBoundary.assetCount} endpoint{singleBoundary.assetCount !== 1 ? "s" : ""} (VMs, servers)
-                    {singleBoundary.assetsWithBaselineCount < singleBoundary.assetCount && (
-                      <> · {singleBoundary.assetsWithBaselineCount} with baseline assigned</>
-                    )}
+          <section className={cardClass}>
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--color-gray-600)]">
+              Your system boundary
+            </h2>
+            <div className="mt-4 space-y-4">
+              <div>
+                <h3 className="text-lg font-semibold text-[var(--color-gray-900)]">
+                  {singleBoundary.name}
+                </h3>
+                {singleBoundary.description && (
+                  <p className="mt-1 text-sm text-[var(--color-gray-600)]">
+                    {singleBoundary.description}
                   </p>
-                  <Link
-                    href={`/dashboard/os-baselines/boundaries/${singleBoundary.id}`}
-                    className="mt-1 inline-block text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
-                  >
-                    Manage endpoints →
-                  </Link>
-                </div>
-
-                {scopeLabels.length > 0 && (
-                  <div>
-                    <p className="text-sm font-medium text-[var(--color-gray-700)]">In-scope components</p>
-                    <p className="mt-0.5 text-sm text-[var(--color-gray-600)]">
-                      {scopeLabels.join(", ")}
-                    </p>
-                  </div>
                 )}
-
-                <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-gray-50)]/50 p-3">
-                  <p className="text-sm font-medium text-[var(--color-gray-700)]">Additional boundary items</p>
-                  <p className="mt-0.5 text-xs text-[var(--color-gray-500)]">
-                    Networking devices, additional VMs, or bare metal can be added in the boundary detail page.
-                  </p>
-                  <Link
-                    href={`/dashboard/os-baselines/boundaries/${singleBoundary.id}`}
-                    className="mt-2 inline-block text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
-                  >
-                    Manage boundary →
-                  </Link>
-                </div>
               </div>
 
-              <div className="mt-6 flex flex-wrap items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                <span className="flex items-center gap-1.5 text-[var(--color-gray-600)]">
+                  <Cloud className="h-4 w-4 text-[var(--color-gray-500)]" />
+                  {cloudProviderDisplay(singleBoundary.cloudProvider, singleBoundary.azureEnvironment)}
+                </span>
+              </div>
+
+              <div>
+                <p className="text-sm font-medium text-[var(--color-gray-700)]">OS &amp; endpoints</p>
+                <p className="mt-0.5 text-sm text-[var(--color-gray-600)]">
+                  {singleBoundary.assetCount} endpoint{singleBoundary.assetCount !== 1 ? "s" : ""} (VMs, servers)
+                  {singleBoundary.assetsWithBaselineCount < singleBoundary.assetCount && (
+                    <> · {singleBoundary.assetsWithBaselineCount} with baseline assigned</>
+                  )}
+                </p>
                 <Link
                   href={`/dashboard/os-baselines/boundaries/${singleBoundary.id}`}
-                  className="inline-flex items-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-primary-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2"
+                  className="mt-1 inline-block text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
                 >
-                  <Settings2 className="h-4 w-4" />
-                  Manage boundary
-                </Link>
-                <Link
-                  href="/dashboard/technical/upload"
-                  className="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
-                >
-                  <Upload className="h-4 w-4" />
-                  Upload evidence for an endpoint
+                  Manage endpoints →
                 </Link>
               </div>
-            </section>
-          </>
+
+              {scopeLabels.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium text-[var(--color-gray-700)]">In-scope components</p>
+                  <p className="mt-0.5 text-sm text-[var(--color-gray-600)]">{scopeLabels.join(", ")}</p>
+                </div>
+              )}
+
+              <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-gray-50)]/50 p-3">
+                <p className="text-sm font-medium text-[var(--color-gray-700)]">Additional boundary items</p>
+                <p className="mt-0.5 text-xs text-[var(--color-gray-500)]">
+                  Networking devices, additional VMs, or bare metal can be added in the boundary detail page.
+                </p>
+                <Link
+                  href={`/dashboard/os-baselines/boundaries/${singleBoundary.id}`}
+                  className="mt-2 inline-block text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
+                >
+                  Manage boundary →
+                </Link>
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <Link
+                href={`/dashboard/os-baselines/boundaries/${singleBoundary.id}`}
+                className="inline-flex items-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-primary-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2"
+              >
+                <Settings2 className="h-4 w-4" />
+                Manage boundary
+              </Link>
+              <Link
+                href="/dashboard/technical/upload"
+                className="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
+              >
+                <Upload className="h-4 w-4" />
+                Upload evidence for an endpoint
+              </Link>
+            </div>
+          </section>
         )}
 
         {list.length > 1 && (
@@ -222,13 +226,9 @@ export default async function OSBaselinesPage() {
                   >
                     <LayoutGrid className="h-5 w-5 shrink-0 text-[var(--color-gray-500)]" />
                     <div className="min-w-0 flex-1">
-                      <span className="font-medium text-[var(--color-gray-900)]">
-                        {b.name}
-                      </span>
+                      <span className="font-medium text-[var(--color-gray-900)]">{b.name}</span>
                       {b.description && (
-                        <p className="text-sm text-[var(--color-gray-500)]">
-                          {b.description}
-                        </p>
+                        <p className="text-sm text-[var(--color-gray-500)]">{b.description}</p>
                       )}
                       <p className="mt-1 flex items-center gap-1 text-xs text-[var(--color-gray-500)]">
                         <Server className="h-3.5 w-3.5" />

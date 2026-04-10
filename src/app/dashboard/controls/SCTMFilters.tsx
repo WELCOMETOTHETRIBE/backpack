@@ -12,6 +12,11 @@ export type SCTMRecord = {
   responsibleRoleId: string | null;
   roleName: string | null;
   artifactCount: number;
+  monitoringCadence?: string | null;
+  lastValidationDate?: Date | string | null;
+  validationMethod?: string | null;
+  sprs31311Condition?: string | null;
+  hybridSatisfaction?: { technical?: boolean; governance?: boolean } | null;
   /** True when latest 73-check run has this control as partial (evidence passed, gov docs needed). */
   evidencePartial?: boolean;
   /** True when control is in the 73 OS (enclave) set. */

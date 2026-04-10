@@ -1,6 +1,16 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // URL redirects: legacy paths → canonical paths
+  async redirects() {
+    return [
+      {
+        source: "/dashboard/os-baselines/scoping",
+        destination: "/dashboard/boundary/scoping",
+        permanent: true,
+      },
+    ];
+  },
   // Force clients to always revalidate page documents so the GUI shows the current live build
   async headers() {
     return [

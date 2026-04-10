@@ -102,6 +102,7 @@ export async function GET(req: Request) {
       sprs31311Condition: string | null;
       lastValidationDate: Date | null;
       monitoringCadence: string | null;
+      validationMethod: string | null;
       hybridSatisfaction: { technical?: boolean; governance?: boolean } | null;
     };
     let records: RecordRow[];
@@ -117,6 +118,7 @@ export async function GET(req: Request) {
           sprs31311Condition: controlRecords.sprs31311Condition,
           lastValidationDate: controlRecords.lastValidationDate,
           monitoringCadence: controlRecords.monitoringCadence,
+          validationMethod: controlRecords.validationMethod,
           hybridSatisfaction: controlRecords.hybridSatisfaction,
         })
         .from(controlRecords)
@@ -136,6 +138,7 @@ export async function GET(req: Request) {
             sprs31311Condition: controlRecords.sprs31311Condition,
             lastValidationDate: controlRecords.lastValidationDate,
             monitoringCadence: controlRecords.monitoringCadence,
+            validationMethod: controlRecords.validationMethod,
           })
           .from(controlRecords)
           .leftJoin(roles, eq(controlRecords.responsibleRoleId, roles.id))

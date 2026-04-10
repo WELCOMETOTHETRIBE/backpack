@@ -34,7 +34,7 @@ const FAMILY_CONTROL_COUNTS: Record<string, number> = (() => {
   return counts;
 })();
 
-export function SCTMPage() {
+export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const family = searchParams.get("family");
@@ -416,6 +416,7 @@ export function SCTMPage() {
               sctmOptimized={optimizedByControlId[selectedRecord.controlId] ?? undefined}
               orgUploadedLabels={uploadedLabels}
               onSaved={fetchData}
+              userRole={userRole}
             />
           ) : (
             <div className="flex flex-col items-center justify-center min-h-[200px] text-center">

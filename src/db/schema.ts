@@ -168,10 +168,35 @@ export const controlRecords = pgTable(
     monitoringCadence: monitoringCadenceEnum("monitoring_cadence"),
     /** Hybrid controls: user-modifiable satisfaction of the two criteria (technical/OS + governance). */
     hybridSatisfaction: jsonb("hybrid_satisfaction").$type<{ technical?: boolean; governance?: boolean }>(),
+    /** How this control was validated: examine | interview | test | combination */
+    validationMethod: text("validation_method"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => [uniqueIndex("control_records_org_control_idx").on(t.organizationId, t.controlId)]
+);
+
+/**
+ * Enclave evidence metadata links — RunId + file path + SHA-256 only.
+ * CUI never leaves the enclave; this table stores only the reference metadata.
+ */
+export const controlEvidenceLinks = pgTable(
+  "control_evidence_links",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id").references(() => organizations.id, { onDelete: "cascade" }).notNull(),
+    controlRecordId: uuid("control_record_id").references(() => controlRecords.id, { onDelete: "cascade" }).notNull(),
+    runId: text("run_id").notNull(),
+    filePath: text("file_path").notNull(),
+    sha256Hash: text("sha256_hash").notNull(),
+    description: text("description"),
+    /** Source identifier — e.g. collector name, provider name */
+    source: text("source"),
+    linkedAt: timestamp("linked_at", { withTimezone: true }).defaultNow().notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    linkedBy: uuid("linked_by").references(() => users.id),
+  },
+  (t) => [index("cel_org_control_idx").on(t.organizationId, t.controlRecordId)]
 );
 
 /** Read-only change history for control records (assessor view). */
@@ -294,6 +319,35 @@ export const organizations = pgTable("organizations", {
   primaryContactName: varchar("primary_contact_name", { length: 255 }),
   /** Primary point of contact email */
   primaryContactEmail: varchar("primary_contact_email", { length: 255 }),
+  // ── SSP Boundary Scoping (Wizard) ──────────────────────────────────────────
+  /** Formal SSP system name (may differ from org display name). */
+  systemName: varchar("system_name", { length: 255 }),
+  /** Narrative description of the information system. */
+  systemDescription: text("system_description"),
+  /** Formal authorization boundary statement anchoring the SSP. */
+  authorizationBoundaryStatement: text("authorization_boundary_statement"),
+  /** Government-designated System Owner. */
+  systemOwnerName: varchar("system_owner_name", { length: 255 }),
+  systemOwnerEmail: varchar("system_owner_email", { length: 255 }),
+  /** Information System Security Officer. */
+  issoName: varchar("isso_name", { length: 255 }),
+  issoEmail: varchar("isso_email", { length: 255 }),
+  /** DFARS/DoD CUI category identifiers in scope. */
+  cuiCategories: jsonb("cui_categories").$type<string[]>(),
+  /** External service providers and inherited controls. */
+  externalServiceProviders: jsonb("external_service_providers").$type<
+    Array<{
+      name: string;
+      serviceType: string;
+      dataTypes: string[];
+      inheritedControls: string[];
+      website?: string;
+    }>
+  >(),
+  /** Network diagram description / boundary narrative. */
+  boundaryNarrative: text("boundary_narrative"),
+  /** Set when the scoping wizard is completed. */
+  boundaryScopingCompletedAt: timestamp("boundary_scoping_completed_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
