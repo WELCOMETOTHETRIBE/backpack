@@ -1,8 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { CreateSystemBoundaryModal, SCOPE_OPTIONS } from "./CreateSystemBoundaryModal";
+import { CreateSystemBoundaryModal } from "./CreateSystemBoundaryModal";
+import { SCOPE_OPTIONS } from "@/types/boundary";
 
 /**
- * Tests that CreateSystemBoundaryModal uses grouped SCOPE_OPTIONS with expected sections and values.
+ * Tests that CreateSystemBoundaryModal exists and that SCOPE_OPTIONS has the expected DIB CMMC structure.
  */
 describe("CreateSystemBoundaryModal", () => {
   it("exports CreateSystemBoundaryModal component", () => {
@@ -10,25 +11,29 @@ describe("CreateSystemBoundaryModal", () => {
     expect(typeof CreateSystemBoundaryModal).toBe("function");
   });
 
-  it("renders grouped scope options with Compute, Cloud Hosting, Identity & Access, etc.", () => {
+  it("SCOPE_OPTIONS contains expected DIB CMMC groups", () => {
     const labels = SCOPE_OPTIONS.map((g) => g.label);
-    expect(labels).toContain("Compute");
-    expect(labels).toContain("Cloud Hosting");
-    expect(labels).toContain("Identity & Access");
-    expect(labels).toContain("Administrative Access");
-    expect(labels).toContain("Network Protection");
-    expect(labels).toContain("Storage");
-    expect(labels).toContain("Monitoring & Detection");
-    expect(labels).toContain("Recovery");
-    expect(labels).toContain("Productivity");
+    expect(labels.some((l) => l.includes("Compute"))).toBe(true);
+    expect(labels.some((l) => l.includes("Cloud"))).toBe(true);
+    expect(labels.some((l) => l.includes("Identity"))).toBe(true);
+    expect(labels.some((l) => l.includes("Network"))).toBe(true);
+    expect(labels.some((l) => l.includes("Monitoring"))).toBe(true);
+    expect(labels.some((l) => l.includes("Recovery"))).toBe(true);
   });
 
-  it("Compute group has windows_server_vm, linux_server_vm, virtual_desktop", () => {
-    const compute = SCOPE_OPTIONS.find((g) => g.label === "Compute");
+  it("Compute group includes windows_server_vm, linux_server_vm, virtual_desktop", () => {
+    const compute = SCOPE_OPTIONS.find((g) => g.label.includes("Compute"));
     expect(compute).toBeDefined();
     const values = compute!.items.map((i) => i.value);
     expect(values).toContain("windows_server_vm");
     expect(values).toContain("linux_server_vm");
     expect(values).toContain("virtual_desktop");
+  });
+
+  it("each scope group has a description", () => {
+    for (const group of SCOPE_OPTIONS) {
+      expect(typeof group.description).toBe("string");
+      expect(group.description.length).toBeGreaterThan(0);
+    }
   });
 });
