@@ -613,19 +613,8 @@ export function SCTMControlDetail({
         <div className="mb-4">
           <CollapsibleBlock label="Onboarding tips" defaultOpen={false} icon={Lightbulb} contentClassName="bg-gradient-to-b from-amber-50/50 to-white/90">
             <div className="text-[15px] leading-[1.7] text-[var(--color-gray-700)] whitespace-pre-wrap break-words space-y-2 [&_strong]:font-semibold [&_strong]:text-[var(--color-gray-800)]">
-              <TextWithBold
-                text={
-                  sctmOptimized.onboarding_tips.endsWith("...")
-                    ? sctmOptimized.onboarding_tips.slice(0, -3).trimEnd()
-                    : sctmOptimized.onboarding_tips
-                }
-              />
+              <TextWithBold text={sctmOptimized.onboarding_tips} />
             </div>
-            {sctmOptimized.onboarding_tips.endsWith("...") && (
-              <p className="mt-3 text-xs text-amber-700 border-t border-amber-200/60 pt-2.5">
-                This is a quick-start summary. For the full requirement text, NIST discussion, and step-by-step assessment procedures, see the sections above and the <strong>Assessment guide</strong> below.
-              </p>
-            )}
           </CollapsibleBlock>
         </div>
       )}
