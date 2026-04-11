@@ -9,6 +9,7 @@ import {
   HYBRID_TECHNICAL_IDS,
 } from "@/lib/compliance/control-bins";
 import { Cpu, FolderOpen, Server, Upload, Download } from "lucide-react";
+import RecalculateTechnicalButton from "./RecalculateTechnicalButton";
 
 const PURE_TECHNICAL_TOTAL = PURE_TECHNICAL_IDS.length;
 const HYBRID_TECHNICAL_TOTAL = HYBRID_TECHNICAL_IDS.length;
@@ -123,7 +124,10 @@ export default async function TechnicalDashboardPage() {
         </div>
 
         <section className={cardClass}>
-          <h2 className="text-sm font-semibold text-[var(--color-navy-primary)]">Quick actions</h2>
+          <div className="flex items-start justify-between gap-4">
+            <h2 className="text-sm font-semibold text-[var(--color-navy-primary)]">Quick actions</h2>
+            <RecalculateTechnicalButton />
+          </div>
           <div className="mt-4 flex flex-wrap gap-3">
             <Link
               href="/dashboard/technical/upload"

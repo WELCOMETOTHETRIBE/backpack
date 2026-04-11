@@ -11,8 +11,10 @@ import {
   boundaryProfiles,
   boundarySnapshots,
   governanceArtifactCompletions,
+  governanceDocumentControlLinks,
+  governanceDocuments,
 } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import {
   getRequiredUploadArtifactLabels,
   getRequiredArtifactSpecs,
@@ -186,6 +188,46 @@ export async function calculateControlStatus(controlRecordId: string): Promise<I
     technicalComplete = true;
   }
 
+  // Check governance manifest links — if approved (non-DRAFT) docs are mapped to this control,
+  // treat the governance document lane as satisfied regardless of individual artifact uploads.
+  // This allows the QMS manifest ingest to satisfy governance requirements for hybrid controls.
+  const govDocLinks = await db
+    .select({ docCode: governanceDocumentControlLinks.docCode })
+    .from(governanceDocumentControlLinks)
+    .where(
+      and(
+        eq(governanceDocumentControlLinks.organizationId, record.organizationId),
+        eq(governanceDocumentControlLinks.controlId, controlId)
+      )
+    )
+    .limit(10);
+
+  let hasApprovedGovDocs = false;
+  if (govDocLinks.length > 0) {
+    const docCodes = govDocLinks.map((l) => l.docCode);
+    // Check if any of those docs are non-DRAFT
+    for (const code of docCodes) {
+      const [doc] = await db
+        .select({ status: governanceDocuments.status })
+        .from(governanceDocuments)
+        .where(
+          and(
+            eq(governanceDocuments.organizationId, record.organizationId),
+            eq(governanceDocuments.docId, code)
+          )
+        )
+        .limit(1);
+      if (doc && doc.status !== "DRAFT") {
+        hasApprovedGovDocs = true;
+        break;
+      }
+    }
+  }
+  // Governance is complete if: artifacts satisfy specs OR approved governance docs are mapped.
+  // Narrative is satisfied if: user wrote one OR governance docs provide the written evidence.
+  const effectiveGovernanceComplete = governanceComplete || hasApprovedGovDocs;
+  const effectiveGovernanceDone = effectiveGovernanceComplete && (hasNarrative || hasApprovedGovDocs);
+
   // Derive technical_status for the dual-evidence lane.
   // Note: "inherited" and "not_applicable" are returned early above, so they
   // cannot appear here — cast to string to allow comparison without TS narrowing error.
@@ -197,10 +239,12 @@ export async function calculateControlStatus(controlRecordId: string): Promise<I
     : technicalComplete ? "satisfied"
     : "not_started";
 
-  const allComplete = governanceDone && technicalComplete;
+  const allComplete = effectiveGovernanceDone && technicalComplete;
   const hasSomeProgress =
     existingArtifacts.length > 0 ||
     hasNarrative ||
+    hasApprovedGovDocs ||
+    hasEvidenceLinks ||
     (await db
       .select({ id: technicalEvidence.id })
       .from(technicalEvidence)

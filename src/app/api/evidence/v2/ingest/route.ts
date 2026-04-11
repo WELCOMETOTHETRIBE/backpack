@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { controlEvidenceLinks, controlRecords, osAssets } from "@/db/schema";
 import { eq, and, inArray, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
+import { calculateControlStatus } from "@/lib/control-status";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const SCHEMA = "cui-evidence.manifest.v2";
@@ -277,6 +278,16 @@ export async function POST(req: Request) {
             sql`${controlRecords.technicalStatus} != 'satisfied'`
           )
         );
+    }
+
+    // ── Recalculate implementationStatus for all satisfied controls ──────────
+    // Run in parallel; cap concurrency to avoid hammering the DB on large bundles.
+    if (satisfiedRecordIds.size > 0) {
+      const ids = [...satisfiedRecordIds];
+      const BATCH = 10;
+      for (let i = 0; i < ids.length; i += BATCH) {
+        await Promise.all(ids.slice(i, i + BATCH).map((id) => calculateControlStatus(id).catch(() => null)));
+      }
     }
 
     // ── Audit log ─────────────────────────────────────────────────────────────
