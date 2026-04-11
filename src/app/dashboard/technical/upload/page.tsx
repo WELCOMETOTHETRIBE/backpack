@@ -37,6 +37,8 @@ export default function TechnicalUploadPage() {
   const [runId, setRunId] = useState("");
   const [collectedAt, setCollectedAt] = useState("");
   const [manifestFile, setManifestFile] = useState<File | null>(null);
+  const [isV2Manifest, setIsV2Manifest] = useState(false);
+  const [v2Result, setV2Result] = useState<{ linked_controls: number; skipped_controls: number; collection_errors: number; promoted?: number } | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const hasPreselected = useRef(false);
@@ -132,62 +134,92 @@ export default function TechnicalUploadPage() {
       return;
     }
 
-    if (!systemId.trim() || !runId.trim() || !collectedAt.trim()) {
-      setError("Asset, Run ID, and Collected at are required.");
-      return;
-    }
     if (!manifestFile) {
       setError("Please select a manifest JSON file or 73-check validation report.");
       return;
     }
 
-    let body: Record<string, unknown>;
-
+    let parsedFile: Record<string, unknown>;
     try {
       const text = await manifestFile.text();
-      const parsed = JSON.parse(text) as Record<string, unknown>;
+      parsedFile = JSON.parse(text.replace(/^\uFEFF/, "")) as Record<string, unknown>;
+    } catch {
+      setError("Invalid JSON — could not parse the selected file.");
+      return;
+    }
 
-      if (isValidationReport(parsed)) {
-        const report: Record<string, unknown> = {
-          validator: parsed.validator,
-          inputs: parsed.inputs ?? [],
-          checks: parsed.checks,
-        };
-        if (parsed.manifest_metadata != null) report.manifest_metadata = parsed.manifest_metadata;
-        if (parsed.summary != null) report.summary = parsed.summary;
-        body = {
-          system_id: systemId.trim(),
-          run_id: runId.trim(),
-          collected_at: collectedAt.trim(),
-          source: "windows_server_hardening",
-          report,
-        };
-      } else {
-        const files = Array.isArray(parsed.files)
-          ? (parsed.files as Array<{ path: string; sha256: string; size_bytes: number }>)
-          : [];
-        if (files.length === 0) {
-          setError(
-            "Manifest JSON must contain a 'files' array with objects { path, sha256, size_bytes }, or upload a 73-check validation report (validation-report-windows-hardening.json) with validator and checks."
-          );
+    // ── v2 manifest: route to /api/evidence/v2/ingest ──────────────────────
+    if (parsedFile.schema === "cui-evidence.manifest.v2") {
+      // boundary_id is optional for v2; asset id used for display only
+      setSubmitting(true);
+      try {
+        const res = await fetch("/api/evidence/v2/ingest", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ manifest: parsedFile, boundary_id: systemId.trim() || undefined }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          setError(data.error ?? `Upload failed (${res.status})`);
           return;
         }
-        body = {
-          system_id: systemId.trim(),
-          run_id: runId.trim(),
-          collected_at: collectedAt.trim(),
-          files,
-          collector_name: (parsed.collector_name as string) ?? "upload",
-          collector_version: (parsed.collector_version as string) ?? "1",
-          bundle_root: (parsed.bundle_root as string) ?? undefined,
-          manifest: parsed.manifest ?? {},
-        };
+        setV2Result({
+          linked_controls: data.linked_controls ?? 0,
+          skipped_controls: data.skipped_controls ?? 0,
+          collection_errors: data.collection_errors ?? 0,
+          promoted: data.promoted,
+        });
+        router.refresh();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Upload failed");
+      } finally {
+        setSubmitting(false);
       }
-    } catch {
-      setError(
-        "Invalid JSON. Use either a manifest with a 'files' array or a 73-check validation report (validator + checks)."
-      );
       return;
+    }
+
+    // ── Legacy / validation report: original flow ───────────────────────────
+    if (!systemId.trim() || !runId.trim() || !collectedAt.trim()) {
+      setError("Asset, Run ID, and Collected at are required.");
+      return;
+    }
+
+    let body: Record<string, unknown>;
+    if (isValidationReport(parsedFile)) {
+      const report: Record<string, unknown> = {
+        validator: parsedFile.validator,
+        inputs: parsedFile.inputs ?? [],
+        checks: parsedFile.checks,
+      };
+      if (parsedFile.manifest_metadata != null) report.manifest_metadata = parsedFile.manifest_metadata;
+      if (parsedFile.summary != null) report.summary = parsedFile.summary;
+      body = {
+        system_id: systemId.trim(),
+        run_id: runId.trim(),
+        collected_at: collectedAt.trim(),
+        source: "windows_server_hardening",
+        report,
+      };
+    } else {
+      const files = Array.isArray(parsedFile.files)
+        ? (parsedFile.files as Array<{ path: string; sha256: string; size_bytes: number }>)
+        : [];
+      if (files.length === 0) {
+        setError(
+          "Manifest JSON must contain a 'files' array, or upload a 73-check validation report (validation-report-windows-hardening.json)."
+        );
+        return;
+      }
+      body = {
+        system_id: systemId.trim(),
+        run_id: runId.trim(),
+        collected_at: collectedAt.trim(),
+        files,
+        collector_name: (parsedFile.collector_name as string) ?? "upload",
+        collector_version: (parsedFile.collector_version as string) ?? "1",
+        bundle_root: (parsedFile.bundle_root as string) ?? undefined,
+        manifest: parsedFile.manifest ?? {},
+      };
     }
 
     setSubmitting(true);
@@ -300,14 +332,14 @@ export default function TechnicalUploadPage() {
               {uploadTarget === "os" && (
               <div>
                 <label htmlFor="asset" className="block text-sm font-medium text-[var(--color-gray-700)]">
-                  Asset (system)
+                  Asset (system){isV2Manifest && <span className="ml-1 text-xs font-normal text-[var(--color-gray-500)]">(optional for v2 — auto-discovered)</span>}
                 </label>
                 <select
                   id="asset"
                   value={systemId}
                   onChange={(e) => setSystemId(e.target.value)}
                   className="mt-1 w-full rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm"
-                  required={uploadTarget === "os"}
+                  required={uploadTarget === "os" && !isV2Manifest}
                 >
                   <option value="">Select an asset</option>
                   {assets.map((a) => (
@@ -379,9 +411,33 @@ export default function TechnicalUploadPage() {
                   id="manifest"
                   type="file"
                   accept=".json,application/json"
-                  onChange={(e) => setManifestFile(e.target.files?.[0] ?? null)}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0] ?? null;
+                    setManifestFile(file);
+                    setIsV2Manifest(false);
+                    setV2Result(null);
+                    setError(null);
+                    if (!file) return;
+                    try {
+                      const text = await file.text();
+                      const parsed = JSON.parse(text.replace(/^\uFEFF/, "")) as Record<string, unknown>;
+                      if (parsed.schema === "cui-evidence.manifest.v2") {
+                        setIsV2Manifest(true);
+                        if (parsed.run_id && typeof parsed.run_id === "string") setRunId(parsed.run_id);
+                        if (parsed.collected_at && typeof parsed.collected_at === "string") {
+                          // Convert ISO to datetime-local format
+                          setCollectedAt(parsed.collected_at.slice(0, 16));
+                        }
+                      }
+                    } catch { /* non-JSON or not v2 — handled on submit */ }
+                  }}
                   className="mt-1 w-full text-sm"
                 />
+                {isV2Manifest && (
+                  <p className="mt-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
+                    ✓ v2 manifest detected — Run ID and date auto-filled. Will ingest via fast OS evidence pipeline.
+                  </p>
+                )}
               </div>
               <div className="flex gap-3 pt-2">
                 <button
@@ -402,6 +458,53 @@ export default function TechnicalUploadPage() {
             </form>
           )}
         </section>
+
+        {v2Result && (
+          <section className={cardClass}>
+            <h2 className="text-sm font-semibold text-[var(--color-navy-primary)]">
+              v2 evidence ingested
+            </h2>
+            <dl className="mt-3 grid grid-cols-3 gap-4">
+              <div>
+                <dt className="text-xs text-[var(--color-gray-500)]">Controls linked</dt>
+                <dd className="mt-0.5 text-2xl font-bold text-[var(--color-navy-primary)]">
+                  {v2Result.linked_controls}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs text-[var(--color-gray-500)]">Skipped</dt>
+                <dd className="mt-0.5 text-2xl font-bold text-[var(--color-gray-600)]">
+                  {v2Result.skipped_controls}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs text-[var(--color-gray-500)]">Collection errors</dt>
+                <dd className={`mt-0.5 text-2xl font-bold ${v2Result.collection_errors > 0 ? "text-amber-600" : "text-[var(--color-gray-600)]"}`}>
+                  {v2Result.collection_errors}
+                </dd>
+              </div>
+            </dl>
+            {v2Result.promoted != null && v2Result.promoted > 0 && (
+              <p className="mt-3 text-sm font-medium text-emerald-700">
+                {v2Result.promoted} control{v2Result.promoted > 1 ? "s" : ""} promoted to Implemented
+              </p>
+            )}
+            <div className="mt-4 flex gap-3">
+              <Link
+                href="/dashboard/technical"
+                className="inline-flex items-center rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--color-primary-hover)]"
+              >
+                View Technical dashboard →
+              </Link>
+              <Link
+                href="/dashboard/evidence"
+                className="inline-flex items-center rounded-[var(--radius-md)] border border-[var(--color-border)] px-4 py-2 text-sm font-medium text-[var(--color-gray-700)] hover:bg-[var(--color-gray-50)]"
+              >
+                View evidence runs
+              </Link>
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );
