@@ -170,6 +170,17 @@ export const controlRecords = pgTable(
     hybridSatisfaction: jsonb("hybrid_satisfaction").$type<{ technical?: boolean; governance?: boolean }>(),
     /** How this control was validated: examine | interview | test | combination */
     validationMethod: text("validation_method"),
+    // ── Dual-evidence adjudication lanes ──────────────────────────────────────
+    /** Technical evidence lane. Values: not_started | satisfied | failed | not_applicable */
+    technicalStatus: text("technical_status").notNull().default("not_started"),
+    /** True for the ~18 controls that require BOTH a technical evidence AND a policy document. */
+    policyDocRequired: boolean("policy_doc_required").notNull().default(false),
+    /** Policy document lane. Values: not_required | required | missing | satisfied */
+    policyStatus: text("policy_status").notNull().default("not_required"),
+    /** Which document satisfies the policy lane (doc number, version, SHA-256 reference). */
+    policyDocNarrative: text("policy_doc_narrative"),
+    /** When policy lane was last marked satisfied. */
+    policyDocLinkedAt: timestamp("policy_doc_linked_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
@@ -1125,6 +1136,50 @@ export const governanceControlResponsibilities = pgTable(
     index("governance_control_responsibilities_org_id_idx").on(t.orgId),
     index("governance_control_responsibilities_boundary_id_idx").on(t.boundaryId),
     index("governance_control_responsibilities_control_id_idx").on(t.controlId),
+  ]
+);
+
+// ============== Governance Manifest Ingest ==============
+
+/** Tracks each governance bundle manifest ingest run per org. */
+export const governanceManifestRuns = pgTable(
+  "governance_manifest_runs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id")
+      .references(() => organizations.id, { onDelete: "cascade" })
+      .notNull(),
+    runId: text("run_id").notNull(),
+    schemaVersion: integer("schema_version").notNull().default(3),
+    bundleSource: text("bundle_source"),
+    ingestedBy: uuid("ingested_by").references(() => users.id),
+    ingestedAt: timestamp("ingested_at", { withTimezone: true }).defaultNow().notNull(),
+    docCount: integer("doc_count").notNull().default(0),
+  },
+  (t) => [
+    uniqueIndex("gmr_org_run_idx").on(t.organizationId, t.runId),
+    index("gmr_org_idx").on(t.organizationId),
+  ]
+);
+
+/** Maps individual governance document codes to NIST controls they satisfy, per ingest run. */
+export const governanceDocumentControlLinks = pgTable(
+  "governance_document_control_links",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id")
+      .references(() => organizations.id, { onDelete: "cascade" })
+      .notNull(),
+    manifestRunId: uuid("manifest_run_id")
+      .references(() => governanceManifestRuns.id, { onDelete: "cascade" })
+      .notNull(),
+    docCode: text("doc_code").notNull(),
+    controlId: text("control_id").notNull(),
+    satisfactionType: text("satisfaction_type").notNull().default("primary"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    index("gdcl_org_control_idx").on(t.organizationId, t.controlId),
   ]
 );
 

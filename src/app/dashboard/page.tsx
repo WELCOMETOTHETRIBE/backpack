@@ -88,18 +88,32 @@ export default async function DashboardPage() {
 
   // ── Control records ──
   const records = await db
-    .select({ controlId: controlRecords.controlId, implementationStatus: controlRecords.implementationStatus })
+    .select({
+      controlId: controlRecords.controlId,
+      implementationStatus: controlRecords.implementationStatus,
+      technicalStatus: controlRecords.technicalStatus,
+      policyDocRequired: controlRecords.policyDocRequired,
+      policyStatus: controlRecords.policyStatus,
+    })
     .from(controlRecords)
     .where(eq(controlRecords.organizationId, orgId));
 
-  const adjudicatedCount = records.filter((r) =>
-    ADJUDICATED_STATUSES.includes(r.implementationStatus as (typeof ADJUDICATED_STATUSES)[number])
-  ).length;
+  // A control is "fully adjudicated" when its combined status is resolved:
+  // - policy not required: implementationStatus is adjudicated
+  // - policy required: both technical satisfied AND policy satisfied
+  function isFullyAdjudicated(r: (typeof records)[0]): boolean {
+    if (r.policyDocRequired) {
+      return r.technicalStatus === "satisfied" && r.policyStatus === "satisfied";
+    }
+    return ADJUDICATED_STATUSES.includes(r.implementationStatus as (typeof ADJUDICATED_STATUSES)[number]);
+  }
+
+  const adjudicatedCount = records.filter(isFullyAdjudicated).length;
   const implementedCount = records.filter((r) =>
     IMPLEMENTED_STATUSES.includes(r.implementationStatus as (typeof IMPLEMENTED_STATUSES)[number])
   ).length;
   const outstandingCount = Math.max(0, TOTAL_CONTROLS - adjudicatedCount);
-  const implementedPct = TOTAL_CONTROLS ? Math.round((implementedCount / TOTAL_CONTROLS) * 100) : 0;
+  const implementedPct = TOTAL_CONTROLS ? Math.round((adjudicatedCount / TOTAL_CONTROLS) * 100) : 0;
 
   // Controls needing review (not_started or in_progress)
   const needingReview = records.filter(
@@ -111,9 +125,7 @@ export default async function DashboardPage() {
     const familyIds = ALL_CONTROL_IDS.filter((id) => id.startsWith(f.code + "."));
     const total = familyIds.length;
     const done = records.filter(
-      (r) =>
-        familyIds.includes(r.controlId) &&
-        ADJUDICATED_STATUSES.includes(r.implementationStatus as (typeof ADJUDICATED_STATUSES)[number])
+      (r) => familyIds.includes(r.controlId) && isFullyAdjudicated(r)
     ).length;
     return { ...f, total, done, pct: total ? Math.round((done / total) * 100) : 0 };
   });

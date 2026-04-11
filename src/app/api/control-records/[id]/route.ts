@@ -15,6 +15,9 @@ const VALID_STATUSES = [
   "not_applicable",
 ] as const;
 
+const VALID_TECHNICAL_STATUSES = ["not_started", "satisfied", "failed", "not_applicable"] as const;
+const VALID_POLICY_STATUSES = ["not_required", "required", "missing", "satisfied"] as const;
+
 const VALID_CADENCES = ["Quarterly", "Monthly", "Annual"] as const;
 const VALID_VALIDATION_METHODS = ["examine", "interview", "test", "combination"] as const;
 
@@ -95,6 +98,31 @@ export async function PATCH(
       updates.implementationStatus = body.implementationStatus as (typeof VALID_STATUSES)[number];
     }
 
+    // ── Dual-evidence lane fields ──
+    if (
+      typeof body.technicalStatus === "string" &&
+      VALID_TECHNICAL_STATUSES.includes(body.technicalStatus as (typeof VALID_TECHNICAL_STATUSES)[number])
+    ) {
+      updates.technicalStatus = body.technicalStatus;
+    }
+
+    if (
+      typeof body.policyStatus === "string" &&
+      VALID_POLICY_STATUSES.includes(body.policyStatus as (typeof VALID_POLICY_STATUSES)[number])
+    ) {
+      updates.policyStatus = body.policyStatus;
+      // Stamp policyDocLinkedAt when marking satisfied; clear when un-satisfying
+      if (body.policyStatus === "satisfied") {
+        updates.policyDocLinkedAt = new Date();
+      } else if (existing.policyStatus === "satisfied") {
+        updates.policyDocLinkedAt = null;
+      }
+    }
+
+    if (typeof body.policyDocNarrative !== "undefined") {
+      updates.policyDocNarrative = body.policyDocNarrative ?? null;
+    }
+
     if (Object.keys(updates).length === 0) {
       return NextResponse.json(existing);
     }
@@ -127,6 +155,24 @@ export async function PATCH(
           fieldName: "implementationStatus",
           oldValue: existing.implementationStatus,
           newValue: updates.implementationStatus ?? null,
+        });
+      }
+      if ("technicalStatus" in updates && existing.technicalStatus !== updates.technicalStatus) {
+        await db.insert(controlRecordHistory).values({
+          controlRecordId: id,
+          changedById: user.id,
+          fieldName: "technicalStatus",
+          oldValue: existing.technicalStatus,
+          newValue: updates.technicalStatus ?? null,
+        });
+      }
+      if ("policyStatus" in updates && existing.policyStatus !== updates.policyStatus) {
+        await db.insert(controlRecordHistory).values({
+          controlRecordId: id,
+          changedById: user.id,
+          fieldName: "policyStatus",
+          oldValue: existing.policyStatus,
+          newValue: updates.policyStatus ?? null,
         });
       }
     }

@@ -8,6 +8,7 @@ import {
   governanceEvidenceItems,
   governanceRegisters,
   governanceRegisterEntries,
+  governanceManifestRuns,
 } from "@/db/schema";
 import { eq, and, desc, sql, lt } from "drizzle-orm";
 import {
@@ -22,6 +23,7 @@ import {
   Download,
   Upload,
   PlusCircle,
+  PackageOpen,
 } from "lucide-react";
 
 const PURE_TOTAL = PURE_GOVERNANCE_IDS.length;
@@ -104,6 +106,35 @@ export default async function GovernanceDashboardPage() {
     .select({ count: sql<number>`count(*)::int` })
     .from(governanceDocuments)
     .where(and(eq(governanceDocuments.organizationId, orgId), eq(governanceDocuments.status, "APPROVED")));
+
+  // Governance bundle manifest runs
+  const [latestManifestRun] = await db
+    .select({
+      runId: governanceManifestRuns.runId,
+      ingestedAt: governanceManifestRuns.ingestedAt,
+      docCount: governanceManifestRuns.docCount,
+      bundleSource: governanceManifestRuns.bundleSource,
+    })
+    .from(governanceManifestRuns)
+    .where(eq(governanceManifestRuns.organizationId, orgId))
+    .orderBy(desc(governanceManifestRuns.ingestedAt))
+    .limit(1);
+
+  // Policy lane stats for dual-evidence controls
+  const policyLaneRecords = await db
+    .select({
+      controlId: controlRecords.controlId,
+      policyStatus: controlRecords.policyStatus,
+    })
+    .from(controlRecords)
+    .where(
+      and(
+        eq(controlRecords.organizationId, orgId),
+        eq(controlRecords.policyDocRequired, true)
+      )
+    );
+  const policyTotal = policyLaneRecords.length;
+  const policySatisfied = policyLaneRecords.filter((r) => r.policyStatus === "satisfied").length;
 
   const cardClass =
     "rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm";
@@ -191,6 +222,54 @@ export default async function GovernanceDashboardPage() {
             </p>
           </div>
         </div>
+
+        {/* Governance bundle manifest status */}
+        <section className={cardClass}>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-sm font-semibold text-[var(--color-navy-primary)]">Governance Bundle</h2>
+              <p className="mt-1 text-sm text-[var(--color-gray-600)]">
+                MacTech CUI Vault Governance Bundle ingest status and policy document lanes.
+              </p>
+            </div>
+            <Link
+              href="/dashboard/governance/upload-manifest"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[var(--color-primary-hover)]"
+            >
+              <PackageOpen className="h-3.5 w-3.5" aria-hidden />
+              Ingest bundle
+            </Link>
+          </div>
+          <div className="mt-4 grid gap-4 sm:grid-cols-3">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-gray-500)]">Last ingest</p>
+              {latestManifestRun ? (
+                <>
+                  <p className="mt-1 text-sm font-semibold text-[var(--color-navy-primary)]">
+                    {new Date(latestManifestRun.ingestedAt).toLocaleDateString()}
+                  </p>
+                  <p className="text-xs text-[var(--color-gray-500)]">
+                    {latestManifestRun.docCount} docs &middot; {latestManifestRun.runId}
+                  </p>
+                </>
+              ) : (
+                <p className="mt-1 text-sm text-[var(--color-gray-500)] italic">Not ingested yet</p>
+              )}
+            </div>
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-gray-500)]">Policy lanes satisfied</p>
+              <p className="mt-1 text-2xl font-bold text-[var(--color-navy-primary)]">
+                {policySatisfied} <span className="text-base font-normal text-[var(--color-gray-500)]">/ {policyTotal}</span>
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-gray-500)]">Bundle source</p>
+              <p className="mt-1 text-xs font-mono text-[var(--color-gray-700)] break-all">
+                {latestManifestRun?.bundleSource ?? "—"}
+              </p>
+            </div>
+          </div>
+        </section>
 
         <section className={cardClass}>
           <h2 className="text-sm font-semibold text-[var(--color-navy-primary)]">Quick actions</h2>

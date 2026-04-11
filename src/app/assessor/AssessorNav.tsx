@@ -8,6 +8,7 @@ const NAV_LINKS = [
   { label: "Controls", href: "/assessor/controls" },
   { label: "POA&M", href: "/assessor/poam" },
   { label: "Evidence", href: "/assessor/evidence" },
+  { label: "Governance", href: "/assessor/governance" },
   { label: "SSP", href: "/assessor/ssp" },
 ];
 

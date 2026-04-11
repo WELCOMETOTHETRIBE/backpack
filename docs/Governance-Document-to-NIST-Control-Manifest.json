@@ -1,0 +1,423 @@
+{
+  "_comment": "Maps MacTech governance document codes to NIST SP 800-171 Rev.2 control IDs they satisfy. satisfaction_type: primary = required for policy_status; supporting = corroborating evidence.",
+  "version": 1,
+  "source": "MacTech CUI Vault Governance Bundle v3 (platform-agnostic)",
+  "mappings": [
+    {
+      "doc_code": "MAC-CMP-001",
+      "title": "Configuration Management Plan",
+      "controls": [
+        { "control_id": "3.4.1", "satisfaction_type": "primary" },
+        { "control_id": "3.4.2", "satisfaction_type": "primary" },
+        { "control_id": "3.4.3", "satisfaction_type": "primary" },
+        { "control_id": "3.4.4", "satisfaction_type": "primary" },
+        { "control_id": "3.4.5", "satisfaction_type": "supporting" },
+        { "control_id": "3.4.6", "satisfaction_type": "supporting" },
+        { "control_id": "3.4.7", "satisfaction_type": "supporting" },
+        { "control_id": "3.4.8", "satisfaction_type": "supporting" },
+        { "control_id": "3.4.9", "satisfaction_type": "supporting" }
+      ]
+    },
+    {
+      "doc_code": "MAC-IRP-001",
+      "title": "Incident Response Plan",
+      "controls": [
+        { "control_id": "3.6.1", "satisfaction_type": "primary" },
+        { "control_id": "3.6.2", "satisfaction_type": "primary" },
+        { "control_id": "3.6.3", "satisfaction_type": "primary" }
+      ]
+    },
+    {
+      "doc_code": "MAC-FRM-203",
+      "title": "User Access and FCI/CUI Handling Acknowledgement",
+      "controls": [
+        { "control_id": "3.2.1", "satisfaction_type": "supporting" },
+        { "control_id": "3.2.2", "satisfaction_type": "supporting" },
+        { "control_id": "3.9.2", "satisfaction_type": "supporting" }
+      ]
+    },
+    {
+      "doc_code": "MAC-FRM-204",
+      "title": "CUI Enclave User Agreement and Rules of Behavior",
+      "controls": [
+        { "control_id": "3.1.1", "satisfaction_type": "supporting" },
+        { "control_id": "3.1.2", "satisfaction_type": "supporting" },
+        { "control_id": "3.2.1", "satisfaction_type": "supporting" },
+        { "control_id": "3.2.2", "satisfaction_type": "supporting" }
+      ]
+    },
+    {
+      "doc_code": "MAC-POL-210",
+      "title": "Access Control Policy",
+      "controls": [
+        { "control_id": "3.1.1", "satisfaction_type": "primary" },
+        { "control_id": "3.1.2", "satisfaction_type": "primary" },
+        { "control_id": "3.1.3", "satisfaction_type": "primary" },
+        { "control_id": "3.1.4", "satisfaction_type": "primary" },
+        { "control_id": "3.1.5", "satisfaction_type": "primary" },
+        { "control_id": "3.1.6", "satisfaction_type": "primary" },
+        { "control_id": "3.1.7", "satisfaction_type": "primary" },
+        { "control_id": "3.1.8", "satisfaction_type": "primary" },
+        { "control_id": "3.1.9", "satisfaction_type": "primary" },
+        { "control_id": "3.1.10", "satisfaction_type": "primary" },
+        { "control_id": "3.1.11", "satisfaction_type": "primary" },
+        { "control_id": "3.1.12", "satisfaction_type": "primary" },
+        { "control_id": "3.1.13", "satisfaction_type": "primary" },
+        { "control_id": "3.1.14", "satisfaction_type": "primary" },
+        { "control_id": "3.1.15", "satisfaction_type": "primary" },
+        { "control_id": "3.1.16", "satisfaction_type": "primary" },
+        { "control_id": "3.1.17", "satisfaction_type": "primary" },
+        { "control_id": "3.1.18", "satisfaction_type": "primary" },
+        { "control_id": "3.1.19", "satisfaction_type": "primary" },
+        { "control_id": "3.1.20", "satisfaction_type": "primary" },
+        { "control_id": "3.1.21", "satisfaction_type": "primary" },
+        { "control_id": "3.1.22", "satisfaction_type": "primary" }
+      ]
+    },
+    {
+      "doc_code": "MAC-POL-211",
+      "title": "Identification and Authentication Policy",
+      "controls": [
+        { "control_id": "3.5.1", "satisfaction_type": "primary" },
+        { "control_id": "3.5.2", "satisfaction_type": "primary" },
+        { "control_id": "3.5.3", "satisfaction_type": "primary" },
+        { "control_id": "3.5.4", "satisfaction_type": "primary" },
+        { "control_id": "3.5.5", "satisfaction_type": "primary" },
+        { "control_id": "3.5.6", "satisfaction_type": "primary" },
+        { "control_id": "3.5.7", "satisfaction_type": "primary" },
+        { "control_id": "3.5.8", "satisfaction_type": "primary" },
+        { "control_id": "3.5.9", "satisfaction_type": "primary" },
+        { "control_id": "3.5.10", "satisfaction_type": "primary" },
+        { "control_id": "3.5.11", "satisfaction_type": "primary" }
+      ]
+    },
+    {
+      "doc_code": "MAC-POL-212",
+      "title": "Physical Security Policy",
+      "controls": [
+        { "control_id": "3.10.1", "satisfaction_type": "primary" },
+        { "control_id": "3.10.2", "satisfaction_type": "primary" },
+        { "control_id": "3.10.3", "satisfaction_type": "primary" },
+        { "control_id": "3.10.4", "satisfaction_type": "primary" },
+        { "control_id": "3.10.5", "satisfaction_type": "primary" },
+        { "control_id": "3.10.6", "satisfaction_type": "primary" }
+      ]
+    },
+    {
+      "doc_code": "MAC-POL-213",
+      "title": "Media Handling and Data Disposal Policy",
+      "controls": [
+        { "control_id": "3.8.1", "satisfaction_type": "primary" },
+        { "control_id": "3.8.2", "satisfaction_type": "primary" },
+        { "control_id": "3.8.3", "satisfaction_type": "primary" },
+        { "control_id": "3.8.4", "satisfaction_type": "primary" },
+        { "control_id": "3.8.5", "satisfaction_type": "primary" },
+        { "control_id": "3.8.6", "satisfaction_type": "primary" },
+        { "control_id": "3.8.7", "satisfaction_type": "primary" },
+        { "control_id": "3.8.8", "satisfaction_type": "primary" },
+        { "control_id": "3.8.9", "satisfaction_type": "primary" }
+      ]
+    },
+    {
+      "doc_code": "MAC-POL-214",
+      "title": "System and Information Integrity Policy",
+      "controls": [
+        { "control_id": "3.14.1", "satisfaction_type": "primary" },
+        { "control_id": "3.14.2", "satisfaction_type": "primary" },
+        { "control_id": "3.14.3", "satisfaction_type": "primary" },
+        { "control_id": "3.14.4", "satisfaction_type": "primary" },
+        { "control_id": "3.14.5", "satisfaction_type": "primary" },
+        { "control_id": "3.14.6", "satisfaction_type": "primary" },
+        { "control_id": "3.14.7", "satisfaction_type": "primary" }
+      ]
+    },
+    {
+      "doc_code": "MAC-POL-215",
+      "title": "Incident Response Policy",
+      "controls": [
+        { "control_id": "3.6.1", "satisfaction_type": "primary" },
+        { "control_id": "3.6.2", "satisfaction_type": "primary" },
+        { "control_id": "3.6.3", "satisfaction_type": "primary" }
+      ]
+    },
+    {
+      "doc_code": "MAC-POL-216",
+      "title": "System and Information Integrity Policy (Reference)",
+      "controls": [
+        { "control_id": "3.14.1", "satisfaction_type": "supporting" },
+        { "control_id": "3.14.2", "satisfaction_type": "supporting" },
+        { "control_id": "3.14.6", "satisfaction_type": "supporting" },
+        { "control_id": "3.14.7", "satisfaction_type": "supporting" }
+      ]
+    },
+    {
+      "doc_code": "MAC-POL-217",
+      "title": "Ongoing Stakeholder Requirements",
+      "controls": [
+        { "control_id": "3.12.1", "satisfaction_type": "supporting" },
+        { "control_id": "3.12.4", "satisfaction_type": "supporting" }
+      ]
+    },
+    {
+      "doc_code": "MAC-POL-218",
+      "title": "Audit and Accountability Policy",
+      "controls": [
+        { "control_id": "3.3.1", "satisfaction_type": "primary" },
+        { "control_id": "3.3.2", "satisfaction_type": "primary" },
+        { "control_id": "3.3.3", "satisfaction_type": "primary" },
+        { "control_id": "3.3.4", "satisfaction_type": "primary" },
+        { "control_id": "3.3.5", "satisfaction_type": "primary" },
+        { "control_id": "3.3.6", "satisfaction_type": "primary" },
+        { "control_id": "3.3.7", "satisfaction_type": "primary" },
+        { "control_id": "3.3.8", "satisfaction_type": "primary" },
+        { "control_id": "3.3.9", "satisfaction_type": "primary" }
+      ]
+    },
+    {
+      "doc_code": "MAC-POL-219",
+      "title": "Awareness and Training Policy",
+      "controls": [
+        { "control_id": "3.2.1", "satisfaction_type": "primary" },
+        { "control_id": "3.2.2", "satisfaction_type": "primary" },
+        { "control_id": "3.2.3", "satisfaction_type": "primary" }
+      ]
+    },
+    {
+      "doc_code": "MAC-POL-220",
+      "title": "Configuration Management Policy",
+      "controls": [
+        { "control_id": "3.4.1", "satisfaction_type": "primary" },
+        { "control_id": "3.4.2", "satisfaction_type": "primary" },
+        { "control_id": "3.4.3", "satisfaction_type": "primary" },
+        { "control_id": "3.4.4", "satisfaction_type": "primary" },
+        { "control_id": "3.4.5", "satisfaction_type": "primary" },
+        { "control_id": "3.4.6", "satisfaction_type": "primary" },
+        { "control_id": "3.4.7", "satisfaction_type": "primary" },
+        { "control_id": "3.4.8", "satisfaction_type": "primary" },
+        { "control_id": "3.4.9", "satisfaction_type": "primary" }
+      ]
+    },
+    {
+      "doc_code": "MAC-POL-221",
+      "title": "Maintenance Policy",
+      "controls": [
+        { "control_id": "3.7.1", "satisfaction_type": "primary" },
+        { "control_id": "3.7.2", "satisfaction_type": "primary" },
+        { "control_id": "3.7.3", "satisfaction_type": "primary" },
+        { "control_id": "3.7.4", "satisfaction_type": "primary" },
+        { "control_id": "3.7.5", "satisfaction_type": "primary" },
+        { "control_id": "3.7.6", "satisfaction_type": "primary" }
+      ]
+    },
+    {
+      "doc_code": "MAC-POL-222",
+      "title": "Personnel Security Policy",
+      "controls": [
+        { "control_id": "3.9.1", "satisfaction_type": "primary" },
+        { "control_id": "3.9.2", "satisfaction_type": "primary" }
+      ]
+    },
+    {
+      "doc_code": "MAC-POL-223",
+      "title": "Risk Assessment Policy",
+      "controls": [
+        { "control_id": "3.11.1", "satisfaction_type": "primary" },
+        { "control_id": "3.11.2", "satisfaction_type": "primary" },
+        { "control_id": "3.11.3", "satisfaction_type": "primary" }
+      ]
+    },
+    {
+      "doc_code": "MAC-POL-224",
+      "title": "Security Assessment Policy",
+      "controls": [
+        { "control_id": "3.12.1", "satisfaction_type": "primary" },
+        { "control_id": "3.12.2", "satisfaction_type": "primary" },
+        { "control_id": "3.12.3", "satisfaction_type": "primary" },
+        { "control_id": "3.12.4", "satisfaction_type": "primary" }
+      ]
+    },
+    {
+      "doc_code": "MAC-POL-225",
+      "title": "System and Communications Protection Policy",
+      "controls": [
+        { "control_id": "3.13.1", "satisfaction_type": "primary" },
+        { "control_id": "3.13.2", "satisfaction_type": "primary" },
+        { "control_id": "3.13.3", "satisfaction_type": "primary" },
+        { "control_id": "3.13.4", "satisfaction_type": "primary" },
+        { "control_id": "3.13.5", "satisfaction_type": "primary" },
+        { "control_id": "3.13.6", "satisfaction_type": "primary" },
+        { "control_id": "3.13.7", "satisfaction_type": "primary" },
+        { "control_id": "3.13.8", "satisfaction_type": "primary" },
+        { "control_id": "3.13.9", "satisfaction_type": "primary" },
+        { "control_id": "3.13.10", "satisfaction_type": "primary" },
+        { "control_id": "3.13.11", "satisfaction_type": "primary" },
+        { "control_id": "3.13.12", "satisfaction_type": "primary" },
+        { "control_id": "3.13.13", "satisfaction_type": "primary" },
+        { "control_id": "3.13.14", "satisfaction_type": "primary" },
+        { "control_id": "3.13.15", "satisfaction_type": "primary" },
+        { "control_id": "3.13.16", "satisfaction_type": "primary" }
+      ]
+    },
+    {
+      "doc_code": "MAC-POL-226",
+      "title": "Software Restriction Policy",
+      "controls": [
+        { "control_id": "3.4.8", "satisfaction_type": "supporting" },
+        { "control_id": "3.4.9", "satisfaction_type": "supporting" },
+        { "control_id": "3.13.13", "satisfaction_type": "supporting" }
+      ]
+    },
+    {
+      "doc_code": "MAC-SOP-221",
+      "title": "User Account Provisioning and Deprovisioning Procedure",
+      "controls": [
+        { "control_id": "3.1.1", "satisfaction_type": "supporting" },
+        { "control_id": "3.1.2", "satisfaction_type": "supporting" },
+        { "control_id": "3.5.1", "satisfaction_type": "supporting" },
+        { "control_id": "3.5.2", "satisfaction_type": "supporting" },
+        { "control_id": "3.9.2", "satisfaction_type": "supporting" }
+      ]
+    },
+    {
+      "doc_code": "MAC-SOP-222",
+      "title": "Account Lifecycle Enforcement Procedure",
+      "controls": [
+        { "control_id": "3.1.1", "satisfaction_type": "supporting" },
+        { "control_id": "3.5.5", "satisfaction_type": "supporting" },
+        { "control_id": "3.5.6", "satisfaction_type": "supporting" }
+      ]
+    },
+    {
+      "doc_code": "MAC-SOP-223",
+      "title": "Incident Identification and Reporting Procedure",
+      "controls": [
+        { "control_id": "3.6.1", "satisfaction_type": "supporting" },
+        { "control_id": "3.6.2", "satisfaction_type": "supporting" }
+      ]
+    },
+    {
+      "doc_code": "MAC-SOP-224",
+      "title": "Physical Environment and Remote Work Controls",
+      "controls": [
+        { "control_id": "3.10.1", "satisfaction_type": "supporting" },
+        { "control_id": "3.10.2", "satisfaction_type": "supporting" },
+        { "control_id": "3.10.6", "satisfaction_type": "supporting" }
+      ]
+    },
+    {
+      "doc_code": "MAC-SOP-225",
+      "title": "Configuration Change Awareness Procedure",
+      "controls": [
+        { "control_id": "3.4.3", "satisfaction_type": "supporting" },
+        { "control_id": "3.4.4", "satisfaction_type": "supporting" }
+      ]
+    },
+    {
+      "doc_code": "MAC-SOP-226",
+      "title": "Audit Log Review Procedure",
+      "controls": [
+        { "control_id": "3.3.1", "satisfaction_type": "supporting" },
+        { "control_id": "3.3.2", "satisfaction_type": "supporting" },
+        { "control_id": "3.3.5", "satisfaction_type": "supporting" }
+      ]
+    },
+    {
+      "doc_code": "MAC-SOP-227",
+      "title": "Security Awareness Training Procedure",
+      "controls": [
+        { "control_id": "3.2.1", "satisfaction_type": "supporting" },
+        { "control_id": "3.2.2", "satisfaction_type": "supporting" },
+        { "control_id": "3.2.3", "satisfaction_type": "supporting" }
+      ]
+    },
+    {
+      "doc_code": "MAC-SOP-228",
+      "title": "Configuration Baseline Management Procedure",
+      "controls": [
+        { "control_id": "3.4.1", "satisfaction_type": "supporting" },
+        { "control_id": "3.4.2", "satisfaction_type": "supporting" }
+      ]
+    },
+    {
+      "doc_code": "MAC-SOP-229",
+      "title": "Risk Assessment Procedure",
+      "controls": [
+        { "control_id": "3.11.1", "satisfaction_type": "supporting" },
+        { "control_id": "3.11.2", "satisfaction_type": "supporting" }
+      ]
+    },
+    {
+      "doc_code": "MAC-SOP-230",
+      "title": "Vulnerability Scanning and Remediation Procedure",
+      "controls": [
+        { "control_id": "3.11.2", "satisfaction_type": "supporting" },
+        { "control_id": "3.11.3", "satisfaction_type": "supporting" },
+        { "control_id": "3.14.2", "satisfaction_type": "supporting" }
+      ]
+    },
+    {
+      "doc_code": "MAC-SOP-231",
+      "title": "Plan of Action and Milestones (POA&M) Process Procedure",
+      "controls": [
+        { "control_id": "3.12.2", "satisfaction_type": "supporting" },
+        { "control_id": "3.12.3", "satisfaction_type": "supporting" }
+      ]
+    },
+    {
+      "doc_code": "MAC-SOP-232",
+      "title": "Incident Response Testing Procedure",
+      "controls": [
+        { "control_id": "3.6.2", "satisfaction_type": "supporting" },
+        { "control_id": "3.6.3", "satisfaction_type": "supporting" }
+      ]
+    },
+    {
+      "doc_code": "MAC-SOP-233",
+      "title": "Personnel Screening Procedure",
+      "controls": [
+        { "control_id": "3.9.1", "satisfaction_type": "supporting" }
+      ]
+    },
+    {
+      "doc_code": "MAC-SOP-234",
+      "title": "Personnel Termination Procedure",
+      "controls": [
+        { "control_id": "3.9.2", "satisfaction_type": "supporting" }
+      ]
+    },
+    {
+      "doc_code": "MAC-SOP-235",
+      "title": "Separation of Duties Matrix",
+      "controls": [
+        { "control_id": "3.1.4", "satisfaction_type": "supporting" },
+        { "control_id": "3.1.5", "satisfaction_type": "supporting" }
+      ]
+    },
+    {
+      "doc_code": "MAC-SOP-236",
+      "title": "Physical Access Device Control Procedure",
+      "controls": [
+        { "control_id": "3.8.3", "satisfaction_type": "supporting" },
+        { "control_id": "3.8.7", "satisfaction_type": "supporting" },
+        { "control_id": "3.10.3", "satisfaction_type": "supporting" }
+      ]
+    },
+    {
+      "doc_code": "MAC-SOP-237",
+      "title": "Mobile Code Control Procedure",
+      "controls": [
+        { "control_id": "3.13.11", "satisfaction_type": "supporting" },
+        { "control_id": "3.13.13", "satisfaction_type": "supporting" }
+      ]
+    },
+    {
+      "doc_code": "MAC-SOP-238",
+      "title": "Maintenance Tool Control Procedure",
+      "controls": [
+        { "control_id": "3.7.1", "satisfaction_type": "supporting" },
+        { "control_id": "3.7.3", "satisfaction_type": "supporting" },
+        { "control_id": "3.7.4", "satisfaction_type": "supporting" }
+      ]
+    }
+  ]
+}

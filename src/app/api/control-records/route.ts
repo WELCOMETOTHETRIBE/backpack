@@ -104,6 +104,11 @@ export async function GET(req: Request) {
       monitoringCadence: string | null;
       validationMethod: string | null;
       hybridSatisfaction: { technical?: boolean; governance?: boolean } | null;
+      technicalStatus: string | null;
+      policyDocRequired: boolean;
+      policyStatus: string | null;
+      policyDocNarrative: string | null;
+      policyDocLinkedAt: Date | null;
     };
     let records: RecordRow[];
     try {
@@ -120,13 +125,18 @@ export async function GET(req: Request) {
           monitoringCadence: controlRecords.monitoringCadence,
           validationMethod: controlRecords.validationMethod,
           hybridSatisfaction: controlRecords.hybridSatisfaction,
+          technicalStatus: controlRecords.technicalStatus,
+          policyDocRequired: controlRecords.policyDocRequired,
+          policyStatus: controlRecords.policyStatus,
+          policyDocNarrative: controlRecords.policyDocNarrative,
+          policyDocLinkedAt: controlRecords.policyDocLinkedAt,
         })
         .from(controlRecords)
         .leftJoin(roles, eq(controlRecords.responsibleRoleId, roles.id))
         .where(conditions);
     } catch (selectErr) {
       const msg = selectErr instanceof Error ? selectErr.message : String(selectErr);
-      if (msg.includes("hybrid_satisfaction")) {
+      if (msg.includes("hybrid_satisfaction") || msg.includes("technical_status") || msg.includes("policy_doc_required")) {
         const rows = await db
           .select({
             id: controlRecords.id,
@@ -143,7 +153,15 @@ export async function GET(req: Request) {
           .from(controlRecords)
           .leftJoin(roles, eq(controlRecords.responsibleRoleId, roles.id))
           .where(conditions);
-        records = rows.map((r) => ({ ...r, hybridSatisfaction: null }));
+        records = rows.map((r) => ({
+          ...r,
+          hybridSatisfaction: null,
+          technicalStatus: "not_started",
+          policyDocRequired: false,
+          policyStatus: "not_required",
+          policyDocNarrative: null,
+          policyDocLinkedAt: null,
+        }));
       } else {
         throw selectErr;
       }

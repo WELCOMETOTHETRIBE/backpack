@@ -29,6 +29,12 @@ export type SCTMRecord = {
   satisfiedByHybrid?: boolean;
   /** True when control is in the 7 often-not-applicable set (still has a real satisfaction bin). */
   oftenNotApplicable?: boolean;
+  // Dual-evidence lanes
+  technicalStatus?: string | null;
+  policyDocRequired?: boolean;
+  policyStatus?: string | null;
+  policyDocNarrative?: string | null;
+  policyDocLinkedAt?: string | null;
 };
 
 export function SCTMFilters({

@@ -187,6 +187,12 @@ export type SCTMRecord = {
   satisfiedByGovernance?: boolean;
   satisfiedByHybrid?: boolean;
   oftenNotApplicable?: boolean;
+  // Dual-evidence lanes
+  technicalStatus?: string | null;
+  policyDocRequired?: boolean;
+  policyStatus?: string | null;
+  policyDocNarrative?: string | null;
+  policyDocLinkedAt?: string | null;
 };
 
 export type NistRow = {
@@ -267,6 +273,9 @@ const HISTORY_FIELD_LABELS: Record<string, string> = {
   hybridSatisfaction: "Hybrid satisfaction",
   responsibleRoleId: "Responsible role",
   lastValidationDate: "Last validation date",
+  technicalStatus: "Technical evidence status",
+  policyStatus: "Policy document status",
+  policyDocNarrative: "Policy document narrative",
   sprs31311Condition: "SPRS 3.13.11 condition",
 };
 
@@ -334,6 +343,38 @@ export function SCTMControlDetail({
   const [governanceSatisfied, setGovernanceSatisfied] = useState(
     record.hybridSatisfaction?.governance ?? false
   );
+
+  // ── Policy lane state ──
+  const [policyStatus, setPolicyStatus] = useState(record.policyStatus ?? "not_required");
+  const [policyNarrative, setPolicyNarrative] = useState(record.policyDocNarrative ?? "");
+  const [savingPolicy, setSavingPolicy] = useState(false);
+
+  useEffect(() => {
+    setPolicyStatus(record.policyStatus ?? "not_required");
+    setPolicyNarrative(record.policyDocNarrative ?? "");
+  }, [record.id, record.policyStatus, record.policyDocNarrative]);
+
+  async function savePolicyLane(newStatus?: string) {
+    if (savingPolicy || isAssessor) return;
+    setSavingPolicy(true);
+    try {
+      const res = await fetch(`/api/control-records/${record.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          policyStatus: newStatus ?? policyStatus,
+          policyDocNarrative: policyNarrative || null,
+        }),
+      });
+      if (res.ok) {
+        if (newStatus) setPolicyStatus(newStatus);
+        refresh();
+        loadHistory();
+      }
+    } finally {
+      setSavingPolicy(false);
+    }
+  }
 
   // ── Evidence links state ──
   const [evidenceLinks, setEvidenceLinks] = useState<EvidenceLink[]>([]);
@@ -540,6 +581,56 @@ export function SCTMControlDetail({
       <div className="flex flex-wrap items-center gap-2 mb-3">
         <span className="font-mono text-sm font-semibold text-[var(--color-navy-primary)]">{record.controlId}</span>
         <StatusBadge status={record.implementationStatus} />
+        {/* ── Dual-evidence lane badges ── */}
+        {(record.technicalStatus && record.technicalStatus !== "not_started") && (
+          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium border ${
+            record.technicalStatus === "satisfied" ? "bg-emerald-50 border-emerald-200 text-emerald-700" :
+            record.technicalStatus === "failed" ? "bg-red-50 border-red-200 text-red-700" :
+            record.technicalStatus === "not_applicable" ? "bg-slate-50 border-slate-200 text-slate-500" :
+            "bg-gray-50 border-gray-200 text-gray-500"
+          }`}>
+            <span className={`h-1.5 w-1.5 rounded-full ${
+              record.technicalStatus === "satisfied" ? "bg-emerald-500" :
+              record.technicalStatus === "failed" ? "bg-red-500" :
+              "bg-slate-400"
+            }`} />
+            Technical: {record.technicalStatus === "satisfied" ? "PASS" : record.technicalStatus === "failed" ? "MISSING" : "N/A"}
+          </span>
+        )}
+        {record.policyDocRequired && (
+          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium border ${
+            policyStatus === "satisfied" ? "bg-emerald-50 border-emerald-200 text-emerald-700" :
+            (policyStatus === "missing" || policyStatus === "required") ? "bg-amber-50 border-amber-200 text-amber-700" :
+            "bg-slate-50 border-slate-200 text-slate-500"
+          }`}>
+            <span className={`h-1.5 w-1.5 rounded-full ${
+              policyStatus === "satisfied" ? "bg-emerald-500" :
+              (policyStatus === "missing" || policyStatus === "required") ? "bg-amber-500" :
+              "bg-slate-400"
+            }`} />
+            Policy: {policyStatus === "satisfied" ? "SATISFIED" : policyStatus === "not_required" ? "N/A" : "MISSING"}
+          </span>
+        )}
+        {/* Combined adjudication banner for dual-evidence controls */}
+        {record.policyDocRequired && record.technicalStatus && record.technicalStatus !== "not_started" && (
+          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold border ${
+            record.technicalStatus === "satisfied" && policyStatus === "satisfied"
+              ? "bg-emerald-100 border-emerald-300 text-emerald-800"
+              : record.technicalStatus === "satisfied" && policyStatus !== "satisfied"
+              ? "bg-amber-100 border-amber-300 text-amber-800"
+              : record.technicalStatus !== "satisfied" && policyStatus === "satisfied"
+              ? "bg-amber-100 border-amber-300 text-amber-800"
+              : "bg-red-50 border-red-200 text-red-700"
+          }`}>
+            {record.technicalStatus === "satisfied" && policyStatus === "satisfied"
+              ? "Fully Implemented"
+              : record.technicalStatus === "satisfied" && policyStatus !== "satisfied"
+              ? "Policy Gap"
+              : record.technicalStatus !== "satisfied" && policyStatus === "satisfied"
+              ? "Evidence Gap"
+              : "Not Implemented"}
+          </span>
+        )}
         {familyCode && (
           <span className="text-xs font-medium text-[var(--color-gray-500)]">{familyCode}</span>
         )}
@@ -1036,6 +1127,102 @@ export function SCTMControlDetail({
           </div>
         </CollapsibleBlock>
       </div>
+
+      {/* ── Section 2b: Policy Document (dual-evidence controls only) ── */}
+      {record.policyDocRequired && (
+        <div className="mb-4">
+          <CollapsibleBlock
+            label="Policy document"
+            defaultOpen={policyStatus === "missing" || policyStatus === "required"}
+            icon={FileText}
+            className={policyStatus === "satisfied" ? "" : "rounded-xl border-2 border-amber-200 overflow-hidden"}
+            contentClassName={policyStatus === "satisfied" ? "" : "bg-amber-50/20"}
+          >
+            <div className="space-y-4">
+              <p className="text-xs text-[var(--color-gray-500)] leading-relaxed">
+                This control requires both a <strong>technical evidence</strong> file from your enclave AND a <strong>policy document</strong>
+                {" "}on file. Identify which governance document satisfies the policy requirement, then mark it satisfied.
+              </p>
+
+              {/* Policy status selector */}
+              {!isAssessor && (
+                <div>
+                  <p className="text-sm font-medium text-[var(--color-gray-700)] mb-2">Policy document status</p>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { value: "missing", label: "Missing", activeClass: "bg-amber-100 border-amber-500 text-amber-800 font-semibold", baseClass: "border-amber-200 text-amber-600 hover:bg-amber-50" },
+                      { value: "satisfied", label: "Satisfied", activeClass: "bg-emerald-100 border-emerald-500 text-emerald-800 font-semibold", baseClass: "border-emerald-200 text-emerald-700 hover:bg-emerald-50" },
+                    ].map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => setPolicyStatus(opt.value)}
+                        className={`rounded-lg border px-3 py-1.5 text-xs transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] ${
+                          policyStatus === opt.value ? opt.activeClass : opt.baseClass
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Narrative textarea */}
+              <div>
+                <label className="block text-sm font-medium text-[var(--color-gray-700)] mb-1.5">
+                  Policy document reference
+                </label>
+                {isAssessor ? (
+                  <p className="text-sm text-[var(--color-gray-700)] leading-relaxed whitespace-pre-wrap rounded-lg border border-[var(--color-border)] bg-[var(--color-gray-50)] px-3 py-2.5 min-h-[60px]">
+                    {policyNarrative || <span className="italic text-[var(--color-gray-400)]">No policy document recorded.</span>}
+                  </p>
+                ) : (
+                  <textarea
+                    value={policyNarrative}
+                    onChange={(e) => setPolicyNarrative(e.target.value)}
+                    rows={4}
+                    className="w-full rounded-lg border border-[var(--color-border)] bg-white px-3 py-2.5 text-sm text-[var(--color-gray-900)] placeholder:text-[var(--color-gray-400)] focus:border-[var(--color-blue-accent)] focus:outline-none focus:ring-2 focus:ring-[var(--color-blue-accent)]/20 resize-y"
+                    placeholder="e.g. MAC-SOP-246 v1.0 — Media Sanitization Procedure. Verified via governance manifest GOV-20260411025839-fa9fdb. SHA-256: d411540584ad1e... Controlled copy: /docs/procedures/"
+                  />
+                )}
+              </div>
+
+              {/* Satisfied state — show timestamp + re-evaluate */}
+              {policyStatus === "satisfied" && record.policyDocLinkedAt && (
+                <p className="text-xs text-emerald-700">
+                  Marked satisfied on {formatDate(record.policyDocLinkedAt)}.
+                </p>
+              )}
+
+              {/* Save button */}
+              {!isAssessor && (
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => savePolicyLane()}
+                    disabled={savingPolicy}
+                    className="inline-flex items-center gap-2 rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-primary-hover)] disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2"
+                  >
+                    <Save className="h-3.5 w-3.5" />
+                    {savingPolicy ? "Saving…" : policyStatus === "satisfied" ? "Save & mark satisfied" : "Save"}
+                  </button>
+                  {policyStatus === "satisfied" && (
+                    <button
+                      type="button"
+                      onClick={() => { setPolicyStatus("missing"); savePolicyLane("missing"); }}
+                      disabled={savingPolicy}
+                      className="text-xs text-[var(--color-gray-500)] hover:text-[var(--color-gray-700)] underline underline-offset-2"
+                    >
+                      Re-evaluate
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </CollapsibleBlock>
+        </div>
+      )}
 
       {/* ── Section 3: POA&M integration ── */}
       <div className="mb-4">

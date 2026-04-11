@@ -7,6 +7,7 @@ import {
   controlRecords,
   artifacts,
   technicalEvidence,
+  controlEvidenceLinks,
   boundaryProfiles,
   boundarySnapshots,
   governanceArtifactCompletions,
@@ -174,6 +175,28 @@ export async function calculateControlStatus(controlRecordId: string): Promise<I
     technicalComplete = technicalComplete || res.ok;
   }
 
+  // Check OS ingest evidence links — if any successful links exist, technical lane is satisfied
+  const evidenceLinks = await db
+    .select({ id: controlEvidenceLinks.id })
+    .from(controlEvidenceLinks)
+    .where(eq(controlEvidenceLinks.controlRecordId, controlRecordId))
+    .limit(1);
+  const hasEvidenceLinks = evidenceLinks.length > 0;
+  if (hasEvidenceLinks) {
+    technicalComplete = true;
+  }
+
+  // Derive technical_status for the dual-evidence lane.
+  // Note: "inherited" and "not_applicable" are returned early above, so they
+  // cannot appear here — cast to string to allow comparison without TS narrowing error.
+  const implStatus = record.implementationStatus as string;
+  const newTechnicalStatus =
+    implStatus === "not_applicable" ? "not_applicable"
+    : implStatus === "inherited" ? "satisfied"
+    : hasEvidenceLinks ? "satisfied"
+    : technicalComplete ? "satisfied"
+    : "not_started";
+
   const allComplete = governanceDone && technicalComplete;
   const hasSomeProgress =
     existingArtifacts.length > 0 ||
@@ -196,6 +219,7 @@ export async function calculateControlStatus(controlRecordId: string): Promise<I
     .update(controlRecords)
     .set({
       implementationStatus: status,
+      technicalStatus: newTechnicalStatus,
       updatedAt: new Date(),
     })
     .where(eq(controlRecords.id, controlRecordId));

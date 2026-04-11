@@ -39,6 +39,9 @@ const HISTORY_LABELS: Record<string, string> = {
   validationMethod: "Validation method",
   monitoringCadence: "Review cadence",
   responsibleRoleId: "Responsible role",
+  technicalStatus: "Technical evidence status",
+  policyStatus: "Policy document status",
+  policyDocNarrative: "Policy document narrative",
 };
 
 function StatusBadge({ status }: { status: string }) {
@@ -91,6 +94,11 @@ export default async function AssessorControlPage({
       validationMethod: controlRecords.validationMethod,
       monitoringCadence: controlRecords.monitoringCadence,
       lastValidationDate: controlRecords.lastValidationDate,
+      technicalStatus: controlRecords.technicalStatus,
+      policyDocRequired: controlRecords.policyDocRequired,
+      policyStatus: controlRecords.policyStatus,
+      policyDocNarrative: controlRecords.policyDocNarrative,
+      policyDocLinkedAt: controlRecords.policyDocLinkedAt,
       title: controls.title,
       nistExactText: controls.nistExactText,
       roleName: roles.name,
@@ -190,7 +198,28 @@ export default async function AssessorControlPage({
                 </p>
               )}
             </div>
-            <StatusBadge status={record.implementationStatus} />
+            <div className="flex flex-wrap items-center gap-2">
+              <StatusBadge status={record.implementationStatus} />
+              {/* Dual-evidence lane badges */}
+              {record.technicalStatus && record.technicalStatus !== "not_started" && (
+                <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium border ${
+                  record.technicalStatus === "satisfied" ? "bg-emerald-50 border-emerald-200 text-emerald-700" :
+                  record.technicalStatus === "failed" ? "bg-red-50 border-red-200 text-red-700" :
+                  "bg-slate-50 border-slate-200 text-slate-500"
+                }`}>
+                  Technical: {record.technicalStatus === "satisfied" ? "PASS" : record.technicalStatus === "failed" ? "MISSING" : "N/A"}
+                </span>
+              )}
+              {record.policyDocRequired && (
+                <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium border ${
+                  record.policyStatus === "satisfied" ? "bg-emerald-50 border-emerald-200 text-emerald-700" :
+                  (record.policyStatus === "missing" || record.policyStatus === "required") ? "bg-amber-50 border-amber-200 text-amber-700" :
+                  "bg-slate-50 border-slate-200 text-slate-500"
+                }`}>
+                  Policy: {record.policyStatus === "satisfied" ? "SATISFIED" : "MISSING"}
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Meta row */}
@@ -262,6 +291,33 @@ export default async function AssessorControlPage({
             <p className="whitespace-pre-wrap text-sm leading-relaxed text-[var(--color-gray-700)]">
               {record.technicalNarrative}
             </p>
+          </SectionCard>
+        )}
+
+        {/* Policy document (dual-evidence controls only) */}
+        {record.policyDocRequired && (
+          <SectionCard title="Policy Document" icon={FileText}>
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                  record.policyStatus === "satisfied" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+                }`}>
+                  {record.policyStatus === "satisfied" ? "Satisfied" : "Missing"}
+                </span>
+                {record.policyDocLinkedAt && (
+                  <span className="text-xs text-[var(--color-gray-500)]">
+                    Marked {new Date(record.policyDocLinkedAt).toLocaleDateString()}
+                  </span>
+                )}
+              </div>
+              {record.policyDocNarrative ? (
+                <p className="whitespace-pre-wrap text-sm leading-relaxed text-[var(--color-gray-700)]">
+                  {record.policyDocNarrative}
+                </p>
+              ) : (
+                <p className="text-sm italic text-[var(--color-gray-400)]">No policy document reference recorded.</p>
+              )}
+            </div>
           </SectionCard>
         )}
 

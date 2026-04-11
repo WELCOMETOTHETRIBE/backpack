@@ -144,9 +144,18 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
   );
   const selectedNist = selectedRecord ? nistByControlId[selectedRecord.controlId] : undefined;
 
+  // A record is fully adjudicated when both evidence lanes are satisfied (if required),
+  // or just the implementation status if no policy doc is required.
+  function isFullyAdjudicated(r: (typeof records)[0]): boolean {
+    if (r.policyDocRequired) {
+      return r.technicalStatus === "satisfied" && r.policyStatus === "satisfied";
+    }
+    return ADJUDICATED.includes(r.implementationStatus);
+  }
+
   const familyStats = useMemo(() => {
     const adjudicatedControlIds = new Set(
-      records.filter((r) => ADJUDICATED.includes(r.implementationStatus)).map((r) => r.controlId)
+      records.filter(isFullyAdjudicated).map((r) => r.controlId)
     );
     return CONTROL_FAMILIES.map((f) => {
       const total = FAMILY_CONTROL_COUNTS[f.code] ?? 0;
@@ -154,10 +163,12 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
       const adj = inFamilyIds.filter((id) => adjudicatedControlIds.has(id)).length;
       return { code: f.code, plainName: f.plainName, name: f.name, total, adjudicated: adj, icon: f.icon };
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [records]);
 
   const adjudicatedControlIds = useMemo(
-    () => new Set(records.filter((r) => ADJUDICATED.includes(r.implementationStatus)).map((r) => r.controlId)),
+    () => new Set(records.filter(isFullyAdjudicated).map((r) => r.controlId)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [records]
   );
   const partialControlIds = useMemo(
