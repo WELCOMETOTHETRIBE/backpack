@@ -1495,6 +1495,36 @@ export const poamEntriesRelations = relations(poamEntries, ({ one, many }) => ({
   closureApprovals: many(poamEntryClosureApprovals),
 }));
 
+// ============== Training Records (CMMC 3.2.x) ==============
+export const trainingRecords = pgTable(
+  "training_records",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id")
+      .references(() => organizations.id, { onDelete: "cascade" })
+      .notNull(),
+    personnelName: varchar("personnel_name", { length: 255 }).notNull(),
+    personnelEmail: varchar("personnel_email", { length: 255 }),
+    /** security_awareness | role_based | insider_threat | other */
+    trainingType: varchar("training_type", { length: 80 }).notNull(),
+    courseTitle: varchar("course_title", { length: 255 }).notNull(),
+    /** online | classroom | cbt | self_study */
+    deliveryMethod: varchar("delivery_method", { length: 80 }),
+    completedAt: date("completed_at").notNull(),
+    expiresAt: date("expires_at"),
+    /** Link to completion certificate or screenshot */
+    evidenceUrl: text("evidence_url"),
+    notes: text("notes"),
+    createdById: uuid("created_by_id").references(() => users.id),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    index("training_records_org_idx").on(t.organizationId),
+    index("training_records_email_idx").on(t.organizationId, t.personnelEmail),
+  ]
+);
+
 // ============== Evidence runs (metadata-only) ==============
 export {
   evidenceRuns,

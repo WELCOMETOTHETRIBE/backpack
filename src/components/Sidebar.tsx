@@ -60,6 +60,8 @@ function buildNav(boundaryComplete?: boolean | null): NavGroup[] {
       label: "Program",
       items: [
         { name: "Documents", href: "/dashboard/documents", icon: FileStack },
+        { name: "SSP", href: "/dashboard/ssp", icon: FileText },
+        { name: "Training", href: "/dashboard/training", icon: ClipboardList },
         { name: "Supply Chain", href: "/dashboard/supply-chain", icon: Network },
         { name: "Readiness", href: "/dashboard/readiness", icon: CheckCircle2 },
         { name: "Monitoring", href: "/dashboard/monitoring", icon: Activity },
