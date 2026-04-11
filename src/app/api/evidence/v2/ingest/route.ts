@@ -41,11 +41,14 @@ interface V2Manifest {
 async function loadControlEvidenceMap(): Promise<Record<string, string[]>> {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const manifest = require("@/../docs/OS-Evidence-to-NIST-Control-Manifest-73-73.json") as {
-    controls: Array<{ control_id: string; evidence_files: string[] }>;
+    controls: Array<{ control_id: string; nist_req: string; evidence_files: string[] }>;
   };
   const map: Record<string, string[]> = {};
   for (const c of manifest.controls) {
-    map[c.control_id] = c.evidence_files ?? [];
+    // controlRecords.controlId uses NIST short format ("3.1.1"), not the CMMC level prefix
+    // format ("AC.L2-3.1.1") stored in control_id. Key on nist_req to match the DB.
+    const key = c.nist_req || c.control_id;
+    map[key] = c.evidence_files ?? [];
   }
   return map;
 }
@@ -125,7 +128,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "manifest.collected_at is not a valid ISO timestamp", code: "VALIDATION_ERROR" }, { status: 400 });
     }
 
-    // ── Duplicate run protection ─────────────────────────────────────────────
+    // ── Duplicate run: delete existing links and re-ingest (idempotent) ─────────
+    // This allows re-uploading the same run_id after a bug fix (e.g. ID format fix)
+    // without requiring a new manifest collection.
     const existingLinks = await db
       .select({ id: controlEvidenceLinks.id })
       .from(controlEvidenceLinks)
@@ -136,11 +141,13 @@ export async function POST(req: Request) {
       .limit(1);
 
     if (existingLinks.length > 0) {
-      return NextResponse.json({
-        error: `run_id "${runId}" has already been ingested for this organization`,
-        code: "DUPLICATE_RUN",
-        run_id: runId,
-      }, { status: 409 });
+      // Wipe old links for this run so we get clean re-link with correct IDs
+      await db
+        .delete(controlEvidenceLinks)
+        .where(and(
+          eq(controlEvidenceLinks.organizationId, orgId),
+          eq(controlEvidenceLinks.runId, runId),
+        ));
     }
 
     // ── Ensure all 110 control records exist for this org (idempotent) ────────
