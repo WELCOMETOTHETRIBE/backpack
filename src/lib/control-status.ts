@@ -24,6 +24,10 @@ import { getEvidenceRequirements } from "./compliance";
 import { computeAndPersistSprsScore } from "./sprs";
 import { isEnclaveMappedControl } from "./compliance/enclaveManifest";
 import { hasPassingFreshEnclaveFinding } from "./evidence/hasPassingFreshFinding";
+import {
+  PURE_TECHNICAL_IDS,
+  PURE_GOVERNANCE_IDS,
+} from "./compliance/control-bins";
 
 export interface GovernanceCompletionRow {
   artifactLabel: string;
@@ -239,7 +243,21 @@ export async function calculateControlStatus(controlRecordId: string): Promise<I
     : technicalComplete ? "satisfied"
     : "not_started";
 
-  const allComplete = effectiveGovernanceDone && technicalComplete;
+  // Determine which lanes this control actually requires based on its bin:
+  // - Pure Technical (48): only needs technical evidence
+  // - Pure Governance (17): only needs governance docs/artifacts
+  // - Hybrid (31 + 14): needs both lanes
+  const isPureTechnical = PURE_TECHNICAL_IDS.includes(controlId);
+  const isPureGovernance = PURE_GOVERNANCE_IDS.includes(controlId);
+
+  let allComplete: boolean;
+  if (isPureTechnical) {
+    allComplete = technicalComplete; // governance lane not required
+  } else if (isPureGovernance) {
+    allComplete = effectiveGovernanceDone; // technical lane not required
+  } else {
+    allComplete = effectiveGovernanceDone && technicalComplete; // hybrid: both required
+  }
   const hasSomeProgress =
     existingArtifacts.length > 0 ||
     hasNarrative ||
