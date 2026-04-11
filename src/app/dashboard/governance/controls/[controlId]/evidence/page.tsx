@@ -60,12 +60,15 @@ export default async function HybridEvidencePage({
   // Get requirements for this control (all variants — user will submit what applies)
   const reqEntry = technicalEvidenceRequirements.find((e) => e.controlId === controlId);
   const allRequirements = reqEntry
-    ? Object.values(reqEntry.variants).flat().filter(
-        (req, idx, arr) => arr.findIndex((r) => r.id === req.id) === idx
-      )
+    ? Object.values(reqEntry.variants)
+        .flat()
+        .filter((req): req is NonNullable<typeof req> => req != null)
+        .filter((req, idx, arr) => arr.findIndex((r) => r.id === req.id) === idx)
     : [];
 
-  const satisfiedIds = new Set(existingEvidence.map((e) => e.requirementId).filter(Boolean));
+  const satisfiedIds = new Set(
+    existingEvidence.map((e) => e.requirementId).filter((id): id is string => id != null)
+  );
   const controlRecordId = controlRecord?.id ?? null;
   const technicalStatus = controlRecord?.technicalStatus ?? "not_started";
   const implementationStatus = controlRecord?.implementationStatus ?? "not_started";
