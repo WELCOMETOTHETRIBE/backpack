@@ -4,6 +4,7 @@ import { controlEvidenceLinks, controlRecords, osAssets, boundaries } from "@/db
 import { eq, and, inArray, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { calculateControlStatus } from "@/lib/control-status";
+import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const SCHEMA = "cui-evidence.manifest.v2";
@@ -140,6 +141,19 @@ export async function POST(req: Request) {
         code: "DUPLICATE_RUN",
         run_id: runId,
       }, { status: 409 });
+    }
+
+    // ── Ensure all 110 control records exist for this org (idempotent) ────────
+    {
+      const existing = await db
+        .select({ controlId: controlRecords.controlId })
+        .from(controlRecords)
+        .where(eq(controlRecords.organizationId, orgId));
+      const existingSet = new Set(existing.map((r) => r.controlId));
+      const missing = ALL_CONTROL_IDS.filter((id) => !existingSet.has(id));
+      if (missing.length > 0) {
+        await db.insert(controlRecords).values(missing.map((controlId) => ({ organizationId: orgId, controlId })));
+      }
     }
 
     // ── Asset linkage: find or stub os_asset by computer_name ────────────────

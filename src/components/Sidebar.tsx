@@ -52,8 +52,8 @@ function buildNav(boundaryComplete?: boolean | null): NavGroup[] {
           statusDot: boundaryComplete === true ? "green" : boundaryComplete === false ? "amber" : null,
         },
         { name: "OS Baselines", href: "/dashboard/os-baselines", icon: Cpu },
-        { name: "Technical", href: "/dashboard/technical", icon: Cpu },
-        { name: "Evidence", href: "/dashboard/evidence", icon: FolderOpen },
+        { name: "Compliance Hub", href: "/dashboard/technical", icon: Cpu },
+        { name: "Upload Evidence", href: "/dashboard/technical/upload", icon: FolderOpen },
       ],
     },
     {

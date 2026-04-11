@@ -2,18 +2,57 @@ import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
-import { controlRecords } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import {
+  controlRecords,
+  governanceDocumentControlLinks,
+  governanceDocuments,
+  controls,
+} from "@/db/schema";
+import { eq, and, inArray } from "drizzle-orm";
 import {
   PURE_TECHNICAL_IDS,
   HYBRID_TECHNICAL_IDS,
+  PURE_GOVERNANCE_IDS,
+  HYBRID_GOVERNANCE_IDS,
 } from "@/lib/compliance/control-bins";
-import { Cpu, FolderOpen, Server, Upload, Download } from "lucide-react";
+import { Upload, RefreshCw, Server, CheckCircle2, Circle, AlertCircle } from "lucide-react";
 import RecalculateTechnicalButton from "./RecalculateTechnicalButton";
 
-const PURE_TECHNICAL_TOTAL = PURE_TECHNICAL_IDS.length;
-const HYBRID_TECHNICAL_TOTAL = HYBRID_TECHNICAL_IDS.length;
-const IMPLEMENTED_STATUSES = ["implemented", "assessed", "inherited", "not_applicable"] as const;
+const ALL_HYBRID_IDS = [...new Set([...HYBRID_TECHNICAL_IDS, ...HYBRID_GOVERNANCE_IDS])];
+const ALL_IDS = [...PURE_TECHNICAL_IDS, ...HYBRID_TECHNICAL_IDS, ...PURE_GOVERNANCE_IDS, ...HYBRID_GOVERNANCE_IDS];
+
+const DONE = new Set(["implemented", "assessed", "inherited", "not_applicable"]);
+
+function ProgressBar({ done, total, color = "bg-blue-500" }: { done: number; total: number; color?: string }) {
+  const pct = total === 0 ? 0 : Math.round((done / total) * 100);
+  return (
+    <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[var(--color-gray-100)]">
+      <div
+        className={`h-full rounded-full transition-all ${done === total ? "bg-emerald-500" : done === 0 ? "bg-gray-300" : color}`}
+        style={{ width: `${pct}%` }}
+      />
+    </div>
+  );
+}
+
+function LanePill({ ok, label }: { ok: boolean; label: string }) {
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+        ok
+          ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+          : "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400"
+      }`}
+    >
+      {ok ? (
+        <CheckCircle2 className="h-3 w-3" />
+      ) : (
+        <Circle className="h-3 w-3" />
+      )}
+      {label}
+    </span>
+  );
+}
 
 export default async function TechnicalDashboardPage() {
   const session = await auth();
@@ -21,176 +60,334 @@ export default async function TechnicalDashboardPage() {
   const orgId = user?.organizationId;
   if (!orgId) redirect("/auth/signin");
 
-  const records = await db
-    .select({
-      controlId: controlRecords.controlId,
-      implementationStatus: controlRecords.implementationStatus,
-    })
-    .from(controlRecords)
-    .where(eq(controlRecords.organizationId, orgId));
+  // Fetch all relevant control records + governance links in parallel
+  const [records, docLinks, govDocs, ctrlTitles] = await Promise.all([
+    db
+      .select({
+        controlId: controlRecords.controlId,
+        implementationStatus: controlRecords.implementationStatus,
+        technicalStatus: controlRecords.technicalStatus,
+      })
+      .from(controlRecords)
+      .where(eq(controlRecords.organizationId, orgId)),
 
-  const metStatusSet = new Set(IMPLEMENTED_STATUSES);
-  const recordByControlId = new Map(records.map((r) => [r.controlId, r.implementationStatus as string]));
-  let pureTechnicalDone = 0;
-  let hybridTechnicalDone = 0;
-  const pureTechnicalNotMet: string[] = [];
-  const hybridTechnicalNotMet: string[] = [];
-  for (const id of PURE_TECHNICAL_IDS) {
-    const status = recordByControlId.get(id);
-    if (status && metStatusSet.has(status as (typeof IMPLEMENTED_STATUSES)[number])) {
-      pureTechnicalDone++;
-    } else {
-      pureTechnicalNotMet.push(id);
+    db
+      .select({
+        controlId: governanceDocumentControlLinks.controlId,
+        docCode: governanceDocumentControlLinks.docCode,
+      })
+      .from(governanceDocumentControlLinks)
+      .where(eq(governanceDocumentControlLinks.organizationId, orgId)),
+
+    db
+      .select({ docId: governanceDocuments.docId, status: governanceDocuments.status })
+      .from(governanceDocuments)
+      .where(eq(governanceDocuments.organizationId, orgId)),
+
+    db
+      .select({ controlId: controls.controlId, title: controls.title })
+      .from(controls)
+      .where(inArray(controls.controlId, ALL_HYBRID_IDS)),
+  ]);
+
+  // Build lookup maps
+  const recordMap = new Map(records.map((r) => [r.controlId, r]));
+  const titleMap = new Map(ctrlTitles.map((c) => [c.controlId, c.title]));
+  const docStatusMap = new Map(govDocs.map((d) => [d.docId, d.status]));
+
+  // controlId → has at least one non-DRAFT doc
+  const controlHasApprovedDoc = new Map<string, boolean>();
+  for (const link of docLinks) {
+    const status = docStatusMap.get(link.docCode);
+    if (status && status !== "DRAFT") {
+      controlHasApprovedDoc.set(link.controlId, true);
+    } else if (!controlHasApprovedDoc.has(link.controlId)) {
+      controlHasApprovedDoc.set(link.controlId, false);
     }
   }
-  for (const id of HYBRID_TECHNICAL_IDS) {
-    const status = recordByControlId.get(id);
-    if (status && metStatusSet.has(status as (typeof IMPLEMENTED_STATUSES)[number])) {
-      hybridTechnicalDone++;
-    } else {
-      hybridTechnicalNotMet.push(id);
-    }
-  }
 
-  const cardClass =
-    "rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm";
+  // Bin counts
+  const pureTechDone = PURE_TECHNICAL_IDS.filter((id) => DONE.has(recordMap.get(id)?.implementationStatus ?? "")).length;
+  const hybTechDone = HYBRID_TECHNICAL_IDS.filter((id) => DONE.has(recordMap.get(id)?.implementationStatus ?? "")).length;
+  const pureGovDone = PURE_GOVERNANCE_IDS.filter((id) => DONE.has(recordMap.get(id)?.implementationStatus ?? "")).length;
+  const hybGovDone = HYBRID_GOVERNANCE_IDS.filter((id) => DONE.has(recordMap.get(id)?.implementationStatus ?? "")).length;
+
+  const totalDone = pureTechDone + hybTechDone + pureGovDone + hybGovDone;
+  const totalControls = ALL_IDS.length; // 110
+
+  // Hybrid controls — deduplicated across both hybrid bins
+  const hybridIds = ALL_HYBRID_IDS; // 45 unique
+  const hybridRows = hybridIds.map((id) => {
+    const rec = recordMap.get(id);
+    const govOk = controlHasApprovedDoc.get(id) === true;
+    const techOk = rec?.technicalStatus === "satisfied";
+    const overallDone = DONE.has(rec?.implementationStatus ?? "");
+    const isPureHybTech = HYBRID_TECHNICAL_IDS.includes(id) && !HYBRID_GOVERNANCE_IDS.includes(id);
+    const isPureHybGov = HYBRID_GOVERNANCE_IDS.includes(id) && !HYBRID_TECHNICAL_IDS.includes(id);
+    const isBoth = HYBRID_TECHNICAL_IDS.includes(id) && HYBRID_GOVERNANCE_IDS.includes(id);
+    return { id, title: titleMap.get(id) ?? id, govOk, techOk, overallDone, isPureHybTech, isPureHybGov, isBoth };
+  });
+
+  const hybridComplete = hybridRows.filter((r) => r.overallDone).length;
+  const hybridNeedsGov = hybridRows.filter((r) => !r.overallDone && !r.govOk && r.techOk).length;
+  const hybridNeedsTech = hybridRows.filter((r) => !r.overallDone && r.govOk && !r.techOk).length;
+  const hybridNeedsBoth = hybridRows.filter((r) => !r.overallDone && !r.govOk && !r.techOk).length;
+
+  // Pure technical gaps
+  const pureTechGaps = PURE_TECHNICAL_IDS.filter((id) => !DONE.has(recordMap.get(id)?.implementationStatus ?? ""));
+
+  const card = "rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm";
 
   return (
     <div className="min-h-0">
       <div className="mx-auto max-w-5xl space-y-6">
-        <section className={cardClass}>
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--color-gray-600)]">
-            Technical overview
-          </h2>
-          <p className="mt-1 text-sm text-[var(--color-gray-600)]">
-            Pure technical controls ({PURE_TECHNICAL_TOTAL}), hybrid technical-centric controls (
-            {HYBRID_TECHNICAL_TOTAL}), evidence runs, and system boundary.
-          </p>
-        </section>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className={cardClass}>
-            <div className="flex items-center gap-2 text-[var(--color-gray-600)]">
-              <Cpu className="h-5 w-5" aria-hidden />
-              <span className="text-sm font-medium">Pure Technical controls</span>
-            </div>
-            <p className="mt-2 text-2xl font-bold text-[var(--color-navy-primary)]">
-              {pureTechnicalDone}{" "}
-              <span className="font-normal text-[var(--color-gray-600)]">
-                / {PURE_TECHNICAL_TOTAL}
-              </span>
+        {/* ── Header ───────────────────────────────────────────────────────────── */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="text-xl font-bold text-[var(--color-gray-900)]">Infrastructure Compliance</h1>
+            <p className="mt-0.5 text-sm text-[var(--color-gray-500)]">
+              {totalDone} / {totalControls} controls complete across all 4 evidence lanes
             </p>
-            {pureTechnicalNotMet.length > 0 && (
-              <p className="mt-1.5 text-sm text-[var(--color-gray-600)]" title="Controls not yet met">
-                <span className="font-medium text-[var(--color-gray-700)]">Not met:</span>{" "}
-                {pureTechnicalNotMet.length <= 8
-                  ? pureTechnicalNotMet.join(", ")
-                  : `${pureTechnicalNotMet.slice(0, 5).join(", ")} and ${pureTechnicalNotMet.length - 5} more`}
-              </p>
-            )}
-            <Link
-              href="/dashboard/technical/controls?classification=TECHNICAL"
-              className="mt-2 inline-block text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
-            >
-              View controls →
-            </Link>
           </div>
-          <div className={cardClass}>
-            <div className="flex items-center gap-2 text-[var(--color-gray-600)]">
-              <Cpu className="h-5 w-5" aria-hidden />
-              <span className="text-sm font-medium">Hybrid Technical controls</span>
-            </div>
-            <p className="mt-2 text-2xl font-bold text-[var(--color-navy-primary)]">
-              {hybridTechnicalDone}{" "}
-              <span className="font-normal text-[var(--color-gray-600)]">
-                / {HYBRID_TECHNICAL_TOTAL}
-              </span>
-            </p>
-            {hybridTechnicalNotMet.length > 0 && (
-              <p className="mt-1.5 text-sm text-[var(--color-gray-600)]" title="Controls not yet met">
-                <span className="font-medium text-[var(--color-gray-700)]">Not met:</span>{" "}
-                {hybridTechnicalNotMet.length <= 8
-                  ? hybridTechnicalNotMet.join(", ")
-                  : `${hybridTechnicalNotMet.slice(0, 5).join(", ")} and ${hybridTechnicalNotMet.length - 5} more`}
-              </p>
-            )}
+          <div className="flex flex-wrap items-center gap-2">
             <Link
-              href="/dashboard/technical/controls?classification=HYBRID_TECHNICAL"
-              className="mt-2 inline-block text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
+              href="/dashboard/technical/upload"
+              className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-3 py-2 text-sm font-semibold text-white hover:bg-[var(--color-primary-hover)]"
             >
-              View controls →
+              <Upload className="h-4 w-4" />
+              Upload evidence
             </Link>
+            <RecalculateTechnicalButton />
           </div>
         </div>
 
-        <section className={cardClass}>
-          <div className="flex items-start justify-between gap-4">
-            <h2 className="text-sm font-semibold text-[var(--color-navy-primary)]">Quick actions</h2>
-            <RecalculateTechnicalButton />
+        {/* ── 4-bin progress ───────────────────────────────────────────────────── */}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            { label: "Pure Technical", done: pureTechDone, total: PURE_TECHNICAL_IDS.length, desc: "OS/cloud evidence only", color: "bg-blue-500" },
+            { label: "Hybrid Technical", done: hybTechDone, total: HYBRID_TECHNICAL_IDS.length, desc: "Evidence + gov doc", color: "bg-violet-500" },
+            { label: "Hybrid Governance", done: hybGovDone, total: HYBRID_GOVERNANCE_IDS.length, desc: "Gov doc + evidence", color: "bg-violet-500" },
+            { label: "Pure Governance", done: pureGovDone, total: PURE_GOVERNANCE_IDS.length, desc: "Governance docs only", color: "bg-amber-500" },
+          ].map(({ label, done, total, desc, color }) => (
+            <div key={label} className={card}>
+              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">{label}</p>
+              <p className="mt-1 text-2xl font-bold text-[var(--color-navy-primary)]">
+                {done}
+                <span className="text-base font-normal text-[var(--color-gray-400)]"> / {total}</span>
+              </p>
+              <ProgressBar done={done} total={total} color={color} />
+              <p className="mt-1.5 text-xs text-[var(--color-gray-400)]">{desc}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Hybrid controls — both lanes ─────────────────────────────────────── */}
+        <section className={card}>
+          <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-[var(--color-gray-900)]">Hybrid Controls</h2>
+              <span className="rounded-full bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-700 dark:bg-violet-900/30 dark:text-violet-300">
+                {hybridComplete} / {hybridIds.length} complete
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-3 text-xs text-[var(--color-gray-500)]">
+              {hybridNeedsBoth > 0 && (
+                <span className="flex items-center gap-1">
+                  <AlertCircle className="h-3.5 w-3.5 text-red-400" />
+                  {hybridNeedsBoth} need both lanes
+                </span>
+              )}
+              {hybridNeedsTech > 0 && (
+                <span className="flex items-center gap-1">
+                  <Circle className="h-3.5 w-3.5 text-blue-400" />
+                  {hybridNeedsTech} need OS evidence
+                </span>
+              )}
+              {hybridNeedsGov > 0 && (
+                <span className="flex items-center gap-1">
+                  <Circle className="h-3.5 w-3.5 text-amber-400" />
+                  {hybridNeedsGov} need gov doc
+                </span>
+              )}
+            </div>
           </div>
-          <div className="mt-4 flex flex-wrap gap-3">
+          <p className="mb-4 text-xs text-[var(--color-gray-500)]">
+            Each hybrid control requires <strong>both</strong> a governance document (policy/SOP) <strong>and</strong> OS/cloud technical evidence to reach Implemented.
+          </p>
+
+          {/* Legend */}
+          <div className="mb-3 flex flex-wrap gap-3">
+            <Link
+              href="/dashboard/governance/upload-manifest"
+              className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)] border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-800 hover:bg-amber-100 dark:border-amber-700/40 dark:bg-amber-950/20 dark:text-amber-300"
+            >
+              <Upload className="h-3.5 w-3.5" />
+              Upload governance bundle
+            </Link>
             <Link
               href="/dashboard/technical/upload"
-              className="inline-flex items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-sm font-medium text-[var(--color-gray-700)] transition-colors hover:bg-[var(--color-gray-50)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2"
+              className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)] border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-800 hover:bg-blue-100 dark:border-blue-700/40 dark:bg-blue-950/20 dark:text-blue-300"
             >
-              <Upload className="h-4 w-4" aria-hidden />
-              Upload evidence bundle
+              <Upload className="h-3.5 w-3.5" />
+              Upload OS evidence bundle
             </Link>
             <Link
               href="/dashboard/os-baselines"
-              className="inline-flex items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-sm font-medium text-[var(--color-gray-700)] transition-colors hover:bg-[var(--color-gray-50)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2"
+              className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1 text-xs font-medium text-[var(--color-gray-600)] hover:bg-[var(--color-gray-50)]"
             >
-              <Server className="h-4 w-4" aria-hidden />
-              System Boundary (endpoints)
+              <Server className="h-3.5 w-3.5" />
+              System boundary
             </Link>
-            <Link
-              href="/dashboard/evidence"
-              className="inline-flex items-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-primary-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2"
-            >
-              <Download className="h-4 w-4" aria-hidden />
-              Evidence runs & drift
-            </Link>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-[var(--color-border)]">
+                  <th className="pb-2 pr-3 text-left text-xs font-medium uppercase tracking-wide text-[var(--color-gray-500)] w-20">Control</th>
+                  <th className="pb-2 pr-4 text-left text-xs font-medium uppercase tracking-wide text-[var(--color-gray-500)]">Requirement</th>
+                  <th className="pb-2 pr-3 text-left text-xs font-medium uppercase tracking-wide text-[var(--color-gray-500)] w-32">
+                    <span className="inline-flex items-center gap-1">
+                      <span className="h-2 w-2 rounded-full bg-amber-400" />
+                      Gov doc
+                    </span>
+                  </th>
+                  <th className="pb-2 pr-3 text-left text-xs font-medium uppercase tracking-wide text-[var(--color-gray-500)] w-32">
+                    <span className="inline-flex items-center gap-1">
+                      <span className="h-2 w-2 rounded-full bg-blue-400" />
+                      OS evidence
+                    </span>
+                  </th>
+                  <th className="pb-2 text-left text-xs font-medium uppercase tracking-wide text-[var(--color-gray-500)] w-28">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--color-border)]">
+                {hybridRows.map((row) => (
+                  <tr key={row.id} className={row.overallDone ? "opacity-60" : ""}>
+                    <td className="py-2.5 pr-3 align-top">
+                      <Link
+                        href={`/dashboard/governance/controls/${row.id}`}
+                        className="font-mono text-xs font-semibold text-[var(--color-blue-accent)] hover:underline"
+                      >
+                        {row.id}
+                      </Link>
+                    </td>
+                    <td className="py-2.5 pr-4 align-top">
+                      <span className="text-xs text-[var(--color-gray-700)] dark:text-gray-300 line-clamp-2 max-w-xs">
+                        {row.title}
+                      </span>
+                      {row.isPureHybTech && (
+                        <span className="mt-0.5 block text-xs text-violet-500">Hybrid Technical</span>
+                      )}
+                      {row.isPureHybGov && (
+                        <span className="mt-0.5 block text-xs text-violet-500">Hybrid Governance</span>
+                      )}
+                      {row.isBoth && (
+                        <span className="mt-0.5 block text-xs text-violet-500">Both hybrid bins</span>
+                      )}
+                    </td>
+                    <td className="py-2.5 pr-3 align-top">
+                      <LanePill ok={row.govOk} label={row.govOk ? "Approved" : "Missing"} />
+                      {!row.govOk && (
+                        <Link
+                          href="/dashboard/governance/upload-manifest"
+                          className="mt-1 block text-xs text-amber-600 hover:underline dark:text-amber-400"
+                        >
+                          Upload docs →
+                        </Link>
+                      )}
+                    </td>
+                    <td className="py-2.5 pr-3 align-top">
+                      <LanePill ok={row.techOk} label={row.techOk ? "Satisfied" : "Pending"} />
+                      {!row.techOk && (
+                        <Link
+                          href="/dashboard/technical/upload"
+                          className="mt-1 block text-xs text-blue-600 hover:underline dark:text-blue-400"
+                        >
+                          Upload scan →
+                        </Link>
+                      )}
+                    </td>
+                    <td className="py-2.5 align-top">
+                      {row.overallDone ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                          <CheckCircle2 className="h-3 w-3" />
+                          Done
+                        </span>
+                      ) : row.govOk && row.techOk ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+                          <RefreshCw className="h-3 w-3" />
+                          Recalculate
+                        </span>
+                      ) : !row.govOk && !row.techOk ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+                          <AlertCircle className="h-3 w-3" />
+                          Both needed
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                          <Circle className="h-3 w-3" />
+                          1 lane left
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </section>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <Link
-            href="/dashboard/technical/controls?classification=TECHNICAL"
-            className={`${cardClass} block transition-colors hover:bg-[var(--color-gray-50)]`}
-          >
-            <div className="flex items-center gap-2 text-[var(--color-navy-primary)]">
-              <Cpu className="h-5 w-5" aria-hidden />
-              <span className="font-semibold">Controls</span>
+        {/* ── Pure Technical gaps ──────────────────────────────────────────────── */}
+        {pureTechGaps.length > 0 && (
+          <section className={card}>
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-semibold text-[var(--color-gray-900)]">Pure Technical Gaps</h2>
+                <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                  {pureTechGaps.length} remaining
+                </span>
+              </div>
+              <Link
+                href="/dashboard/technical/upload"
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--color-blue-accent)] hover:underline"
+              >
+                <Upload className="h-3.5 w-3.5" />
+                Upload OS evidence
+              </Link>
             </div>
-            <p className="mt-1 text-sm text-[var(--color-gray-600)]">
-              Adjudicate pure and hybrid technical controls; link to evidence runs and system boundary.
+            <p className="mt-1 mb-3 text-xs text-[var(--color-gray-500)]">
+              These controls require only OS or cloud evidence — no governance docs needed.
             </p>
-          </Link>
-          <Link
-            href="/dashboard/evidence"
-            className={`${cardClass} block transition-colors hover:bg-[var(--color-gray-50)]`}
-          >
-            <div className="flex items-center gap-2 text-[var(--color-navy-primary)]">
-              <FolderOpen className="h-5 w-5" aria-hidden />
-              <span className="font-semibold">Evidence</span>
+            <div className="flex flex-wrap gap-1.5">
+              {pureTechGaps.map((id) => {
+                const rec = recordMap.get(id);
+                const hasTechEvidence = rec?.technicalStatus === "satisfied";
+                return (
+                  <Link
+                    key={id}
+                    href={`/dashboard/technical/controls?classification=TECHNICAL`}
+                    className={`rounded px-2 py-1 font-mono text-xs font-medium ${
+                      hasTechEvidence
+                        ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                        : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+                    }`}
+                    title={hasTechEvidence ? "Evidence collected — recalculate to promote" : "No evidence yet"}
+                  >
+                    {id}
+                  </Link>
+                );
+              })}
             </div>
-            <p className="mt-1 text-sm text-[var(--color-gray-600)]">
-              Upload evidence bundles; view Azure and OS runs, drift, and adjudicated control status.
-            </p>
-          </Link>
-          <Link
-            href="/dashboard/os-baselines"
-            className={`${cardClass} block transition-colors hover:bg-[var(--color-gray-50)]`}
-          >
-            <div className="flex items-center gap-2 text-[var(--color-navy-primary)]">
-              <Server className="h-5 w-5" aria-hidden />
-              <span className="font-semibold">System Boundary</span>
-            </div>
-            <p className="mt-1 text-sm text-[var(--color-gray-600)]">
-              Define boundary and endpoints with baseline profiles for evidence scoring.
-            </p>
-          </Link>
-        </div>
+            {pureTechGaps.some((id) => recordMap.get(id)?.technicalStatus === "satisfied") && (
+              <p className="mt-3 text-xs text-blue-600 dark:text-blue-400">
+                Some controls have evidence collected (shown in blue) — click Recalculate Status to promote them.
+              </p>
+            )}
+          </section>
+        )}
+
       </div>
     </div>
   );
