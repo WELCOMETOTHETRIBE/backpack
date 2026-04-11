@@ -175,7 +175,8 @@ export async function POST(req: Request) {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { manifest, run_id: bodyRunId, force } = body as { manifest?: any; run_id?: string; force?: boolean };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { manifest, run_id: bodyRunId } = body as { manifest?: any; run_id?: string };
     if (!manifest || typeof manifest !== "object") {
       return NextResponse.json({ error: "manifest required", code: "VALIDATION_ERROR" }, { status: 400 });
     }
@@ -201,7 +202,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "manifest contains no documents", code: "VALIDATION_ERROR" }, { status: 400 });
     }
 
-    // ── Duplicate run protection ──────────────────────────────────────────────
+    // ── Upsert manifest run record (one record per bundle, updated on re-ingest) ─
     const existingRun = await db
       .select({ id: governanceManifestRuns.id })
       .from(governanceManifestRuns)
@@ -211,41 +212,51 @@ export async function POST(req: Request) {
       ))
       .limit(1);
 
+    let manifestRunId: string;
     if (existingRun.length > 0) {
-      if (!force) {
-        return NextResponse.json({
-          error: `run_id "${runId}" has already been ingested for this organization`,
-          code: "DUPLICATE_RUN",
-          run_id: runId,
-        }, { status: 409 });
-      }
-      // force=true: generate a new run_id derived from the original so the
-      // supplemental static-map coverage gets written into a fresh run record.
-      const suffix = new Date().toISOString().replace(/[-:T.Z]/g, "").slice(0, 12);
-      runId = `${runId}-r${suffix}`;
+      // Update the existing run record (keeps history clean, no duplicate rows)
+      await db
+        .update(governanceManifestRuns)
+        .set({
+          ingestedBy: user?.id ?? null,
+          docCount: normalised.docs.length,
+          ingestedAt: new Date(),
+        })
+        .where(eq(governanceManifestRuns.id, existingRun[0]!.id));
+      manifestRunId = existingRun[0]!.id;
+    } else {
+      const [runRow] = await db
+        .insert(governanceManifestRuns)
+        .values({
+          organizationId: orgId,
+          runId,
+          schemaVersion: normalised.schemaVersion,
+          bundleSource: normalised.bundleSource,
+          ingestedBy: user?.id ?? null,
+          docCount: normalised.docs.length,
+        })
+        .returning({ id: governanceManifestRuns.id });
+      manifestRunId = runRow.id;
     }
 
-    // ── Create manifest run record ────────────────────────────────────────────
-    const [runRow] = await db
-      .insert(governanceManifestRuns)
-      .values({
-        organizationId: orgId,
-        runId,
-        schemaVersion: normalised.schemaVersion,
-        bundleSource: normalised.bundleSource,
-        ingestedBy: user?.id ?? null,
-        docCount: normalised.docs.length,
-      })
-      .returning({ id: governanceManifestRuns.id });
-
-    const manifestRunId = runRow.id;
-
-    // ── Upsert docs + build control links ────────────────────────────────────
+    // ── Upsert docs + rebuild control links ──────────────────────────────────
+    // Docs: upsert by (organizationId, docId) — update title/type/status on re-ingest
+    // Links: delete all existing links for this org then re-insert from current manifest
+    //        so stale mappings are never left around from old runs.
     const allControlsCovered = new Set<string>();
+
+    // Delete all existing control links for this org (will re-create fresh below)
+    await db
+      .delete(governanceDocumentControlLinks)
+      .where(eq(governanceDocumentControlLinks.organizationId, orgId));
 
     for (const doc of normalised.docs) {
       if (!doc.code || !doc.title) continue;
 
+      const docStatus = (["APPROVED","SUBMITTED","DRAFT"].includes(doc.status) ? doc.status : "DRAFT") as
+        "APPROVED" | "SUBMITTED" | "DRAFT";
+
+      // Upsert: update on conflict with the unique index (org_id, doc_id)
       await db
         .insert(governanceDocuments)
         .values({
@@ -253,13 +264,22 @@ export async function POST(req: Request) {
           docId: doc.code,
           title: doc.title,
           type: toDocType(doc.kind),
-          status: (["APPROVED","SUBMITTED","DRAFT"].includes(doc.status) ? doc.status : "DRAFT") as
-            "APPROVED" | "SUBMITTED" | "DRAFT",
+          status: docStatus,
+          updatedAt: new Date(),
         })
-        .onConflictDoNothing();
+        .onConflictDoUpdate({
+          target: [governanceDocuments.organizationId, governanceDocuments.docId],
+          set: {
+            title: doc.title,
+            type: toDocType(doc.kind),
+            status: docStatus,
+            updatedAt: new Date(),
+          },
+        });
 
       for (const controlId of doc.controls) {
         if (!controlId) continue;
+        // Insert with conflict guard (unique index on org+doc+control)
         await db
           .insert(governanceDocumentControlLinks)
           .values({
@@ -268,6 +288,14 @@ export async function POST(req: Request) {
             docCode: doc.code,
             controlId,
             satisfactionType: "primary",
+          })
+          .onConflictDoUpdate({
+            target: [
+              governanceDocumentControlLinks.organizationId,
+              governanceDocumentControlLinks.docCode,
+              governanceDocumentControlLinks.controlId,
+            ],
+            set: { manifestRunId, satisfactionType: "primary" },
           });
         allControlsCovered.add(controlId);
       }

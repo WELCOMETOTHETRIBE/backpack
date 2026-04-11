@@ -100,7 +100,6 @@ export default function UnifiedUploadPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [result, setResult] = useState<IngestResult | null>(null);
-  const [isDuplicate, setIsDuplicate] = useState(false);
 
   // Optional fields for Azure upload
   const [azureRunId, setAzureRunId] = useState("");
@@ -112,7 +111,6 @@ export default function UnifiedUploadPage() {
     setParseError(null);
     setSubmitError(null);
     setResult(null);
-    setIsDuplicate(false);
     if (fileInputRef.current) fileInputRef.current.value = "";
   }, []);
 
@@ -157,11 +155,10 @@ export default function UnifiedUploadPage() {
     return `GOV-${ts}-${Math.random().toString(36).slice(2, 8)}`;
   };
 
-  const handleSubmit = async (force = false) => {
+  const handleSubmit = async () => {
     if (!detected || detected.kind === "unknown") return;
     setSubmitting(true);
     setSubmitError(null);
-    if (!force) setIsDuplicate(false);
 
     try {
       if (detected.kind === "os-v2") {
@@ -172,7 +169,6 @@ export default function UnifiedUploadPage() {
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
-          if (res.status === 409 && !force) { setIsDuplicate(true); return; }
           setSubmitError(data.error ?? `Upload failed (${res.status})`);
           return;
         }
@@ -186,11 +182,10 @@ export default function UnifiedUploadPage() {
         const res = await fetch("/api/governance/ingest-manifest", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ manifest: detected.raw, run_id: runId, ...(force && { force: true }) }),
+          body: JSON.stringify({ manifest: detected.raw, run_id: runId }),
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
-          if (res.status === 409 && !force) { setIsDuplicate(true); return; }
           setSubmitError(data.error ?? `Upload failed (${res.status})`);
           return;
         }
@@ -414,27 +409,10 @@ export default function UnifiedUploadPage() {
               </div>
             )}
 
-            {/* Duplicate warning */}
-            {isDuplicate && (
-              <div className="mt-4 rounded-[var(--radius-md)] border border-amber-200 bg-amber-50 p-4 dark:border-amber-700/40 dark:bg-amber-950/20">
-                <p className="text-sm font-medium text-amber-800 dark:text-amber-300">Run already ingested</p>
-                <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">
-                  This run ID was already ingested. Re-ingest to apply any updated control mappings.
-                </p>
-                <button
-                  onClick={() => handleSubmit(true)}
-                  disabled={submitting}
-                  className="mt-3 inline-flex items-center gap-2 rounded-[var(--radius-md)] bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-60"
-                >
-                  {submitting ? "Re-ingesting…" : "Re-ingest with updated mapping"}
-                </button>
-              </div>
-            )}
-
-            {!isDuplicate && (
+            {(
               <div className="mt-6 flex gap-3">
                 <button
-                  onClick={() => handleSubmit(false)}
+                  onClick={() => handleSubmit()}
                   disabled={submitting}
                   className="inline-flex items-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[var(--color-primary-hover)] disabled:opacity-50"
                 >

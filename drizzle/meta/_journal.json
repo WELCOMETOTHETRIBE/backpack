@@ -253,6 +253,13 @@
       "when": 1772910000000,
       "tag": "0035_training_records",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1772920000000,
+      "tag": "0036_governance_docs_dedup",
+      "breakpoints": true
     }
   ]
 }
