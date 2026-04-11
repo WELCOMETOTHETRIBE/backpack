@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { controlEvidenceLinks, controlRecords, osAssets } from "@/db/schema";
+import { controlEvidenceLinks, controlRecords, osAssets, boundaries } from "@/db/schema";
 import { eq, and, inArray, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { calculateControlStatus } from "@/lib/control-status";
@@ -153,18 +153,28 @@ export async function POST(req: Request) {
       ))
       .limit(1);
 
-    // If no asset record exists, create a stub so evidence links have somewhere to point
+    // If no asset record exists, create a stub so evidence links have somewhere to point.
+    // Only do so when boundary_id is provided AND actually exists in boundaries table
+    // (guards against passing an asset UUID by mistake, which would violate the FK).
     if (existingAsset.length === 0 && boundary_id) {
-      await db.insert(osAssets).values({
-        organizationId: orgId,
-        boundaryId: boundary_id,
-        hostname: computerName,
-        osFamily: "windows_server",
-        osVersion: "Windows Server 2025",
-        role: "member_server",
-        owner: "Discovered via evidence ingest",
-        tags: ["auto-discovered"],
-      }).onConflictDoNothing();
+      const validBoundary = await db
+        .select({ id: boundaries.id })
+        .from(boundaries)
+        .where(and(eq(boundaries.organizationId, orgId), eq(boundaries.id, boundary_id)))
+        .limit(1);
+
+      if (validBoundary.length > 0) {
+        await db.insert(osAssets).values({
+          organizationId: orgId,
+          boundaryId: boundary_id,
+          hostname: computerName,
+          osFamily: "windows_server",
+          osVersion: "Windows Server 2025",
+          role: "member_server",
+          owner: "Discovered via evidence ingest",
+          tags: ["auto-discovered"],
+        }).onConflictDoNothing();
+      }
     }
 
     // ── Control-evidence mapping ─────────────────────────────────────────────

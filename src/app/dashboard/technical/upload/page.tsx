@@ -153,10 +153,12 @@ export default function TechnicalUploadPage() {
       // boundary_id is optional for v2; asset id used for display only
       setSubmitting(true);
       try {
+        // boundary_id must be a boundaries.id — systemId is an asset UUID, not a boundary UUID.
+        // For v2 ingests the computer_name is used to auto-discover/stub the asset.
         const res = await fetch("/api/evidence/v2/ingest", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ manifest: parsedFile, boundary_id: systemId.trim() || undefined }),
+          body: JSON.stringify({ manifest: parsedFile }),
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
