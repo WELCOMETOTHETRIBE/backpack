@@ -91,6 +91,7 @@ export default function UploadGovernanceClient() {
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<IngestResult | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isDuplicate, setIsDuplicate] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = useCallback((file: File) => {
@@ -98,6 +99,7 @@ export default function UploadGovernanceClient() {
     setPreview(null);
     setResult(null);
     setSubmitError(null);
+    setIsDuplicate(false);
 
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -137,10 +139,11 @@ export default function UploadGovernanceClient() {
     [handleFile]
   );
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (force = false) => {
     if (!preview) return;
     setSubmitting(true);
     setSubmitError(null);
+    if (!force) setIsDuplicate(false);
 
     try {
       // v1 manifests embed run_id; legacy needs one generated
@@ -148,11 +151,16 @@ export default function UploadGovernanceClient() {
       const res = await fetch("/api/governance/ingest-manifest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ manifest: preview.raw, run_id: runId }),
+        body: JSON.stringify({ manifest: preview.raw, run_id: runId, ...(force && { force: true }) }),
       });
 
       const data = await res.json();
       if (!res.ok) {
+        if (res.status === 409) {
+          setIsDuplicate(true);
+          setSubmitError(null);
+          return;
+        }
         setSubmitError(data.error ?? `Server error: ${res.status}`);
         return;
       }
@@ -169,6 +177,7 @@ export default function UploadGovernanceClient() {
     setResult(null);
     setParseError(null);
     setSubmitError(null);
+    setIsDuplicate(false);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -301,26 +310,46 @@ export default function UploadGovernanceClient() {
             </div>
           )}
 
-          <div className="mt-6 flex gap-3">
-            <button
-              onClick={handleSubmit}
-              disabled={submitting}
-              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
-            >
-              {submitting ? (
-                <>
-                  <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                  Ingesting...
-                </>
-              ) : "Ingest Manifest"}
-            </button>
-            <button onClick={reset} className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
-              Cancel
-            </button>
-          </div>
+          {isDuplicate && (
+            <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-700/40 dark:bg-amber-950/20">
+              <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
+                This run ID has already been ingested.
+              </p>
+              <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">
+                Re-ingesting will create a new supplemental run with updated control coverage (static-map supplement applied). Previous run data is preserved.
+              </p>
+              <button
+                onClick={() => handleSubmit(true)}
+                disabled={submitting}
+                className="mt-3 inline-flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-60"
+              >
+                {submitting ? "Re-ingesting..." : "Re-ingest with Updated Mapping"}
+              </button>
+            </div>
+          )}
+
+          {!isDuplicate && (
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={() => handleSubmit(false)}
+                disabled={submitting}
+                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+              >
+                {submitting ? (
+                  <>
+                    <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Ingesting...
+                  </>
+                ) : "Ingest Manifest"}
+              </button>
+              <button onClick={reset} className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
+                Cancel
+              </button>
+            </div>
+          )}
         </div>
       )}
 

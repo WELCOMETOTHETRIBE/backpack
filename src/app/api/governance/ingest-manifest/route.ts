@@ -57,7 +57,8 @@ interface MappingFile {
 }
 
 // ─── Load static fallback control map ────────────────────────────────────────
-// Used for legacy schema docs that don't embed controls_mapped.
+// Used for legacy schema docs; ALSO supplements v1 docs whose controls_mapped
+// is incomplete (QMS CLI does not always emit every control a doc satisfies).
 async function loadStaticControlMap(): Promise<Map<string, ControlMapping[]>> {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const raw = require("@/../docs/Governance-Document-to-NIST-Control-Manifest.json") as MappingFile;
@@ -90,15 +91,23 @@ function normaliseManifest(
       runId,
       bundleSource,
       schemaVersion: 1,
-      docs: docs.map((d) => ({
-        code: d.document_number,
-        title: d.document_name,
-        kind: d.document_type,
-        status: statusMap[d.status?.toLowerCase() ?? ""] ?? "DRAFT",
-        sha256: d.sha256 ?? null,
-        // v1 embeds controls_mapped directly — use as primary source
-        controls: d.controls_mapped ?? [],
-      })),
+      docs: docs.map((d) => {
+        // v1 embeds controls_mapped — use as primary source, then
+        // supplement with static mapping entries the QMS CLI may have omitted.
+        const embedded = new Set<string>(d.controls_mapped ?? []);
+        const staticEntries = staticMap.get(d.document_number) ?? [];
+        for (const cm of staticEntries) {
+          embedded.add(cm.control_id);
+        }
+        return {
+          code: d.document_number,
+          title: d.document_name,
+          kind: d.document_type,
+          status: statusMap[d.status?.toLowerCase() ?? ""] ?? "DRAFT",
+          sha256: d.sha256 ?? null,
+          controls: [...embedded],
+        };
+      }),
     };
   }
 
@@ -166,7 +175,7 @@ export async function POST(req: Request) {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { manifest, run_id: bodyRunId } = body as { manifest?: any; run_id?: string };
+    const { manifest, run_id: bodyRunId, force } = body as { manifest?: any; run_id?: string; force?: boolean };
     if (!manifest || typeof manifest !== "object") {
       return NextResponse.json({ error: "manifest required", code: "VALIDATION_ERROR" }, { status: 400 });
     }
@@ -180,11 +189,11 @@ export async function POST(req: Request) {
       }, { status: 400 });
     }
 
-    // Load static map (needed for legacy; ignored for v1 which embeds controls_mapped)
+    // Load static map — supplements both v1 and legacy manifests
     const staticMap = await loadStaticControlMap();
 
     const normalised = normaliseManifest(schema, manifest, staticMap);
-    const runId = normalised.runId || bodyRunId;
+    let runId = normalised.runId || bodyRunId;
     if (!runId) {
       return NextResponse.json({ error: "run_id required", code: "VALIDATION_ERROR" }, { status: 400 });
     }
@@ -203,11 +212,17 @@ export async function POST(req: Request) {
       .limit(1);
 
     if (existingRun.length > 0) {
-      return NextResponse.json({
-        error: `run_id "${runId}" has already been ingested for this organization`,
-        code: "DUPLICATE_RUN",
-        run_id: runId,
-      }, { status: 409 });
+      if (!force) {
+        return NextResponse.json({
+          error: `run_id "${runId}" has already been ingested for this organization`,
+          code: "DUPLICATE_RUN",
+          run_id: runId,
+        }, { status: 409 });
+      }
+      // force=true: generate a new run_id derived from the original so the
+      // supplemental static-map coverage gets written into a fresh run record.
+      const suffix = new Date().toISOString().replace(/[-:T.Z]/g, "").slice(0, 12);
+      runId = `${runId}-r${suffix}`;
     }
 
     // ── Create manifest run record ────────────────────────────────────────────
