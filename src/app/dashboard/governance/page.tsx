@@ -15,6 +15,7 @@ import {
   HYBRID_GOVERNANCE_IDS,
 } from "@/lib/compliance/control-bins";
 import { PackageOpen, BookMarked, FileText, ClipboardList, FolderOpen } from "lucide-react";
+import RecalculateButton from "./RecalculateButton";
 
 const DONE_STATUSES = new Set(["implemented", "assessed", "inherited", "not_applicable"]);
 
@@ -201,13 +202,16 @@ export default async function GovernanceDashboardPage() {
                 : "No governance bundle ingested yet — use the button to upload a manifest."}
             </p>
           </div>
-          <Link
-            href="/dashboard/governance/upload-manifest"
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-gray-700 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200"
-          >
-            <PackageOpen className="h-3.5 w-3.5" aria-hidden />
-            Ingest bundle
-          </Link>
+          <div className="flex items-center gap-2">
+            <RecalculateButton />
+            <Link
+              href="/dashboard/governance/upload-manifest"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-gray-700 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200"
+            >
+              <PackageOpen className="h-3.5 w-3.5" aria-hidden />
+              Ingest bundle
+            </Link>
+          </div>
         </div>
 
         {/* ── Re-ingest nudge (shown when pure gov gaps exist but a bundle is present) ── */}
@@ -377,11 +381,21 @@ export default async function GovernanceDashboardPage() {
                   const hasGovDocs = row.hasNonDraftDocs;
                   const hasTech = row.technicalStatus === "satisfied";
 
+                  const evidenceHref = `/dashboard/governance/controls/${row.controlId}/evidence`;
+
                   let statusChip: React.ReactNode;
                   if (done) statusChip = <DoneChip />;
-                  else if (hasGovDocs && !hasTech) statusChip = <NeedsTechChip />;
+                  else if (hasGovDocs && !hasTech) statusChip = (
+                    <Link href={evidenceHref}>
+                      <NeedsTechChip />
+                    </Link>
+                  );
                   else if (!hasGovDocs && hasTech) statusChip = <NeedsDocsChip />;
-                  else statusChip = <NeedsBothChip />;
+                  else statusChip = (
+                    <Link href={evidenceHref}>
+                      <NeedsBothChip />
+                    </Link>
+                  );
 
                   return (
                     <tr key={row.controlId}>
@@ -418,10 +432,13 @@ export default async function GovernanceDashboardPage() {
                             Satisfied
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-xs text-gray-400">
+                          <Link
+                            href={evidenceHref}
+                            className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline dark:text-blue-400"
+                          >
                             <PendingIcon />
-                            Pending
-                          </span>
+                            Submit evidence →
+                          </Link>
                         )}
                       </td>
                       <td className={tdClass}>{statusChip}</td>
