@@ -24,6 +24,7 @@ interface IngestResult {
   doc_count: number;
   linked_controls: number;
   policy_satisfied_count: number;
+  implemented_promoted: number;
   manifest_run_id: string;
 }
 
@@ -344,12 +345,12 @@ export default function UploadGovernanceClient() {
                   <dd className="mt-0.5 text-xl font-bold text-green-900 dark:text-green-200">{result.doc_count}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs text-green-700 dark:text-green-400">Controls Linked</dt>
-                  <dd className="mt-0.5 text-xl font-bold text-green-900 dark:text-green-200">{result.linked_controls}</dd>
-                </div>
-                <div>
                   <dt className="text-xs text-green-700 dark:text-green-400">Policy Lanes Satisfied</dt>
                   <dd className="mt-0.5 text-xl font-bold text-green-900 dark:text-green-200">{result.policy_satisfied_count}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-green-700 dark:text-green-400">Controls Promoted → Implemented</dt>
+                  <dd className="mt-0.5 text-xl font-bold text-green-900 dark:text-green-200">{result.implemented_promoted}</dd>
                 </div>
               </dl>
               <button onClick={reset} className="mt-4 text-xs font-medium text-green-700 underline hover:no-underline dark:text-green-400">

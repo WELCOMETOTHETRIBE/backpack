@@ -8,6 +8,7 @@ import {
 } from "@/db/schema";
 import { eq, and, inArray, desc } from "drizzle-orm";
 import { auth } from "@/lib/auth";
+import { PURE_GOVERNANCE_IDS } from "@/lib/compliance/control-bins";
 
 // ─── Supported schemas ────────────────────────────────────────────────────────
 const SCHEMA_V1 = "mactech-governance-manifest.v1";       // QMS CLI output (51 docs)
@@ -300,6 +301,66 @@ export async function POST(req: Request) {
       }
     }
 
+    // ── Promote implementationStatus based on governance coverage ─────────────
+    //
+    // Pure governance controls: docs alone are sufficient → "implemented"
+    // Hybrid controls: docs + OS evidence both required → promote only when
+    //   technical_status is already "satisfied" (OS ingest already ran)
+    //
+    // Statuses assessed / inherited / not_applicable are never overwritten.
+    const PROTECTED_STATUSES = ["assessed", "inherited", "not_applicable"];
+    const PURE_GOV_SET = new Set(PURE_GOVERNANCE_IDS);
+    let implementedPromotedCount = 0;
+
+    if (nonDraftCoveredControls.size > 0) {
+      // Fetch all affected control records in one query
+      const affectedRecords = await db
+        .select({
+          id: controlRecords.id,
+          controlId: controlRecords.controlId,
+          implementationStatus: controlRecords.implementationStatus,
+          technicalStatus: controlRecords.technicalStatus,
+        })
+        .from(controlRecords)
+        .where(
+          and(
+            eq(controlRecords.organizationId, orgId),
+            inArray(controlRecords.controlId, [...nonDraftCoveredControls])
+          )
+        );
+
+      const toPromote: string[] = [];
+      for (const r of affectedRecords) {
+        // Never overwrite terminal statuses
+        if (PROTECTED_STATUSES.includes(r.implementationStatus)) continue;
+        // Already implemented — nothing to do
+        if (r.implementationStatus === "implemented") continue;
+
+        if (PURE_GOV_SET.has(r.controlId)) {
+          // Pure governance: docs alone close the control
+          toPromote.push(r.id);
+        } else {
+          // Hybrid: only promote if OS/technical lane is already satisfied
+          if (r.technicalStatus === "satisfied") {
+            toPromote.push(r.id);
+          }
+        }
+      }
+
+      if (toPromote.length > 0) {
+        await db
+          .update(controlRecords)
+          .set({ implementationStatus: "implemented", updatedAt: new Date() })
+          .where(
+            and(
+              eq(controlRecords.organizationId, orgId),
+              inArray(controlRecords.id, toPromote)
+            )
+          );
+        implementedPromotedCount = toPromote.length;
+      }
+    }
+
     // ── Audit log ─────────────────────────────────────────────────────────────
     console.log(JSON.stringify({
       event: "governance_manifest_ingested",
@@ -310,6 +371,7 @@ export async function POST(req: Request) {
       docCount: normalised.docs.length,
       linkedControls: allControlsCovered.size,
       policySatisfied: policySatisfiedCount,
+      implementedPromoted: implementedPromotedCount,
     }));
 
     return NextResponse.json({
@@ -318,6 +380,7 @@ export async function POST(req: Request) {
       doc_count: normalised.docs.length,
       linked_controls: allControlsCovered.size,
       policy_satisfied_count: policySatisfiedCount,
+      implemented_promoted: implementedPromotedCount,
       manifest_run_id: manifestRunId,
     }, { status: 201 });
 
