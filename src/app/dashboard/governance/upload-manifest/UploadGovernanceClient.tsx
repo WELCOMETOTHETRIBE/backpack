@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
 
 const SCHEMA_V1 = "mactech-governance-manifest.v1";
 const SCHEMA_LEGACY = "mactech.codex.manual.governance_manifest";
@@ -85,6 +86,7 @@ function generateRunId(): string {
 }
 
 export default function UploadGovernanceClient() {
+  const router = useRouter();
   const [dragOver, setDragOver] = useState(false);
   const [preview, setPreview] = useState<ManifestPreview | null>(null);
   const [parseError, setParseError] = useState<string | null>(null);
@@ -355,37 +357,69 @@ export default function UploadGovernanceClient() {
 
       {/* Result */}
       {result && (
-        <div className="rounded-xl border border-green-200 bg-green-50 p-6 dark:border-green-800/40 dark:bg-green-950/20">
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5 rounded-full bg-green-100 p-1.5 dark:bg-green-900/40">
-              <svg className="h-5 w-5 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900">
+          {/* Header */}
+          <div className="flex items-center gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-800">
+            <div className="rounded-full bg-emerald-100 p-1.5 dark:bg-emerald-900/40">
+              <svg className="h-5 w-5 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <div className="flex-1">
-              <p className="font-medium text-green-900 dark:text-green-300">Manifest ingested successfully</p>
-              <dl className="mt-3 grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:grid-cols-4">
-                <div>
-                  <dt className="text-xs text-green-700 dark:text-green-400">Run ID</dt>
-                  <dd className="mt-0.5 font-mono text-xs text-green-900 dark:text-green-200 break-all">{result.run_id}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-green-700 dark:text-green-400">Documents</dt>
-                  <dd className="mt-0.5 text-xl font-bold text-green-900 dark:text-green-200">{result.doc_count}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-green-700 dark:text-green-400">Policy Lanes Satisfied</dt>
-                  <dd className="mt-0.5 text-xl font-bold text-green-900 dark:text-green-200">{result.policy_satisfied_count}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-green-700 dark:text-green-400">Controls Promoted → Implemented</dt>
-                  <dd className="mt-0.5 text-xl font-bold text-green-900 dark:text-green-200">{result.implemented_promoted}</dd>
-                </div>
-              </dl>
-              <button onClick={reset} className="mt-4 text-xs font-medium text-green-700 underline hover:no-underline dark:text-green-400">
-                Upload another manifest
-              </button>
+            <div>
+              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">Manifest ingested successfully</p>
+              <p className="text-xs text-gray-500 font-mono">{result.run_id}</p>
             </div>
+          </div>
+
+          {/* Impact summary */}
+          <div className="grid grid-cols-3 divide-x divide-gray-100 dark:divide-gray-800">
+            <div className="px-6 py-5">
+              <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Documents registered</p>
+              <p className="mt-1 text-3xl font-bold text-gray-900 dark:text-gray-100">{result.doc_count}</p>
+              <p className="mt-0.5 text-xs text-gray-500">Policies, SOPs, plans ingested from bundle</p>
+            </div>
+            <div className="px-6 py-5">
+              <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Dual-evidence lanes closed</p>
+              <p className="mt-1 text-3xl font-bold text-gray-900 dark:text-gray-100">{result.policy_satisfied_count}</p>
+              <p className="mt-0.5 text-xs text-gray-500">Controls with a governance doc now on file</p>
+            </div>
+            <div className="px-6 py-5">
+              <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Promoted → Implemented</p>
+              <p className={`mt-1 text-3xl font-bold ${result.implemented_promoted > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-gray-900 dark:text-gray-100"}`}>
+                {result.implemented_promoted}
+              </p>
+              <p className="mt-0.5 text-xs text-gray-500">
+                {result.implemented_promoted > 0
+                  ? "Controls fully closed by this ingest"
+                  : "No new promotions — check Governance for gaps"}
+              </p>
+            </div>
+          </div>
+
+          {/* What happens next */}
+          <div className="border-t border-gray-100 bg-gray-50 px-6 py-4 dark:border-gray-800 dark:bg-gray-800/40">
+            <p className="text-xs font-medium text-gray-700 dark:text-gray-300">What was updated</p>
+            <ul className="mt-2 space-y-1 text-xs text-gray-600 dark:text-gray-400">
+              <li>• Pure governance controls with a registered non-draft document were promoted to <strong>Implemented</strong>.</li>
+              <li>• Hybrid controls with this doc <em>and</em> existing OS/technical evidence were also promoted.</li>
+              <li>• Hybrid controls still waiting on OS/technical evidence remain <strong>In Progress</strong> — run an OS baseline scan to close them.</li>
+            </ul>
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-3 border-t border-gray-100 px-6 py-4 dark:border-gray-800">
+            <button
+              onClick={() => router.push("/dashboard/governance")}
+              className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200"
+            >
+              View Governance Coverage
+            </button>
+            <button
+              onClick={reset}
+              className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+            >
+              Upload another manifest
+            </button>
           </div>
         </div>
       )}
