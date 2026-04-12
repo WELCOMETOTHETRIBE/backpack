@@ -14,10 +14,16 @@ import {
   PURE_GOVERNANCE_IDS,
   HYBRID_GOVERNANCE_IDS,
 } from "@/lib/compliance/control-bins";
+import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
 import { PackageOpen, BookMarked, FileText, ClipboardList, FolderOpen } from "lucide-react";
 import RecalculateButton from "./RecalculateButton";
 
 const DONE_STATUSES = new Set(["implemented", "assessed", "inherited", "not_applicable"]);
+
+// Controls the intelligence layer has marked N/A for MacTech — hide from governance workflow
+const NA_CONTROL_IDS = new Set(
+  CONTROL_INTELLIGENCE.filter((c) => c.disposition === "not_applicable").map((c) => c.controlId)
+);
 
 // ── Status badges ──────────────────────────────────────────────────────────────
 
@@ -176,13 +182,14 @@ export default async function GovernanceDashboardPage() {
     };
   }
 
-  const pureGovRows = PURE_GOVERNANCE_IDS.map(buildRow);
-  const hybridGovRows = HYBRID_GOVERNANCE_IDS.map(buildRow);
+  // Filter out architecture-level N/A controls — they have no governance work required
+  const pureGovRows = PURE_GOVERNANCE_IDS.filter((id) => !NA_CONTROL_IDS.has(id)).map(buildRow);
+  const hybridGovRows = HYBRID_GOVERNANCE_IDS.filter((id) => !NA_CONTROL_IDS.has(id)).map(buildRow);
 
   const pureDone = pureGovRows.filter((r) => DONE_STATUSES.has(r.implementationStatus)).length;
   const hybridDone = hybridGovRows.filter((r) => DONE_STATUSES.has(r.implementationStatus)).length;
-  const pureGapCount = PURE_GOVERNANCE_IDS.length - pureDone;
-  const hybridGapCount = HYBRID_GOVERNANCE_IDS.length - hybridDone;
+  const pureGapCount = pureGovRows.length - pureDone;
+  const hybridGapCount = hybridGovRows.length - hybridDone;
 
   const card = "rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-900";
   const thClass = "pb-2 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400 text-left";
@@ -238,11 +245,11 @@ export default async function GovernanceDashboardPage() {
           <div className={card}>
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Pure Governance</p>
-              <span className={`text-xs font-medium ${pureDone === PURE_GOVERNANCE_IDS.length ? "text-emerald-600" : "text-amber-600"}`}>
-                {pureDone} / {PURE_GOVERNANCE_IDS.length} complete
+              <span className={`text-xs font-medium ${pureDone === pureGovRows.length ? "text-emerald-600" : "text-amber-600"}`}>
+                {pureDone} / {pureGovRows.length} complete
               </span>
             </div>
-            <ProgressBar done={pureDone} total={PURE_GOVERNANCE_IDS.length} />
+            <ProgressBar done={pureDone} total={pureGovRows.length} />
             <p className="mt-2 text-xs text-gray-500">Satisfied by governance documents alone — no OS evidence required.</p>
             {pureGapCount > 0 && (
               <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
@@ -253,11 +260,11 @@ export default async function GovernanceDashboardPage() {
           <div className={card}>
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Hybrid Governance</p>
-              <span className={`text-xs font-medium ${hybridDone === HYBRID_GOVERNANCE_IDS.length ? "text-emerald-600" : "text-blue-600"}`}>
-                {hybridDone} / {HYBRID_GOVERNANCE_IDS.length} complete
+              <span className={`text-xs font-medium ${hybridDone === hybridGovRows.length ? "text-emerald-600" : "text-blue-600"}`}>
+                {hybridDone} / {hybridGovRows.length} complete
               </span>
             </div>
-            <ProgressBar done={hybridDone} total={HYBRID_GOVERNANCE_IDS.length} />
+            <ProgressBar done={hybridDone} total={hybridGovRows.length} />
             <p className="mt-2 text-xs text-gray-500">Require both a governance document AND OS/technical evidence.</p>
             {hybridGapCount > 0 && (
               <p className="mt-1 text-xs text-blue-600 dark:text-blue-400">
@@ -274,7 +281,7 @@ export default async function GovernanceDashboardPage() {
               Pure Governance Controls
             </h2>
             <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400">
-              {pureDone} / {PURE_GOVERNANCE_IDS.length}
+              {pureDone} / {pureGovRows.length}
             </span>
           </div>
           <p className="mb-4 text-xs text-gray-500 dark:text-gray-400">
@@ -358,7 +365,7 @@ export default async function GovernanceDashboardPage() {
               Hybrid Governance Controls
             </h2>
             <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400">
-              {hybridDone} / {HYBRID_GOVERNANCE_IDS.length}
+              {hybridDone} / {hybridGovRows.length}
             </span>
           </div>
           <p className="mb-4 text-xs text-gray-500 dark:text-gray-400">
