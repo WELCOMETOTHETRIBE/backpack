@@ -39,6 +39,7 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
   const searchParams = useSearchParams();
   const family = searchParams.get("family");
   const type = (searchParams.get("type") as "all" | "configuration" | "governance" | "partial") || "all";
+  const statusFilter = (searchParams.get("status") as "implemented" | "inherited" | "not_applicable" | "outstanding" | null) ?? null;
   const controlId = searchParams.get("control");
 
   const [records, setRecords] = useState<SCTMRecord[]>([]);
@@ -99,14 +100,23 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
       if (type === "partial") {
         list = list.filter((r) => r.evidencePartial === true);
       } else if (type === "governance") {
-        // Governance filter: only controls satisfied by governance (PURE_GOV), not OS/Cloud/Hybrid
         list = list.filter((r) => r.satisfiedByGovernance === true);
       } else if (type === "configuration") {
-        // Configuration filter: OS, Cloud, or Hybrid (technical implementation)
         list = list.filter(
           (r) =>
             r.satisfiedByOs === true || r.satisfiedByCloud === true || r.satisfiedByHybrid === true
         );
+      }
+    }
+    if (statusFilter) {
+      if (statusFilter === "implemented") {
+        list = list.filter((r) => r.implementationStatus === "implemented" || r.implementationStatus === "assessed");
+      } else if (statusFilter === "inherited") {
+        list = list.filter((r) => r.implementationStatus === "inherited");
+      } else if (statusFilter === "not_applicable") {
+        list = list.filter((r) => r.implementationStatus === "not_applicable");
+      } else if (statusFilter === "outstanding") {
+        list = list.filter((r) => r.implementationStatus === "not_started" || r.implementationStatus === "in_progress");
       }
     }
     const byControlId = new Map<string, SCTMRecord>();
@@ -136,7 +146,7 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
       });
     }
     return result;
-  }, [records, family, type, debouncedSearch, optimizedByControlId, nistByControlId]);
+  }, [records, family, type, statusFilter, debouncedSearch, optimizedByControlId, nistByControlId]);
 
   const selectedRecord = useMemo(
     () => (controlId ? records.find((r) => r.controlId === controlId) ?? null : null),
@@ -192,6 +202,13 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
     u.delete("control");
     router.replace(`/dashboard/controls?${u.toString()}`, { scroll: false });
   }
+  function setStatus(s: "implemented" | "inherited" | "not_applicable" | "outstanding" | null) {
+    const u = new URLSearchParams(searchParams.toString());
+    if (s) u.set("status", s);
+    else u.delete("status");
+    u.delete("control");
+    router.replace(`/dashboard/controls?${u.toString()}`, { scroll: false });
+  }
   function setControl(id: string | null) {
     const u = new URLSearchParams(searchParams.toString());
     if (id) u.set("control", id);
@@ -207,8 +224,29 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
     );
   }
 
+  const STATUS_LABELS: Record<string, string> = {
+    implemented: "Implemented / Assessed",
+    inherited: "Inherited",
+    not_applicable: "Not Applicable",
+    outstanding: "Outstanding (not started / in progress)",
+  };
+
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-gradient-to-b from-[var(--color-gray-50)]/30 to-transparent">
+      {/* Active status filter banner */}
+      {statusFilter && (
+        <div className="flex items-center gap-3 border-b border-blue-200 bg-blue-50 px-4 py-2 dark:border-blue-800/40 dark:bg-blue-950/20">
+          <span className="text-xs font-medium text-blue-800 dark:text-blue-300">
+            Filtered: <strong>{STATUS_LABELS[statusFilter]}</strong> — {filteredRecords.length} control{filteredRecords.length !== 1 ? "s" : ""}
+          </span>
+          <button
+            onClick={() => setStatus(null)}
+            className="ml-auto text-xs font-medium text-blue-700 hover:underline dark:text-blue-400"
+          >
+            Clear filter ×
+          </button>
+        </div>
+      )}
       {/* Header: Control families section + toolbar */}
       <header className="border-b border-[var(--color-border)]/80 bg-white/80 backdrop-blur-xl shadow-sm shadow-black/[0.02]">
         <div className="px-4 py-4 flex flex-col gap-4">

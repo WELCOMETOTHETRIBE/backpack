@@ -168,6 +168,21 @@ export default async function DashboardPage() {
     (r) => r.implementationStatus === "not_started" || r.implementationStatus === "in_progress"
   ).length;
 
+  // ── Status bin counts (for the clickable breakdown chips) ──
+  // Counts against ALL 110 controls; missing records count as not_started (outstanding)
+  const statusBins = (() => {
+    const byId = new Map(records.map((r) => [r.controlId, r.implementationStatus]));
+    let implemented = 0, inherited = 0, notApplicable = 0;
+    for (const id of ALL_CONTROL_IDS) {
+      const s = byId.get(id);
+      if (s === "implemented" || s === "assessed") implemented++;
+      else if (s === "inherited") inherited++;
+      else if (s === "not_applicable") notApplicable++;
+    }
+    const outstanding = TOTAL_CONTROLS - implemented - inherited - notApplicable;
+    return { implemented, inherited, notApplicable, outstanding };
+  })();
+
   // ── NIST family breakdown (in-memory) ──
   const familyStats = NIST_FAMILIES.map((f) => {
     const familyIds = ALL_CONTROL_IDS.filter((id) => id.startsWith(f.code + "."));
@@ -398,6 +413,8 @@ export default async function DashboardPage() {
               </div>
               <Shield className="h-5 w-5 shrink-0 text-[var(--color-gray-300)] mt-0.5" />
             </div>
+
+            {/* Progress bar */}
             <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-[var(--color-gray-100)]">
               <div
                 className={`h-full rounded-full transition-all ${
@@ -407,6 +424,55 @@ export default async function DashboardPage() {
               />
             </div>
             <p className="mt-1.5 text-xs text-[var(--color-gray-500)]">{implementedPct}% implemented or inherited</p>
+
+            {/* Clickable status bins */}
+            <div className="mt-3 grid grid-cols-2 gap-1.5">
+              {[
+                {
+                  label: "Implemented",
+                  count: statusBins.implemented,
+                  status: "implemented",
+                  cls: "bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100 dark:bg-emerald-950/20 dark:border-emerald-800/40 dark:text-emerald-400",
+                  dot: "bg-emerald-500",
+                },
+                {
+                  label: "Inherited",
+                  count: statusBins.inherited,
+                  status: "inherited",
+                  cls: "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 dark:bg-slate-900/30 dark:border-slate-700/40 dark:text-slate-400",
+                  dot: "bg-slate-400",
+                },
+                {
+                  label: "Not Applicable",
+                  count: statusBins.notApplicable,
+                  status: "not_applicable",
+                  cls: "bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100 dark:bg-gray-800/40 dark:border-gray-700 dark:text-gray-400",
+                  dot: "bg-gray-400",
+                },
+                {
+                  label: "Outstanding",
+                  count: statusBins.outstanding,
+                  status: "outstanding",
+                  cls: statusBins.outstanding > 0
+                    ? "bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100 dark:bg-amber-950/20 dark:border-amber-700/40 dark:text-amber-400"
+                    : "bg-gray-50 border-gray-200 text-gray-500 dark:bg-gray-800/40 dark:border-gray-700 dark:text-gray-500",
+                  dot: statusBins.outstanding > 0 ? "bg-amber-400" : "bg-gray-300",
+                },
+              ].map(({ label, count, status, cls, dot }) => (
+                <Link
+                  key={status}
+                  href={`/dashboard/controls?status=${status}`}
+                  className={`flex items-center justify-between rounded-lg border px-2.5 py-2 text-xs font-medium transition-colors ${cls}`}
+                >
+                  <span className="flex items-center gap-1.5">
+                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${dot}`} />
+                    {label}
+                  </span>
+                  <span className="font-bold tabular-nums">{count}</span>
+                </Link>
+              ))}
+            </div>
+
             <Link
               href="/dashboard/controls"
               className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-[var(--color-blue-accent)] hover:underline"
