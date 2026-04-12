@@ -19,6 +19,7 @@ import {
   organizations,
   sspSections,
 } from "@/db/schema";
+import { getComplianceRegisterHealth, aggregateRegisterHealth } from "@/lib/registers/compliance-health";
 import { eq, and, desc, lt } from "drizzle-orm";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { sprsScoringData, SPRS_MAX } from "@/lib/sprs";
@@ -341,28 +342,48 @@ export default async function DashboardPage() {
     .limit(1);
   const boundaryComplete = !!orgRow?.boundaryScopingCompletedAt;
 
+  // ── Compliance Register Health ──
+  const registerHealth = await getComplianceRegisterHealth(orgId);
+  const registerCounts = aggregateRegisterHealth(registerHealth);
+  const registersAllCurrent = registerCounts.overdue === 0 && registerCounts.dueSoon === 0 && registerCounts.neverUsed === 0;
+  const trainingRegister = registerHealth.find((r) => r.registerKey === "training_completion");
+  const trainingCurrent = trainingRegister?.status === "current";
+  const overdueRegisters = registerHealth.filter((r) => r.status === "overdue");
+
   // ── C3PAO Readiness Checklist score (internal indicator only, not SPRS) ──
+  // 100-point scale:
+  //   Boundary complete:              15 pts
+  //   SSP has ≥3 authored sections:   15 pts
+  //   ≥80% controls implemented:      25 pts
+  //   All open POA&Ms have milestones:10 pts
+  //   No evidence expiring 30d:       10 pts
+  //   Required registers all current: 15 pts  (NEW)
+  //   Training register current:      10 pts  (NEW)
   const sspHasContent = authoredSections >= 3;
   const controlsAt80pct = implementedPct >= 80;
   const poamHasMilestones = newModelOpenCount === 0 || poamMissingMilestones === 0;
   const noExpiredEvidence = totalExpiring === 0;
 
   const readinessScore =
-    (boundaryComplete ? 20 : 0) +
-    (sspHasContent ? 20 : 0) +
-    (controlsAt80pct ? 30 : 0) +
-    (poamHasMilestones ? 15 : 0) +
-    (noExpiredEvidence ? 15 : 0);
+    (boundaryComplete ? 15 : 0) +
+    (sspHasContent ? 15 : 0) +
+    (controlsAt80pct ? 25 : 0) +
+    (poamHasMilestones ? 10 : 0) +
+    (noExpiredEvidence ? 10 : 0) +
+    (registersAllCurrent ? 15 : registerCounts.overdue === 0 ? 8 : 0) +
+    (trainingCurrent ? 10 : 0);
 
   const readinessColor =
     readinessScore >= 70 ? "text-emerald-600" : readinessScore >= 40 ? "text-amber-600" : "text-red-600";
 
   const readinessBreakdown = [
-    { label: "Boundary scoping complete", points: 20, earned: boundaryComplete, href: "/dashboard/boundary" },
-    { label: "SSP has ≥3 authored sections", points: 20, earned: sspHasContent, href: "/dashboard/ssp" },
-    { label: "≥80% controls implemented", points: 30, earned: controlsAt80pct, href: "/dashboard/controls" },
-    { label: "All open POA&Ms have milestones", points: 15, earned: poamHasMilestones, href: "/dashboard/poam" },
-    { label: "No evidence expiring within 30 days", points: 15, earned: noExpiredEvidence, href: "/dashboard/evidence" },
+    { label: "Boundary scoping complete", points: 15, earned: boundaryComplete, href: "/dashboard/boundary" },
+    { label: "SSP has ≥3 authored sections", points: 15, earned: sspHasContent, href: "/dashboard/ssp" },
+    { label: "≥80% controls implemented", points: 25, earned: controlsAt80pct, href: "/dashboard/controls" },
+    { label: "All open POA&Ms have milestones", points: 10, earned: poamHasMilestones, href: "/dashboard/poam" },
+    { label: "No evidence expiring within 30 days", points: 10, earned: noExpiredEvidence, href: "/dashboard/evidence" },
+    { label: "Required registers all current", points: 15, earned: registersAllCurrent, href: "/dashboard/registers" },
+    { label: "Training register current", points: 10, earned: trainingCurrent, href: "/dashboard/evidence-engine/registers/training_completion" },
   ];
 
   // ── Next actions ──
@@ -375,6 +396,21 @@ export default async function DashboardPage() {
     nextActions.push({ label: `Add milestones to ${poamMissingMilestones} open POA&M item${poamMissingMilestones !== 1 ? "s" : ""}`, href: "/dashboard/poam", urgent: true });
   if (totalExpiring > 0)
     nextActions.push({ label: `Review ${totalExpiring} expiring evidence item${totalExpiring !== 1 ? "s" : ""}`, href: "/dashboard/evidence", urgent: true });
+  // Register alerts — surface the most actionable overdue registers first
+  if (overdueRegisters.length > 0) {
+    const first = overdueRegisters[0];
+    nextActions.push({
+      label: overdueRegisters.length === 1
+        ? `${first.displayName} is overdue — add an entry now`
+        : `${overdueRegisters.length} compliance registers overdue`,
+      href: overdueRegisters.length === 1 ? first.href : "/dashboard/registers",
+      urgent: true,
+    });
+  } else if (registerCounts.dueSoon > 0) {
+    nextActions.push({ label: `${registerCounts.dueSoon} register${registerCounts.dueSoon !== 1 ? "s" : ""} due soon`, href: "/dashboard/registers" });
+  } else if (registerCounts.neverUsed > 3) {
+    nextActions.push({ label: `Start your compliance registers — ${registerCounts.neverUsed} never used`, href: "/dashboard/registers" });
+  }
   if (!sspHasContent)
     nextActions.push({ label: `Author SSP sections (${authoredSections}/3 minimum)`, href: "/dashboard/ssp" });
 
@@ -653,31 +689,35 @@ export default async function DashboardPage() {
               {totalExpiring}
             </p>
           </div>
-          <div className={cardClass}>
-            <p className="text-sm font-medium text-[var(--color-gray-600)]">System Boundary</p>
-            <div className="mt-1 flex items-center gap-2">
-              <span
-                className={`inline-block h-2.5 w-2.5 rounded-full ${
-                  boundaryComplete ? "bg-emerald-400" : "bg-amber-400"
-                }`}
-              />
-              <p
-                className={`text-sm font-semibold ${
-                  boundaryComplete ? "text-emerald-700" : "text-amber-700"
-                }`}
-              >
-                {boundaryComplete ? "Complete" : "Incomplete"}
-              </p>
+          <Link href="/dashboard/registers" className={`${cardClass} hover:bg-gray-50 transition-colors group`}>
+            <div className="flex items-start justify-between">
+              <p className="text-sm font-medium text-[var(--color-gray-600)]">Compliance Registers</p>
+              <ChevronRight className="h-3.5 w-3.5 text-gray-300 group-hover:text-blue-500 transition-colors mt-0.5" />
             </div>
-            {!boundaryComplete && (
-              <Link
-                href="/dashboard/boundary"
-                className="mt-1 block text-xs text-[var(--color-blue-accent)] hover:underline"
-              >
-                Complete now →
-              </Link>
-            )}
-          </div>
+            <p
+              className={`mt-1 text-2xl font-semibold ${
+                registerCounts.overdue > 0 ? "text-red-600"
+                : registerCounts.dueSoon > 0 ? "text-amber-600"
+                : "text-[var(--color-navy-primary)]"
+              }`}
+            >
+              {registerCounts.current}
+              <span className="text-lg font-normal text-[var(--color-gray-400)]"> / {registerCounts.total}</span>
+            </p>
+            <p className={`mt-0.5 text-xs ${
+              registerCounts.overdue > 0 ? "text-red-600 font-medium"
+              : registerCounts.dueSoon > 0 ? "text-amber-600"
+              : "text-[var(--color-gray-500)]"
+            }`}>
+              {registerCounts.overdue > 0
+                ? `${registerCounts.overdue} overdue`
+                : registerCounts.dueSoon > 0
+                ? `${registerCounts.dueSoon} due soon`
+                : registerCounts.neverUsed > 0
+                ? `${registerCounts.neverUsed} never used`
+                : "All current"}
+            </p>
+          </Link>
         </div>
 
         {/* ════════════════════════════════════════════════════════

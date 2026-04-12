@@ -990,6 +990,12 @@ export const governanceRegisters = pgTable("governance_registers", {
   defaultCadenceDays: integer("default_cadence_days"),
   /** Evidence Engine: org override for cadence days; takes precedence over defaultCadenceDays. */
   cadenceOverrideDays: integer("cadence_override_days"),
+  /**
+   * NIST SP 800-171 control IDs that this register satisfies.
+   * Populated from the control intelligence matrix; used to surface register
+   * requirements on the control detail page and in the readiness score.
+   */
+  controlIds: jsonb("control_ids").$type<string[]>().default([]),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });

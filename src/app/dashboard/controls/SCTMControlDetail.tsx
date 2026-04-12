@@ -20,6 +20,7 @@ import {
   AlertTriangle,
   ExternalLink,
   Save,
+  Eye,
 } from "lucide-react";
 import { CollapsibleBlock } from "./CollapsibleBlock";
 import Link from "next/link";
@@ -34,6 +35,14 @@ import { getHybridCriteriaLabels } from "@/lib/compliance/satisfaction-sources";
 import { getEnclaveEntry } from "@/lib/compliance/os-evidence-manifest";
 import { getPlatformHelpForControl } from "@/lib/compliance/platform-helps";
 import type { ArtifactSpec } from "@/lib/artifact-guide";
+import {
+  getControlIntelligence,
+  dispositionLabel,
+  dispositionColorClass,
+  LANE_LABELS,
+  LANE_COLORS,
+  cadenceLabel,
+} from "@/data/cmmc/control-intelligence";
 
 // ─── Text helpers ──────────────────────────────────────────────────────────────
 
@@ -807,6 +816,126 @@ export function SCTMControlDetail({
           </CollapsibleBlock>
         </div>
       )}
+
+      {/* ── C3PAO Intelligence Panel ── */}
+      {(() => {
+        const intel = getControlIntelligence(record.controlId);
+        if (!intel) return null;
+        return (
+          <div className="mb-4">
+            <CollapsibleBlock
+              label="C3PAO Intelligence"
+              defaultOpen={false}
+              icon={Eye}
+              className="rounded-xl border-2 border-indigo-100 overflow-hidden"
+              contentClassName="bg-indigo-50/20"
+            >
+              <p className="text-xs text-indigo-700/70 mb-4 leading-relaxed">
+                What a C3PAO examiner will specifically look for, ask, and test for this control.
+                Read this before your assessment.
+              </p>
+
+              {/* Disposition + Evidence Lanes row */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">
+                    Architecture Disposition
+                  </p>
+                  <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${dispositionColorClass(intel.disposition)}`}>
+                    {dispositionLabel(intel.disposition)}
+                  </span>
+                  {intel.naRationale && (
+                    <p className="mt-1.5 text-xs text-[var(--color-gray-600)] leading-relaxed italic">
+                      {intel.naRationale}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">
+                    Evidence Lanes
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {intel.evidenceLanes.map((lane) => (
+                      <span key={lane} className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium ${LANE_COLORS[lane]}`}>
+                        {LANE_LABELS[lane]}
+                      </span>
+                    ))}
+                    {intel.evidenceLanes.length === 0 && (
+                      <span className="text-xs text-[var(--color-gray-400)] italic">No evidence lanes</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Cadence + Register row */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">
+                    Evidence Cadence
+                  </p>
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="h-3.5 w-3.5 text-[var(--color-gray-400)]" />
+                    <span className="text-xs font-medium text-[var(--color-gray-800)]">
+                      {cadenceLabel(intel.cadenceType)}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-[11px] text-[var(--color-gray-500)]">
+                    {intel.cadenceType === "continuous" && "Re-verified on every OS Collector run"}
+                    {intel.cadenceType === "monthly" && "Evidence must be refreshed monthly"}
+                    {intel.cadenceType === "quarterly" && "Evidence must be refreshed quarterly"}
+                    {intel.cadenceType === "annual" && "Evidence must be refreshed annually"}
+                    {intel.cadenceType === "per_event" && "Evidence required on each change event"}
+                    {intel.cadenceType === "one_time" && "One-time documentation required"}
+                    {intel.cadenceType === "ongoing" && "Continuously maintained"}
+                  </p>
+                </div>
+                {intel.registerRequired && intel.registerSchemaId && (
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">
+                      Required Register
+                    </p>
+                    <Link
+                      href={`/dashboard/evidence-engine/registers/${intel.registerSchemaId}`}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-100 transition-colors"
+                    >
+                      <ClipboardList className="h-3.5 w-3.5" />
+                      {intel.registerKey}
+                      <ExternalLink className="h-3 w-3 opacity-60" />
+                    </Link>
+                    <p className="mt-1 text-[11px] text-[var(--color-gray-500)]">
+                      A C3PAO examiner will request this register.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* C3PAO Examiner Note */}
+              {intel.c3paoExaminerNote && (
+                <div className="rounded-lg border border-indigo-200 bg-white/70 px-4 py-3 mb-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-indigo-600 mb-1.5">
+                    What the examiner will do
+                  </p>
+                  <p className="text-[13px] leading-relaxed text-[var(--color-gray-800)]">
+                    {intel.c3paoExaminerNote}
+                  </p>
+                </div>
+              )}
+
+              {/* ConMon Trigger */}
+              {intel.conmonTrigger && (
+                <div className="rounded-lg border border-amber-200 bg-amber-50/60 px-4 py-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-700 mb-1.5">
+                    Re-adjudication trigger
+                  </p>
+                  <p className="text-[13px] leading-relaxed text-[var(--color-gray-800)]">
+                    {intel.conmonTrigger}
+                  </p>
+                </div>
+              )}
+            </CollapsibleBlock>
+          </div>
+        );
+      })()}
 
       {/* ── Divider between reference and action sections ── */}
       <div className="my-5 border-t border-[var(--color-border)]/60" />

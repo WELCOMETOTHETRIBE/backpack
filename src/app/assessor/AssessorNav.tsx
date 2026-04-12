@@ -10,6 +10,7 @@ const NAV_LINKS = [
   { label: "Evidence", href: "/assessor/evidence" },
   { label: "Governance", href: "/assessor/governance" },
   { label: "SSP", href: "/assessor/ssp" },
+  { label: "Registers", href: "/assessor/registers" },
 ];
 
 export function AssessorNav() {

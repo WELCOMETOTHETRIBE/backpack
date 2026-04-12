@@ -138,6 +138,15 @@
             "signoff"
           ]
         }
+      ],
+      "control_ids": [
+        "3.1.1",
+        "3.1.5",
+        "3.1.15",
+        "3.1.20",
+        "3.5.1",
+        "3.5.5",
+        "3.10.6"
       ]
     },
     {
@@ -185,6 +194,9 @@
             "ticket_link"
           ]
         }
+      ],
+      "control_ids": [
+        "3.1.2"
       ]
     },
     {
@@ -239,6 +251,9 @@
             "mitigation_plan"
           ]
         }
+      ],
+      "control_ids": [
+        "3.1.4"
       ]
     },
     {
@@ -372,6 +387,9 @@
             "system_setting_screenshot"
           ]
         }
+      ],
+      "control_ids": [
+        "3.5.3"
       ]
     },
     {
@@ -450,6 +468,11 @@
             "lms_record"
           ]
         }
+      ],
+      "control_ids": [
+        "3.2.1",
+        "3.2.2",
+        "3.2.3"
       ]
     },
     {
@@ -491,6 +514,10 @@
             "provider_receipt_or_letter"
           ]
         }
+      ],
+      "control_ids": [
+        "3.7.6",
+        "3.9.1"
       ]
     },
     {
@@ -563,6 +590,9 @@
             "ticket_link"
           ]
         }
+      ],
+      "control_ids": [
+        "3.9.2"
       ]
     },
     {
@@ -641,6 +671,14 @@
             "ticket_link"
           ]
         }
+      ],
+      "control_ids": [
+        "3.1.7",
+        "3.1.12",
+        "3.3.2",
+        "3.3.3",
+        "3.14.3",
+        "3.14.7"
       ]
     },
     {
@@ -722,6 +760,9 @@
             "time_drift_report"
           ]
         }
+      ],
+      "control_ids": [
+        "3.13.10"
       ]
     },
     {
@@ -822,6 +863,14 @@
             "approval_record"
           ]
         }
+      ],
+      "control_ids": [
+        "3.12.3",
+        "3.14.6",
+        "3.10.1",
+        "3.10.2",
+        "3.10.4",
+        "3.10.5"
       ]
     },
     {
@@ -914,6 +963,11 @@
             "attendance_record"
           ]
         }
+      ],
+      "control_ids": [
+        "3.6.1",
+        "3.6.2",
+        "3.6.3"
       ]
     },
     {
@@ -1001,6 +1055,11 @@
             "approval_record"
           ]
         }
+      ],
+      "control_ids": [
+        "3.7.1",
+        "3.7.2",
+        "3.7.5"
       ]
     },
     {
@@ -1086,6 +1145,9 @@
             "inventory_list"
           ]
         }
+      ],
+      "control_ids": [
+        "3.8.5"
       ]
     },
     {
@@ -1177,6 +1239,10 @@
             "vendor_rma"
           ]
         }
+      ],
+      "control_ids": [
+        "3.7.3",
+        "3.8.3"
       ]
     },
     {
@@ -1231,6 +1297,9 @@
             "approval_record"
           ]
         }
+      ],
+      "control_ids": [
+        "3.10.3"
       ]
     },
     {
@@ -1294,7 +1363,8 @@
             "incident_link"
           ]
         }
-      ]
+      ],
+      "control_ids": []
     },
     {
       "register_id": "baseline_config",
@@ -1371,6 +1441,11 @@
             "approval_record"
           ]
         }
+      ],
+      "control_ids": [
+        "3.4.1",
+        "3.4.6",
+        "3.7.4"
       ]
     },
     {
@@ -1475,6 +1550,10 @@
             "incident_link"
           ]
         }
+      ],
+      "control_ids": [
+        "3.4.2",
+        "3.4.3"
       ]
     },
     {
@@ -1570,6 +1649,9 @@
             "signoff"
           ]
         }
+      ],
+      "control_ids": [
+        "3.11.1"
       ]
     },
     {
@@ -1666,6 +1748,9 @@
             "updated_report"
           ]
         }
+      ],
+      "control_ids": [
+        "3.12.1"
       ]
     },
     {
@@ -1756,6 +1841,9 @@
             "retest_report"
           ]
         }
+      ],
+      "control_ids": [
+        "3.12.2"
       ]
     },
     {
@@ -1860,6 +1948,12 @@
             "approval_record"
           ]
         }
+      ],
+      "control_ids": [
+        "3.4.4",
+        "3.11.2",
+        "3.11.3",
+        "3.14.1"
       ]
     },
     {
@@ -1944,6 +2038,9 @@
             "approval_record"
           ]
         }
+      ],
+      "control_ids": [
+        "3.12.4"
       ]
     },
     {
@@ -1971,11 +2068,17 @@
             "run_manifest_summary"
           ],
           "enums": {
-            "overall_status": ["pass", "fail", "warn", "error"]
+            "overall_status": [
+              "pass",
+              "fail",
+              "warn",
+              "error"
+            ]
           },
           "recommended_attachments": []
         }
-      ]
+      ],
+      "control_ids": []
     }
   ]
 }

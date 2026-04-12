@@ -16,6 +16,7 @@ import {
   Server,
   Cpu,
   ClipboardList,
+  BookCheck,
 } from "lucide-react";
 
 type NavItem = {
@@ -39,6 +40,7 @@ function buildNav(boundaryComplete?: boolean | null): NavGroup[] {
         { name: "SCTM", href: "/dashboard/controls", icon: Shield },
         { name: "Governance", href: "/dashboard/governance", icon: BookMarked },
         { name: "Evidence Registers", href: "/dashboard/evidence-engine", icon: ClipboardList },
+        { name: "Compliance Registers", href: "/dashboard/registers", icon: BookCheck },
         { name: "POA&M", href: "/dashboard/poam", icon: FileText },
       ],
     },
