@@ -379,9 +379,11 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
           </div>
           <div className="px-2 py-1 border-b border-white/30 flex items-baseline justify-between gap-1">
             <h2 className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-gray-500)]">Controls</h2>
-            <span className="text-[10px] text-[var(--color-gray-500)] tabular-nums">{family ? filteredRecords.length : "—"}</span>
+            <span className="text-[10px] text-[var(--color-gray-500)] tabular-nums">
+              {family || statusFilter || type === "partial" ? filteredRecords.length : "—"}
+            </span>
           </div>
-          {!family && type !== "partial" ? (
+          {!family && type !== "partial" && !statusFilter ? (
             <div className="flex-1 flex items-center justify-center px-3 py-6 text-center">
               <p className="text-xs text-[var(--color-gray-500)] leading-snug">Select a control family above to view controls.</p>
             </div>
