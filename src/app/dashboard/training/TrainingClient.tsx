@@ -1,22 +1,98 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { PlusCircle, Trash2, ExternalLink, AlertTriangle } from "lucide-react";
+import {
+  PlusCircle,
+  Trash2,
+  ExternalLink,
+  AlertTriangle,
+  Users,
+  ShieldAlert,
+  Eye,
+  CheckCircle2,
+  XCircle,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 
-const TRAINING_TYPES = [
-  { value: "security_awareness", label: "Security Awareness (3.2.1)" },
-  { value: "role_based", label: "Role-Based Security (3.2.2)" },
-  { value: "insider_threat", label: "Insider Threat (3.2.3)" },
-  { value: "other", label: "Other" },
+// ── Constants ────────────────────────────────────────────────────────────────
+
+const TRAINING_SECTIONS = [
+  {
+    type: "security_awareness",
+    control: "3.2.1",
+    title: "Security Awareness Training",
+    audience: "All Users",
+    audienceNote: "Every person with access to CUI systems must complete this annually.",
+    sprsValue: 3,
+    icon: Users,
+    color: {
+      bg: "bg-blue-50 dark:bg-blue-950/20",
+      border: "border-blue-200 dark:border-blue-800/40",
+      header: "bg-blue-600",
+      badge: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+      pill: "bg-blue-100 text-blue-700",
+      button: "bg-blue-600 hover:bg-blue-700",
+    },
+  },
+  {
+    type: "role_based",
+    control: "3.2.2",
+    title: "Role-Based / Privileged User Training",
+    audience: "Privileged Users",
+    audienceNote:
+      "Required for system administrators, IT staff, security personnel, and anyone with elevated access.",
+    sprsValue: 3,
+    icon: ShieldAlert,
+    color: {
+      bg: "bg-violet-50 dark:bg-violet-950/20",
+      border: "border-violet-200 dark:border-violet-800/40",
+      header: "bg-violet-600",
+      badge: "bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-300",
+      pill: "bg-violet-100 text-violet-700",
+      button: "bg-violet-600 hover:bg-violet-700",
+    },
+  },
+  {
+    type: "insider_threat",
+    control: "3.2.3",
+    title: "Insider Threat Awareness",
+    audience: "All Users",
+    audienceNote: "All personnel must complete insider threat awareness training annually.",
+    sprsValue: 5,
+    icon: Eye,
+    color: {
+      bg: "bg-orange-50 dark:bg-orange-950/20",
+      border: "border-orange-200 dark:border-orange-800/40",
+      header: "bg-orange-600",
+      badge: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300",
+      pill: "bg-orange-100 text-orange-700",
+      button: "bg-orange-600 hover:bg-orange-700",
+    },
+  },
+] as const;
+
+const USER_ROLES = [
+  { value: "all_users", label: "All Users" },
+  { value: "system_administrator", label: "System Administrator" },
+  { value: "it_staff", label: "IT Staff" },
+  { value: "security_officer", label: "Security Officer / ISSO" },
+  { value: "developer", label: "Developer / Engineer" },
+  { value: "privileged_user", label: "Privileged User (other)" },
+  { value: "manager", label: "Manager / Supervisor" },
+  { value: "contractor", label: "Contractor" },
 ];
 
 const DELIVERY_METHODS = [
+  { value: "mactech_training", label: "MacTech Training", note: "MacTech Solutions external training platform" },
   { value: "online", label: "Online / LMS" },
   { value: "cbt", label: "Computer-based training" },
   { value: "classroom", label: "Instructor-led classroom" },
   { value: "self_study", label: "Self-study / reading" },
 ];
+
+// ── Types ────────────────────────────────────────────────────────────────────
 
 interface TrainingRecord {
   id: string;
@@ -32,59 +108,94 @@ interface TrainingRecord {
   createdAt: string;
 }
 
-const EMPTY_FORM = {
+const makeEmptyForm = (type: string) => ({
   personnelName: "",
   personnelEmail: "",
-  trainingType: "security_awareness",
+  userRole: "all_users",
+  trainingType: type,
   courseTitle: "",
-  deliveryMethod: "online",
+  deliveryMethod: "mactech_training",
   completedAt: new Date().toISOString().slice(0, 10),
   expiresAt: new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString().slice(0, 10),
   evidenceUrl: "",
   notes: "",
-};
+});
 
-function TypeBadge({ type }: { type: string }) {
-  const map: Record<string, string> = {
-    security_awareness: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
-    role_based: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
-    insider_threat: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300",
-    other: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
-  };
-  const label = TRAINING_TYPES.find((t) => t.value === type)?.label.split(" (")[0] ?? type;
-  return (
-    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${map[type] ?? map.other}`}>
-      {label}
-    </span>
-  );
-}
+// ── Sub-components ───────────────────────────────────────────────────────────
 
 function ExpiryBadge({ expiresAt }: { expiresAt: string | null }) {
   if (!expiresAt) return null;
   const exp = new Date(expiresAt);
-  const now = new Date();
-  const daysLeft = Math.ceil((exp.getTime() - now.getTime()) / (1000 * 3600 * 24));
+  const daysLeft = Math.ceil((exp.getTime() - Date.now()) / (1000 * 3600 * 24));
   if (daysLeft < 0)
-    return <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-900/20 dark:text-red-400">Expired</span>;
+    return (
+      <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-900/20 dark:text-red-400">
+        Expired
+      </span>
+    );
   if (daysLeft <= 30)
-    return <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">Expires in {daysLeft}d</span>;
-  return <span className="text-xs text-gray-500 dark:text-gray-400">Expires {exp.toLocaleDateString()}</span>;
+    return (
+      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+        Expires in {daysLeft}d
+      </span>
+    );
+  return (
+    <span className="text-xs text-gray-500 dark:text-gray-400">
+      {exp.toLocaleDateString()}
+    </span>
+  );
 }
 
-export default function TrainingClient({ initialRecords }: { initialRecords: TrainingRecord[] }) {
-  const router = useRouter();
-  const [records, setRecords] = useState<TrainingRecord[]>(initialRecords);
+function DeliveryBadge({ method }: { method: string | null }) {
+  if (!method) return null;
+  const m = DELIVERY_METHODS.find((d) => d.value === method);
+  if (!m) return <span className="text-xs text-gray-500">{method}</span>;
+  return (
+    <span className={`text-xs ${method === "mactech_training" ? "font-semibold text-[#00A882]" : "text-gray-500"}`}>
+      {m.label}
+    </span>
+  );
+}
+
+function RoleBadge({ role }: { role: string | null | undefined }) {
+  if (!role) return null;
+  const r = USER_ROLES.find((u) => u.value === role);
+  return <span className="text-xs text-gray-500 dark:text-gray-400">{r?.label ?? role}</span>;
+}
+
+// ── Training Section ─────────────────────────────────────────────────────────
+
+interface SectionProps {
+  section: (typeof TRAINING_SECTIONS)[number];
+  records: TrainingRecord[];
+  onAdd: (record: TrainingRecord) => void;
+  onDelete: (id: string) => void;
+}
+
+function TrainingSection({ section, records, onAdd, onDelete }: SectionProps) {
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState(EMPTY_FORM);
+  const [showAll, setShowAll] = useState(false);
+  const [form, setForm] = useState(() => makeEmptyForm(section.type));
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
-  const expiredCount = records.filter((r) => r.expiresAt && new Date(r.expiresAt) < new Date()).length;
-  const expiringSoonCount = records.filter((r) => {
+  const sectionRecords = records.filter((r) => r.trainingType === section.type);
+  const expiredCount = sectionRecords.filter(
+    (r) => r.expiresAt && new Date(r.expiresAt) < new Date()
+  ).length;
+  const expiringSoonCount = sectionRecords.filter((r) => {
     if (!r.expiresAt) return false;
     const days = Math.ceil((new Date(r.expiresAt).getTime() - Date.now()) / (1000 * 3600 * 24));
     return days >= 0 && days <= 30;
   }).length;
+  const currentCount = sectionRecords.filter(
+    (r) => !r.expiresAt || new Date(r.expiresAt) >= new Date()
+  ).length;
+
+  const compliant = currentCount > 0 && expiredCount === 0;
+  const PREVIEW_COUNT = 5;
+  const displayedRecords = showAll ? sectionRecords : sectionRecords.slice(0, PREVIEW_COUNT);
 
   const handleSubmit = async () => {
     if (!form.personnelName.trim() || !form.courseTitle.trim() || !form.completedAt) {
@@ -101,8 +212,8 @@ export default function TrainingClient({ initialRecords }: { initialRecords: Tra
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? "Server error"); return; }
-      setRecords((prev) => [{ ...data }, ...prev]);
-      setForm(EMPTY_FORM);
+      onAdd({ ...data });
+      setForm(makeEmptyForm(section.type));
       setShowForm(false);
       router.refresh();
     } catch (e) {
@@ -116,102 +227,204 @@ export default function TrainingClient({ initialRecords }: { initialRecords: Tra
     if (!confirm("Delete this training record?")) return;
     const res = await fetch(`/api/training-records?id=${id}`, { method: "DELETE" });
     if (res.ok) {
-      setRecords((prev) => prev.filter((r) => r.id !== id));
+      onDelete(id);
       router.refresh();
     }
   };
 
+  const Icon = section.icon;
+  const c = section.color;
   const inputClass =
     "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100";
   const labelClass = "block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1";
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Training Records</h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Track security awareness and role-based training completions for CMMC 3.2.x compliance.
-            {" "}{records.length} record{records.length !== 1 ? "s" : ""} on file.
-          </p>
+    <section className={`rounded-xl border ${c.border} ${c.bg} overflow-hidden`}>
+      {/* Section header */}
+      <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+        <div className="flex items-center gap-3">
+          <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${c.header}`}>
+            <Icon className="h-4 w-4 text-white" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                {section.title}
+              </h2>
+              <span className="font-mono text-xs font-medium text-gray-400">NIST {section.control}</span>
+              <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${c.badge}`}>
+                {section.audience}
+              </span>
+              <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                -{section.sprsValue} pts if unmet
+              </span>
+            </div>
+            <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{section.audienceNote}</p>
+          </div>
         </div>
-        <button
-          onClick={() => { setShowForm((s) => !s); setError(null); }}
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
-        >
-          <PlusCircle className="h-3.5 w-3.5" aria-hidden />
-          Add record
-        </button>
+        <div className="flex items-center gap-2">
+          {compliant ? (
+            <span className="flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              {currentCount} record{currentCount !== 1 ? "s" : ""} current
+            </span>
+          ) : sectionRecords.length === 0 ? (
+            <span className="flex items-center gap-1 rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-700 dark:bg-red-900/30 dark:text-red-400">
+              <XCircle className="h-3.5 w-3.5" />
+              No records
+            </span>
+          ) : (
+            <span className="flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+              <AlertTriangle className="h-3.5 w-3.5" />
+              {expiredCount > 0 ? `${expiredCount} expired` : `${expiringSoonCount} expiring soon`}
+            </span>
+          )}
+          <button
+            onClick={() => { setShowForm((s) => !s); setError(null); }}
+            className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-white ${c.button}`}
+          >
+            <PlusCircle className="h-3.5 w-3.5" />
+            Add record
+          </button>
+        </div>
       </div>
 
-      {/* Alert banners */}
+      {/* Expiry alert */}
       {(expiredCount > 0 || expiringSoonCount > 0) && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-700/40 dark:bg-amber-950/20">
-          <div className="flex items-center gap-2 text-sm font-medium text-amber-900 dark:text-amber-300">
-            <AlertTriangle className="h-4 w-4 shrink-0" />
-            {expiredCount > 0 && `${expiredCount} expired record${expiredCount > 1 ? "s" : ""}`}
+        <div className="mx-5 mb-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5 dark:border-amber-700/40 dark:bg-amber-950/20">
+          <div className="flex items-center gap-2 text-xs font-medium text-amber-900 dark:text-amber-300">
+            <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+            {expiredCount > 0 && `${expiredCount} expired record${expiredCount !== 1 ? "s" : ""}`}
             {expiredCount > 0 && expiringSoonCount > 0 && " · "}
             {expiringSoonCount > 0 && `${expiringSoonCount} expiring within 30 days`}
+            {" — renew and add updated records to maintain compliance."}
           </div>
-          <p className="mt-0.5 text-xs text-amber-700 dark:text-amber-400">
-            Renew training and add updated records to maintain continuous compliance.
-          </p>
         </div>
       )}
 
       {/* Add record form */}
       {showForm && (
-        <div className="rounded-xl border border-blue-200 bg-blue-50 p-5 dark:border-blue-800/30 dark:bg-blue-950/20">
-          <h2 className="mb-4 text-sm font-semibold text-gray-900 dark:text-gray-100">New Training Record</h2>
-          <div className="grid gap-4 sm:grid-cols-2">
+        <div className="mx-5 mb-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900">
+          <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+            New {section.title} Record
+          </h3>
+          <div className="grid gap-3 sm:grid-cols-2">
             <div>
               <label className={labelClass}>Personnel name *</label>
-              <input type="text" value={form.personnelName} onChange={(e) => setForm({ ...form, personnelName: e.target.value })} placeholder="Jane Smith" className={inputClass} />
+              <input
+                type="text"
+                value={form.personnelName}
+                onChange={(e) => setForm({ ...form, personnelName: e.target.value })}
+                placeholder="Jane Smith"
+                className={inputClass}
+              />
             </div>
             <div>
               <label className={labelClass}>Email (optional)</label>
-              <input type="email" value={form.personnelEmail} onChange={(e) => setForm({ ...form, personnelEmail: e.target.value })} placeholder="jane@example.com" className={inputClass} />
+              <input
+                type="email"
+                value={form.personnelEmail}
+                onChange={(e) => setForm({ ...form, personnelEmail: e.target.value })}
+                placeholder="jane@example.com"
+                className={inputClass}
+              />
             </div>
             <div>
-              <label className={labelClass}>Training type *</label>
-              <select value={form.trainingType} onChange={(e) => setForm({ ...form, trainingType: e.target.value })} className={inputClass}>
-                {TRAINING_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+              <label className={labelClass}>User role</label>
+              <select
+                value={form.userRole}
+                onChange={(e) => setForm({ ...form, userRole: e.target.value })}
+                className={inputClass}
+              >
+                {USER_ROLES.map((r) => (
+                  <option key={r.value} value={r.value}>{r.label}</option>
+                ))}
               </select>
             </div>
             <div>
               <label className={labelClass}>Delivery method</label>
-              <select value={form.deliveryMethod} onChange={(e) => setForm({ ...form, deliveryMethod: e.target.value })} className={inputClass}>
-                {DELIVERY_METHODS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
+              <select
+                value={form.deliveryMethod}
+                onChange={(e) => setForm({ ...form, deliveryMethod: e.target.value })}
+                className={inputClass}
+              >
+                {DELIVERY_METHODS.map((m) => (
+                  <option key={m.value} value={m.value}>{m.label}</option>
+                ))}
               </select>
+              {form.deliveryMethod === "mactech_training" && (
+                <p className="mt-1 text-xs text-[#00A882]">
+                  MacTech Solutions external training platform
+                </p>
+              )}
             </div>
             <div className="sm:col-span-2">
               <label className={labelClass}>Course title *</label>
-              <input type="text" value={form.courseTitle} onChange={(e) => setForm({ ...form, courseTitle: e.target.value })} placeholder="e.g. Annual CUI Security Awareness Training 2026" className={inputClass} />
+              <input
+                type="text"
+                value={form.courseTitle}
+                onChange={(e) => setForm({ ...form, courseTitle: e.target.value })}
+                placeholder={
+                  section.type === "security_awareness"
+                    ? "e.g. Annual CUI Security Awareness Training 2026"
+                    : section.type === "role_based"
+                    ? "e.g. Privileged User Security Administration Training 2026"
+                    : "e.g. Insider Threat Awareness Training 2026"
+                }
+                className={inputClass}
+              />
             </div>
             <div>
               <label className={labelClass}>Completion date *</label>
-              <input type="date" value={form.completedAt} onChange={(e) => setForm({ ...form, completedAt: e.target.value })} className={inputClass} />
+              <input
+                type="date"
+                value={form.completedAt}
+                onChange={(e) => setForm({ ...form, completedAt: e.target.value })}
+                className={inputClass}
+              />
             </div>
             <div>
-              <label className={labelClass}>Expiry date (optional)</label>
-              <input type="date" value={form.expiresAt} onChange={(e) => setForm({ ...form, expiresAt: e.target.value })} className={inputClass} />
+              <label className={labelClass}>Expiry date</label>
+              <input
+                type="date"
+                value={form.expiresAt}
+                onChange={(e) => setForm({ ...form, expiresAt: e.target.value })}
+                className={inputClass}
+              />
             </div>
             <div className="sm:col-span-2">
               <label className={labelClass}>Evidence URL (completion certificate, LMS screenshot)</label>
-              <input type="url" value={form.evidenceUrl} onChange={(e) => setForm({ ...form, evidenceUrl: e.target.value })} placeholder="https://lms.example.com/cert/..." className={inputClass} />
+              <input
+                type="url"
+                value={form.evidenceUrl}
+                onChange={(e) => setForm({ ...form, evidenceUrl: e.target.value })}
+                placeholder="https://training.mactech.com/cert/..."
+                className={inputClass}
+              />
             </div>
             <div className="sm:col-span-2">
               <label className={labelClass}>Notes (optional)</label>
-              <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={2} className={inputClass} />
+              <textarea
+                value={form.notes}
+                onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                rows={2}
+                className={inputClass}
+              />
             </div>
           </div>
-          {error && <p className="mt-3 text-xs text-red-600 dark:text-red-400">{error}</p>}
-          <div className="mt-4 flex gap-2">
-            <button onClick={handleSubmit} disabled={submitting} className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-50">
+          {error && <p className="mt-2 text-xs text-red-600 dark:text-red-400">{error}</p>}
+          <div className="mt-3 flex gap-2">
+            <button
+              onClick={handleSubmit}
+              disabled={submitting}
+              className={`rounded-lg px-4 py-2 text-xs font-semibold text-white disabled:opacity-50 ${c.button}`}
+            >
               {submitting ? "Saving…" : "Save record"}
             </button>
-            <button onClick={() => { setShowForm(false); setError(null); }} className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800">
+            <button
+              onClick={() => { setShowForm(false); setError(null); }}
+              className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+            >
               Cancel
             </button>
           </div>
@@ -219,53 +432,66 @@ export default function TrainingClient({ initialRecords }: { initialRecords: Tra
       )}
 
       {/* Records table */}
-      {records.length === 0 ? (
-        <div className="rounded-xl border border-gray-200 bg-white p-10 text-center dark:border-gray-700 dark:bg-gray-900">
-          <p className="text-sm font-medium text-gray-500">No training records yet.</p>
-          <p className="mt-1 text-xs text-gray-400">Add records for each person who has completed CMMC security training.</p>
+      {sectionRecords.length === 0 ? (
+        <div className="mx-5 mb-5 rounded-lg border border-dashed border-gray-300 p-5 text-center dark:border-gray-700">
+          <p className="text-xs font-medium text-gray-500">No {section.title.toLowerCase()} records yet.</p>
+          <p className="mt-0.5 text-xs text-gray-400">
+            Add a record for each person who has completed this training.
+          </p>
         </div>
       ) : (
-        <div className="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 overflow-hidden">
+        <div className="mx-5 mb-5 overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Personnel</th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Course</th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500 hidden sm:table-cell">Type</th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Completed</th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500 hidden md:table-cell">Expiry</th>
-                <th className="px-4 py-3 w-10"></th>
+              <tr className="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50">
+                <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Personnel</th>
+                <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Course</th>
+                <th className="hidden px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-gray-500 sm:table-cell">Role</th>
+                <th className="hidden px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-gray-500 md:table-cell">Delivery</th>
+                <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Completed</th>
+                <th className="hidden px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-gray-500 md:table-cell">Expiry</th>
+                <th className="w-10 px-4 py-2.5" />
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-              {records.map((r) => (
+              {displayedRecords.map((r) => (
                 <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/40">
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-2.5">
                     <p className="font-medium text-gray-900 dark:text-gray-100">{r.personnelName}</p>
-                    {r.personnelEmail && <p className="text-xs text-gray-500">{r.personnelEmail}</p>}
+                    {r.personnelEmail && (
+                      <p className="text-xs text-gray-500">{r.personnelEmail}</p>
+                    )}
                   </td>
-                  <td className="px-4 py-3">
-                    <p className="text-gray-800 dark:text-gray-200">{r.courseTitle}</p>
+                  <td className="px-4 py-2.5">
+                    <p className="text-xs text-gray-800 dark:text-gray-200">{r.courseTitle}</p>
                     {r.evidenceUrl && (
-                      <a href={r.evidenceUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-0.5 text-xs text-blue-600 hover:underline dark:text-blue-400">
+                      <a
+                        href={r.evidenceUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-0.5 text-xs text-blue-600 hover:underline dark:text-blue-400"
+                      >
                         Certificate <ExternalLink className="h-3 w-3" />
                       </a>
                     )}
                   </td>
-                  <td className="px-4 py-3 hidden sm:table-cell">
-                    <TypeBadge type={r.trainingType} />
+                  <td className="hidden px-4 py-2.5 sm:table-cell">
+                    <RoleBadge role={(r as TrainingRecord & { userRole?: string }).userRole} />
                   </td>
-                  <td className="px-4 py-3 text-xs text-gray-600 dark:text-gray-400">
+                  <td className="hidden px-4 py-2.5 md:table-cell">
+                    <DeliveryBadge method={r.deliveryMethod} />
+                  </td>
+                  <td className="px-4 py-2.5 text-xs text-gray-600 dark:text-gray-400">
                     {new Date(r.completedAt).toLocaleDateString()}
                   </td>
-                  <td className="px-4 py-3 hidden md:table-cell">
+                  <td className="hidden px-4 py-2.5 md:table-cell">
                     <ExpiryBadge expiresAt={r.expiresAt} />
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-2.5">
                     <button
                       onClick={() => handleDelete(r.id)}
                       className="text-gray-400 hover:text-red-500 dark:hover:text-red-400"
-                      aria-label="Delete"
+                      aria-label="Delete record"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -274,11 +500,112 @@ export default function TrainingClient({ initialRecords }: { initialRecords: Tra
               ))}
             </tbody>
           </table>
+          {sectionRecords.length > PREVIEW_COUNT && (
+            <div className="border-t border-gray-200 px-4 py-2.5 dark:border-gray-700">
+              <button
+                onClick={() => setShowAll((s) => !s)}
+                className="flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+              >
+                {showAll ? (
+                  <>
+                    <ChevronUp className="h-3.5 w-3.5" />
+                    Show fewer
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="h-3.5 w-3.5" />
+                    Show all {sectionRecords.length} records
+                  </>
+                )}
+              </button>
+            </div>
+          )}
         </div>
       )}
+    </section>
+  );
+}
 
+// ── Main Component ────────────────────────────────────────────────────────────
+
+export default function TrainingClient({ initialRecords }: { initialRecords: TrainingRecord[] }) {
+  const [records, setRecords] = useState<TrainingRecord[]>(initialRecords);
+
+  const handleAdd = (record: TrainingRecord) => {
+    setRecords((prev) => [record, ...prev]);
+  };
+
+  const handleDelete = (id: string) => {
+    setRecords((prev) => prev.filter((r) => r.id !== id));
+  };
+
+  const totalExpired = useMemo(
+    () => records.filter((r) => r.expiresAt && new Date(r.expiresAt) < new Date()).length,
+    [records]
+  );
+
+  const totalControls = TRAINING_SECTIONS.length;
+  const controlsMet = TRAINING_SECTIONS.filter((s) => {
+    const sectionRecords = records.filter((r) => r.trainingType === s.type);
+    return (
+      sectionRecords.length > 0 &&
+      sectionRecords.every((r) => !r.expiresAt || new Date(r.expiresAt) >= new Date())
+    );
+  }).length;
+
+  return (
+    <div className="mx-auto max-w-5xl space-y-6">
+      {/* Page header */}
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Training Records</h1>
+          <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
+            Track completion of the three CMMC awareness and training controls (NIST 3.2.1 – 3.2.3).{" "}
+            {records.length} record{records.length !== 1 ? "s" : ""} on file.
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 ${
+            controlsMet === totalControls
+              ? "border-emerald-200 bg-emerald-50 dark:border-emerald-800/40 dark:bg-emerald-950/20"
+              : "border-amber-200 bg-amber-50 dark:border-amber-700/40 dark:bg-amber-950/20"
+          }`}>
+            {controlsMet === totalControls ? (
+              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+            ) : (
+              <AlertTriangle className="h-4 w-4 text-amber-600" />
+            )}
+            <span className={`text-xs font-semibold ${
+              controlsMet === totalControls ? "text-emerald-700 dark:text-emerald-400" : "text-amber-700 dark:text-amber-400"
+            }`}>
+              {controlsMet} / {totalControls} controls covered
+            </span>
+          </div>
+          {totalExpired > 0 && (
+            <span className="flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 dark:border-red-800/40 dark:bg-red-950/20 dark:text-red-400">
+              <XCircle className="h-4 w-4" />
+              {totalExpired} expired
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Three training sections */}
+      {TRAINING_SECTIONS.map((section) => (
+        <TrainingSection
+          key={section.type}
+          section={section}
+          records={records}
+          onAdd={handleAdd}
+          onDelete={handleDelete}
+        />
+      ))}
+
+      {/* Footer note */}
       <p className="text-xs text-gray-400 dark:text-gray-500">
-        CMMC 3.2.1 requires annual security awareness training for all users. 3.2.2 requires role-based training for privileged users. 3.2.3 requires insider threat awareness. Keep records for at least 3 years.
+        CMMC requires records be retained for a minimum of 3 years.{" "}
+        3.2.1 and 3.2.3 apply to all system users. 3.2.2 applies to privileged users (system admins, IT staff, security personnel).{" "}
+        MacTech Training is available at the MacTech Solutions customer portal.
       </p>
     </div>
   );

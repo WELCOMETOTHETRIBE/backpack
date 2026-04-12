@@ -19,7 +19,7 @@ import { Upload, RefreshCw, Server, CheckCircle2, Circle, AlertCircle } from "lu
 import RecalculateTechnicalButton from "./RecalculateTechnicalButton";
 
 const ALL_HYBRID_IDS = [...new Set([...HYBRID_TECHNICAL_IDS, ...HYBRID_GOVERNANCE_IDS])];
-const ALL_IDS = [...PURE_TECHNICAL_IDS, ...HYBRID_TECHNICAL_IDS, ...PURE_GOVERNANCE_IDS, ...HYBRID_GOVERNANCE_IDS];
+const ALL_IDS = [...new Set([...PURE_TECHNICAL_IDS, ...HYBRID_TECHNICAL_IDS, ...PURE_GOVERNANCE_IDS, ...HYBRID_GOVERNANCE_IDS])];
 
 const DONE = new Set(["implemented", "assessed", "inherited", "not_applicable"]);
 
@@ -106,26 +106,22 @@ export default async function TechnicalDashboardPage() {
     }
   }
 
-  // Bin counts
+  // Bin counts (3 bins: Pure Technical / Hybrid / Pure Governance)
   const pureTechDone = PURE_TECHNICAL_IDS.filter((id) => DONE.has(recordMap.get(id)?.implementationStatus ?? "")).length;
-  const hybTechDone = HYBRID_TECHNICAL_IDS.filter((id) => DONE.has(recordMap.get(id)?.implementationStatus ?? "")).length;
+  const hybridDone = ALL_HYBRID_IDS.filter((id) => DONE.has(recordMap.get(id)?.implementationStatus ?? "")).length;
   const pureGovDone = PURE_GOVERNANCE_IDS.filter((id) => DONE.has(recordMap.get(id)?.implementationStatus ?? "")).length;
-  const hybGovDone = HYBRID_GOVERNANCE_IDS.filter((id) => DONE.has(recordMap.get(id)?.implementationStatus ?? "")).length;
 
-  const totalDone = pureTechDone + hybTechDone + pureGovDone + hybGovDone;
+  const totalDone = pureTechDone + hybridDone + pureGovDone;
   const totalControls = ALL_IDS.length; // 110
 
-  // Hybrid controls — deduplicated across both hybrid bins
-  const hybridIds = ALL_HYBRID_IDS; // 45 unique
+  // Hybrid controls — deduplicated union of both hybrid bins
+  const hybridIds = ALL_HYBRID_IDS;
   const hybridRows = hybridIds.map((id) => {
     const rec = recordMap.get(id);
     const govOk = controlHasApprovedDoc.get(id) === true;
     const techOk = rec?.technicalStatus === "satisfied";
     const overallDone = DONE.has(rec?.implementationStatus ?? "");
-    const isPureHybTech = HYBRID_TECHNICAL_IDS.includes(id) && !HYBRID_GOVERNANCE_IDS.includes(id);
-    const isPureHybGov = HYBRID_GOVERNANCE_IDS.includes(id) && !HYBRID_TECHNICAL_IDS.includes(id);
-    const isBoth = HYBRID_TECHNICAL_IDS.includes(id) && HYBRID_GOVERNANCE_IDS.includes(id);
-    return { id, title: titleMap.get(id) ?? id, govOk, techOk, overallDone, isPureHybTech, isPureHybGov, isBoth };
+    return { id, title: titleMap.get(id) ?? id, govOk, techOk, overallDone };
   });
 
   const hybridComplete = hybridRows.filter((r) => r.overallDone).length;
@@ -147,7 +143,7 @@ export default async function TechnicalDashboardPage() {
           <div>
             <h1 className="text-xl font-bold text-[var(--color-gray-900)]">Infrastructure Compliance</h1>
             <p className="mt-0.5 text-sm text-[var(--color-gray-500)]">
-              {totalDone} / {totalControls} controls complete across all 4 evidence lanes
+              {totalDone} / {totalControls} controls complete across 3 evidence lanes
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -162,13 +158,30 @@ export default async function TechnicalDashboardPage() {
           </div>
         </div>
 
-        {/* ── 4-bin progress ───────────────────────────────────────────────────── */}
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {/* ── 3-bin progress ───────────────────────────────────────────────────── */}
+        <div className="grid gap-3 sm:grid-cols-3">
           {[
-            { label: "Pure Technical", done: pureTechDone, total: PURE_TECHNICAL_IDS.length, desc: "OS/cloud evidence only", color: "bg-blue-500" },
-            { label: "Hybrid Technical", done: hybTechDone, total: HYBRID_TECHNICAL_IDS.length, desc: "Evidence + gov doc", color: "bg-violet-500" },
-            { label: "Hybrid Governance", done: hybGovDone, total: HYBRID_GOVERNANCE_IDS.length, desc: "Gov doc + evidence", color: "bg-violet-500" },
-            { label: "Pure Governance", done: pureGovDone, total: PURE_GOVERNANCE_IDS.length, desc: "Governance docs only", color: "bg-amber-500" },
+            {
+              label: "Pure Technical",
+              done: pureTechDone,
+              total: PURE_TECHNICAL_IDS.length,
+              desc: "Satisfied by OS/cloud evidence alone",
+              color: "bg-blue-500",
+            },
+            {
+              label: "Hybrid (Dual-Lane)",
+              done: hybridDone,
+              total: ALL_HYBRID_IDS.length,
+              desc: "Requires both a governance doc and OS/cloud evidence",
+              color: "bg-violet-500",
+            },
+            {
+              label: "Pure Governance",
+              done: pureGovDone,
+              total: PURE_GOVERNANCE_IDS.length,
+              desc: "Satisfied by governance documentation alone",
+              color: "bg-amber-500",
+            },
           ].map(({ label, done, total, desc, color }) => (
             <div key={label} className={card}>
               <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">{label}</p>
@@ -219,7 +232,7 @@ export default async function TechnicalDashboardPage() {
           {/* Legend */}
           <div className="mb-3 flex flex-wrap gap-3">
             <Link
-              href="/dashboard/governance/upload-manifest"
+              href="/dashboard/technical/upload"
               className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)] border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-800 hover:bg-amber-100 dark:border-amber-700/40 dark:bg-amber-950/20 dark:text-amber-300"
             >
               <Upload className="h-3.5 w-3.5" />
@@ -277,21 +290,12 @@ export default async function TechnicalDashboardPage() {
                       <span className="text-xs text-[var(--color-gray-700)] dark:text-gray-300 line-clamp-2 max-w-xs">
                         {row.title}
                       </span>
-                      {row.isPureHybTech && (
-                        <span className="mt-0.5 block text-xs text-violet-500">Hybrid Technical</span>
-                      )}
-                      {row.isPureHybGov && (
-                        <span className="mt-0.5 block text-xs text-violet-500">Hybrid Governance</span>
-                      )}
-                      {row.isBoth && (
-                        <span className="mt-0.5 block text-xs text-violet-500">Both hybrid bins</span>
-                      )}
                     </td>
                     <td className="py-2.5 pr-3 align-top">
                       <LanePill ok={row.govOk} label={row.govOk ? "Approved" : "Missing"} />
                       {!row.govOk && (
                         <Link
-                          href="/dashboard/governance/upload-manifest"
+                          href="/dashboard/technical/upload"
                           className="mt-1 block text-xs text-amber-600 hover:underline dark:text-amber-400"
                         >
                           Upload docs →

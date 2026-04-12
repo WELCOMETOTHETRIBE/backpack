@@ -21,6 +21,7 @@ import {
 } from "@/db/schema";
 import { eq, and, desc, lt } from "drizzle-orm";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
+import { sprsScoringData, SPRS_MAX } from "@/lib/sprs";
 import {
   Shield,
   FileStack,
@@ -28,12 +29,16 @@ import {
   AlertTriangle,
   Server,
   ChevronRight,
+  TrendingUp,
+  Info,
+  ChevronDown,
 } from "lucide-react";
 
 const TOTAL_CONTROLS = ALL_CONTROL_IDS.length;
 const ADJUDICATED_STATUSES = ["implemented", "assessed", "inherited", "not_applicable"] as const;
 const IMPLEMENTED_STATUSES = ["implemented", "assessed", "inherited"] as const;
 
+// NIST family short names for the breakdown table
 const NIST_FAMILIES = [
   { code: "3.1", name: "Access Control", abbr: "AC" },
   { code: "3.2", name: "Awareness & Training", abbr: "AT" },
@@ -50,6 +55,24 @@ const NIST_FAMILIES = [
   { code: "3.13", name: "System & Comms Protect", abbr: "SC" },
   { code: "3.14", name: "System & Info Integrity", abbr: "SI" },
 ];
+
+// SPRS family short names (match sprsScoringData.family strings)
+const FAMILY_ABBR: Record<string, string> = {
+  "Access Control": "AC",
+  "Awareness and Training": "AT",
+  "Audit and Accountability": "AU",
+  "Configuration Management": "CM",
+  "Identification and Authentication": "IA",
+  "Incident Response": "IR",
+  "Maintenance": "MA",
+  "Media Protection": "MP",
+  "Personnel Security": "PS",
+  "Physical Protection": "PE",
+  "Risk Assessment": "RA",
+  "Security Assessment": "CA",
+  "System and Communications Protection": "SC",
+  "System and Information Integrity": "SI",
+};
 
 function ReadinessRing({ score }: { score: number }) {
   const radius = 44;
@@ -80,6 +103,38 @@ function ReadinessRing({ score }: { score: number }) {
   );
 }
 
+function SprsRing({ score }: { score: number }) {
+  // SPRS range is -203 to 110 (range = 313). Map to 0–100% for the ring.
+  const SPRS_MIN = -203;
+  const SPRS_RANGE = 313;
+  const pct = Math.max(0, Math.min(100, ((score - SPRS_MIN) / SPRS_RANGE) * 100));
+  const radius = 44;
+  const circumference = 2 * Math.PI * radius;
+  const filled = (pct / 100) * circumference;
+  const color = score >= 88 ? "#10b981" : score >= 70 ? "#f59e0b" : "#ef4444";
+  return (
+    <div className="relative flex h-28 w-28 items-center justify-center">
+      <svg width="112" height="112" viewBox="0 0 112 112" className="-rotate-90">
+        <circle cx="56" cy="56" r={radius} fill="none" stroke="#e5e7eb" strokeWidth="9" />
+        <circle
+          cx="56"
+          cy="56"
+          r={radius}
+          fill="none"
+          stroke={color}
+          strokeWidth="9"
+          strokeLinecap="round"
+          strokeDasharray={`${filled} ${circumference}`}
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-2xl font-bold text-[var(--color-gray-900)]">{score}</span>
+        <span className="text-[10px] font-medium text-[var(--color-gray-500)]">/ 110</span>
+      </div>
+    </div>
+  );
+}
+
 export default async function DashboardPage() {
   const session = await auth();
   const user = session?.user as { role?: string; organizationId?: string } | undefined;
@@ -94,13 +149,11 @@ export default async function DashboardPage() {
       technicalStatus: controlRecords.technicalStatus,
       policyDocRequired: controlRecords.policyDocRequired,
       policyStatus: controlRecords.policyStatus,
+      sprs31311Condition: controlRecords.sprs31311Condition,
     })
     .from(controlRecords)
     .where(eq(controlRecords.organizationId, orgId));
 
-  // A control is "fully adjudicated" when its combined status is resolved:
-  // - policy not required: implementationStatus is adjudicated
-  // - policy required: both technical satisfied AND policy satisfied
   function isFullyAdjudicated(r: (typeof records)[0]): boolean {
     if (r.policyDocRequired) {
       return r.technicalStatus === "satisfied" && r.policyStatus === "satisfied";
@@ -109,18 +162,13 @@ export default async function DashboardPage() {
   }
 
   const adjudicatedCount = records.filter(isFullyAdjudicated).length;
-  const implementedCount = records.filter((r) =>
-    IMPLEMENTED_STATUSES.includes(r.implementationStatus as (typeof IMPLEMENTED_STATUSES)[number])
-  ).length;
   const outstandingCount = Math.max(0, TOTAL_CONTROLS - adjudicatedCount);
   const implementedPct = TOTAL_CONTROLS ? Math.round((adjudicatedCount / TOTAL_CONTROLS) * 100) : 0;
-
-  // Controls needing review (not_started or in_progress)
   const needingReview = records.filter(
     (r) => r.implementationStatus === "not_started" || r.implementationStatus === "in_progress"
   ).length;
 
-  // ── NIST family breakdown (in-memory, no extra query) ──
+  // ── NIST family breakdown (in-memory) ──
   const familyStats = NIST_FAMILIES.map((f) => {
     const familyIds = ALL_CONTROL_IDS.filter((id) => id.startsWith(f.code + "."));
     const total = familyIds.length;
@@ -130,14 +178,62 @@ export default async function DashboardPage() {
     return { ...f, total, done, pct: total ? Math.round((done / total) * 100) : 0 };
   });
 
-  // ── POA&M (legacy model for KPI count) ──
+  // ── SPRS score computation ──
+  const recordMap = new Map(records.map((r) => [r.controlId, r]));
+  const implementedIds = new Set(
+    records.filter(
+      (r) =>
+        r.implementationStatus === "implemented" ||
+        r.implementationStatus === "assessed" ||
+        r.implementationStatus === "inherited"
+    ).map((r) => r.controlId)
+  );
+
+  const record31311 = recordMap.get("3.13.11");
+  const isNonFips =
+    record31311 &&
+    !implementedIds.has("3.13.11") &&
+    record31311.sprs31311Condition === "non_fips";
+
+  let sprsScore = SPRS_MAX;
+  const sprsGaps: Array<{ id: string; family: string; abbr: string; deduction: number }> = [];
+
+  for (const ctrl of sprsScoringData) {
+    if (!implementedIds.has(ctrl.id)) {
+      const deduction = ctrl.id === "3.13.11" && isNonFips ? 3 : ctrl.value;
+      sprsScore -= deduction;
+      sprsGaps.push({
+        id: ctrl.id,
+        family: ctrl.family,
+        abbr: FAMILY_ABBR[ctrl.family] ?? ctrl.family.slice(0, 2).toUpperCase(),
+        deduction,
+      });
+    }
+  }
+
+  // Group gaps by family for drill-down, sorted by total deduction desc
+  type GapFamily = { family: string; abbr: string; totalDeduction: number; controls: typeof sprsGaps };
+  const gapsByFamily = new Map<string, GapFamily>();
+  for (const gap of sprsGaps) {
+    if (!gapsByFamily.has(gap.family)) {
+      gapsByFamily.set(gap.family, { family: gap.family, abbr: gap.abbr, totalDeduction: 0, controls: [] });
+    }
+    const entry = gapsByFamily.get(gap.family)!;
+    entry.totalDeduction += gap.deduction;
+    entry.controls.push(gap);
+  }
+  const sprsGapFamilies = [...gapsByFamily.values()].sort((a, b) => b.totalDeduction - a.totalDeduction);
+
+  const sprsLabel = sprsScore >= 88 ? "Strong" : sprsScore >= 70 ? "Moderate" : sprsScore >= 0 ? "At risk" : "Critical";
+  const sprsPointsLost = SPRS_MAX - sprsScore;
+
+  // ── POA&M ──
   const openPoam = await db
     .select({ status: poamItems.status })
     .from(poamItems)
     .where(eq(poamItems.organizationId, orgId));
   const openPoamCount = openPoam.filter((p) => p.status !== "Closed").length;
 
-  // ── POA&M new model — check milestone coverage for readiness score ──
   const openPoamList = await db
     .select({ id: poamEntries.id })
     .from(poamEntries)
@@ -162,8 +258,6 @@ export default async function DashboardPage() {
     .from(controlEvidenceLinks)
     .where(and(eq(controlEvidenceLinks.organizationId, orgId), lt(controlEvidenceLinks.expiresAt, in30Days)));
   const expiringSoonCount = expiringSoon.length;
-
-  // Legacy evidence expiry
   const evidence = await db
     .select({ retentionUntil: evidenceMetadata.retentionUntil })
     .from(evidenceMetadata)
@@ -182,12 +276,6 @@ export default async function DashboardPage() {
     (s) => s.content && s.content.trim().length > 0
   ).length;
 
-  // ── SPRS ──
-  const { getSprsScore } = await import("@/lib/sprs");
-  const sprsScore = await getSprsScore(orgId);
-  const sprsLabel =
-    sprsScore >= 88 ? "Strong" : sprsScore >= 70 ? "Moderate" : sprsScore >= 0 ? "At risk" : "Critical";
-
   // ── Recent activity ──
   const recentActivity = await db
     .select({
@@ -201,7 +289,6 @@ export default async function DashboardPage() {
     .where(eq(auditLogs.organizationId, orgId))
     .orderBy(desc(auditLogs.createdAt))
     .limit(5);
-
   const daysSinceActivity = recentActivity[0]
     ? Math.floor((Date.now() - new Date(recentActivity[0].createdAt).getTime()) / 86_400_000)
     : null;
@@ -239,7 +326,7 @@ export default async function DashboardPage() {
     .limit(1);
   const boundaryComplete = !!orgRow?.boundaryScopingCompletedAt;
 
-  // ── Assessment readiness score ──
+  // ── C3PAO Readiness Checklist score (internal indicator only, not SPRS) ──
   const sspHasContent = authoredSections >= 3;
   const controlsAt80pct = implementedPct >= 80;
   const poamHasMilestones = newModelOpenCount === 0 || poamMissingMilestones === 0;
@@ -256,11 +343,11 @@ export default async function DashboardPage() {
     readinessScore >= 70 ? "text-emerald-600" : readinessScore >= 40 ? "text-amber-600" : "text-red-600";
 
   const readinessBreakdown = [
-    { label: "Boundary scoping complete", points: 20, earned: boundaryComplete },
-    { label: "SSP has ≥3 authored sections", points: 20, earned: sspHasContent },
-    { label: "≥80% controls implemented", points: 30, earned: controlsAt80pct },
-    { label: "All open POA&Ms have milestones", points: 15, earned: poamHasMilestones },
-    { label: "No evidence expiring within 30 days", points: 15, earned: noExpiredEvidence },
+    { label: "Boundary scoping complete", points: 20, earned: boundaryComplete, href: "/dashboard/boundary" },
+    { label: "SSP has ≥3 authored sections", points: 20, earned: sspHasContent, href: "/dashboard/ssp" },
+    { label: "≥80% controls implemented", points: 30, earned: controlsAt80pct, href: "/dashboard/controls" },
+    { label: "All open POA&Ms have milestones", points: 15, earned: poamHasMilestones, href: "/dashboard/poam" },
+    { label: "No evidence expiring within 30 days", points: 15, earned: noExpiredEvidence, href: "/dashboard/evidence" },
   ];
 
   // ── Next actions ──
@@ -274,7 +361,7 @@ export default async function DashboardPage() {
   if (totalExpiring > 0)
     nextActions.push({ label: `Review ${totalExpiring} expiring evidence item${totalExpiring !== 1 ? "s" : ""}`, href: "/dashboard/evidence", urgent: true });
   if (!sspHasContent)
-    nextActions.push({ label: `Author SSP sections (${authoredSections}/3 minimum)`, href: "/dashboard/documents" });
+    nextActions.push({ label: `Author SSP sections (${authoredSections}/3 minimum)`, href: "/dashboard/ssp" });
 
   const cardClass =
     "rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm";
@@ -286,61 +373,201 @@ export default async function DashboardPage() {
 
         {primeCount > 0 && <FlowDownBanner primeCount={primeCount} />}
 
-        {/* ── Hero row: Adjudication progress + Readiness ring ── */}
-        <div className="grid gap-6 lg:grid-cols-2">
+        {/* ════════════════════════════════════════════════════════
+            SECTION 1 — THREE SCORE CARDS (side by side)
+            Control Adjudication | C3PAO Readiness | SPRS Score
+        ════════════════════════════════════════════════════════ */}
+        <div className="grid gap-4 lg:grid-cols-3">
+
+          {/* 1a — Control Adjudication */}
           <section className={cardClass}>
-            <div className="flex flex-col gap-4">
+            <div className="flex items-start justify-between gap-2">
               <div>
-                <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--color-gray-600)]">
-                  Control adjudication
-                </h2>
-                <p className="mt-1 text-3xl font-bold text-[var(--color-navy-primary)]">
-                  {adjudicatedCount}{" "}
-                  <span className="font-normal text-[var(--color-gray-600)]">/ {TOTAL_CONTROLS}</span>{" "}
-                  adjudicated
+                <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">
+                  Controls Adjudicated
                 </p>
-                <p className="mt-1 text-sm text-[var(--color-gray-600)]">
-                  {outstandingCount} outstanding · {implementedPct}% implemented or inherited
+                <p className="mt-1 text-3xl font-bold text-[var(--color-navy-primary)]">
+                  {adjudicatedCount}
+                  <span className="text-lg font-normal text-[var(--color-gray-400)]"> / {TOTAL_CONTROLS}</span>
+                </p>
+                <p className="mt-0.5 text-xs text-[var(--color-gray-500)]">
+                  {outstandingCount > 0
+                    ? `${outstandingCount} controls still need a status`
+                    : "All controls have a resolved status"}
                 </p>
               </div>
-              <Link
-                href="/dashboard/controls"
-                className="inline-flex w-fit items-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-primary-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2"
-              >
-                <Shield className="h-4 w-4" aria-hidden />
-                Open SCTM
-              </Link>
+              <Shield className="h-5 w-5 shrink-0 text-[var(--color-gray-300)] mt-0.5" />
+            </div>
+            <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-[var(--color-gray-100)]">
+              <div
+                className={`h-full rounded-full transition-all ${
+                  implementedPct === 100 ? "bg-emerald-500" : implementedPct >= 50 ? "bg-blue-500" : "bg-amber-400"
+                }`}
+                style={{ width: `${implementedPct}%` }}
+              />
+            </div>
+            <p className="mt-1.5 text-xs text-[var(--color-gray-500)]">{implementedPct}% implemented or inherited</p>
+            <Link
+              href="/dashboard/controls"
+              className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-[var(--color-blue-accent)] hover:underline"
+            >
+              Open SCTM <ChevronRight className="h-3.5 w-3.5" />
+            </Link>
+          </section>
+
+          {/* 1b — C3PAO Readiness Checklist */}
+          <section className={cardClass}>
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">
+                  C3PAO Readiness Checklist
+                </p>
+                <p className="mt-0.5 text-[10px] text-[var(--color-gray-400)]">
+                  Internal indicator — not submitted to SPRS
+                </p>
+              </div>
+              <ReadinessRing score={readinessScore} />
+            </div>
+            <div className="mt-2 space-y-1.5">
+              {readinessBreakdown.map((item) => (
+                <div key={item.label} className="flex items-center gap-2">
+                  <div
+                    className={`h-3.5 w-3.5 shrink-0 rounded-full flex items-center justify-center ${
+                      item.earned ? "bg-emerald-100" : "bg-[var(--color-gray-100)]"
+                    }`}
+                  >
+                    {item.earned ? (
+                      <CheckCircle2 className="h-2.5 w-2.5 text-emerald-600" />
+                    ) : (
+                      <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-gray-300)]" />
+                    )}
+                  </div>
+                  <span className="flex-1 text-[11px] text-[var(--color-gray-600)] leading-tight">
+                    {item.earned ? (
+                      item.label
+                    ) : (
+                      <Link href={item.href} className="hover:underline hover:text-[var(--color-blue-accent)]">
+                        {item.label}
+                      </Link>
+                    )}
+                  </span>
+                  <span
+                    className={`text-[11px] font-semibold ${
+                      item.earned ? readinessColor : "text-[var(--color-gray-400)]"
+                    }`}
+                  >
+                    {item.earned ? `+${item.points}` : `+0`}
+                  </span>
+                </div>
+              ))}
             </div>
           </section>
 
+          {/* 1c — SPRS Score (official) */}
           <section className={cardClass}>
-            <h2 className="text-sm font-semibold text-[var(--color-navy-primary)]">Assessment Readiness Score</h2>
-            <div className="mt-3 flex items-center gap-5">
-              <ReadinessRing score={readinessScore} />
-              <div className="flex-1 space-y-1.5">
-                {readinessBreakdown.map((item) => (
-                  <div key={item.label} className="flex items-center gap-2">
-                    <div className={`h-3.5 w-3.5 shrink-0 rounded-full flex items-center justify-center ${
-                      item.earned ? "bg-emerald-100" : "bg-[var(--color-gray-100)]"
-                    }`}>
-                      {item.earned ? (
-                        <CheckCircle2 className="h-2.5 w-2.5 text-emerald-600" />
-                      ) : (
-                        <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-gray-300)]" />
-                      )}
-                    </div>
-                    <span className="flex-1 text-[11px] text-[var(--color-gray-600)]">{item.label}</span>
-                    <span className={`text-[11px] font-semibold ${item.earned ? readinessColor : "text-[var(--color-gray-400)]"}`}>
-                      {item.earned ? `+${item.points}` : `+0`}
-                    </span>
-                  </div>
-                ))}
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1">
+                <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">
+                  SPRS Score
+                </p>
+                <p className="mt-0.5 text-[10px] text-[var(--color-gray-400)]">
+                  DoD Assessment Methodology — submitted to SPRS.mil
+                </p>
               </div>
+              <SprsRing score={sprsScore} />
             </div>
+
+            <div className="mt-1 flex items-center gap-2">
+              <span
+                className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                  sprsScore >= 88
+                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                    : sprsScore >= 70
+                    ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+                    : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                }`}
+              >
+                {sprsLabel}
+              </span>
+              {sprsPointsLost > 0 && (
+                <span className="text-xs text-[var(--color-gray-500)]">
+                  {sprsPointsLost} pts deducted from {SPRS_MAX}
+                </span>
+              )}
+            </div>
+
+            {/* SPRS drill-down: which controls are dragging the score down */}
+            {sprsGaps.length > 0 && (
+              <details className="mt-3 group">
+                <summary className="flex cursor-pointer list-none items-center gap-1.5 text-xs font-medium text-[var(--color-blue-accent)] hover:underline">
+                  <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
+                  {sprsGaps.length} control{sprsGaps.length !== 1 ? "s" : ""} impacting score
+                </summary>
+
+                <div className="mt-2 max-h-52 overflow-y-auto space-y-1 pr-1">
+                  {sprsGapFamilies.map((fam) => (
+                    <div key={fam.family} className="rounded-lg border border-[var(--color-border)] bg-[var(--color-gray-50)] dark:bg-gray-800/40">
+                      <div className="flex items-center justify-between px-3 py-1.5">
+                        <span className="flex items-center gap-1.5">
+                          <span className="font-mono text-[10px] font-bold text-[var(--color-gray-500)]">
+                            {fam.abbr}
+                          </span>
+                          <span className="text-[11px] font-semibold text-[var(--color-gray-700)] dark:text-gray-300">
+                            {fam.family}
+                          </span>
+                        </span>
+                        <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                          -{fam.totalDeduction} pts
+                        </span>
+                      </div>
+                      <div className="border-t border-[var(--color-border)] px-3 py-1.5">
+                        <div className="flex flex-wrap gap-x-3 gap-y-0.5">
+                          {fam.controls
+                            .sort((a, b) => b.deduction - a.deduction)
+                            .map((ctrl) => (
+                              <Link
+                                key={ctrl.id}
+                                href={`/dashboard/controls/${ctrl.id}`}
+                                className="flex items-center gap-1 font-mono text-[11px] text-[var(--color-gray-600)] hover:text-[var(--color-blue-accent)] dark:text-gray-400"
+                              >
+                                <span
+                                  className={`rounded px-1 py-0 text-[9px] font-bold ${
+                                    ctrl.deduction === 5
+                                      ? "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
+                                      : ctrl.deduction === 3
+                                      ? "bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400"
+                                      : "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400"
+                                  }`}
+                                >
+                                  -{ctrl.deduction}
+                                </span>
+                                {ctrl.id}
+                              </Link>
+                            ))}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-1.5 text-[10px] text-[var(--color-gray-400)]">
+                  Color = deduction weight: red = −5 pts, amber = −3 pts, gray = −1 pt.
+                  Click any control ID to adjudicate.
+                </p>
+              </details>
+            )}
+
+            {sprsScore === SPRS_MAX && (
+              <div className="mt-3 flex items-center gap-1.5 text-xs text-emerald-700 dark:text-emerald-400">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                All 110 controls implemented — maximum SPRS score achieved.
+              </div>
+            )}
           </section>
         </div>
 
-        {/* ── KPI grid ── */}
+        {/* ════════════════════════════════════════════════════════
+            SECTION 2 — KPI grid
+        ════════════════════════════════════════════════════════ */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className={cardClass}>
             <p className="text-sm font-medium text-[var(--color-gray-600)]">Controls needing review</p>
@@ -352,27 +579,45 @@ export default async function DashboardPage() {
           </div>
           <div className={cardClass}>
             <p className="text-sm font-medium text-[var(--color-gray-600)]">Evidence expiring (30 d)</p>
-            <p className={`mt-1 text-2xl font-semibold ${totalExpiring > 0 ? "text-amber-600" : "text-[var(--color-navy-primary)]"}`}>{totalExpiring}</p>
+            <p
+              className={`mt-1 text-2xl font-semibold ${
+                totalExpiring > 0 ? "text-amber-600" : "text-[var(--color-navy-primary)]"
+              }`}
+            >
+              {totalExpiring}
+            </p>
           </div>
           <div className={cardClass}>
-            <p className="text-sm font-medium text-[var(--color-gray-600)]">Boundary scoping</p>
+            <p className="text-sm font-medium text-[var(--color-gray-600)]">System Boundary</p>
             <div className="mt-1 flex items-center gap-2">
-              <span className={`inline-block h-2.5 w-2.5 rounded-full ${boundaryComplete ? "bg-emerald-400" : "bg-amber-400"}`} />
-              <p className={`text-sm font-semibold ${boundaryComplete ? "text-emerald-700" : "text-amber-700"}`}>
+              <span
+                className={`inline-block h-2.5 w-2.5 rounded-full ${
+                  boundaryComplete ? "bg-emerald-400" : "bg-amber-400"
+                }`}
+              />
+              <p
+                className={`text-sm font-semibold ${
+                  boundaryComplete ? "text-emerald-700" : "text-amber-700"
+                }`}
+              >
                 {boundaryComplete ? "Complete" : "Incomplete"}
               </p>
             </div>
             {!boundaryComplete && (
-              <Link href="/dashboard/boundary" className="mt-1 block text-xs text-[var(--color-blue-accent)] hover:underline">
+              <Link
+                href="/dashboard/boundary"
+                className="mt-1 block text-xs text-[var(--color-blue-accent)] hover:underline"
+              >
                 Complete now →
               </Link>
             )}
           </div>
         </div>
 
-        {/* ── Middle row: NIST family breakdown + Next actions ── */}
+        {/* ════════════════════════════════════════════════════════
+            SECTION 3 — NIST Family Breakdown + Next Actions
+        ════════════════════════════════════════════════════════ */}
         <div className="grid gap-6 lg:grid-cols-5">
-          {/* NIST family breakdown */}
           <section className={`${cardClass} lg:col-span-3`}>
             <h2 className="text-sm font-semibold text-[var(--color-navy-primary)]">NIST Family Breakdown</h2>
             <div className="mt-3 overflow-x-auto">
@@ -414,13 +659,12 @@ export default async function DashboardPage() {
             </div>
           </section>
 
-          {/* Next Actions */}
           <section className={`${cardClass} lg:col-span-2`}>
             <h2 className="text-sm font-semibold text-[var(--color-navy-primary)]">Next Actions</h2>
             {nextActions.length === 0 ? (
               <div className="mt-4 flex items-center gap-2 text-sm text-emerald-700">
                 <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                All assessment readiness criteria met.
+                All readiness criteria met.
               </div>
             ) : (
               <ul className="mt-3 space-y-2">
@@ -430,7 +674,11 @@ export default async function DashboardPage() {
                       href={action.href}
                       className="flex items-start gap-2.5 rounded-lg border border-[var(--color-border)] px-3 py-2.5 text-xs font-medium text-[var(--color-gray-700)] transition-colors hover:border-[var(--color-blue-accent)]/40 hover:bg-[var(--color-gray-50)]"
                     >
-                      <span className={`mt-0.5 h-2 w-2 shrink-0 rounded-full ${action.urgent ? "bg-red-400" : "bg-[var(--color-gray-300)]"}`} />
+                      <span
+                        className={`mt-0.5 h-2 w-2 shrink-0 rounded-full ${
+                          action.urgent ? "bg-red-400" : "bg-[var(--color-gray-300)]"
+                        }`}
+                      />
                       <span className="flex-1 leading-snug">{action.label}</span>
                       <ChevronRight className="h-3.5 w-3.5 shrink-0 text-[var(--color-gray-400)]" />
                     </Link>
@@ -438,23 +686,38 @@ export default async function DashboardPage() {
                 ))}
               </ul>
             )}
-            <div className="mt-4 rounded-lg bg-[var(--color-gray-50)] px-3 py-2.5">
-              <p className="text-xs text-[var(--color-gray-500)]">
-                SPRS score:{" "}
-                <span className="font-semibold text-[var(--color-gray-800)]">{sprsScore}</span>{" "}
-                <span className={`${sprsScore >= 88 ? "text-emerald-600" : sprsScore >= 70 ? "text-amber-600" : "text-red-600"}`}>
-                  ({sprsLabel})
+
+            {/* SPRS context note */}
+            <div className="mt-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-gray-50)] px-3 py-2.5 dark:bg-gray-800/40">
+              <div className="flex items-center gap-1.5">
+                <TrendingUp className="h-3.5 w-3.5 text-[var(--color-gray-500)]" />
+                <span className="text-xs font-medium text-[var(--color-gray-700)] dark:text-gray-300">
+                  SPRS: {sprsScore}{" "}
+                  <span
+                    className={`font-semibold ${
+                      sprsScore >= 88 ? "text-emerald-600" : sprsScore >= 70 ? "text-amber-600" : "text-red-600"
+                    }`}
+                  >
+                    ({sprsLabel})
+                  </span>
                 </span>
-              </p>
+              </div>
+              {sprsPointsLost > 0 && (
+                <p className="mt-0.5 text-[10px] text-[var(--color-gray-400)]">
+                  {sprsPointsLost} points deducted · {sprsGaps.length} controls unimplemented
+                </p>
+              )}
             </div>
           </section>
         </div>
 
-        {/* ── Documents CTA ── */}
+        {/* ════════════════════════════════════════════════════════
+            SECTION 4 — Governance documents CTA
+        ════════════════════════════════════════════════════════ */}
         <section className={cardClass}>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-sm font-semibold text-[var(--color-navy-primary)]">Governance documents</h2>
+              <h2 className="text-sm font-semibold text-[var(--color-navy-primary)]">Governance Documents</h2>
               <p className="mt-0.5 text-sm text-[var(--color-gray-600)]">
                 Upload policies and procedures, adjudicate the 18 governance controls, and manage routine logs and records.
               </p>
@@ -469,11 +732,13 @@ export default async function DashboardPage() {
           </div>
         </section>
 
-        {/* ── Bottom row: Recent activity + Org + Export ── */}
+        {/* ════════════════════════════════════════════════════════
+            SECTION 5 — Recent activity + Org + Export
+        ════════════════════════════════════════════════════════ */}
         <div className="grid gap-6 lg:grid-cols-3">
           <div className={cardClass}>
             <div className="flex items-baseline justify-between">
-              <h2 className="text-sm font-semibold text-[var(--color-navy-primary)]">Recent activity</h2>
+              <h2 className="text-sm font-semibold text-[var(--color-navy-primary)]">Recent Activity</h2>
               {daysSinceActivity !== null && (
                 <span className="text-xs text-[var(--color-gray-400)]">
                   {daysSinceActivity === 0 ? "Today" : `${daysSinceActivity}d ago`}
@@ -496,6 +761,7 @@ export default async function DashboardPage() {
               </ul>
             )}
           </div>
+
           <div className={cardClass}>
             <h2 className="text-sm font-semibold text-[var(--color-navy-primary)]">Organization</h2>
             {orgRow?.name && (
@@ -510,11 +776,36 @@ export default async function DashboardPage() {
               </p>
             )}
             {!orgRow?.name && !orgRow?.cageCode && !orgRow?.cmmcTargetLevel && (
-              <p className="mt-2 text-sm text-[var(--color-gray-500)]">Complete profile in Settings</p>
+              <p className="mt-2 text-sm text-[var(--color-gray-500)]">
+                Complete profile in{" "}
+                <Link href="/dashboard/settings" className="text-[var(--color-blue-accent)] hover:underline">
+                  Settings
+                </Link>
+              </p>
             )}
+            {/* Score legend */}
+            <div className="mt-4 space-y-1 border-t border-[var(--color-border)] pt-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-gray-400)]">Score guide</p>
+              <div className="flex items-center gap-2">
+                <Info className="h-3 w-3 shrink-0 text-[var(--color-gray-400)]" />
+                <p className="text-[10px] text-[var(--color-gray-500)]">
+                  <strong>SPRS</strong> = official DoD score (−203 to 110), submitted to SPRS.mil
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Info className="h-3 w-3 shrink-0 text-[var(--color-gray-400)]" />
+                <p className="text-[10px] text-[var(--color-gray-500)]">
+                  <strong>C3PAO Readiness</strong> = internal pre-assessment checklist (0–100), not official
+                </p>
+              </div>
+            </div>
           </div>
+
           <div className={cardClass}>
-            <h2 className="text-sm font-semibold text-[var(--color-navy-primary)]">Export</h2>
+            <h2 className="text-sm font-semibold text-[var(--color-navy-primary)]">Assessment Package</h2>
+            <p className="mt-1 text-xs text-[var(--color-gray-500)]">
+              Export a ZIP containing your SSP, POA&M, SCTM, and evidence index for C3PAO submission.
+            </p>
             <div className="mt-3">
               <ExportButton />
             </div>

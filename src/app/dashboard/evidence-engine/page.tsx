@@ -43,7 +43,7 @@ export default async function EvidenceEngineDashboardPage({ searchParams }: Page
   if (boundaries.length === 0) {
     return (
       <div className="space-y-6">
-        <h1 className="text-xl font-semibold text-[var(--color-navy-primary)]">Evidence Engine</h1>
+        <h1 className="text-xl font-semibold text-[var(--color-navy-primary)]">Evidence Registers</h1>
         <p className="text-[var(--color-gray-600)]">Select a system boundary to view evidence.</p>
         <p className="text-sm text-[var(--color-gray-500)]">
           <Link href="/dashboard/os-baselines" className="text-[var(--color-blue-accent)] hover:underline">
@@ -58,7 +58,7 @@ export default async function EvidenceEngineDashboardPage({ searchParams }: Page
   if (!effectiveBoundaryId) {
     return (
       <div className="space-y-6">
-        <h1 className="text-xl font-semibold text-[var(--color-navy-primary)]">Evidence Engine</h1>
+        <h1 className="text-xl font-semibold text-[var(--color-navy-primary)]">Evidence Registers</h1>
         <p className="text-[var(--color-gray-600)]">Select a system boundary to view evidence.</p>
         <BoundarySelector boundaries={boundaries} currentBoundaryId={null} />
       </div>
@@ -122,10 +122,22 @@ export default async function EvidenceEngineDashboardPage({ searchParams }: Page
 
   return (
     <div className="space-y-6">
+      {/* Orientation banner */}
+      <div className="rounded-[var(--radius-lg)] border border-blue-200 bg-blue-50 px-4 py-3 dark:border-blue-800/40 dark:bg-blue-950/20">
+        <p className="text-xs font-semibold text-blue-800 dark:text-blue-300">Evidence Registers — Operational Records</p>
+        <p className="mt-0.5 text-xs text-blue-700 dark:text-blue-400">
+          This page tracks ongoing operational records (training logs, incident logs, change logs, etc.) tied to a system boundary.
+          To upload OS evidence manifests or governance document bundles,{" "}
+          <a href="/dashboard/technical/upload" className="font-semibold underline hover:no-underline">
+            use the evidence upload page
+          </a>.
+        </p>
+      </div>
+
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold text-[var(--color-navy-primary)]">
-            Evidence Engine
+            Evidence Registers
           </h1>
           {effectiveBoundaryName && (
             <p className="mt-0.5 text-sm font-medium text-[var(--color-gray-700)]">

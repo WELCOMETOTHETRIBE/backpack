@@ -38,7 +38,7 @@ function buildNav(boundaryComplete?: boolean | null): NavGroup[] {
         { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
         { name: "SCTM", href: "/dashboard/controls", icon: Shield },
         { name: "Governance", href: "/dashboard/governance", icon: BookMarked },
-        { name: "Evidence Engine", href: "/dashboard/evidence-engine", icon: ClipboardList },
+        { name: "Evidence Registers", href: "/dashboard/evidence-engine", icon: ClipboardList },
         { name: "POA&M", href: "/dashboard/poam", icon: FileText },
       ],
     },
