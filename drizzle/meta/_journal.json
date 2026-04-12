@@ -260,6 +260,20 @@
       "when": 1772920000000,
       "tag": "0036_governance_docs_dedup",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1776021160751,
+      "tag": "0037_control_intelligence_register_control_ids",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1776057600000,
+      "tag": "0038_fix_missing_governance_register_control_ids",
+      "breakpoints": true
     }
   ]
 }
