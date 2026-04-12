@@ -14,7 +14,7 @@ type DetectedType =
   | { kind: "unknown"; schema?: string };
 
 type IngestResult =
-  | { kind: "os-v2"; linked_controls: number; skipped_controls: number; collection_errors: number }
+  | { kind: "os-v2"; linked_controls: number; skipped_controls: number; collection_errors: number; collection_error_files: string[] }
   | { kind: "governance"; doc_count: number; policy_satisfied_count: number; implemented_promoted: number; run_id: string }
   | { kind: "azure"; run_id: string };
 
@@ -172,7 +172,7 @@ export default function UnifiedUploadPage() {
           setSubmitError(data.error ?? `Upload failed (${res.status})`);
           return;
         }
-        setResult({ kind: "os-v2", linked_controls: data.linked_controls ?? 0, skipped_controls: data.skipped_controls ?? 0, collection_errors: data.collection_errors ?? 0 });
+        setResult({ kind: "os-v2", linked_controls: data.linked_controls ?? 0, skipped_controls: data.skipped_controls ?? 0, collection_errors: data.collection_errors ?? 0, collection_error_files: data.collection_error_files ?? [] });
         router.refresh();
         return;
       }
@@ -464,6 +464,18 @@ export default function UnifiedUploadPage() {
                   </dd>
                 </div>
               </dl>
+            )}
+
+            {result.kind === "os-v2" && result.collection_error_files.length > 0 && (
+              <div className="mt-4 rounded-[var(--radius-md)] border border-amber-200 bg-amber-50 p-4">
+                <p className="text-sm font-semibold text-amber-800">Collection errors — {result.collection_error_files.length} file(s) could not be gathered</p>
+                <ul className="mt-2 space-y-1">
+                  {result.collection_error_files.map((f) => (
+                    <li key={f} className="font-mono text-xs text-amber-700 break-all">{f}</li>
+                  ))}
+                </ul>
+                <p className="mt-2 text-xs text-amber-600">These files may require elevated permissions or the path may not exist on this host. Evidence for the affected controls was still recorded as &quot;collection_error&quot; status.</p>
+              </div>
             )}
 
             {result.kind === "governance" && (
