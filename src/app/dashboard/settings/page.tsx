@@ -5,6 +5,8 @@ import { organizations, users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import SettingsForm from "./SettingsForm";
 import InviteTeamSection from "./InviteTeamSection";
+import ScopingPresetsCard from "./ScopingPresetsCard";
+import { ALL_PRESETS } from "@/lib/compliance/scoping-presets";
 
 export default async function SettingsPage() {
   const session = await auth();
@@ -49,6 +51,19 @@ export default async function SettingsPage() {
           <div className={cardClass}>
             <h2 className="mb-4 text-sm font-semibold text-slate-800">Invite team</h2>
             <InviteTeamSection />
+          </div>
+        )}
+
+        {(user.role === "Admin" || user.role === "Compliance") && (
+          <div className={cardClass}>
+            <h2 className="mb-1 text-sm font-semibold text-slate-800">Architecture scoping presets</h2>
+            <p className="mb-4 text-xs text-slate-500">
+              Apply Not Applicable designations based on your system architecture. Only controls in{" "}
+              <span className="font-medium">Not Started</span> or{" "}
+              <span className="font-medium">In Progress</span> status are affected — Assessed, Inherited,
+              and Implemented controls are never overwritten.
+            </p>
+            <ScopingPresetsCard presets={ALL_PRESETS} />
           </div>
         )}
       </div>
