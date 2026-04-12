@@ -279,12 +279,11 @@ export function ComplianceRegistersClient({ userRole }: { userRole: string }) {
         <div className="flex items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-[var(--color-navy-primary)]">
-              Compliance Registers
+              Registers
             </h1>
             <p className="mt-1 text-sm text-gray-600 max-w-2xl">
-              Ongoing records required by CMMC Level 2. A C3PAO examiner will ask to
-              see these registers during your assessment. Keeping them current is as
-              important as having the right technical controls in place.
+              Day-to-day compliance records required by CMMC Level 2. A C3PAO examiner will
+              examine these during your assessment — overdue registers are automatic findings.
             </p>
           </div>
           <button
@@ -428,37 +427,48 @@ export function ComplianceRegistersClient({ userRole }: { userRole: string }) {
 
       {/* Footer guidance */}
       {!loading && (
-        <div className="mt-8 rounded-xl border border-gray-200 bg-gray-50 px-5 py-4">
-          <div className="flex items-start gap-3">
-            <Info className="h-4 w-4 shrink-0 text-gray-400 mt-0.5" />
-            <div>
-              <p className="text-xs font-semibold text-gray-700">How C3PAO examiners use these registers</p>
-              <p className="text-xs text-gray-600 mt-1 leading-relaxed">
-                Examiners will request your registers as part of the{" "}
-                <strong>examine</strong> method — they expect to see actual records, not
-                just policies. Each register entry timestamps your compliance activity
-                and creates an auditable chain of evidence. Registers with no entries are
-                treated as non-existent, regardless of your policies.
-              </p>
-              <div className="mt-2 flex flex-wrap gap-3 text-[11px] text-gray-500">
-                <span className="flex items-center gap-1">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                  <strong>Current</strong> — within cadence window
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="h-2 w-2 rounded-full bg-amber-500" />
-                  <strong>Due Soon</strong> — entry needed within 7 days
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="h-2 w-2 rounded-full bg-red-500" />
-                  <strong>Overdue</strong> — past cadence deadline — assessor finding
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="h-2 w-2 rounded-full bg-gray-400" />
-                  <strong>Never Used</strong> — no entries on record
-                </span>
+        <div className="mt-8 space-y-3">
+          <div className="rounded-xl border border-gray-200 bg-gray-50 px-5 py-4">
+            <div className="flex items-start gap-3">
+              <Info className="h-4 w-4 shrink-0 text-gray-400 mt-0.5" />
+              <div>
+                <p className="text-xs font-semibold text-gray-700">How C3PAO examiners use these registers</p>
+                <p className="text-xs text-gray-600 mt-1 leading-relaxed">
+                  Examiners will request your registers as part of the{" "}
+                  <strong>examine</strong> method — they expect to see actual records, not
+                  just policies. Each register entry timestamps your compliance activity
+                  and creates an auditable chain of evidence. Registers with no entries are
+                  treated as non-existent, regardless of your policies.
+                </p>
+                <div className="mt-2 flex flex-wrap gap-3 text-[11px] text-gray-500">
+                  <span className="flex items-center gap-1">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                    <strong>Current</strong> — within cadence window
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="h-2 w-2 rounded-full bg-amber-500" />
+                    <strong>Due Soon</strong> — entry needed within 7 days
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="h-2 w-2 rounded-full bg-red-500" />
+                    <strong>Overdue</strong> — past cadence deadline — assessor finding
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="h-2 w-2 rounded-full bg-gray-400" />
+                    <strong>Never Used</strong> — no entries on record
+                  </span>
+                </div>
               </div>
             </div>
+          </div>
+          <div className="flex items-center justify-end">
+            <Link
+              href="/dashboard/evidence-engine"
+              className="flex items-center gap-1.5 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <ExternalLink className="h-3 w-3" />
+              View control-level evidence coverage (advanced)
+            </Link>
           </div>
         </div>
       )}

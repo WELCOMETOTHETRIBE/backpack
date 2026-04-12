@@ -15,8 +15,9 @@ import {
   BookMarked,
   Server,
   Cpu,
-  ClipboardList,
   BookCheck,
+  BarChart2,
+  GraduationCap,
 } from "lucide-react";
 
 type NavItem = {
@@ -34,13 +35,13 @@ type NavGroup = {
 function buildNav(boundaryComplete?: boolean | null): NavGroup[] {
   return [
     {
-      label: "Assessment",
+      label: "Compliance",
       items: [
         { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
         { name: "SCTM", href: "/dashboard/controls", icon: Shield },
         { name: "Governance", href: "/dashboard/governance", icon: BookMarked },
-        { name: "Evidence Registers", href: "/dashboard/evidence-engine", icon: ClipboardList },
-        { name: "Compliance Registers", href: "/dashboard/registers", icon: BookCheck },
+        { name: "Technical", href: "/dashboard/technical", icon: BarChart2 },
+        { name: "Registers", href: "/dashboard/registers", icon: BookCheck },
         { name: "POA&M", href: "/dashboard/poam", icon: FileText },
       ],
     },
@@ -54,7 +55,6 @@ function buildNav(boundaryComplete?: boolean | null): NavGroup[] {
           statusDot: boundaryComplete === true ? "green" : boundaryComplete === false ? "amber" : null,
         },
         { name: "OS Baselines", href: "/dashboard/os-baselines", icon: Cpu },
-        { name: "Compliance Hub", href: "/dashboard/technical", icon: Cpu },
         { name: "Upload Evidence", href: "/dashboard/technical/upload", icon: FolderOpen },
       ],
     },
@@ -63,7 +63,7 @@ function buildNav(boundaryComplete?: boolean | null): NavGroup[] {
       items: [
         { name: "Documents", href: "/dashboard/documents", icon: FileStack },
         { name: "SSP", href: "/dashboard/ssp", icon: FileText },
-        { name: "Training", href: "/dashboard/training", icon: ClipboardList },
+        { name: "Training", href: "/dashboard/training", icon: GraduationCap },
         { name: "Supply Chain", href: "/dashboard/supply-chain", icon: Network },
         { name: "Readiness", href: "/dashboard/readiness", icon: CheckCircle2 },
         { name: "Monitoring", href: "/dashboard/monitoring", icon: Activity },

@@ -141,9 +141,9 @@ export default async function TechnicalDashboardPage() {
         {/* ── Header ───────────────────────────────────────────────────────────── */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-xl font-bold text-[var(--color-gray-900)]">Infrastructure Compliance</h1>
+            <h1 className="text-xl font-bold text-[var(--color-gray-900)]">Technical Coverage</h1>
             <p className="mt-0.5 text-sm text-[var(--color-gray-500)]">
-              {totalDone} / {totalControls} controls complete across 3 evidence lanes
+              {totalDone} / {totalControls} controls satisfied — OS/cloud evidence + governance docs
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">

@@ -126,10 +126,13 @@ export default async function EvidenceEngineDashboardPage({ searchParams }: Page
       <div className="rounded-[var(--radius-lg)] border border-blue-200 bg-blue-50 px-4 py-3 dark:border-blue-800/40 dark:bg-blue-950/20">
         <p className="text-xs font-semibold text-blue-800 dark:text-blue-300">Evidence Registers — Operational Records</p>
         <p className="mt-0.5 text-xs text-blue-700 dark:text-blue-400">
-          This page tracks ongoing operational records (training logs, incident logs, change logs, etc.) tied to a system boundary.
-          To upload OS evidence manifests or governance document bundles,{" "}
+          Advanced view: shows per-control evidence confidence and cadence health for a specific system boundary.
+          For day-to-day register management,{" "}
+          <a href="/dashboard/registers" className="font-semibold underline hover:no-underline">
+            use Registers
+          </a>. To upload OS evidence or governance bundles,{" "}
           <a href="/dashboard/technical/upload" className="font-semibold underline hover:no-underline">
-            use the evidence upload page
+            use Upload Evidence
           </a>.
         </p>
       </div>
