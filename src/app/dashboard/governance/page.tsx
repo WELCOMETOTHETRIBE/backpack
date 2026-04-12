@@ -187,7 +187,11 @@ export default async function GovernanceDashboardPage() {
   const hybridGovRows = HYBRID_GOVERNANCE_IDS.filter((id) => !NA_CONTROL_IDS.has(id)).map(buildRow);
 
   const pureDone = pureGovRows.filter((r) => DONE_STATUSES.has(r.implementationStatus)).length;
-  const hybridDone = hybridGovRows.filter((r) => DONE_STATUSES.has(r.implementationStatus)).length;
+  // Hybrid "done" = both lanes confirmed OR exempt disposition
+  const hybridDone = hybridGovRows.filter((r) => {
+    if (r.implementationStatus === "not_applicable" || r.implementationStatus === "inherited") return true;
+    return r.technicalStatus === "satisfied" && r.hasNonDraftDocs;
+  }).length;
   const pureGapCount = pureGovRows.length - pureDone;
   const hybridGapCount = hybridGovRows.length - hybridDone;
 
@@ -384,25 +388,34 @@ export default async function GovernanceDashboardPage() {
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                 {hybridGovRows.map((row) => {
-                  const done = DONE_STATUSES.has(row.implementationStatus);
                   const hasGovDocs = row.hasNonDraftDocs;
+                  // technicalStatus is backfilled to 'satisfied' for SCTM-attested controls (migration 0039)
                   const hasTech = row.technicalStatus === "satisfied";
+                  // inherited/not_applicable bypass lane requirements
+                  const isExempt = row.implementationStatus === "not_applicable" || row.implementationStatus === "inherited";
 
                   const evidenceHref = `/dashboard/governance/controls/${row.controlId}/evidence`;
 
+                  // Status chip: source of truth is the LANES, not implementationStatus alone.
+                  // Both lanes satisfied (or exempt) → Implemented; otherwise show which lane is missing.
                   let statusChip: React.ReactNode;
-                  if (done) statusChip = <DoneChip />;
-                  else if (hasGovDocs && !hasTech) statusChip = (
-                    <Link href={evidenceHref}>
-                      <NeedsTechChip />
-                    </Link>
-                  );
-                  else if (!hasGovDocs && hasTech) statusChip = <NeedsDocsChip />;
-                  else statusChip = (
-                    <Link href={evidenceHref}>
-                      <NeedsBothChip />
-                    </Link>
-                  );
+                  if (isExempt || (hasTech && hasGovDocs)) {
+                    statusChip = <DoneChip />;
+                  } else if (hasTech && !hasGovDocs) {
+                    statusChip = <NeedsDocsChip />;
+                  } else if (!hasTech && hasGovDocs) {
+                    statusChip = (
+                      <Link href={evidenceHref}>
+                        <NeedsTechChip />
+                      </Link>
+                    );
+                  } else {
+                    statusChip = (
+                      <Link href={evidenceHref}>
+                        <NeedsBothChip />
+                      </Link>
+                    );
+                  }
 
                   return (
                     <tr key={row.controlId}>

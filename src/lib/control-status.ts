@@ -241,6 +241,10 @@ export async function calculateControlStatus(controlRecordId: string): Promise<I
     : implStatus === "inherited" ? "satisfied"
     : hasEvidenceLinks ? "satisfied"
     : technicalComplete ? "satisfied"
+    // SCTM attestation: user explicitly marking a control implemented/assessed
+    // counts as satisfying the technical lane (OS evidence is additional verification,
+    // not a gate on the user's own attestation).
+    : implStatus === "implemented" || implStatus === "assessed" ? "satisfied"
     : "not_started";
 
   // Determine which lanes this control actually requires based on its bin:
