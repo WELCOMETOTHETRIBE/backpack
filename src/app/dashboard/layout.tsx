@@ -7,6 +7,7 @@ import NonCuiBanner from "@/components/NonCuiBanner";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import { DashboardProviders } from "@/components/DashboardProviders";
+import FeedbackWidget from "@/components/feedback/FeedbackWidget";
 
 export default async function DashboardLayout({
   children,
@@ -43,6 +44,7 @@ export default async function DashboardLayout({
           <main className="flex-1 overflow-y-auto p-8">{children}</main>
         </div>
       </div>
+      <FeedbackWidget />
     </div>
   );
 }

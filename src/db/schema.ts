@@ -592,6 +592,37 @@ export const userInvitations = pgTable("user_invitations", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+// ============== Feedback ==============
+export const feedbackStatusEnum = pgEnum("feedback_status", ["pending", "reviewed", "resolved"]);
+export const feedbackCategoryEnum = pgEnum("feedback_category", ["bug", "ux", "feature", "general"]);
+
+export const feedback = pgTable(
+  "feedback",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id").references(() => organizations.id, { onDelete: "cascade" }).notNull(),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+    content: text("content").notNull(),
+    category: feedbackCategoryEnum("category").notNull().default("general"),
+    status: feedbackStatusEnum("status").notNull().default("pending"),
+    pageUrl: text("page_url"),
+    elementSelector: text("element_selector"),
+    elementId: text("element_id"),
+    elementClass: text("element_class"),
+    elementText: text("element_text"),
+    elementType: text("element_type"),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    index("feedback_org_idx").on(t.organizationId),
+    index("feedback_status_idx").on(t.status),
+    index("feedback_created_idx").on(t.createdAt),
+  ]
+);
+
 export const auditLogs = pgTable("audit_logs", {
   id: uuid("id").primaryKey().defaultRandom(),
   organizationId: uuid("organization_id").references(() => organizations.id).notNull(),

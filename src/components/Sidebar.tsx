@@ -18,6 +18,7 @@ import {
   BookCheck,
   BarChart2,
   GraduationCap,
+  MessageSquare,
 } from "lucide-react";
 
 type NavItem = {
@@ -72,6 +73,7 @@ function buildNav(boundaryComplete?: boolean | null): NavGroup[] {
     {
       label: null,
       items: [
+        { name: "Feedback", href: "/dashboard/feedback", icon: MessageSquare },
         { name: "Settings", href: "/dashboard/settings", icon: Settings },
       ],
     },
