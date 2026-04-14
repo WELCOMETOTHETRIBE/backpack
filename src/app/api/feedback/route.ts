@@ -6,15 +6,19 @@ import { eq, and, desc, count } from 'drizzle-orm'
 import { auth } from '@/lib/auth'
 import type { SessionUser } from '@/lib/auth'
 
+// Element fields can arrive as null (from JSON.stringify of null values) or
+// undefined (when omitted). Both are valid — normalise to string | undefined.
+const nullableStr = z.string().nullable().optional().transform((v) => v ?? undefined)
+
 const feedbackSchema = z.object({
   content: z.string().min(1).max(5000),
   category: z.enum(['bug', 'ux', 'feature', 'general']).optional().default('general'),
-  pageUrl: z.string().optional(),
-  elementSelector: z.string().optional(),
-  elementId: z.string().optional(),
-  elementClass: z.string().optional(),
-  elementText: z.string().optional(),
-  elementType: z.string().optional(),
+  pageUrl: nullableStr,
+  elementSelector: nullableStr,
+  elementId: nullableStr,
+  elementClass: nullableStr,
+  elementText: nullableStr,
+  elementType: nullableStr,
 })
 
 const patchSchema = z.object({
