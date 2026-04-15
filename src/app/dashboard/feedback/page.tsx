@@ -6,6 +6,7 @@ import { eq, and, desc } from 'drizzle-orm'
 import type { SessionUser } from '@/lib/auth'
 import { MessageSquare, Bug, Sparkles, Paintbrush, Target, ExternalLink, Clock, CheckCircle2, Eye } from 'lucide-react'
 import FeedbackStatusButtons from './FeedbackStatusButtons'
+import IncorporateFeedbackPanel from '@/components/feedback/IncorporateFeedbackPanel'
 
 export const metadata = { title: 'Feedback — Trust Codex' }
 
@@ -81,16 +82,19 @@ export default async function FeedbackPage({
   return (
     <div className="space-y-6">
       {/* Page header */}
-      <div className="flex items-start justify-between">
+      <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-neutral-900">Feedback</h1>
           <p className="mt-0.5 text-sm text-neutral-500">
             User-submitted feedback with element pinpoints across Trust Codex
           </p>
         </div>
-        <div className="flex items-center gap-2 rounded-xl bg-indigo-50 border border-indigo-200 px-4 py-2">
-          <MessageSquare className="h-4 w-4 text-indigo-500" />
-          <span className="text-sm font-semibold text-indigo-700">{counts['pending'] ?? 0} pending</span>
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-2 rounded-xl bg-indigo-50 border border-indigo-200 px-4 py-2">
+            <MessageSquare className="h-4 w-4 text-indigo-500" />
+            <span className="text-sm font-semibold text-indigo-700">{counts['pending'] ?? 0} pending</span>
+          </div>
+          <IncorporateFeedbackPanel pendingCount={(counts['pending'] ?? 0) + (counts['reviewed'] ?? 0)} />
         </div>
       </div>
 
