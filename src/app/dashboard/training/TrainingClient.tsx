@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   PlusCircle,
   Trash2,
@@ -14,6 +15,7 @@ import {
   XCircle,
   ChevronDown,
   ChevronUp,
+  FileStack,
 } from "lucide-react";
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -587,6 +589,30 @@ export default function TrainingClient({ initialRecords }: { initialRecords: Tra
               {totalExpired} expired
             </span>
           )}
+        </div>
+      </div>
+
+      {/* Evidence Engine integration notice */}
+      <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-4 dark:border-indigo-800/40 dark:bg-indigo-950/20">
+        <div className="flex items-start gap-3">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-600">
+            <FileStack className="h-4 w-4 text-white" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-indigo-900 dark:text-indigo-100">
+              Evidence Engine Integration
+            </h3>
+            <p className="mt-1 text-xs text-indigo-700 dark:text-indigo-300">
+              Training records added here are automatically synced to the{" "}
+              <Link
+                href="/dashboard/evidence-engine/registers/training_completion"
+                className="font-semibold underline hover:text-indigo-800 dark:hover:text-indigo-200"
+              >
+                Training Completion Register
+              </Link>{" "}
+              in the Evidence Engine. Entries are created as drafts — finalize them in the register to include in auditor exports.
+            </p>
+          </div>
         </div>
       </div>
 
