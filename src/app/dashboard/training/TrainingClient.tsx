@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -16,6 +16,11 @@ import {
   ChevronDown,
   ChevronUp,
   FileStack,
+  Shield,
+  ShieldCheck,
+  UserCheck,
+  UserX,
+  Settings,
 } from "lucide-react";
 import CertificateImporter from "@/components/training/CertificateImporter";
 
@@ -30,6 +35,7 @@ const TRAINING_SECTIONS = [
     audienceNote: "Every person with access to CUI systems must complete this annually.",
     sprsValue: 3,
     icon: Users,
+    requiredFor: ["general", "privileged"] as const,
     color: {
       bg: "bg-blue-50 dark:bg-blue-950/20",
       border: "border-blue-200 dark:border-blue-800/40",
@@ -48,6 +54,7 @@ const TRAINING_SECTIONS = [
       "Required for system administrators, IT staff, security personnel, and anyone with elevated access.",
     sprsValue: 3,
     icon: ShieldAlert,
+    requiredFor: ["privileged"] as const,
     color: {
       bg: "bg-violet-50 dark:bg-violet-950/20",
       border: "border-violet-200 dark:border-violet-800/40",
@@ -65,6 +72,7 @@ const TRAINING_SECTIONS = [
     audienceNote: "All personnel must complete insider threat awareness training annually.",
     sprsValue: 5,
     icon: Eye,
+    requiredFor: ["general", "privileged"] as const,
     color: {
       bg: "bg-orange-50 dark:bg-orange-950/20",
       border: "border-orange-200 dark:border-orange-800/40",
@@ -109,6 +117,15 @@ interface TrainingRecord {
   evidenceUrl: string | null;
   notes: string | null;
   createdAt: string;
+}
+
+type UserType = "general" | "privileged";
+
+interface BoundaryUser {
+  id: string;
+  email: string;
+  name: string | null;
+  userType: UserType;
 }
 
 const makeEmptyForm = (type: string) => ({
@@ -164,6 +181,292 @@ function RoleBadge({ role }: { role: string | null | undefined }) {
   if (!role) return null;
   const r = USER_ROLES.find((u) => u.value === role);
   return <span className="text-xs text-gray-500 dark:text-gray-400">{r?.label ?? role}</span>;
+}
+
+// ── User Compliance Roster ───────────────────────────────────────────────────
+
+interface UserComplianceRosterProps {
+  users: BoundaryUser[];
+  records: TrainingRecord[];
+}
+
+function UserComplianceRoster({ users, records }: UserComplianceRosterProps) {
+  const [expanded, setExpanded] = useState(true);
+
+  // Calculate compliance status for each user
+  const userCompliance = useMemo(() => {
+    return users.map((user) => {
+      const userRecords = records.filter(
+        (r) =>
+          r.personnelName.toLowerCase() === user.name?.toLowerCase() ||
+          r.personnelEmail?.toLowerCase() === user.email.toLowerCase()
+      );
+
+      const requiredTrainings = TRAINING_SECTIONS.filter((s) =>
+        s.requiredFor.includes(user.userType)
+      );
+
+      const completedTrainings = requiredTrainings.filter((section) => {
+        const sectionRecords = userRecords.filter((r) => r.trainingType === section.type);
+        // Check if there's at least one non-expired record
+        return sectionRecords.some(
+          (r) => !r.expiresAt || new Date(r.expiresAt) >= new Date()
+        );
+      });
+
+      const missingTrainings = requiredTrainings.filter(
+        (section) => !completedTrainings.includes(section)
+      );
+
+      const expiringSoonTrainings = requiredTrainings.filter((section) => {
+        const sectionRecords = userRecords.filter((r) => r.trainingType === section.type);
+        return sectionRecords.some((r) => {
+          if (!r.expiresAt) return false;
+          const days = Math.ceil((new Date(r.expiresAt).getTime() - Date.now()) / (1000 * 3600 * 24));
+          return days >= 0 && days <= 30;
+        });
+      });
+
+      return {
+        user,
+        requiredCount: requiredTrainings.length,
+        completedCount: completedTrainings.length,
+        missingTrainings,
+        expiringSoonTrainings,
+        isCompliant: missingTrainings.length === 0,
+        hasExpiringSoon: expiringSoonTrainings.length > 0,
+      };
+    });
+  }, [users, records]);
+
+  const compliantCount = userCompliance.filter((u) => u.isCompliant).length;
+  const totalCount = users.length;
+  const privilegedCount = users.filter((u) => u.userType === "privileged").length;
+  const generalCount = totalCount - privilegedCount;
+
+  if (users.length === 0) {
+    return (
+      <section className="rounded-2xl border border-slate-200 bg-slate-50 p-6 dark:border-slate-700 dark:bg-slate-900/50">
+        <div className="flex flex-col items-center justify-center py-6">
+          <Users className="h-10 w-10 text-slate-300 dark:text-slate-600" />
+          <h3 className="mt-3 text-sm font-semibold text-slate-700 dark:text-slate-300">
+            No Boundary Users Defined
+          </h3>
+          <p className="mt-1 max-w-sm text-center text-xs text-slate-500 dark:text-slate-400">
+            Define users in your CUI boundary to track training compliance. Go to Settings → User Management
+            to add users and classify them as General or Privileged.
+          </p>
+          <Link
+            href="/dashboard/settings"
+            className="mt-4 inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+          >
+            <Settings className="h-4 w-4" />
+            Go to User Management
+          </Link>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+      {/* Header */}
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="flex w-full items-center justify-between px-5 py-4 text-left hover:bg-slate-50 dark:hover:bg-slate-800/50"
+      >
+        <div className="flex items-center gap-3">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-600">
+            <Users className="h-4 w-4 text-white" />
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+              Boundary User Compliance
+            </h2>
+            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+              Track training compliance for all users in your CUI boundary
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4 text-xs">
+            <span className="flex items-center gap-1.5 text-slate-500">
+              <Shield className="h-3.5 w-3.5 text-blue-500" />
+              {generalCount} general
+            </span>
+            <span className="flex items-center gap-1.5 text-slate-500">
+              <ShieldCheck className="h-3.5 w-3.5 text-violet-500" />
+              {privilegedCount} privileged
+            </span>
+          </div>
+          <div className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
+            compliantCount === totalCount
+              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+              : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+          }`}>
+            {compliantCount === totalCount ? (
+              <UserCheck className="h-3.5 w-3.5" />
+            ) : (
+              <UserX className="h-3.5 w-3.5" />
+            )}
+            {compliantCount}/{totalCount} compliant
+          </div>
+          {expanded ? (
+            <ChevronUp className="h-4 w-4 text-slate-400" />
+          ) : (
+            <ChevronDown className="h-4 w-4 text-slate-400" />
+          )}
+        </div>
+      </button>
+
+      {/* User table */}
+      {expanded && (
+        <div className="border-t border-slate-200 dark:border-slate-700">
+          <table className="w-full text-sm">
+            <thead className="bg-slate-50 dark:bg-slate-800/50">
+              <tr>
+                <th className="px-5 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  User
+                </th>
+                <th className="px-5 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Type
+                </th>
+                <th className="px-5 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  3.2.1 Awareness
+                </th>
+                <th className="px-5 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  3.2.2 Role-Based
+                </th>
+                <th className="px-5 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  3.2.3 Insider Threat
+                </th>
+                <th className="px-5 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Status
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              {userCompliance.map(({ user, isCompliant, missingTrainings }) => {
+                const userRecords = records.filter(
+                  (r) =>
+                    r.personnelName.toLowerCase() === user.name?.toLowerCase() ||
+                    r.personnelEmail?.toLowerCase() === user.email.toLowerCase()
+                );
+
+                const getTrainingStatus = (trainingType: string, requiredFor: readonly string[]) => {
+                  if (!requiredFor.includes(user.userType)) {
+                    return { status: "na", label: "N/A" };
+                  }
+                  const typeRecords = userRecords.filter((r) => r.trainingType === trainingType);
+                  if (typeRecords.length === 0) {
+                    return { status: "missing", label: "Missing" };
+                  }
+                  const validRecord = typeRecords.find(
+                    (r) => !r.expiresAt || new Date(r.expiresAt) >= new Date()
+                  );
+                  if (!validRecord) {
+                    return { status: "expired", label: "Expired" };
+                  }
+                  if (validRecord.expiresAt) {
+                    const days = Math.ceil(
+                      (new Date(validRecord.expiresAt).getTime() - Date.now()) / (1000 * 3600 * 24)
+                    );
+                    if (days <= 30) {
+                      return { status: "expiring", label: `${days}d` };
+                    }
+                  }
+                  return { status: "complete", label: "✓" };
+                };
+
+                const awareness = getTrainingStatus("security_awareness", ["general", "privileged"]);
+                const roleBased = getTrainingStatus("role_based", ["privileged"]);
+                const insider = getTrainingStatus("insider_threat", ["general", "privileged"]);
+
+                const StatusCell = ({ status, label }: { status: string; label: string }) => {
+                  const classes = {
+                    complete: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+                    missing: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+                    expired: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+                    expiring: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+                    na: "bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500",
+                  };
+                  return (
+                    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${classes[status as keyof typeof classes] ?? classes.na}`}>
+                      {label}
+                    </span>
+                  );
+                };
+
+                return (
+                  <tr key={user.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-2.5">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-100 text-xs font-semibold text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400">
+                          {(user.name?.[0] ?? user.email[0]).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="font-medium text-slate-900 dark:text-slate-100">
+                            {user.name || "Unnamed User"}
+                          </p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">{user.email}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-5 py-3">
+                      <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+                        user.userType === "privileged"
+                          ? "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400"
+                          : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                      }`}>
+                        {user.userType === "privileged" ? (
+                          <ShieldCheck className="h-3 w-3" />
+                        ) : (
+                          <Shield className="h-3 w-3" />
+                        )}
+                        {user.userType === "privileged" ? "Privileged" : "General"}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3">
+                      <StatusCell {...awareness} />
+                    </td>
+                    <td className="px-5 py-3">
+                      <StatusCell {...roleBased} />
+                    </td>
+                    <td className="px-5 py-3">
+                      <StatusCell {...insider} />
+                    </td>
+                    <td className="px-5 py-3">
+                      {isCompliant ? (
+                        <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          Compliant
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-xs font-medium text-red-600 dark:text-red-400">
+                          <XCircle className="h-3.5 w-3.5" />
+                          {missingTrainings.length} missing
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          <div className="border-t border-slate-200 bg-slate-50 px-5 py-3 dark:border-slate-700 dark:bg-slate-800/50">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              <strong className="font-medium text-slate-600 dark:text-slate-300">Note:</strong>{" "}
+              User types are managed in{" "}
+              <Link href="/dashboard/settings" className="font-medium text-indigo-600 hover:underline dark:text-indigo-400">
+                Settings → User Management
+              </Link>
+              . General users require 3.2.1 and 3.2.3. Privileged users require all three training types.
+            </p>
+          </div>
+        </div>
+      )}
+    </section>
+  );
 }
 
 // ── Training Section ─────────────────────────────────────────────────────────
@@ -242,7 +545,7 @@ function TrainingSection({ section, records, onAdd, onDelete }: SectionProps) {
   const labelClass = "block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1";
 
   return (
-    <section className={`rounded-xl border ${c.border} ${c.bg} overflow-hidden`}>
+    <section className={`overflow-hidden rounded-2xl border shadow-sm ${c.border} ${c.bg}`}>
       {/* Section header */}
       <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
         <div className="flex items-center gap-3">
@@ -558,6 +861,43 @@ function TrainingSection({ section, records, onAdd, onDelete }: SectionProps) {
 
 export default function TrainingClient({ initialRecords }: { initialRecords: TrainingRecord[] }) {
   const [records, setRecords] = useState<TrainingRecord[]>(initialRecords);
+  const [boundaryUsers, setBoundaryUsers] = useState<BoundaryUser[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
+
+  // Load boundary users from API and localStorage user types
+  useEffect(() => {
+    async function loadUsers() {
+      try {
+        const res = await fetch("/api/boundary-users");
+        if (res.ok) {
+          const users = await res.json();
+          // Load user types from localStorage
+          let userTypes: Record<string, "general" | "privileged"> = {};
+          try {
+            const stored = localStorage.getItem("boundaryUserTypes");
+            if (stored) {
+              userTypes = JSON.parse(stored);
+            }
+          } catch {
+            // ignore
+          }
+          
+          const mappedUsers: BoundaryUser[] = users.map((u: { id: string; email: string; name: string | null }) => ({
+            id: u.id,
+            email: u.email,
+            name: u.name,
+            userType: userTypes[u.id] ?? "general",
+          }));
+          setBoundaryUsers(mappedUsers);
+        }
+      } catch {
+        // ignore - users list is optional feature
+      } finally {
+        setLoadingUsers(false);
+      }
+    }
+    loadUsers();
+  }, []);
 
   const handleAdd = (record: TrainingRecord) => {
     setRecords((prev) => [record, ...prev]);
@@ -618,8 +958,13 @@ export default function TrainingClient({ initialRecords }: { initialRecords: Tra
         </div>
       </div>
 
+      {/* User Compliance Roster */}
+      {!loadingUsers && (
+        <UserComplianceRoster users={boundaryUsers} records={records} />
+      )}
+
       {/* Evidence Engine integration notice */}
-      <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-4 dark:border-indigo-800/40 dark:bg-indigo-950/20">
+      <div className="rounded-2xl border border-indigo-200 bg-indigo-50 p-4 shadow-sm dark:border-indigo-800/40 dark:bg-indigo-950/20">
         <div className="flex items-start gap-3">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-600">
             <FileStack className="h-4 w-4 text-white" />
