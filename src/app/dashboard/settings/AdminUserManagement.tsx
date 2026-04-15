@@ -459,7 +459,10 @@ export default function AdminUserManagement() {
             </p>
           </div>
 
-          <form onSubmit={handleCreateUser} className="space-y-5">
+          <form onSubmit={handleCreateUser} className="space-y-5" autoComplete="off">
+            {/* Decoys to defeat Chrome's aggressive autofill on admin create-user forms */}
+            <input type="text" name="fakeusernameremembered" style={{ display: "none" }} />
+            <input type="password" name="fakepasswordremembered" style={{ display: "none" }} />
             {/* User Details Section */}
             <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
               <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -472,9 +475,13 @@ export default function AdminUserManagement() {
                   </label>
                   <input
                     type="text"
+                    name="new-user-name"
                     value={createName}
                     onChange={(e) => setCreateName(e.target.value)}
                     placeholder="Jane Smith"
+                    autoComplete="off"
+                    data-lpignore="true"
+                    data-1p-ignore="true"
                     className="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                   />
                 </div>
@@ -484,9 +491,13 @@ export default function AdminUserManagement() {
                   </label>
                   <input
                     type="email"
+                    name="new-user-email"
                     value={createEmail}
                     onChange={(e) => setCreateEmail(e.target.value)}
                     placeholder="jane@company.com"
+                    autoComplete="off"
+                    data-lpignore="true"
+                    data-1p-ignore="true"
                     className="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                     required
                   />
@@ -506,10 +517,14 @@ export default function AdminUserManagement() {
                 <div className="relative max-w-md">
                   <input
                     type={showCreatePassword ? "text" : "password"}
+                    name="new-user-password"
                     value={createPassword}
                     onChange={(e) => setCreatePassword(e.target.value)}
                     placeholder="Minimum 8 characters"
                     minLength={8}
+                    autoComplete="new-password"
+                    data-lpignore="true"
+                    data-1p-ignore="true"
                     className="w-full rounded-lg border border-slate-300 px-3 py-2 pr-10 text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                     required
                   />
