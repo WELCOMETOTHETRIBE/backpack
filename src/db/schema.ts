@@ -1562,6 +1562,79 @@ export const trainingRecords = pgTable(
   ]
 );
 
+// ============== Trust Codex Onboarding Wizard (v2) ==============
+
+/**
+ * Legal gate record — one row per org per Trust Codex version accepted.
+ * Immutable once created; forms the legal record of acceptance.
+ */
+export const trustCodexAcceptances = pgTable("trust_codex_acceptances", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id),
+  version: varchar("version", { length: 20 }).notNull().default("1.0"),
+  acceptedAt: timestamp("accepted_at", { withTimezone: true }).notNull().defaultNow(),
+  acceptedByUserId: uuid("accepted_by_user_id").notNull(),
+  signatoryName: varchar("signatory_name", { length: 255 }).notNull(),
+  signatoryTitle: varchar("signatory_title", { length: 255 }).notNull(),
+  cageCode: varchar("cage_code", { length: 10 }),
+  primeContractNumber: varchar("prime_contract_number", { length: 100 }),
+  ipAddress: varchar("ip_address", { length: 45 }),
+  /** SHA-256 hash of the user agent string */
+  userAgentHash: varchar("user_agent_hash", { length: 64 }),
+});
+
+/**
+ * Resumable wizard state — one row per org, upserted at each phase.
+ */
+export const onboardingWizardState = pgTable("onboarding_wizard_state", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id")
+    .notNull()
+    .unique()
+    .references(() => organizations.id),
+  currentPhase: integer("current_phase").notNull().default(0),
+  completedPhases: jsonb("completed_phases").$type<number[]>().default([]),
+  phaseData: jsonb("phase_data").$type<Record<string, unknown>>().default({}),
+  sprsScoreSnapshot: integer("sprs_score_snapshot"),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
+ * Per-control adjudication record — the legal record of each control outcome.
+ * One row per org × controlId; upserted as the wizard advances.
+ * attestedByUserId + attestedAt are mandatory for status = "implemented".
+ */
+export const controlAdjudications = pgTable(
+  "control_adjudications",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id),
+    controlId: varchar("control_id", { length: 20 }).notNull(),
+    tier: varchar("tier", { length: 30 }).notNull(),
+    status: varchar("status", { length: 30 }).notNull(),
+    narrative: text("narrative"),
+    attestedByUserId: uuid("attested_by_user_id"),
+    attestedAt: timestamp("attested_at", { withTimezone: true }),
+    evidenceBlobKeys: jsonb("evidence_blob_keys").$type<string[]>().default([]),
+    /** Map of blobKey → SHA-256 hash. Immutable once set. */
+    evidenceBlobHashes: jsonb("evidence_blob_hashes")
+      .$type<Record<string, string>>()
+      .default({}),
+    poamTargetDate: date("poam_target_date"),
+    poamNotes: text("poam_notes"),
+    needsReview: boolean("needs_review").notNull().default(false),
+    needsReviewReason: text("needs_review_reason"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("org_control_unique").on(table.organizationId, table.controlId),
+  ]
+);
+
 // ============== Evidence runs (metadata-only) ==============
 export {
   evidenceRuns,
