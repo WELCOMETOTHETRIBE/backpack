@@ -13,6 +13,24 @@ import { getOptimizedByControlId } from "@/lib/sctm-optimized-types";
 
 const ADJUDICATED = ["implemented", "assessed", "inherited", "not_applicable"];
 
+/** Color coordination for control families - unique colors for visual differentiation */
+const FAMILY_COLORS: Record<string, { bg: string; bgActive: string; border: string; borderActive: string; text: string; textActive: string; icon: string; iconActive: string; progress: string; progressActive: string }> = {
+  AC: { bg: "bg-blue-50", bgActive: "bg-blue-600", border: "border-blue-200", borderActive: "border-blue-600", text: "text-blue-700", textActive: "text-white", icon: "bg-blue-100 text-blue-600", iconActive: "bg-white/20", progress: "bg-blue-500/50", progressActive: "bg-white/70" },
+  AT: { bg: "bg-violet-50", bgActive: "bg-violet-600", border: "border-violet-200", borderActive: "border-violet-600", text: "text-violet-700", textActive: "text-white", icon: "bg-violet-100 text-violet-600", iconActive: "bg-white/20", progress: "bg-violet-500/50", progressActive: "bg-white/70" },
+  AU: { bg: "bg-emerald-50", bgActive: "bg-emerald-600", border: "border-emerald-200", borderActive: "border-emerald-600", text: "text-emerald-700", textActive: "text-white", icon: "bg-emerald-100 text-emerald-600", iconActive: "bg-white/20", progress: "bg-emerald-500/50", progressActive: "bg-white/70" },
+  CM: { bg: "bg-amber-50", bgActive: "bg-amber-600", border: "border-amber-200", borderActive: "border-amber-600", text: "text-amber-700", textActive: "text-white", icon: "bg-amber-100 text-amber-600", iconActive: "bg-white/20", progress: "bg-amber-500/50", progressActive: "bg-white/70" },
+  IA: { bg: "bg-rose-50", bgActive: "bg-rose-600", border: "border-rose-200", borderActive: "border-rose-600", text: "text-rose-700", textActive: "text-white", icon: "bg-rose-100 text-rose-600", iconActive: "bg-white/20", progress: "bg-rose-500/50", progressActive: "bg-white/70" },
+  IR: { bg: "bg-red-50", bgActive: "bg-red-600", border: "border-red-200", borderActive: "border-red-600", text: "text-red-700", textActive: "text-white", icon: "bg-red-100 text-red-600", iconActive: "bg-white/20", progress: "bg-red-500/50", progressActive: "bg-white/70" },
+  MA: { bg: "bg-orange-50", bgActive: "bg-orange-600", border: "border-orange-200", borderActive: "border-orange-600", text: "text-orange-700", textActive: "text-white", icon: "bg-orange-100 text-orange-600", iconActive: "bg-white/20", progress: "bg-orange-500/50", progressActive: "bg-white/70" },
+  MP: { bg: "bg-slate-50", bgActive: "bg-slate-600", border: "border-slate-200", borderActive: "border-slate-600", text: "text-slate-700", textActive: "text-white", icon: "bg-slate-100 text-slate-600", iconActive: "bg-white/20", progress: "bg-slate-500/50", progressActive: "bg-white/70" },
+  PS: { bg: "bg-pink-50", bgActive: "bg-pink-600", border: "border-pink-200", borderActive: "border-pink-600", text: "text-pink-700", textActive: "text-white", icon: "bg-pink-100 text-pink-600", iconActive: "bg-white/20", progress: "bg-pink-500/50", progressActive: "bg-white/70" },
+  PE: { bg: "bg-stone-50", bgActive: "bg-stone-600", border: "border-stone-200", borderActive: "border-stone-600", text: "text-stone-700", textActive: "text-white", icon: "bg-stone-100 text-stone-600", iconActive: "bg-white/20", progress: "bg-stone-500/50", progressActive: "bg-white/70" },
+  RA: { bg: "bg-cyan-50", bgActive: "bg-cyan-600", border: "border-cyan-200", borderActive: "border-cyan-600", text: "text-cyan-700", textActive: "text-white", icon: "bg-cyan-100 text-cyan-600", iconActive: "bg-white/20", progress: "bg-cyan-500/50", progressActive: "bg-white/70" },
+  CA: { bg: "bg-teal-50", bgActive: "bg-teal-600", border: "border-teal-200", borderActive: "border-teal-600", text: "text-teal-700", textActive: "text-white", icon: "bg-teal-100 text-teal-600", iconActive: "bg-white/20", progress: "bg-teal-500/50", progressActive: "bg-white/70" },
+  SC: { bg: "bg-indigo-50", bgActive: "bg-indigo-600", border: "border-indigo-200", borderActive: "border-indigo-600", text: "text-indigo-700", textActive: "text-white", icon: "bg-indigo-100 text-indigo-600", iconActive: "bg-white/20", progress: "bg-indigo-500/50", progressActive: "bg-white/70" },
+  SI: { bg: "bg-fuchsia-50", bgActive: "bg-fuchsia-600", border: "border-fuchsia-200", borderActive: "border-fuchsia-600", text: "text-fuchsia-700", textActive: "text-white", icon: "bg-fuchsia-100 text-fuchsia-600", iconActive: "bg-white/20", progress: "bg-fuchsia-500/50", progressActive: "bg-white/70" },
+};
+
 /** Sort control IDs numerically (3.1.1, 3.1.2, … 3.1.9, 3.1.10) instead of lexicographically. */
 function compareControlIds(a: string, b: string): number {
   const partsA = a.split(".").map((s) => parseInt(s, 10) || 0);
@@ -266,6 +284,7 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
                 const isActive = family === f.code;
                 const pct = f.total ? Math.round((f.adjudicated / f.total) * 100) : 0;
                 const Icon = f.icon;
+                const colors = FAMILY_COLORS[f.code] ?? FAMILY_COLORS.AC;
                 return (
                   <button
                     key={f.code}
@@ -274,17 +293,17 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
                     title={`${f.name}: ${f.adjudicated}/${f.total} adjudicated`}
                     className={`group relative flex min-h-[72px] flex-col items-start rounded-xl border px-3 py-2.5 text-left transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2 ${
                       isActive
-                        ? "border-[var(--color-primary)]/40 bg-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/15"
-                        : "border-[var(--color-border)]/80 bg-white hover:border-[var(--color-gray-300)] hover:shadow-md hover:shadow-black/[0.04]"
+                        ? `${colors.bgActive} ${colors.borderActive} text-white shadow-md`
+                        : `${colors.bg} ${colors.border} hover:shadow-md hover:shadow-black/[0.04]`
                     }`}
                   >
                     <div className="flex w-full items-center gap-2">
-                      <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${isActive ? "bg-white/20" : "bg-[var(--color-gray-100)] text-[var(--color-gray-600)] group-hover:bg-[var(--color-gray-200)]"}`}>
+                      <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md transition-colors ${isActive ? colors.iconActive : colors.icon}`}>
                         <Icon className="h-3.5 w-3.5" aria-hidden />
                       </div>
-                      <span className="font-mono text-xs font-bold tabular-nums truncate">{f.code}</span>
+                      <span className={`font-mono text-xs font-bold tabular-nums truncate ${isActive ? colors.textActive : colors.text}`}>{f.code}</span>
                     </div>
-                    <span className={`mt-1 line-clamp-2 text-[11px] leading-tight ${isActive ? "text-white/95" : "text-[var(--color-gray-600)]"}`}>
+                    <span className={`mt-1 line-clamp-2 text-[11px] leading-tight ${isActive ? "text-white/95" : colors.text}`}>
                       {f.name}
                     </span>
                     <div className="mt-2 w-full space-y-1">
@@ -296,9 +315,9 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
                           <span className={isActive ? "text-white/70" : "text-[var(--color-gray-400)]"}>{pct}%</span>
                         )}
                       </div>
-                      <div className="h-1 w-full overflow-hidden rounded-full bg-black/10">
+                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/10">
                         <div
-                          className={`h-full rounded-full transition-all duration-300 ${isActive ? "bg-white/70" : "bg-[var(--color-primary)]/50"}`}
+                          className={`h-full rounded-full transition-all duration-300 ${isActive ? colors.progressActive : colors.progress}`}
                           style={{ width: `${Math.min(100, pct)}%` }}
                           aria-hidden
                         />
@@ -396,7 +415,6 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
               const opt = optimizedByControlId[r.controlId];
               const nist = nistByControlId[r.controlId];
               const title = opt?.title ?? nist?.title ?? r.controlId;
-              const description = opt?.summary ?? nist?.nistExactText?.replace(/\s+/g, " ").trim().slice(0, 120);
               const isSelected = r.controlId === controlId;
               return (
                 <li key={r.controlId} className={viewMode === "grid" ? "min-w-0" : undefined}>

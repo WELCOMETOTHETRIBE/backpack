@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import {
   ClipboardList,
@@ -13,35 +13,86 @@ import {
   RefreshCw,
   ExternalLink,
   Info,
+  LayoutGrid,
+  LayoutList,
+  FolderOpen,
 } from "lucide-react";
 import type { ComplianceRegisterHealth, RegisterHealthStatus } from "@/app/api/registers/compliance-health/route";
 
+// ── Register categories for grouping ────────────────────────────────────────
+type RegisterCategory = "access" | "personnel" | "monitoring" | "incident" | "assets" | "governance";
+
+const CATEGORY_CONFIG: Record<RegisterCategory, { name: string; description: string; color: string; bgColor: string; borderColor: string }> = {
+  access: {
+    name: "Access & Identity",
+    description: "User access, roles, and authentication records",
+    color: "text-blue-700",
+    bgColor: "bg-blue-50",
+    borderColor: "border-blue-200",
+  },
+  personnel: {
+    name: "Personnel & Training",
+    description: "Training completion, screening, and termination records",
+    color: "text-violet-700",
+    bgColor: "bg-violet-50",
+    borderColor: "border-violet-200",
+  },
+  monitoring: {
+    name: "Monitoring & Audit",
+    description: "Audit logs, continuous monitoring, and compliance runs",
+    color: "text-emerald-700",
+    bgColor: "bg-emerald-50",
+    borderColor: "border-emerald-200",
+  },
+  incident: {
+    name: "Incident & Maintenance",
+    description: "Incident response, maintenance logs, and change control",
+    color: "text-amber-700",
+    bgColor: "bg-amber-50",
+    borderColor: "border-amber-200",
+  },
+  assets: {
+    name: "Assets & Physical",
+    description: "Media handling, facility access, and visitor records",
+    color: "text-slate-700",
+    bgColor: "bg-slate-50",
+    borderColor: "border-slate-200",
+  },
+  governance: {
+    name: "Risk & Governance",
+    description: "Risk register, POA&M, assessments, and policy reviews",
+    color: "text-indigo-700",
+    bgColor: "bg-indigo-50",
+    borderColor: "border-indigo-200",
+  },
+};
+
 // ── Display name overrides (friendlier than schema IDs) ─────────────────────
-const REGISTER_DISPLAY: Record<string, { name: string; description: string }> = {
-  access_authorization:    { name: "User Access Register", description: "Authorized users, roles, access grants and quarterly reviews." },
-  role_assignment_matrix:  { name: "Role Assignment Matrix", description: "Roles mapped to users; demonstrates least-privilege enforcement." },
-  sod_matrix:              { name: "Separation of Duties Matrix", description: "Incompatible duties documented; annual review required." },
-  authenticator_mgmt:      { name: "MFA Enrollment Register", description: "MFA enrollment status for all users with CUI access." },
-  training_completion:     { name: "Security Training Register", description: "Annual security awareness training records for all CUI users." },
-  personnel_screening:     { name: "Personnel Screening Register", description: "Pre-employment screening records per hire; annual check." },
-  termination:             { name: "Termination Action Register", description: "Access revocation actions within 24 hours of termination." },
-  audit_log_review:        { name: "Audit Log Review Register", description: "Monthly documentation of audit log reviews and anomalies found." },
-  audit_config:            { name: "Key Management Register", description: "Azure Key Vault configuration, key rotation, and access policies." },
-  control_monitoring:      { name: "ConMon Activity Log", description: "Continuous monitoring activities; Azure inheritance confirmations." },
-  incident_log:            { name: "Incident Response Register", description: "Incidents, response actions, DFARS reporting, tabletop exercises." },
-  maintenance_log:         { name: "Maintenance Log", description: "All maintenance activities, remote sessions, and approvals." },
-  media_access:            { name: "Media Accountability Register", description: "CUI media transport chain-of-custody records." },
-  media_destruction:       { name: "Media Sanitization Register", description: "BitLocker crypto-erase and physical destruction records." },
-  visitor_log:             { name: "Visitor Log", description: "Controlled area visitor records with escort and purpose." },
-  facility_access:         { name: "Facility Access Log", description: "Physical access reviews for non-datacenter controlled areas." },
-  baseline_config:         { name: "Authorized Software Register", description: "Approved software and configuration baseline with quarterly review." },
-  change_log:              { name: "Change Control Register", description: "Every configuration change with SIA, approval, and test results." },
-  risk_register:           { name: "Risk Register", description: "Formal risk assessment findings, treatments, and annual reviews." },
-  assessment_findings:     { name: "Security Assessment Register", description: "Annual assessment findings, actions, and verification status." },
-  poam:                    { name: "POA&M Register", description: "Open Plan of Action & Milestones with monthly milestone updates." },
-  vuln_remediation:        { name: "Vulnerability Remediation Register", description: "Vulnerability scan results, patch status, and remediation timelines." },
-  policy_review:           { name: "SSP & Policy Review Register", description: "Annual SSP and policy document review records." },
-  technical_compliance_run: { name: "Technical Compliance Log", description: "OS Collector run history; verifies continuous technical evidence." },
+const REGISTER_DISPLAY: Record<string, { name: string; description: string; category: RegisterCategory }> = {
+  access_authorization:    { name: "User Access Register", description: "Authorized users, roles, access grants and quarterly reviews.", category: "access" },
+  role_assignment_matrix:  { name: "Role Assignment Matrix", description: "Roles mapped to users; demonstrates least-privilege enforcement.", category: "access" },
+  sod_matrix:              { name: "Separation of Duties Matrix", description: "Incompatible duties documented; annual review required.", category: "access" },
+  authenticator_mgmt:      { name: "MFA Enrollment Register", description: "MFA enrollment status for all users with CUI access.", category: "access" },
+  training_completion:     { name: "Security Training Register", description: "Annual security awareness training records for all CUI users.", category: "personnel" },
+  personnel_screening:     { name: "Personnel Screening Register", description: "Pre-employment screening records per hire; annual check.", category: "personnel" },
+  termination:             { name: "Termination Action Register", description: "Access revocation actions within 24 hours of termination.", category: "personnel" },
+  audit_log_review:        { name: "Audit Log Review Register", description: "Monthly documentation of audit log reviews and anomalies found.", category: "monitoring" },
+  audit_config:            { name: "Key Management Register", description: "Azure Key Vault configuration, key rotation, and access policies.", category: "monitoring" },
+  control_monitoring:      { name: "ConMon Activity Log", description: "Continuous monitoring activities; Azure inheritance confirmations.", category: "monitoring" },
+  technical_compliance_run: { name: "Technical Compliance Log", description: "OS Collector run history; verifies continuous technical evidence.", category: "monitoring" },
+  incident_log:            { name: "Incident Response Register", description: "Incidents, response actions, DFARS reporting, tabletop exercises.", category: "incident" },
+  maintenance_log:         { name: "Maintenance Log", description: "All maintenance activities, remote sessions, and approvals.", category: "incident" },
+  change_log:              { name: "Change Control Register", description: "Every configuration change with SIA, approval, and test results.", category: "incident" },
+  media_access:            { name: "Media Accountability Register", description: "CUI media transport chain-of-custody records.", category: "assets" },
+  media_destruction:       { name: "Media Sanitization Register", description: "BitLocker crypto-erase and physical destruction records.", category: "assets" },
+  visitor_log:             { name: "Visitor Log", description: "Controlled area visitor records with escort and purpose.", category: "assets" },
+  facility_access:         { name: "Facility Access Log", description: "Physical access reviews for non-datacenter controlled areas.", category: "assets" },
+  baseline_config:         { name: "Authorized Software Register", description: "Approved software and configuration baseline with quarterly review.", category: "governance" },
+  risk_register:           { name: "Risk Register", description: "Formal risk assessment findings, treatments, and annual reviews.", category: "governance" },
+  assessment_findings:     { name: "Security Assessment Register", description: "Annual assessment findings, actions, and verification status.", category: "governance" },
+  poam:                    { name: "POA&M Register", description: "Open Plan of Action & Milestones with monthly milestone updates.", category: "governance" },
+  vuln_remediation:        { name: "Vulnerability Remediation Register", description: "Vulnerability scan results, patch status, and remediation timelines.", category: "governance" },
+  policy_review:           { name: "SSP & Policy Review Register", description: "Annual SSP and policy document review records.", category: "governance" },
 };
 
 // ── Status visuals ──────────────────────────────────────────────────────────
@@ -114,6 +165,50 @@ function formatNextDue(iso: string | null, status: RegisterHealthStatus): string
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
+// ── Compact list item ────────────────────────────────────────────────────────
+
+function RegisterListItem({ reg }: { reg: ComplianceRegisterHealth }) {
+  const display = REGISTER_DISPLAY[reg.registerKey];
+  const name = display?.name ?? reg.displayName;
+  const cfg = statusConfig(reg.status);
+  const StatusIcon = cfg.icon;
+
+  return (
+    <Link
+      href={reg.href}
+      className={`group flex items-center gap-4 rounded-xl border bg-white px-4 py-3 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${cfg.ring}`}
+    >
+      <StatusIcon className={`h-4 w-4 shrink-0 ${cfg.iconColor}`} />
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-gray-900 truncate">{name}</p>
+      </div>
+      <div className="flex items-center gap-4 shrink-0">
+        <div className="text-right hidden sm:block">
+          <p className="text-[10px] font-medium uppercase tracking-wide text-gray-400">Last Entry</p>
+          <p className="text-xs font-medium text-gray-700">
+            {reg.lastEntryAt ? formatRelativeDate(reg.lastEntryAt) : <span className="text-gray-400 italic">None</span>}
+          </p>
+        </div>
+        <div className="text-right hidden md:block">
+          <p className="text-[10px] font-medium uppercase tracking-wide text-gray-400">Next Due</p>
+          <p className={`text-xs font-medium ${
+            reg.status === "overdue" ? "text-red-600" :
+            reg.status === "due_soon" ? "text-amber-600" :
+            "text-gray-700"
+          }`}>
+            {formatNextDue(reg.nextDueAt, reg.status)}
+          </p>
+        </div>
+        <span className={`shrink-0 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${cfg.badge}`}>
+          <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot}`} />
+          {cfg.label}
+        </span>
+        <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-blue-500 transition-colors" />
+      </div>
+    </Link>
+  );
+}
+
 // ── Register card ────────────────────────────────────────────────────────────
 
 function RegisterCard({ reg }: { reg: ComplianceRegisterHealth }) {
@@ -126,7 +221,7 @@ function RegisterCard({ reg }: { reg: ComplianceRegisterHealth }) {
   return (
     <Link
       href={reg.href}
-      className={`group block rounded-xl border bg-white p-5 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${cfg.ring}`}
+      className={`group block rounded-2xl border bg-white p-5 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${cfg.ring}`}
     >
       {/* Header row */}
       <div className="flex items-start justify-between gap-3 mb-3">
@@ -193,6 +288,88 @@ function RegisterCard({ reg }: { reg: ComplianceRegisterHealth }) {
   );
 }
 
+// ── Category section ─────────────────────────────────────────────────────────
+
+function CategorySection({
+  category,
+  registers,
+  viewMode,
+  defaultExpanded = true,
+}: {
+  category: RegisterCategory;
+  registers: ComplianceRegisterHealth[];
+  viewMode: "grid" | "list";
+  defaultExpanded?: boolean;
+}) {
+  const [expanded, setExpanded] = useState(defaultExpanded);
+  const config = CATEGORY_CONFIG[category];
+  
+  const statusCounts = {
+    current: registers.filter((r) => r.status === "current").length,
+    due_soon: registers.filter((r) => r.status === "due_soon").length,
+    overdue: registers.filter((r) => r.status === "overdue").length,
+    never_used: registers.filter((r) => r.status === "never_used").length,
+  };
+
+  const hasUrgent = statusCounts.overdue > 0 || statusCounts.due_soon > 0;
+
+  return (
+    <div className={`rounded-2xl border ${config.borderColor} ${config.bgColor} overflow-hidden`}>
+      <button
+        type="button"
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-white/50 transition-colors"
+      >
+        <FolderOpen className={`h-5 w-5 shrink-0 ${config.color}`} />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <h3 className={`text-sm font-semibold ${config.color}`}>{config.name}</h3>
+            <span className="text-xs text-gray-500">({registers.length})</span>
+          </div>
+          <p className="text-xs text-gray-500 mt-0.5">{config.description}</p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          {hasUrgent && (
+            <div className="flex items-center gap-1.5">
+              {statusCounts.overdue > 0 && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-red-100 border border-red-200 px-2 py-0.5 text-[10px] font-semibold text-red-700">
+                  <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                  {statusCounts.overdue} overdue
+                </span>
+              )}
+              {statusCounts.due_soon > 0 && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 border border-amber-200 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                  {statusCounts.due_soon} due soon
+                </span>
+              )}
+            </div>
+          )}
+          <ChevronRight className={`h-4 w-4 text-gray-400 transition-transform ${expanded ? "rotate-90" : ""}`} />
+        </div>
+      </button>
+      
+      {expanded && (
+        <div className="px-4 pb-4">
+          {viewMode === "grid" ? (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {registers.map((reg) => (
+                <RegisterCard key={reg.registerKey} reg={reg} />
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {registers.map((reg) => (
+                <RegisterListItem key={reg.registerKey} reg={reg} />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Status summary chip ──────────────────────────────────────────────────────
 
 function SummaryChip({
@@ -242,6 +419,7 @@ export function ComplianceRegistersClient({ userRole }: { userRole: string }) {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<RegisterHealthStatus | "all">("all");
   const [refreshing, setRefreshing] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   async function load() {
     setLoading(true);
@@ -272,8 +450,44 @@ export function ComplianceRegistersClient({ userRole }: { userRole: string }) {
   const filtered = filter === "all" ? registers : registers.filter((r) => r.status === filter);
   const hasUrgent = counts.overdue > 0 || counts.due_soon > 0;
 
+  // Group registers by category
+  const groupedRegisters = useMemo(() => {
+    const groups: Record<RegisterCategory, ComplianceRegisterHealth[]> = {
+      access: [],
+      personnel: [],
+      monitoring: [],
+      incident: [],
+      assets: [],
+      governance: [],
+    };
+
+    for (const reg of filtered) {
+      const display = REGISTER_DISPLAY[reg.registerKey];
+      const category = display?.category ?? "governance";
+      groups[category].push(reg);
+    }
+
+    // Sort each group: overdue first, then due_soon, then never_used, then current
+    const statusOrder: Record<RegisterHealthStatus, number> = {
+      overdue: 0,
+      due_soon: 1,
+      never_used: 2,
+      current: 3,
+    };
+    for (const category of Object.keys(groups) as RegisterCategory[]) {
+      groups[category].sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
+    }
+
+    return groups;
+  }, [filtered]);
+
+  // Filter out empty categories
+  const activeCategories = (Object.keys(groupedRegisters) as RegisterCategory[]).filter(
+    (cat) => groupedRegisters[cat].length > 0
+  );
+
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="mx-auto max-w-6xl">
       {/* Page header */}
       <div className="mb-6">
         <div className="flex items-center justify-between gap-4">
@@ -282,25 +496,44 @@ export function ComplianceRegistersClient({ userRole }: { userRole: string }) {
               Registers
             </h1>
             <p className="mt-1 text-sm text-gray-600 max-w-2xl">
-              Day-to-day compliance records required by CMMC Level 2. A C3PAO examiner will
-              examine these during your assessment — overdue registers are automatic findings.
+              Day-to-day compliance records required by CMMC Level 2. Organized by category for easier management.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={refresh}
-            disabled={refreshing}
-            className="shrink-0 flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50"
-          >
-            <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
-            Refresh
-          </button>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-0.5 rounded-lg border border-gray-200 bg-white p-0.5">
+              <button
+                type="button"
+                onClick={() => setViewMode("grid")}
+                className={`p-1.5 rounded-md transition-colors ${viewMode === "grid" ? "bg-gray-900 text-white" : "text-gray-500 hover:bg-gray-100"}`}
+                title="Grid view"
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("list")}
+                className={`p-1.5 rounded-md transition-colors ${viewMode === "list" ? "bg-gray-900 text-white" : "text-gray-500 hover:bg-gray-100"}`}
+                title="List view"
+              >
+                <LayoutList className="h-4 w-4" />
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={refresh}
+              disabled={refreshing}
+              className="shrink-0 flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
+              Refresh
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Urgent alert banner */}
       {!loading && hasUrgent && (
-        <div className="mb-5 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3.5">
+        <div className="mb-5 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3.5">
           <AlertTriangle className="h-4 w-4 shrink-0 text-red-500 mt-0.5" />
           <div>
             <p className="text-sm font-semibold text-red-800">
@@ -340,7 +573,7 @@ export function ComplianceRegistersClient({ userRole }: { userRole: string }) {
 
       {/* What are registers callout */}
       {!loading && !isAssessor && counts.never_used > 0 && counts.never_used === counts.all && (
-        <div className="mb-5 flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3.5">
+        <div className="mb-5 flex items-start gap-3 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3.5">
           <Info className="h-4 w-4 shrink-0 text-blue-500 mt-0.5" />
           <div>
             <p className="text-sm font-semibold text-blue-900">Getting started with compliance registers</p>
@@ -381,18 +614,19 @@ export function ComplianceRegistersClient({ userRole }: { userRole: string }) {
 
       {/* Loading skeleton */}
       {loading && (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="rounded-xl border border-gray-200 bg-white p-5 animate-pulse">
-              <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
-              <div className="h-3 bg-gray-100 rounded w-full mb-1" />
-              <div className="h-3 bg-gray-100 rounded w-2/3" />
-              <div className="h-px bg-gray-100 mt-4 mb-3" />
-              <div className="grid grid-cols-3 gap-2">
-                {[1, 2, 3].map((j) => (
-                  <div key={j}>
-                    <div className="h-2.5 bg-gray-100 rounded w-2/3 mb-1" />
-                    <div className="h-3 bg-gray-200 rounded w-1/2" />
+        <div className="space-y-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="rounded-2xl border border-gray-200 bg-gray-50 p-4 animate-pulse">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="h-5 w-5 bg-gray-200 rounded" />
+                <div className="h-4 bg-gray-200 rounded w-32" />
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {[1, 2].map((j) => (
+                  <div key={j} className="rounded-xl border border-gray-200 bg-white p-5">
+                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
+                    <div className="h-3 bg-gray-100 rounded w-full mb-1" />
+                    <div className="h-3 bg-gray-100 rounded w-2/3" />
                   </div>
                 ))}
               </div>
@@ -401,18 +635,26 @@ export function ComplianceRegistersClient({ userRole }: { userRole: string }) {
         </div>
       )}
 
-      {/* Register cards grid */}
-      {!loading && filtered.length > 0 && (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((reg) => (
-            <RegisterCard key={reg.registerKey} reg={reg} />
+      {/* Categorized register sections */}
+      {!loading && activeCategories.length > 0 && (
+        <div className="space-y-4">
+          {activeCategories.map((category) => (
+            <CategorySection
+              key={category}
+              category={category}
+              registers={groupedRegisters[category]}
+              viewMode={viewMode}
+              defaultExpanded={groupedRegisters[category].some(
+                (r) => r.status === "overdue" || r.status === "due_soon"
+              )}
+            />
           ))}
         </div>
       )}
 
       {/* Empty state */}
       {!loading && filtered.length === 0 && (
-        <div className="rounded-xl border border-gray-200 bg-white px-8 py-12 text-center">
+        <div className="rounded-2xl border border-gray-200 bg-white px-8 py-12 text-center">
           <ClipboardList className="mx-auto h-8 w-8 text-gray-300 mb-3" />
           <p className="text-sm font-medium text-gray-600">No registers with status "{filter}"</p>
           <button
@@ -428,7 +670,7 @@ export function ComplianceRegistersClient({ userRole }: { userRole: string }) {
       {/* Footer guidance */}
       {!loading && (
         <div className="mt-8 space-y-3">
-          <div className="rounded-xl border border-gray-200 bg-gray-50 px-5 py-4">
+          <div className="rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4">
             <div className="flex items-start gap-3">
               <Info className="h-4 w-4 shrink-0 text-gray-400 mt-0.5" />
               <div>
