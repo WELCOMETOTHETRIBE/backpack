@@ -100,7 +100,7 @@ export async function PATCH(
   const [row] = await db
     .update(boundaries)
     .set(updates)
-    .where(eq(boundaries.id, id))
+    .where(and(eq(boundaries.id, id), eq(boundaries.organizationId, orgId)))
     .returning();
   await syncOrgAzureInheritedControls(db, orgId);
   return NextResponse.json(row);
@@ -125,7 +125,7 @@ export async function DELETE(
     .where(and(eq(boundaries.id, id), eq(boundaries.organizationId, orgId)));
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  await db.delete(boundaries).where(eq(boundaries.id, id));
+  await db.delete(boundaries).where(and(eq(boundaries.id, id), eq(boundaries.organizationId, orgId)));
   await syncOrgAzureInheritedControls(db, orgId);
   return NextResponse.json({ ok: true });
 }

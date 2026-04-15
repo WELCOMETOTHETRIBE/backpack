@@ -180,7 +180,7 @@ export async function PATCH(
     await db
       .update(controlRecords)
       .set({ ...updates, updatedAt: new Date() })
-      .where(eq(controlRecords.id, id));
+      .where(and(eq(controlRecords.id, id), eq(controlRecords.organizationId, orgId)));
 
     if (!("implementationStatus" in updates)) {
       await calculateControlStatus(id);

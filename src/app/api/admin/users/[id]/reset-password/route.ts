@@ -40,7 +40,7 @@ export async function POST(
     await db
       .update(users)
       .set({ passwordHash })
-      .where(eq(users.id, userId));
+      .where(and(eq(users.id, userId), eq(users.organizationId, orgId)));
 
     return NextResponse.json({ ok: true, email: targetUser.email });
   } catch (e) {

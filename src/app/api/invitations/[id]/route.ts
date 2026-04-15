@@ -29,7 +29,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Invitation not found" }, { status: 404 });
     }
 
-    await db.delete(userInvitations).where(eq(userInvitations.id, id));
+    await db.delete(userInvitations).where(and(eq(userInvitations.id, id), eq(userInvitations.organizationId, orgId)));
     return NextResponse.json({ ok: true });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unauthorized";

@@ -131,7 +131,7 @@ export async function PATCH(
     const [updated] = await db
       .update(controlImplementations)
       .set(updates as Record<string, unknown>)
-      .where(eq(controlImplementations.id, id))
+      .where(and(eq(controlImplementations.id, id), eq(controlImplementations.organizationId, orgId)))
       .returning();
 
     await writeAuditLog({
