@@ -203,7 +203,7 @@ function UserComplianceRoster({ users, records }: UserComplianceRosterProps) {
       );
 
       const requiredTrainings = TRAINING_SECTIONS.filter((s) =>
-        s.requiredFor.includes(user.userType)
+        (s.requiredFor as readonly UserType[]).includes(user.userType)
       );
 
       const completedTrainings = requiredTrainings.filter((section) => {
