@@ -220,7 +220,7 @@ export async function POST(req: Request) {
             registerId: register.id,
             boundaryId: firstBoundary.id,
             entryType,
-            status: 'complete', // imported certs are immediately complete evidence
+            status: 'final', // imported certs are immediately final evidence
             entryData,
             createdById: user.id ?? null,
             hold: 0,
