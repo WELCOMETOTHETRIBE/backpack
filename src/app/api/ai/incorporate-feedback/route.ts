@@ -284,12 +284,17 @@ Workflow:
 5. write_file takes FULL file content (not diffs). Always include the complete updated file.
 6. When you have finished all changes, stop using tools and write a brief summary of what you changed.
 
-Hard limits — do NOT touch:
+Hard limits — do NOT write to these files (reading them for reference is fine and encouraged):
 • .env files or anything with 'secret'/'credential' in the path
 • src/lib/auth.ts or /api/auth routes
-• Database migrations (drizzle/ directory)
-• src/db/schema.ts
-• middleware.ts`
+• Database migrations (drizzle/ directory) — never write SQL migrations
+• src/db/schema.ts — read to understand column names, but never modify it
+• middleware.ts
+
+Schema changes: if feedback requires new DB columns, implement the UI/API
+using existing columns as best you can, then end your summary with a
+"⚠ Schema change needed:" section listing exactly what column/table to add.
+The developer will handle the migration separately.`
 
         const messages: Anthropic.MessageParam[] = [
           {

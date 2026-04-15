@@ -60,11 +60,13 @@ async function loadFeedback() {
 async function markResolved(ids) {
   if (ids.length === 0) return
   const now = new Date()
-  await sql`
-    UPDATE feedback
-    SET status = 'resolved', resolved_at = ${now}, updated_at = ${now}
-    WHERE id = ANY(${sql.array(ids, 'uuid')})
-  `
+  for (const id of ids) {
+    await sql`
+      UPDATE feedback
+      SET status = 'resolved', resolved_at = ${now}, updated_at = ${now}
+      WHERE id = ${id}::uuid
+    `
+  }
 }
 
 // ── GitHub API ─────────────────────────────────────────────────────────────────
@@ -268,12 +270,17 @@ Workflow:
 5. write_file takes FULL file content (not diffs). Always include the complete updated file.
 6. When you have finished all changes, stop using tools and write a brief summary of what you changed.
 
-Hard limits — do NOT touch:
+Hard limits — do NOT write to these files (reading them for reference is fine and encouraged):
 • .env files or anything with 'secret'/'credential' in the path
 • src/lib/auth.ts or /api/auth routes
-• Database migrations (drizzle/ directory)
-• src/db/schema.ts
-• middleware.ts`
+• Database migrations (drizzle/ directory) — never write SQL migrations
+• src/db/schema.ts — read to understand column names, but never modify it
+• middleware.ts
+
+Schema changes: if feedback requires new DB columns, implement the UI/API
+using existing columns as best you can, then end your summary with a
+"⚠ Schema change needed:" section listing exactly what column/table to add.
+The developer will handle the migration separately.`
 
   const messages = [
     {
