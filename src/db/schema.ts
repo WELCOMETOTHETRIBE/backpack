@@ -5,6 +5,7 @@ import {
   timestamp,
   pgEnum,
   integer,
+  bigserial,
   jsonb,
   uniqueIndex,
   index,
@@ -622,6 +623,30 @@ export const feedback = pgTable(
     index("feedback_created_idx").on(t.createdAt),
   ]
 );
+
+// ============== Agent Runs (background AI jobs) ==============
+export const agentRunStatusEnum = pgEnum("agent_run_status", ["running", "done", "error"])
+
+export const agentRuns = pgTable("agent_runs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id").references(() => organizations.id, { onDelete: "cascade" }).notNull(),
+  type: text("type").notNull().default("incorporate_feedback"),
+  status: agentRunStatusEnum("status").notNull().default("running"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+}, (t) => [
+  index("agent_runs_org_idx").on(t.organizationId),
+])
+
+export const agentRunEvents = pgTable("agent_run_events", {
+  id: bigserial("id", { mode: "number" }),
+  runId: uuid("run_id").references(() => agentRuns.id, { onDelete: "cascade" }).notNull(),
+  seq: integer("seq").notNull(),
+  payload: jsonb("payload").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (t) => [
+  index("agent_run_events_run_idx").on(t.runId, t.seq),
+])
 
 export const auditLogs = pgTable("audit_logs", {
   id: uuid("id").primaryKey().defaultRandom(),

@@ -288,6 +288,20 @@
       "when": 1776100000000,
       "tag": "0040_feedback",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1776200000000,
+      "tag": "0041_trust_codex_onboarding_wizard",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1776300000000,
+      "tag": "0042_agent_run_events",
+      "breakpoints": true
     }
   ]
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { Bot, X, GitCommit, Loader2, CheckCircle2, AlertCircle, FileCode, Search, FolderSearch, FilePen, ChevronRight, ExternalLink, Sparkles } from 'lucide-react'
 
 type EventType = 'log' | 'thinking' | 'tool' | 'change' | 'commit' | 'done' | 'error'
@@ -99,11 +99,13 @@ export default function IncorporateFeedbackPanel({ pendingCount }: { pendingCoun
   const [events, setEvents] = useState<AgentEvent[]>([])
   const [commitInfo, setCommitInfo] = useState<{ sha: string; url: string; changes: number } | null>(null)
   const logRef = useRef<HTMLDivElement>(null)
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const runIdRef = useRef<string | null>(null)
+  const lastSeqRef = useRef<number>(0)
 
-  const addEvent = useCallback((ev: AgentEvent) => {
+  const addEvents = useCallback((newEvents: AgentEvent[]) => {
     setEvents(prev => {
-      const next = [...prev, ev]
-      // Auto-scroll
+      const next = [...prev, ...newEvents]
       setTimeout(() => {
         logRef.current?.scrollTo({ top: logRef.current.scrollHeight, behavior: 'smooth' })
       }, 0)
@@ -111,63 +113,104 @@ export default function IncorporateFeedbackPanel({ pendingCount }: { pendingCoun
     })
   }, [])
 
+  const stopPolling = useCallback(() => {
+    if (pollRef.current) {
+      clearInterval(pollRef.current)
+      pollRef.current = null
+    }
+  }, [])
+
+  const poll = useCallback(async () => {
+    const runId = runIdRef.current
+    if (!runId) return
+
+    try {
+      const res = await fetch(
+        `/api/ai/incorporate-feedback?runId=${runId}&after=${lastSeqRef.current}`,
+      )
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({ error: res.statusText }))
+        throw new Error(body.error ?? 'Poll failed')
+      }
+
+      const data: { status: string; events: Array<{ seq: number } & AgentEvent>; lastSeq: number } =
+        await res.json()
+
+      if (data.events.length > 0) {
+        const payloads: AgentEvent[] = data.events.map(({ seq: _seq, ...ev }) => ev as AgentEvent)
+        lastSeqRef.current = data.lastSeq
+        addEvents(payloads)
+
+        for (const ev of payloads) {
+          if (ev.type === 'commit') {
+            setCommitInfo({ sha: ev.sha!, url: ev.url!, changes: ev.changes! })
+          }
+          if (ev.type === 'done') {
+            setDone(true)
+            setRunning(false)
+            stopPolling()
+          }
+          if (ev.type === 'error') {
+            setError(ev.message ?? 'Unknown error')
+            setRunning(false)
+            stopPolling()
+          }
+        }
+      }
+
+      // Also stop if the run itself is marked done/error in DB (no events left)
+      if (data.status === 'done' || data.status === 'error') {
+        if (data.status === 'done') setDone(true)
+        if (data.status === 'error') setError(prev => prev ?? 'Agent run ended with error')
+        setRunning(false)
+        stopPolling()
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Poll error'
+      setError(msg)
+      setRunning(false)
+      stopPolling()
+    }
+  }, [addEvents, stopPolling])
+
   const run = useCallback(async () => {
+    stopPolling()
     setRunning(true)
     setDone(false)
     setError(null)
     setEvents([])
     setCommitInfo(null)
+    runIdRef.current = null
+    lastSeqRef.current = 0
     setOpen(true)
 
     try {
       const res = await fetch('/api/ai/incorporate-feedback', { method: 'POST' })
-
       if (!res.ok) {
         const body = await res.json().catch(() => ({ error: res.statusText }))
         throw new Error(body.error ?? 'Request failed')
       }
 
-      const reader = res.body!.getReader()
-      const dec = new TextDecoder()
-      let buf = ''
+      const { runId } = await res.json()
+      runIdRef.current = runId
+      addEvents([{ type: 'log', message: `Run started — id: ${runId}` }])
 
-      while (true) {
-        const { done: streamDone, value } = await reader.read()
-        if (streamDone) break
-
-        buf += dec.decode(value, { stream: true })
-        const parts = buf.split('\n\n')
-        buf = parts.pop() ?? ''
-
-        for (const part of parts) {
-          const line = part.replace(/^data: /, '').trim()
-          if (!line) continue
-          try {
-            const ev: AgentEvent = JSON.parse(line)
-            addEvent(ev)
-            if (ev.type === 'commit') {
-              setCommitInfo({ sha: ev.sha!, url: ev.url!, changes: ev.changes! })
-            }
-            if (ev.type === 'done') {
-              setDone(true)
-              setRunning(false)
-            }
-            if (ev.type === 'error') {
-              setError(ev.message ?? 'Unknown error')
-              setRunning(false)
-            }
-          } catch { /* malformed event — skip */ }
-        }
-      }
+      // Start polling every 2s
+      pollRef.current = setInterval(poll, 2000)
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to start agent'
       setError(msg)
       setRunning(false)
     }
-  }, [addEvent])
+  }, [addEvents, poll, stopPolling])
+
+  // Clean up interval on unmount
+  useEffect(() => {
+    return () => stopPolling()
+  }, [stopPolling])
 
   const close = () => {
-    if (running) return // don't close mid-run
+    if (running) return
     setOpen(false)
   }
 
