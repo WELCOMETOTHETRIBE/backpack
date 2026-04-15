@@ -227,9 +227,18 @@ export async function POST() {
 
   const stream = new ReadableStream({
     async start(controller) {
+      let closed = false
+
       function send(event: Record<string, unknown>) {
+        if (closed) return
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`))
       }
+
+      // Keepalive: ping every 15s so Railway's HTTP/2 proxy never sees an idle connection
+      const keepalive = setInterval(() => {
+        if (closed) { clearInterval(keepalive); return }
+        controller.enqueue(encoder.encode(`: keepalive\n\n`))
+      }, 15_000)
 
       try {
         send({ type: 'log', message: `Loaded ${feedbackRows.length} feedback item(s).` })
@@ -426,7 +435,7 @@ Hard limits — do NOT touch:
         // ── Commit or bail ─────────────────────────────────────────────────────
         if (stagedFiles.size === 0) {
           send({ type: 'done', changes: 0, message: 'Agent finished with no file changes.' })
-          controller.close()
+          closed = true; clearInterval(keepalive); controller.close()
           return
         }
 
@@ -458,11 +467,11 @@ Hard limits — do NOT touch:
           changes: stagedFiles.size,
           message: `${stagedFiles.size} file(s) committed (${sha.slice(0, 7)}). Railway is redeploying.`,
         })
-        controller.close()
+        closed = true; clearInterval(keepalive); controller.close()
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Unexpected error'
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'error', message })}\n\n`))
-        controller.close()
+        if (!closed) controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'error', message })}\n\n`))
+        closed = true; clearInterval(keepalive); controller.close()
       }
     },
   })
