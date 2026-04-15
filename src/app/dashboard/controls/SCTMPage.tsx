@@ -13,23 +13,64 @@ import { getOptimizedByControlId } from "@/lib/sctm-optimized-types";
 
 const ADJUDICATED = ["implemented", "assessed", "inherited", "not_applicable"];
 
-/** Color coordination for control families - unique colors for visual differentiation */
-const FAMILY_COLORS: Record<string, { bg: string; bgActive: string; border: string; borderActive: string; text: string; textActive: string; icon: string; iconActive: string; progress: string; progressActive: string }> = {
-  AC: { bg: "bg-blue-50", bgActive: "bg-blue-600", border: "border-blue-200", borderActive: "border-blue-600", text: "text-blue-700", textActive: "text-white", icon: "bg-blue-100 text-blue-600", iconActive: "bg-white/20", progress: "bg-blue-500/50", progressActive: "bg-white/70" },
-  AT: { bg: "bg-violet-50", bgActive: "bg-violet-600", border: "border-violet-200", borderActive: "border-violet-600", text: "text-violet-700", textActive: "text-white", icon: "bg-violet-100 text-violet-600", iconActive: "bg-white/20", progress: "bg-violet-500/50", progressActive: "bg-white/70" },
-  AU: { bg: "bg-emerald-50", bgActive: "bg-emerald-600", border: "border-emerald-200", borderActive: "border-emerald-600", text: "text-emerald-700", textActive: "text-white", icon: "bg-emerald-100 text-emerald-600", iconActive: "bg-white/20", progress: "bg-emerald-500/50", progressActive: "bg-white/70" },
-  CM: { bg: "bg-amber-50", bgActive: "bg-amber-600", border: "border-amber-200", borderActive: "border-amber-600", text: "text-amber-700", textActive: "text-white", icon: "bg-amber-100 text-amber-600", iconActive: "bg-white/20", progress: "bg-amber-500/50", progressActive: "bg-white/70" },
-  IA: { bg: "bg-rose-50", bgActive: "bg-rose-600", border: "border-rose-200", borderActive: "border-rose-600", text: "text-rose-700", textActive: "text-white", icon: "bg-rose-100 text-rose-600", iconActive: "bg-white/20", progress: "bg-rose-500/50", progressActive: "bg-white/70" },
-  IR: { bg: "bg-red-50", bgActive: "bg-red-600", border: "border-red-200", borderActive: "border-red-600", text: "text-red-700", textActive: "text-white", icon: "bg-red-100 text-red-600", iconActive: "bg-white/20", progress: "bg-red-500/50", progressActive: "bg-white/70" },
-  MA: { bg: "bg-orange-50", bgActive: "bg-orange-600", border: "border-orange-200", borderActive: "border-orange-600", text: "text-orange-700", textActive: "text-white", icon: "bg-orange-100 text-orange-600", iconActive: "bg-white/20", progress: "bg-orange-500/50", progressActive: "bg-white/70" },
-  MP: { bg: "bg-slate-50", bgActive: "bg-slate-600", border: "border-slate-200", borderActive: "border-slate-600", text: "text-slate-700", textActive: "text-white", icon: "bg-slate-100 text-slate-600", iconActive: "bg-white/20", progress: "bg-slate-500/50", progressActive: "bg-white/70" },
-  PS: { bg: "bg-pink-50", bgActive: "bg-pink-600", border: "border-pink-200", borderActive: "border-pink-600", text: "text-pink-700", textActive: "text-white", icon: "bg-pink-100 text-pink-600", iconActive: "bg-white/20", progress: "bg-pink-500/50", progressActive: "bg-white/70" },
-  PE: { bg: "bg-stone-50", bgActive: "bg-stone-600", border: "border-stone-200", borderActive: "border-stone-600", text: "text-stone-700", textActive: "text-white", icon: "bg-stone-100 text-stone-600", iconActive: "bg-white/20", progress: "bg-stone-500/50", progressActive: "bg-white/70" },
-  RA: { bg: "bg-cyan-50", bgActive: "bg-cyan-600", border: "border-cyan-200", borderActive: "border-cyan-600", text: "text-cyan-700", textActive: "text-white", icon: "bg-cyan-100 text-cyan-600", iconActive: "bg-white/20", progress: "bg-cyan-500/50", progressActive: "bg-white/70" },
-  CA: { bg: "bg-teal-50", bgActive: "bg-teal-600", border: "border-teal-200", borderActive: "border-teal-600", text: "text-teal-700", textActive: "text-white", icon: "bg-teal-100 text-teal-600", iconActive: "bg-white/20", progress: "bg-teal-500/50", progressActive: "bg-white/70" },
-  SC: { bg: "bg-indigo-50", bgActive: "bg-indigo-600", border: "border-indigo-200", borderActive: "border-indigo-600", text: "text-indigo-700", textActive: "text-white", icon: "bg-indigo-100 text-indigo-600", iconActive: "bg-white/20", progress: "bg-indigo-500/50", progressActive: "bg-white/70" },
-  SI: { bg: "bg-fuchsia-50", bgActive: "bg-fuchsia-600", border: "border-fuchsia-200", borderActive: "border-fuchsia-600", text: "text-fuchsia-700", textActive: "text-white", icon: "bg-fuchsia-100 text-fuchsia-600", iconActive: "bg-white/20", progress: "bg-fuchsia-500/50", progressActive: "bg-white/70" },
-};
+/** Get color classes based on implementation percentage */
+function getPercentageColors(pct: number, isActive: boolean): {
+  bg: string;
+  bgActive: string;
+  border: string;
+  borderActive: string;
+  text: string;
+  textActive: string;
+  icon: string;
+  iconActive: string;
+  progress: string;
+  progressActive: string;
+} {
+  // Red: 0-33%, Yellow/Amber: 34-66%, Green: 67-100%
+  if (pct >= 67) {
+    // Green - high implementation
+    return {
+      bg: "bg-emerald-50",
+      bgActive: "bg-emerald-600",
+      border: "border-emerald-200",
+      borderActive: "border-emerald-600",
+      text: "text-emerald-700",
+      textActive: "text-white",
+      icon: "bg-emerald-100 text-emerald-600",
+      iconActive: "bg-white/20",
+      progress: "bg-emerald-500",
+      progressActive: "bg-white/70",
+    };
+  } else if (pct >= 34) {
+    // Amber - medium implementation
+    return {
+      bg: "bg-amber-50",
+      bgActive: "bg-amber-600",
+      border: "border-amber-200",
+      borderActive: "border-amber-600",
+      text: "text-amber-700",
+      textActive: "text-white",
+      icon: "bg-amber-100 text-amber-600",
+      iconActive: "bg-white/20",
+      progress: "bg-amber-500",
+      progressActive: "bg-white/70",
+    };
+  } else {
+    // Red - low implementation
+    return {
+      bg: "bg-red-50",
+      bgActive: "bg-red-600",
+      border: "border-red-200",
+      borderActive: "border-red-600",
+      text: "text-red-700",
+      textActive: "text-white",
+      icon: "bg-red-100 text-red-600",
+      iconActive: "bg-white/20",
+      progress: "bg-red-500",
+      progressActive: "bg-white/70",
+    };
+  }
+}
 
 /** Sort control IDs numerically (3.1.1, 3.1.2, … 3.1.9, 3.1.10) instead of lexicographically. */
 function compareControlIds(a: string, b: string): number {
@@ -189,7 +230,8 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
       const total = FAMILY_CONTROL_COUNTS[f.code] ?? 0;
       const inFamilyIds = ALL_CONTROL_IDS.filter((id) => getControlFamilyPrefix(id) === f.controlPrefix);
       const adj = inFamilyIds.filter((id) => adjudicatedControlIds.has(id)).length;
-      return { code: f.code, plainName: f.plainName, name: f.name, total, adjudicated: adj, icon: f.icon };
+      const pct = total ? Math.round((adj / total) * 100) : 0;
+      return { code: f.code, plainName: f.plainName, name: f.name, total, adjudicated: adj, pct, icon: f.icon };
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [records]);
@@ -276,21 +318,35 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
               </div>
               <div>
                 <h2 className="text-sm font-semibold tracking-tight text-[var(--color-gray-900)]">Control families</h2>
-                <p className="text-[11px] text-[var(--color-gray-500)]">NIST SP 800-171 Rev 2 · Select a family to filter controls</p>
+                <p className="text-[11px] text-[var(--color-gray-500)]">NIST SP 800-171 Rev 2 · Color indicates implementation progress</p>
+              </div>
+              {/* Legend */}
+              <div className="ml-auto flex items-center gap-3 text-[10px] text-[var(--color-gray-500)]">
+                <div className="flex items-center gap-1">
+                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-red-500" />
+                  <span>0-33%</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-amber-500" />
+                  <span>34-66%</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                  <span>67-100%</span>
+                </div>
               </div>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-2">
               {familyStats.map((f) => {
                 const isActive = family === f.code;
-                const pct = f.total ? Math.round((f.adjudicated / f.total) * 100) : 0;
                 const Icon = f.icon;
-                const colors = FAMILY_COLORS[f.code] ?? FAMILY_COLORS.AC;
+                const colors = getPercentageColors(f.pct, isActive);
                 return (
                   <button
                     key={f.code}
                     type="button"
                     onClick={() => setFamily(isActive ? null : f.code)}
-                    title={`${f.name}: ${f.adjudicated}/${f.total} adjudicated`}
+                    title={`${f.name}: ${f.adjudicated}/${f.total} adjudicated (${f.pct}%)`}
                     className={`group relative flex min-h-[72px] flex-col items-start rounded-xl border px-3 py-2.5 text-left transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2 ${
                       isActive
                         ? `${colors.bgActive} ${colors.borderActive} text-white shadow-md`
@@ -312,13 +368,13 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
                           {f.adjudicated}/{f.total}
                         </span>
                         {f.total > 0 && (
-                          <span className={isActive ? "text-white/70" : "text-[var(--color-gray-400)]"}>{pct}%</span>
+                          <span className={isActive ? "text-white/70" : "text-[var(--color-gray-400)]"}>{f.pct}%</span>
                         )}
                       </div>
                       <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/10">
                         <div
                           className={`h-full rounded-full transition-all duration-300 ${isActive ? colors.progressActive : colors.progress}`}
-                          style={{ width: `${Math.min(100, pct)}%` }}
+                          style={{ width: `${Math.min(100, f.pct)}%` }}
                           aria-hidden
                         />
                       </div>
