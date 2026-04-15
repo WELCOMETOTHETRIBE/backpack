@@ -4,7 +4,7 @@ import { db } from '@/db'
 import { feedback, users } from '@/db/schema'
 import { eq, and, desc } from 'drizzle-orm'
 import type { SessionUser } from '@/lib/auth'
-import { MessageSquare, Bug, Sparkles, Paintbrush, Target, ExternalLink, Clock, CheckCircle2, Eye } from 'lucide-react'
+import { MessageSquare, Bug, Sparkles, Paintbrush, Target, ExternalLink, Clock, CheckCircle2, Eye, GitCommit, FileCode } from 'lucide-react'
 import FeedbackStatusButtons from './FeedbackStatusButtons'
 import IncorporateFeedbackPanel from '@/components/feedback/IncorporateFeedbackPanel'
 
@@ -53,6 +53,10 @@ export default async function FeedbackPage({
       createdAt: feedback.createdAt,
       submittedBy: users.name,
       submittedByEmail: users.email,
+      resolutionCommitSha: feedback.resolutionCommitSha,
+      resolutionCommitUrl: feedback.resolutionCommitUrl,
+      resolutionSummary: feedback.resolutionSummary,
+      resolutionFiles: feedback.resolutionFiles,
     })
     .from(feedback)
     .leftJoin(users, eq(feedback.userId, users.id))
@@ -202,6 +206,47 @@ export default async function FeedbackPage({
                     <ExternalLink className="h-3 w-3 shrink-0" />
                     <span className="truncate">{row.pageUrl}</span>
                   </a>
+                )}
+
+                {/* Resolution provenance — only on resolved items */}
+                {row.status === 'resolved' && (row.resolutionCommitSha || row.resolutionSummary) && (
+                  <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-3 space-y-2">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-emerald-800">
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      How this was implemented
+                    </div>
+                    {row.resolutionSummary && (
+                      <p className="text-sm text-emerald-900 leading-relaxed">
+                        {row.resolutionSummary}
+                      </p>
+                    )}
+                    {row.resolutionCommitSha && row.resolutionCommitUrl && (
+                      <a
+                        href={row.resolutionCommitUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-white border border-emerald-200 px-2.5 py-1 text-xs font-mono text-emerald-700 hover:border-emerald-400 hover:text-emerald-900 transition-colors"
+                      >
+                        <GitCommit className="h-3 w-3" />
+                        {row.resolutionCommitSha.slice(0, 7)}
+                        <ExternalLink className="h-2.5 w-2.5" />
+                      </a>
+                    )}
+                    {row.resolutionFiles && row.resolutionFiles.length > 0 && (
+                      <div className="flex items-start gap-1.5 flex-wrap pt-1">
+                        <FileCode className="h-3 w-3 mt-1 text-emerald-600 shrink-0" />
+                        {row.resolutionFiles.map((f) => (
+                          <span
+                            key={f}
+                            className="rounded-md bg-white border border-emerald-200 px-1.5 py-0.5 text-[10px] font-mono text-emerald-700"
+                            title={f}
+                          >
+                            {f.split('/').slice(-2).join('/')}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 )}
 
                 {/* Status actions */}

@@ -614,6 +614,11 @@ export const feedback = pgTable(
     elementType: text("element_type"),
     reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
     resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+    // ── Resolution provenance — populated by the incorporate-feedback agent ──
+    resolutionCommitSha: text("resolution_commit_sha"),
+    resolutionCommitUrl: text("resolution_commit_url"),
+    resolutionSummary: text("resolution_summary"),
+    resolutionFiles: jsonb("resolution_files").$type<string[]>(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },

@@ -110,6 +110,27 @@ const AGENT_TOOLS: Anthropic.Tool[] = [
   },
 ]
 
+// ── Resolution parser ─────────────────────────────────────────────────────────
+// The agent emits a "RESOLUTIONS:" block at the end of its final summary,
+// with [N] lines that map to each feedback item by index.
+
+function parseResolutions(summary: string, count: number): (string | null)[] {
+  const out: (string | null)[] = Array(count).fill(null)
+  if (!summary) return out
+
+  const idx = summary.toUpperCase().indexOf('RESOLUTIONS:')
+  if (idx === -1) return out
+
+  const block = summary.slice(idx + 'RESOLUTIONS:'.length)
+  const lineRe = /^\s*\[(\d+)\]\s*(.+?)\s*$/gm
+  let m: RegExpExecArray | null
+  while ((m = lineRe.exec(block)) !== null) {
+    const n = parseInt(m[1], 10) - 1
+    if (n >= 0 && n < count) out[n] = m[2].slice(0, 500)
+  }
+  return out
+}
+
 // ── Event writer ──────────────────────────────────────────────────────────────
 
 async function writeEvent(runId: string, seq: number, payload: Record<string, unknown>) {
@@ -163,7 +184,17 @@ Workflow:
 3. Keep the existing design language: neutral/indigo/emerald palette, rounded-2xl cards, shadow-sm, Tailwind only.
 4. Write production TypeScript — no 'any', proper null checks, no TODOs left behind.
 5. write_file takes FULL file content (not diffs). Always include the complete updated file.
-6. When you have finished all changes, stop using tools and write a brief summary of what you changed.
+6. When you have finished all changes, stop using tools and write a final summary that
+   MUST contain a "RESOLUTIONS:" block — one line per feedback item using the EXACT format:
+
+   RESOLUTIONS:
+   [1] <one-sentence explanation of how feedback item #1 was implemented>
+   [2] <one-sentence explanation of how feedback item #2 was implemented>
+   …
+
+   Each [N] number must match the [N] header on the feedback list. Keep each
+   line under 240 chars. This is parsed and shown to the user verbatim on the
+   Resolved tab, so be specific about what UI/file/behavior changed.
 
 Hard limits — do NOT write to these files (reading them for reference is fine and encouraged):
 • .env files or anything with 'secret'/'credential' in the path
@@ -187,6 +218,7 @@ The developer will handle the migration separately.`
     await emit({ type: 'log', message: 'Agent started — analyzing feedback...' })
 
     const MAX_TURNS = 24
+    let finalSummary = ''
 
     for (let turn = 0; turn < MAX_TURNS; turn++) {
       await emit({ type: 'log', message: `Turn ${turn + 1}…` })
@@ -210,6 +242,14 @@ The developer will handle the migration separately.`
       }
 
       messages.push({ role: 'assistant', content: response.content })
+
+      // Collect any plain-text from the assistant — final-turn text is the summary
+      const turnText = response.content
+        .filter((b): b is Anthropic.TextBlock => b.type === 'text')
+        .map(b => b.text)
+        .join('\n')
+        .trim()
+      if (turnText) finalSummary = turnText
 
       if (response.stop_reason === 'end_turn') {
         await emit({ type: 'log', message: 'Agent finished.' })
@@ -307,9 +347,24 @@ The developer will handle the migration separately.`
 
     const { sha, url } = await commitStagedFiles(stagedFiles, commitMessage)
 
-    await db.update(feedback)
-      .set({ status: 'resolved', resolvedAt: new Date(), updatedAt: new Date() })
-      .where(inArray(feedback.id, feedbackRows.map(f => f.id)))
+    // Parse the agent's RESOLUTIONS: block into per-item resolution lines
+    const resolutions = parseResolutions(finalSummary, feedbackRows.length)
+    const filesChanged = [...stagedFiles.keys()]
+    const now = new Date()
+
+    for (let i = 0; i < feedbackRows.length; i++) {
+      await db.update(feedback)
+        .set({
+          status: 'resolved',
+          resolvedAt: now,
+          updatedAt: now,
+          resolutionCommitSha: sha,
+          resolutionCommitUrl: url,
+          resolutionSummary: resolutions[i] ?? (finalSummary.slice(0, 500) || `Included in commit ${sha.slice(0, 7)}`),
+          resolutionFiles: filesChanged,
+        })
+        .where(eq(feedback.id, feedbackRows[i].id))
+    }
 
     await emit({ type: 'commit', sha: sha.slice(0, 7), fullSha: sha, url, changes: stagedFiles.size })
     await emit({ type: 'done', changes: stagedFiles.size, message: `${stagedFiles.size} file(s) committed (${sha.slice(0, 7)}). Railway is redeploying.` })
