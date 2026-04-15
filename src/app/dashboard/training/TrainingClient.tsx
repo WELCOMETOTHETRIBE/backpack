@@ -17,6 +17,7 @@ import {
   ChevronUp,
   FileStack,
 } from "lucide-react";
+import CertificateImporter from "@/components/training/CertificateImporter";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -433,12 +434,37 @@ function TrainingSection({ section, records, onAdd, onDelete }: SectionProps) {
         </div>
       )}
 
+      {/* MacTech certificate importer */}
+      <div className="mx-5 mb-4">
+        <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+          Import from MacTech Training
+        </p>
+        <CertificateImporter
+          atControl={section.control as "3.2.1" | "3.2.2" | "3.2.3"}
+          onImported={(result) => {
+            onAdd({
+              id: result.trainingRecord.id,
+              personnelName: result.trainingRecord.personnelName,
+              personnelEmail: null,
+              trainingType: section.type,
+              courseTitle: result.trainingRecord.courseTitle,
+              deliveryMethod: "mactech_training",
+              completedAt: new Date().toISOString().slice(0, 10),
+              expiresAt: null,
+              evidenceUrl: null,
+              notes: null,
+              createdAt: new Date().toISOString(),
+            });
+          }}
+        />
+      </div>
+
       {/* Records table */}
       {sectionRecords.length === 0 ? (
         <div className="mx-5 mb-5 rounded-lg border border-dashed border-gray-300 p-5 text-center dark:border-gray-700">
           <p className="text-xs font-medium text-gray-500">No {section.title.toLowerCase()} records yet.</p>
           <p className="mt-0.5 text-xs text-gray-400">
-            Add a record for each person who has completed this training.
+            Import a MacTech certificate above or add a record manually.
           </p>
         </div>
       ) : (
