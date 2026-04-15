@@ -294,7 +294,12 @@ Hard limits — do NOT touch:
         const MAX_TURNS = 24
 
         for (let turn = 0; turn < MAX_TURNS; turn++) {
-          const response = await client.messages.create({
+          // Use streaming so tokens flow continuously — prevents Railway HTTP/2
+          // idle-timeout from killing the SSE connection during long generations.
+          send({ type: 'log', message: `Turn ${turn + 1}…` })
+
+          let thinkingBuf = ''
+          const stream = client.messages.stream({
             model: 'claude-opus-4-5',
             max_tokens: 16384,
             system: systemPrompt,
@@ -302,15 +307,19 @@ Hard limits — do NOT touch:
             messages,
           })
 
+          // Stream text deltas live so the connection stays warm
+          stream.on('text', (delta) => {
+            thinkingBuf += delta
+            // Emit thinking preview every ~120 chars to keep stream alive
+            if (thinkingBuf.length % 120 < delta.length) {
+              send({ type: 'thinking', message: thinkingBuf.slice(-400) })
+            }
+          })
+
+          const response = await stream.finalMessage()
+
           // Append assistant turn
           messages.push({ role: 'assistant', content: response.content })
-
-          // Surface any text blocks to the log
-          for (const block of response.content) {
-            if (block.type === 'text' && block.text.trim()) {
-              send({ type: 'thinking', message: block.text.trim().slice(0, 400) })
-            }
-          }
 
           if (response.stop_reason === 'end_turn') {
             send({ type: 'log', message: 'Agent finished.' })
