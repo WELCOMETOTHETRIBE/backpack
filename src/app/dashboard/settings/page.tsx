@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm";
 import SettingsForm from "./SettingsForm";
 import InviteTeamSection from "./InviteTeamSection";
 import ScopingPresetsCard from "./ScopingPresetsCard";
+import AdminUserManagement from "./AdminUserManagement";
 import { ALL_PRESETS } from "@/lib/compliance/scoping-presets";
 
 export default async function SettingsPage() {
@@ -51,6 +52,13 @@ export default async function SettingsPage() {
           <div className={cardClass}>
             <h2 className="mb-4 text-sm font-semibold text-slate-800">Invite team</h2>
             <InviteTeamSection />
+          </div>
+        )}
+
+        {user.role === "Admin" && (
+          <div className={cardClass}>
+            <h2 className="mb-4 text-sm font-semibold text-slate-800">User management</h2>
+            <AdminUserManagement />
           </div>
         )}
 
