@@ -102,6 +102,8 @@ export default function IncorporateFeedbackPanel({ pendingCount }: { pendingCoun
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const runIdRef = useRef<string | null>(null)
   const lastSeqRef = useRef<number>(0)
+  const failedPollsRef = useRef<number>(0)
+  const MAX_CONSECUTIVE_POLL_FAILURES = 30 // ~60s of outage tolerated
 
   const addEvents = useCallback((newEvents: AgentEvent[]) => {
     setEvents(prev => {
@@ -127,11 +129,15 @@ export default function IncorporateFeedbackPanel({ pendingCount }: { pendingCoun
     try {
       const res = await fetch(
         `/api/ai/incorporate-feedback?runId=${runId}&after=${lastSeqRef.current}`,
+        { cache: 'no-store' },
       )
       if (!res.ok) {
         const body = await res.json().catch(() => ({ error: res.statusText }))
         throw new Error(body.error ?? 'Poll failed')
       }
+
+      // Poll succeeded — reset the transient-failure counter
+      failedPollsRef.current = 0
 
       const data: { status: string; events: Array<{ seq: number } & AgentEvent>; lastSeq: number } =
         await res.json()
@@ -158,7 +164,7 @@ export default function IncorporateFeedbackPanel({ pendingCount }: { pendingCoun
         }
       }
 
-      // Also stop if the run itself is marked done/error in DB (no events left)
+      // Also stop if the run itself is marked done/error in DB
       if (data.status === 'done' || data.status === 'error') {
         if (data.status === 'done') setDone(true)
         if (data.status === 'error') setError(prev => prev ?? 'Agent run ended with error')
@@ -166,10 +172,25 @@ export default function IncorporateFeedbackPanel({ pendingCount }: { pendingCoun
         stopPolling()
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Poll error'
-      setError(msg)
-      setRunning(false)
-      stopPolling()
+      // Transient network failures (ERR_NETWORK_CHANGED, offline blips, Railway
+      // edge hiccups) should NOT kill the run — the agent keeps working in the
+      // background regardless. Only give up after a sustained outage.
+      failedPollsRef.current += 1
+      const count = failedPollsRef.current
+
+      if (count === 1) {
+        addEvents([{
+          type: 'log',
+          message: `Poll transient error: ${err instanceof Error ? err.message : String(err)} — retrying…`,
+        }])
+      }
+
+      if (count >= MAX_CONSECUTIVE_POLL_FAILURES) {
+        const msg = err instanceof Error ? err.message : 'Polling gave up after repeated errors'
+        setError(`${msg} (agent may still be running — check git for commits)`)
+        setRunning(false)
+        stopPolling()
+      }
     }
   }, [addEvents, stopPolling])
 
@@ -182,6 +203,7 @@ export default function IncorporateFeedbackPanel({ pendingCount }: { pendingCoun
     setCommitInfo(null)
     runIdRef.current = null
     lastSeqRef.current = 0
+    failedPollsRef.current = 0
     setOpen(true)
 
     try {
