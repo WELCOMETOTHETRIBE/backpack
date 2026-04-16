@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Search, LayoutList, LayoutGrid, Layers, Sparkles, ChevronDown } from "lucide-react";
+import { Search, LayoutList, LayoutGrid, Layers, Sparkles, ChevronDown, ArrowLeft } from "lucide-react";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { CONTROL_FAMILIES, getControlFamilyPrefix } from "@/components/governance-wizard/constants";
 import { StatusBadge } from "@/components/governance-wizard/StatusBadge";
@@ -138,7 +138,14 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [bulkLoading, setBulkLoading] = useState(false);
   const [bulkResult, setBulkResult] = useState<{ updated: number; total: number } | null>(null);
-  const [familiesOpen, setFamiliesOpen] = useState(false);
+  const [familiesOpen, setFamiliesOpen] = useState(true);
+
+  // Auto-collapse families when a control is selected to maximize detail panel space.
+  // User can still manually re-expand.
+  useEffect(() => {
+    if (controlId) setFamiliesOpen(false);
+    else setFamiliesOpen(true);
+  }, [controlId]);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(searchQuery.trim()), 300);
@@ -499,7 +506,19 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
                 </button>
               ))}
             </div>
-            <div className="ml-auto flex items-center gap-0.5">
+            {/* Search input */}
+            <div className="relative ml-auto">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--color-gray-400)]" aria-hidden />
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search controls…"
+                className="w-56 rounded-lg border border-[var(--color-border)] bg-white py-1.5 pl-8 pr-2.5 text-xs text-[var(--color-gray-900)] placeholder:text-[var(--color-gray-400)] focus:border-[var(--color-blue-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--color-blue-accent)]/20"
+                aria-label="Search controls"
+              />
+            </div>
+            <div className="flex items-center gap-0.5">
               <button
                 type="button"
                 onClick={() => setViewMode("list")}
@@ -523,105 +542,24 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
         </div>
       </header>
 
-      <div className="flex min-h-0 flex-1 min-w-0">
-        {/* Left: narrow control list — minimal width, compact cards */}
-        <aside className="w-[17rem] shrink-0 flex flex-col border-r border-white/20 bg-white/40 backdrop-blur-md">
-          <div className="px-2 py-1.5 border-b border-white/30">
-            <div className="relative">
-              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-[var(--color-gray-400)]" aria-hidden />
-              <input
-                type="search"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search…"
-                className="w-full rounded-lg border border-white/50 bg-white/60 py-1 pl-7 pr-2 text-xs text-[var(--color-gray-900)] placeholder:text-[var(--color-gray-400)] focus:border-[var(--color-blue-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--color-blue-accent)]/20 backdrop-blur-sm"
-                aria-label="Search controls"
-              />
-            </div>
-          </div>
-          <div className="px-2 py-1 border-b border-white/30 flex items-baseline justify-between gap-1">
-            <h2 className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-gray-500)]">Controls</h2>
-            <span className="text-[10px] text-[var(--color-gray-500)] tabular-nums">
-              {family || statusFilter || type === "partial" ? filteredRecords.length : "—"}
-            </span>
-          </div>
-          {!family && type !== "partial" && !statusFilter ? (
-            <div className="flex-1 flex items-center justify-center px-3 py-6 text-center">
-              <p className="text-xs text-[var(--color-gray-500)] leading-snug">Select a control family above to view controls.</p>
-            </div>
-          ) : (
-          <ul
-            className={`flex-1 overflow-y-auto overscroll-contain px-1.5 py-1 ${viewMode === "grid" ? "grid grid-cols-1 gap-1" : "space-y-1"}`}
-            role="list"
-          >
-            {filteredRecords.map((r) => {
-              const opt = optimizedByControlId[r.controlId];
-              const nist = nistByControlId[r.controlId];
-              const title = opt?.title ?? nist?.title ?? r.controlId;
-              const isSelected = r.controlId === controlId;
-              return (
-                <li key={r.controlId} className={viewMode === "grid" ? "min-w-0" : undefined}>
-                  <button
-                    type="button"
-                    onClick={() => setControl(isSelected ? null : r.controlId)}
-                    className={`w-full text-left rounded-lg border transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-1 ${
-                      viewMode === "grid" ? "p-2" : "px-2.5 py-2"
-                    } ${
-                      isSelected
-                        ? "bg-white/90 border-[var(--color-primary)]/40 shadow ring-1 ring-[var(--color-primary)]/20 backdrop-blur-sm"
-                        : "bg-white/50 border-white/40 hover:bg-white/70 backdrop-blur-sm"
-                    }`}
-                  >
-                    <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
-                      <span className="font-mono text-xs font-semibold text-[var(--color-navy-primary)] shrink-0">{r.controlId}</span>
-                      {r.evidencePartial ? (
-                        <>
-                          <StatusBadge status="in_progress" />
-                          <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-800" title="Technical evidence passed; accompanying gov docs, logs, or records required.">
-                            Partial
-                          </span>
-                        </>
-                      ) : (
-                        <StatusBadge status={r.implementationStatus} />
-                      )}
-                      {r.satisfiedByHybrid ? (
-                        <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-teal-100 text-teal-800" title="OS evidence + gov docs, or policy + technical (hybrid).">
-                          Hybrid
-                        </span>
-                      ) : (
-                        <>
-                          {r.satisfiedByOs && (
-                            <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-slate-100 text-slate-700" title="Met by OS configuration (73 enclave controls).">
-                              OS
-                            </span>
-                          )}
-                          {r.satisfiedByCloud && (
-                            <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-sky-100 text-sky-800" title="Met by cloud (5 inherited + 7 Azure/Entra).">
-                              Cloud
-                            </span>
-                          )}
-                          {r.satisfiedByGovernance && (
-                            <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-violet-100 text-violet-800" title="Met by governance (18 policy/documentation).">
-                              Governance
-                            </span>
-                          )}
-                        </>
-                      )}
-                    </div>
-                    <p className="mt-0.5 font-medium text-[var(--color-gray-900)] leading-tight line-clamp-2 text-[13px] min-w-0">
-                      {title}
-                    </p>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-          )}
-        </aside>
-
-        {/* Detail — wide content area, minimal outer margin */}
-        <main className="min-w-0 flex-1 overflow-y-auto px-5 py-4">
-          {selectedRecord ? (
+      {/* Master-detail: control grid (default) OR detail panel (when control selected) */}
+      <main className="min-w-0 flex-1 overflow-y-auto">
+        {selectedRecord ? (
+          <div className="mx-auto max-w-5xl w-full px-5 py-4">
+            {/* Back button */}
+            <button
+              type="button"
+              onClick={() => setControl(null)}
+              className="mb-4 inline-flex items-center gap-1.5 text-xs font-medium text-[var(--color-gray-600)] hover:text-[var(--color-gray-900)] transition-colors"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              Back to controls
+              {family && (
+                <span className="text-[var(--color-gray-400)]">
+                  · {CONTROL_FAMILIES.find((f) => f.code === family)?.name}
+                </span>
+              )}
+            </button>
             <SCTMControlDetail
               record={selectedRecord}
               nist={selectedNist}
@@ -630,13 +568,135 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
               onSaved={fetchData}
               userRole={userRole}
             />
-          ) : (
-            <div className="flex flex-col items-center justify-center min-h-[200px] text-center">
-              <p className="text-sm text-[var(--color-gray-500)]">Select a control to view the requirement, assessment guide, evidence, and adjudication.</p>
+          </div>
+        ) : (
+          <div className="px-5 py-4">
+            {/* Grid context header */}
+            <div className="mb-3 flex items-baseline justify-between">
+              <div>
+                <h2 className="text-sm font-semibold text-[var(--color-gray-900)]">
+                  {family
+                    ? `${CONTROL_FAMILIES.find((f) => f.code === family)?.name ?? family} · ${filteredRecords.length} control${filteredRecords.length !== 1 ? "s" : ""}`
+                    : statusFilter
+                    ? `${STATUS_LABELS[statusFilter]} · ${filteredRecords.length} control${filteredRecords.length !== 1 ? "s" : ""}`
+                    : `All controls · ${filteredRecords.length} of 110`}
+                </h2>
+                <p className="text-xs text-[var(--color-gray-500)] mt-0.5">Click a control to adjudicate.</p>
+              </div>
+              {(family || statusFilter || type !== "all" || debouncedSearch) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFamily(null);
+                    setStatus(null);
+                    setType("all");
+                    setSearchQuery("");
+                  }}
+                  className="text-xs text-[var(--color-gray-500)] hover:text-[var(--color-gray-900)] hover:underline"
+                >
+                  Clear all filters
+                </button>
+              )}
             </div>
-          )}
-        </main>
-      </div>
+
+            {filteredRecords.length === 0 ? (
+              <div className="flex items-center justify-center py-16 text-center">
+                <div>
+                  <p className="text-sm text-[var(--color-gray-600)]">No controls match the current filters.</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFamily(null);
+                      setStatus(null);
+                      setType("all");
+                      setSearchQuery("");
+                    }}
+                    className="mt-2 text-xs text-[var(--color-blue-accent)] hover:underline"
+                  >
+                    Clear filters
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <ul
+                className={
+                  viewMode === "grid"
+                    ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
+                    : "space-y-2"
+                }
+                role="list"
+              >
+                {filteredRecords.map((r) => {
+                  const opt = optimizedByControlId[r.controlId];
+                  const nist = nistByControlId[r.controlId];
+                  const title = opt?.title ?? nist?.title ?? r.controlId;
+                  const summary = opt?.summary ?? "";
+                  return (
+                    <li key={r.controlId}>
+                      <button
+                        type="button"
+                        onClick={() => setControl(r.controlId)}
+                        className="w-full text-left rounded-xl border border-[var(--color-border)] bg-white px-4 py-3 hover:border-[var(--color-primary)]/40 hover:shadow-md hover:shadow-black/[0.04] transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2"
+                      >
+                        <div className="flex items-start justify-between gap-3 mb-1.5">
+                          <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                            <span className="font-mono text-sm font-bold text-[var(--color-navy-primary)] shrink-0">
+                              {r.controlId}
+                            </span>
+                            {r.evidencePartial ? (
+                              <>
+                                <StatusBadge status="in_progress" />
+                                <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-800">
+                                  Partial
+                                </span>
+                              </>
+                            ) : (
+                              <StatusBadge status={r.implementationStatus} />
+                            )}
+                          </div>
+                        </div>
+                        <p className="font-medium text-[var(--color-gray-900)] leading-snug text-sm mb-1 line-clamp-2">
+                          {title}
+                        </p>
+                        {summary && viewMode === "grid" && (
+                          <p className="text-xs text-[var(--color-gray-500)] line-clamp-2 leading-relaxed">
+                            {summary}
+                          </p>
+                        )}
+                        <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                          {r.satisfiedByHybrid ? (
+                            <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-teal-100 text-teal-800">
+                              Hybrid
+                            </span>
+                          ) : (
+                            <>
+                              {r.satisfiedByOs && (
+                                <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-slate-100 text-slate-700">
+                                  OS
+                                </span>
+                              )}
+                              {r.satisfiedByCloud && (
+                                <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-sky-100 text-sky-800">
+                                  Cloud
+                                </span>
+                              )}
+                              {r.satisfiedByGovernance && (
+                                <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-violet-100 text-violet-800">
+                                  Governance
+                                </span>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        )}
+      </main>
     </div>
   );
 }
