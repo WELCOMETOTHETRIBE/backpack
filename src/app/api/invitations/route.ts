@@ -106,22 +106,29 @@ export async function POST(req: Request) {
       .limit(1);
     const orgName = org?.name ?? "Your organization";
 
-    if (process.env.RESEND_API_KEY) {
+    if (!process.env.RESEND_API_KEY) {
+      console.error("[invitations] RESEND_API_KEY is not set — invitation email was NOT sent to", email);
+    } else {
       const resend = new Resend(process.env.RESEND_API_KEY);
       const from = process.env.RESEND_FROM ?? "CMMC OS <onboarding@resend.dev>";
-      await resend.emails.send({
-        from,
-        to: email,
-        subject: `You're invited to join ${orgName} on CMMC OS`,
-        html: `
-          <p>Hello,</p>
-          <p>You have been invited to join <strong>${orgName}</strong> on CMMC OS.</p>
-          <p>Click the link below to set your password and join:</p>
-          <p><a href="${acceptLink}" style="display:inline-block; margin-top:12px; padding:10px 20px; background:#3B82F6; color:white; text-decoration:none; border-radius:6px;">Accept invitation</a></p>
-          <p>Or copy this link: ${acceptLink}</p>
-          <p>This link expires in ${INVITE_EXPIRY_DAYS} days.</p>
-        `,
-      });
+      try {
+        const result = await resend.emails.send({
+          from,
+          to: email,
+          subject: `You're invited to join ${orgName} on CMMC OS`,
+          html: `
+            <p>Hello,</p>
+            <p>You have been invited to join <strong>${orgName}</strong> on CMMC OS.</p>
+            <p>Click the link below to set your password and join:</p>
+            <p><a href="${acceptLink}" style="display:inline-block; margin-top:12px; padding:10px 20px; background:#3B82F6; color:white; text-decoration:none; border-radius:6px;">Accept invitation</a></p>
+            <p>Or copy this link: ${acceptLink}</p>
+            <p>This link expires in ${INVITE_EXPIRY_DAYS} days.</p>
+          `,
+        });
+        console.log("[invitations] Email sent to", email, "resend id:", result.data?.id);
+      } catch (emailErr) {
+        console.error("[invitations] Failed to send email to", email, emailErr);
+      }
     }
 
     return NextResponse.json({ ok: true, expiresAt: invitation.expiresAt });
