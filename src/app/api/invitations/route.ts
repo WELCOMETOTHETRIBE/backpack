@@ -110,7 +110,7 @@ export async function POST(req: Request) {
       console.error("[invitations] RESEND_API_KEY is not set — invitation email was NOT sent to", email);
     } else {
       const resend = new Resend(process.env.RESEND_API_KEY);
-      const from = process.env.RESEND_FROM ?? "CMMC OS <onboarding@resend.dev>";
+      const from = process.env.RESEND_FROM ?? "CMMC OS <no-reply@mactechsolutionsllc.com>";
       try {
         const result = await resend.emails.send({
           from,
