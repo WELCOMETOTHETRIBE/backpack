@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Upload, Trash2 } from "lucide-react";
+import { Upload, Trash2, Sparkles } from "lucide-react";
 import { DocumentControlUploadModal } from "@/components/governance/DocumentControlUploadModal";
 
 type Doc = {
@@ -29,6 +29,8 @@ export default function GovernanceDocumentsClient() {
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [seeding, setSeeding] = useState(false);
+  const [seedResult, setSeedResult] = useState<{ created: number } | null>(null);
 
   const fetchDocuments = useCallback(() => {
     const params = new URLSearchParams();
@@ -88,6 +90,31 @@ export default function GovernanceDocumentsClient() {
           <Upload className="h-4 w-4" aria-hidden />
           Upload & map to matrix
         </button>
+        <button
+          type="button"
+          disabled={seeding}
+          onClick={async () => {
+            setSeeding(true);
+            setSeedResult(null);
+            try {
+              const res = await fetch("/api/governance/documents/bulk-seed-vault", { method: "POST" });
+              if (res.ok) {
+                const data = await res.json();
+                setSeedResult(data);
+                setRefreshTrigger((t) => t + 1);
+              }
+            } finally {
+              setSeeding(false);
+            }
+          }}
+          className="inline-flex items-center gap-2 rounded-[var(--radius-md)] border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 transition-colors hover:bg-indigo-100 disabled:opacity-60"
+        >
+          <Sparkles className="h-4 w-4" aria-hidden />
+          {seeding ? "Loading…" : "Load from Vault"}
+        </button>
+        {seedResult && seedResult.created > 0 && (
+          <span className="text-xs font-medium text-teal-700">✓ {seedResult.created} documents loaded</span>
+        )}
         <span className="text-sm text-[var(--color-gray-500)]">|</span>
         <label className="text-sm font-medium text-[var(--color-gray-700)]">Type</label>
         <select

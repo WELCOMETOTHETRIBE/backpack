@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Search, LayoutList, LayoutGrid, Layers } from "lucide-react";
+import { Search, LayoutList, LayoutGrid, Layers, Sparkles } from "lucide-react";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { CONTROL_FAMILIES, getControlFamilyPrefix } from "@/components/governance-wizard/constants";
 import { StatusBadge } from "@/components/governance-wizard/StatusBadge";
@@ -13,7 +13,7 @@ import { getOptimizedByControlId } from "@/lib/sctm-optimized-types";
 
 const ADJUDICATED = ["implemented", "assessed", "inherited", "not_applicable"];
 
-/** Get color classes based on implementation percentage */
+/** Get color classes based on implementation percentage — 5-tier spectrum */
 function getPercentageColors(pct: number, isActive: boolean): {
   bg: string;
   bgActive: string;
@@ -26,23 +26,36 @@ function getPercentageColors(pct: number, isActive: boolean): {
   progress: string;
   progressActive: string;
 } {
-  // Red: 0-33%, Yellow/Amber: 34-66%, Green: 67-100%
-  if (pct >= 67) {
-    // Green - high implementation
+  if (pct === 100) {
+    // 100% — muted teal (fully adjudicated)
     return {
-      bg: "bg-emerald-50",
-      bgActive: "bg-emerald-600",
-      border: "border-emerald-200",
-      borderActive: "border-emerald-600",
-      text: "text-emerald-700",
+      bg: "bg-teal-50",
+      bgActive: "bg-teal-700",
+      border: "border-teal-200",
+      borderActive: "border-teal-700",
+      text: "text-teal-700",
       textActive: "text-white",
-      icon: "bg-emerald-100 text-emerald-600",
+      icon: "bg-teal-100 text-teal-600",
       iconActive: "bg-white/20",
-      progress: "bg-emerald-500",
+      progress: "bg-teal-500",
+      progressActive: "bg-white/70",
+    };
+  } else if (pct >= 67) {
+    // 67-99% — slate blue (strong progress)
+    return {
+      bg: "bg-sky-50",
+      bgActive: "bg-sky-700",
+      border: "border-sky-200",
+      borderActive: "border-sky-700",
+      text: "text-sky-700",
+      textActive: "text-white",
+      icon: "bg-sky-100 text-sky-600",
+      iconActive: "bg-white/20",
+      progress: "bg-sky-500",
       progressActive: "bg-white/70",
     };
   } else if (pct >= 34) {
-    // Amber - medium implementation
+    // 34-66% — amber/orange (moderate progress)
     return {
       bg: "bg-amber-50",
       bgActive: "bg-amber-600",
@@ -55,18 +68,32 @@ function getPercentageColors(pct: number, isActive: boolean): {
       progress: "bg-amber-500",
       progressActive: "bg-white/70",
     };
-  } else {
-    // Red - low implementation
+  } else if (pct > 0) {
+    // 1-33% — rose (low progress)
     return {
-      bg: "bg-red-50",
-      bgActive: "bg-red-600",
-      border: "border-red-200",
-      borderActive: "border-red-600",
-      text: "text-red-700",
+      bg: "bg-rose-50",
+      bgActive: "bg-rose-600",
+      border: "border-rose-200",
+      borderActive: "border-rose-600",
+      text: "text-rose-700",
       textActive: "text-white",
-      icon: "bg-red-100 text-red-600",
+      icon: "bg-rose-100 text-rose-600",
       iconActive: "bg-white/20",
-      progress: "bg-red-500",
+      progress: "bg-rose-500",
+      progressActive: "bg-white/70",
+    };
+  } else {
+    // 0% — gray (not started)
+    return {
+      bg: "bg-gray-50",
+      bgActive: "bg-gray-600",
+      border: "border-gray-200",
+      borderActive: "border-gray-600",
+      text: "text-gray-600",
+      textActive: "text-white",
+      icon: "bg-gray-100 text-gray-500",
+      iconActive: "bg-white/20",
+      progress: "bg-gray-400",
       progressActive: "bg-white/70",
     };
   }
@@ -109,6 +136,8 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+  const [bulkLoading, setBulkLoading] = useState(false);
+  const [bulkResult, setBulkResult] = useState<{ updated: number; total: number } | null>(null);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(searchQuery.trim()), 300);
@@ -321,18 +350,26 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
                 <p className="text-[11px] text-[var(--color-gray-500)]">NIST SP 800-171 Rev 2 · Color indicates implementation progress</p>
               </div>
               {/* Legend */}
-              <div className="ml-auto flex items-center gap-3 text-[10px] text-[var(--color-gray-500)]">
+              <div className="ml-auto flex flex-wrap items-center gap-3 text-[10px] text-[var(--color-gray-500)]">
                 <div className="flex items-center gap-1">
-                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-red-500" />
-                  <span>0-33%</span>
+                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-gray-400" />
+                  <span>0%</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-rose-500" />
+                  <span>1-33%</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <span className="inline-block h-2.5 w-2.5 rounded-full bg-amber-500" />
                   <span>34-66%</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-emerald-500" />
-                  <span>67-100%</span>
+                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-sky-500" />
+                  <span>67-99%</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-teal-500" />
+                  <span>100%</span>
                 </div>
               </div>
             </div>
@@ -397,6 +434,39 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
               <span className="mx-1.5 text-[var(--color-gray-300)]">·</span>
               <strong className="text-[var(--color-gray-800)]">{outstandingCount}</strong> outstanding
             </span>
+            <div className="h-3 w-px bg-[var(--color-border)]/60" aria-hidden />
+            {/* Bulk load vault narratives */}
+            {userRole !== "Assessor" && outstandingCount > 0 && (
+              <button
+                type="button"
+                disabled={bulkLoading}
+                onClick={async () => {
+                  setBulkLoading(true);
+                  setBulkResult(null);
+                  try {
+                    const res = await fetch("/api/control-records/bulk-load-vault", { method: "POST" });
+                    if (res.ok) {
+                      const data = await res.json();
+                      setBulkResult(data);
+                      // Refresh control records
+                      const rr = await fetch("/api/control-records");
+                      if (rr.ok) { const d = await rr.json(); setRecords(d); }
+                    }
+                  } finally {
+                    setBulkLoading(false);
+                  }
+                }}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-100 disabled:opacity-60 transition-colors"
+              >
+                <Sparkles className="h-3 w-3" />
+                {bulkLoading ? "Loading…" : "Load Vault narratives"}
+              </button>
+            )}
+            {bulkResult && (
+              <span className="text-xs text-teal-700 font-medium">
+                ✓ {bulkResult.updated} narratives loaded
+              </span>
+            )}
             <div className="h-3 w-px bg-[var(--color-border)]/60" aria-hidden />
             <div className="flex items-center gap-1">
               {(["all", "configuration", "governance", "partial"] as const).map((t) => (

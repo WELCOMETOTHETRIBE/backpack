@@ -43,6 +43,73 @@ import {
   LANE_COLORS,
   cadenceLabel,
 } from "@/data/cmmc/control-intelligence";
+import { VAULT_CONTROL_MAP, type VaultControl } from "@/data/vault-control-map";
+
+// ─── Vault narrative builder ──────────────────────────────────────────────────
+
+const VAULT_BY_ID = new Map<string, VaultControl>(
+  VAULT_CONTROL_MAP.map((v) => [v.controlId, v])
+);
+
+function buildVaultNarrative(controlId: string): string | null {
+  const vc = VAULT_BY_ID.get(controlId);
+  if (!vc) return null;
+
+  const lines: string[] = [];
+
+  // Tier summary
+  if (vc.tier === "azure_inherited") {
+    lines.push("This control is fully inherited from the Azure Government FedRAMP High authorization.");
+  } else if (vc.tier === "not_applicable") {
+    lines.push(`This control is not applicable to the current system boundary.${vc.naJustification ? ` Justification: ${vc.naJustification}` : ""}`);
+  } else if (vc.tier === "shared") {
+    lines.push("This control is implemented under a shared responsibility model between MacTech (platform provider) and the organization.");
+  } else if (vc.tier === "customer_managed") {
+    lines.push("This control is customer-managed. The organization is responsible for full implementation.");
+  }
+
+  // MacTech-provided capabilities
+  if (vc.mactechProvides?.length) {
+    lines.push("");
+    lines.push("MacTech Vault provides: " + vc.mactechProvides.join("; ") + ".");
+  }
+
+  // Azure-inherited capabilities
+  if (vc.azureProvides?.length) {
+    lines.push("");
+    lines.push("Azure Government provides: " + vc.azureProvides.join("; ") + ".");
+  }
+
+  // Technical coverage
+  if (vc.technicalCoverage && vc.technicalCoverage !== "NONE") {
+    lines.push("");
+    const coverageDesc =
+      vc.technicalCoverage === "STRONG" ? "Full technical evidence is collected by the OS Evidence Collector." :
+      vc.technicalCoverage === "PARTIAL" ? "Partial technical evidence is collected by the OS Evidence Collector; additional governance documentation is required." :
+      "This control requires governance documentation only (no automated technical evidence collection).";
+    lines.push(coverageDesc);
+  }
+
+  // Customer responsibilities
+  if (vc.customerRequired?.length) {
+    lines.push("");
+    lines.push("Organization responsibilities: " + vc.customerRequired.join("; ") + ".");
+  }
+
+  // Governance documents
+  if (vc.governanceDocIds?.length) {
+    lines.push("");
+    lines.push("Required governance documents: " + vc.governanceDocIds.join(", ") + ".");
+  }
+
+  // Evidence registers
+  if (vc.evidenceRegisters?.length) {
+    lines.push("");
+    lines.push("Mapped evidence registers: " + vc.evidenceRegisters.join(", ") + ".");
+  }
+
+  return lines.length > 0 ? lines.join("\n") : null;
+}
 
 // ─── Text helpers ──────────────────────────────────────────────────────────────
 
@@ -977,9 +1044,24 @@ export function SCTMControlDetail({
             {/* Narrative */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label htmlFor="sctm-narrative" className="text-sm font-medium text-[var(--color-gray-700)]">
-                  Implementation narrative
-                </label>
+                <div className="flex items-center gap-2">
+                  <label htmlFor="sctm-narrative" className="text-sm font-medium text-[var(--color-gray-700)]">
+                    Implementation narrative
+                  </label>
+                  {!isAssessor && !narrative.trim() && buildVaultNarrative(record.controlId) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const vn = buildVaultNarrative(record.controlId);
+                        if (vn) setNarrative(vn);
+                      }}
+                      className="inline-flex items-center gap-1 rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[11px] font-medium text-indigo-700 hover:bg-indigo-100 transition-colors"
+                    >
+                      <Lightbulb className="h-3 w-3" />
+                      Load Vault narrative
+                    </button>
+                  )}
+                </div>
                 {narrative.trim().length > 0 && (
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-[var(--color-gray-400)]">{narrative.trim().length} chars</span>
@@ -988,7 +1070,7 @@ export function SCTMControlDetail({
                         <div className={`h-full rounded-full transition-all ${strength.color}`} style={{ width: `${strength.pct}%` }} />
                       </div>
                       <span className={`text-xs font-medium ${
-                        strength.label === "Strong" ? "text-emerald-600" :
+                        strength.label === "Strong" ? "text-teal-600" :
                         strength.label === "Adequate" ? "text-blue-600" :
                         strength.label === "Developing" ? "text-amber-600" :
                         "text-red-500"
@@ -997,6 +1079,15 @@ export function SCTMControlDetail({
                   </div>
                 )}
               </div>
+              {/* Quick-attest banner for vault-backed controls with no narrative yet */}
+              {!isAssessor && !narrative.trim() && buildVaultNarrative(record.controlId) && (
+                <div className="mb-2 flex items-start gap-2 rounded-lg border border-indigo-100 bg-indigo-50/50 px-3 py-2">
+                  <Lightbulb className="h-4 w-4 text-indigo-500 mt-0.5 shrink-0" />
+                  <p className="text-xs text-indigo-700 leading-relaxed">
+                    MacTech Vault has a pre-written narrative for this control. Click <strong>Load Vault narrative</strong> to pre-populate, then review and save to attest.
+                  </p>
+                </div>
+              )}
               <textarea
                 id="sctm-narrative"
                 value={narrative}
