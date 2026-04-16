@@ -75,7 +75,7 @@ export async function POST() {
       // Audit trail
       await db.insert(controlRecordHistory).values({
         controlRecordId: rec.id,
-        changedById: user.id,
+        changedById: user.id!,
         fieldName: "governanceNarrative",
         oldValue: null,
         newValue: "[Vault narrative loaded — comprehensive]",
