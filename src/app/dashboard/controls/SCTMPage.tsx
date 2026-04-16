@@ -600,7 +600,7 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
             </div>
 
             {filteredRecords.length === 0 ? (
-              <div className="flex items-center justify-center py-16 text-center">
+              <div className="flex items-center justify-center py-12 text-center">
                 <div>
                   <p className="text-sm text-[var(--color-gray-600)]">No controls match the current filters.</p>
                   <button
@@ -621,8 +621,8 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
               <ul
                 className={
                   viewMode === "grid"
-                    ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
-                    : "space-y-2"
+                    ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2"
+                    : "divide-y divide-[var(--color-border)] rounded-xl border border-[var(--color-border)] bg-white overflow-hidden"
                 }
                 role="list"
               >
@@ -636,58 +636,44 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
                       <button
                         type="button"
                         onClick={() => setControl(r.controlId)}
-                        className="w-full text-left rounded-xl border border-[var(--color-border)] bg-white px-4 py-3 hover:border-[var(--color-primary)]/40 hover:shadow-md hover:shadow-black/[0.04] transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2"
+                        className={
+                          viewMode === "grid"
+                            ? "w-full text-left rounded-xl border border-[var(--color-border)] bg-white px-3 py-2.5 hover:border-[var(--color-primary)]/40 hover:shadow-md hover:shadow-black/[0.04] transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2"
+                            : "w-full text-left px-4 py-2.5 hover:bg-[var(--color-gray-50)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--color-blue-accent)]"
+                        }
                       >
-                        <div className="flex items-start justify-between gap-3 mb-1.5">
-                          <div className="flex items-center gap-2 min-w-0 flex-wrap">
-                            <span className="font-mono text-sm font-bold text-[var(--color-navy-primary)] shrink-0">
-                              {r.controlId}
-                            </span>
-                            {r.evidencePartial ? (
-                              <>
-                                <StatusBadge status="in_progress" />
-                                <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-800">
-                                  Partial
-                                </span>
-                              </>
-                            ) : (
-                              <StatusBadge status={r.implementationStatus} />
-                            )}
-                          </div>
-                        </div>
-                        <p className="font-medium text-[var(--color-gray-900)] leading-snug text-sm mb-1 line-clamp-2">
-                          {title}
-                        </p>
-                        {summary && viewMode === "grid" && (
-                          <p className="text-xs text-[var(--color-gray-500)] line-clamp-2 leading-relaxed">
-                            {summary}
-                          </p>
-                        )}
-                        <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                        <div className="flex items-center gap-2 min-w-0 flex-wrap mb-1">
+                          <span className="font-mono text-sm font-bold text-[var(--color-navy-primary)] shrink-0">
+                            {r.controlId}
+                          </span>
+                          {r.evidencePartial ? (
+                            <>
+                              <StatusBadge status="in_progress" />
+                              <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-800">
+                                Partial
+                              </span>
+                            </>
+                          ) : (
+                            <StatusBadge status={r.implementationStatus} />
+                          )}
                           {r.satisfiedByHybrid ? (
-                            <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-teal-100 text-teal-800">
-                              Hybrid
-                            </span>
+                            <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-teal-100 text-teal-800">H</span>
                           ) : (
                             <>
-                              {r.satisfiedByOs && (
-                                <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-slate-100 text-slate-700">
-                                  OS
-                                </span>
-                              )}
-                              {r.satisfiedByCloud && (
-                                <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-sky-100 text-sky-800">
-                                  Cloud
-                                </span>
-                              )}
-                              {r.satisfiedByGovernance && (
-                                <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-violet-100 text-violet-800">
-                                  Governance
-                                </span>
-                              )}
+                              {r.satisfiedByOs && <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-slate-100 text-slate-700">OS</span>}
+                              {r.satisfiedByCloud && <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-sky-100 text-sky-800">CL</span>}
+                              {r.satisfiedByGovernance && <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-violet-100 text-violet-800">GV</span>}
                             </>
                           )}
                         </div>
+                        <p className="font-medium text-[var(--color-gray-900)] leading-snug text-[13px] line-clamp-2">
+                          {title}
+                        </p>
+                        {summary && viewMode === "grid" && (
+                          <p className="mt-1 text-[11px] text-[var(--color-gray-500)] line-clamp-2 leading-snug">
+                            {summary}
+                          </p>
+                        )}
                       </button>
                     </li>
                   );

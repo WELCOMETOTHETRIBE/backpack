@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { StatusBadge } from "@/components/governance-wizard/StatusBadge";
 import { getSpecForControl } from "@/lib/artifact-guide";
 import { CONTROL_FAMILIES } from "@/components/governance-wizard/constants";
@@ -45,7 +45,7 @@ import {
 } from "@/data/cmmc/control-intelligence";
 import vaultNarratives from "@/data/cmmc/vault-narratives.json";
 
-// ─── Vault narrative lookup ───────────────────────────────────────────────────
+type DetailTab = "guide" | "policy" | "evidence" | "poam" | "history";
 
 const VAULT_NARRATIVES = vaultNarratives as Record<string, string>;
 
@@ -300,13 +300,13 @@ const HISTORY_FIELD_LABELS: Record<string, string> = {
   sprs31311Condition: "SPRS 3.13.11 condition",
 };
 
-function narrativeStrength(text: string): { label: string; color: string; pct: number } {
+function narrativeStrength(text: string): { label: string; color: string; toneClass: string; pct: number } {
   const len = text.trim().length;
-  if (len === 0) return { label: "—", color: "bg-gray-200", pct: 0 };
-  if (len < 50) return { label: "Weak", color: "bg-red-400", pct: 20 };
-  if (len < 150) return { label: "Developing", color: "bg-amber-400", pct: 45 };
-  if (len < 400) return { label: "Adequate", color: "bg-blue-400", pct: 70 };
-  return { label: "Strong", color: "bg-emerald-400", pct: 100 };
+  if (len === 0) return { label: "—", color: "bg-gray-200", toneClass: "text-gray-400", pct: 0 };
+  if (len < 50) return { label: "Weak", color: "bg-red-400", toneClass: "text-red-500", pct: 20 };
+  if (len < 150) return { label: "Developing", color: "bg-amber-400", toneClass: "text-amber-600", pct: 45 };
+  if (len < 400) return { label: "Adequate", color: "bg-blue-400", toneClass: "text-blue-600", pct: 70 };
+  return { label: "Strong", color: "bg-emerald-400", toneClass: "text-teal-600", pct: 100 };
 }
 
 function formatDate(iso: string): string {
@@ -347,12 +347,13 @@ export function SCTMControlDetail({
 }) {
   const isAssessor = userRole === "Assessor";
 
-  // ── Implementation record state ──
   const [narrative, setNarrative] = useState(record.governanceNarrative ?? "");
   const [localStatus, setLocalStatus] = useState(record.implementationStatus);
   const [localValidationMethod, setLocalValidationMethod] = useState(record.validationMethod ?? "");
   const [localCadence, setLocalCadence] = useState(record.monitoringCadence ?? "");
   const [saving, setSaving] = useState(false);
+
+  const [activeTab, setActiveTab] = useState<DetailTab>("guide");
 
   // ── Hybrid satisfaction state ──
   const [savingHybrid, setSavingHybrid] = useState(false);
@@ -585,250 +586,288 @@ export function SCTMControlDetail({
   const poamWarrantsCreation =
     localStatus === "not_started" || localStatus === "in_progress";
 
-  // ── Render ──────────────────────────────────────────────────────────────────
+  const intel = useMemo(() => getControlIntelligence(record.controlId), [record.controlId]);
+
+  // Only needed when the Guide tab is active — walks SCTM + NIST + platform helps.
+  const assessmentGuideSections = useMemo(
+    () => activeTab === "guide"
+      ? buildAssessmentGuideSections(record.controlId, nist?.nistDiscussionGuidance, sctmOptimized, getPlatformHelpForControl)
+      : [],
+    [activeTab, record.controlId, nist?.nistDiscussionGuidance, sctmOptimized]
+  );
+
+  const vaultNarrative = useMemo(() => buildVaultNarrative(record.controlId), [record.controlId]);
 
   return (
-    <div className="mx-auto max-w-5xl w-full px-0 py-0">
+    <div className="w-full">
 
       {/* Assessor read-only banner */}
       {isAssessor && (
-        <div className="mb-4 flex items-center gap-2.5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-800">
-          <Shield className="h-4 w-4 shrink-0 text-amber-500" />
+        <div className="mb-3 flex items-center gap-2.5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-800">
+          <Shield className="h-3.5 w-3.5 shrink-0 text-amber-500" />
           <span>You are viewing as <strong>Assessor</strong> — all fields are read-only.</span>
         </div>
       )}
 
-      {/* Header row */}
-      <div className="flex flex-wrap items-center gap-2 mb-1">
-        <span className="font-mono text-lg font-bold text-[var(--color-navy-primary)]">{record.controlId}</span>
-        <StatusBadge status={record.implementationStatus} />
-        {/* ── Dual-evidence lane badges ── */}
-        {(record.technicalStatus && record.technicalStatus !== "not_started") && (
-          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium border ${
-            record.technicalStatus === "satisfied" ? "bg-emerald-50 border-emerald-200 text-emerald-700" :
-            record.technicalStatus === "failed" ? "bg-red-50 border-red-200 text-red-700" :
-            record.technicalStatus === "not_applicable" ? "bg-slate-50 border-slate-200 text-slate-500" :
-            "bg-gray-50 border-gray-200 text-gray-500"
-          }`}>
-            <span className={`h-1.5 w-1.5 rounded-full ${
-              record.technicalStatus === "satisfied" ? "bg-emerald-500" :
-              record.technicalStatus === "failed" ? "bg-red-500" :
-              "bg-slate-400"
-            }`} />
-            Technical: {record.technicalStatus === "satisfied" ? "PASS" : record.technicalStatus === "failed" ? "MISSING" : "N/A"}
-          </span>
-        )}
-        {record.policyDocRequired && (
-          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium border ${
-            policyStatus === "satisfied" ? "bg-emerald-50 border-emerald-200 text-emerald-700" :
-            (policyStatus === "missing" || policyStatus === "required") ? "bg-amber-50 border-amber-200 text-amber-700" :
-            "bg-slate-50 border-slate-200 text-slate-500"
-          }`}>
-            <span className={`h-1.5 w-1.5 rounded-full ${
-              policyStatus === "satisfied" ? "bg-emerald-500" :
-              (policyStatus === "missing" || policyStatus === "required") ? "bg-amber-500" :
-              "bg-slate-400"
-            }`} />
-            Policy: {policyStatus === "satisfied" ? "SATISFIED" : policyStatus === "not_required" ? "N/A" : "MISSING"}
-          </span>
-        )}
-        {/* Combined adjudication banner for dual-evidence controls */}
-        {record.policyDocRequired && record.technicalStatus && record.technicalStatus !== "not_started" && (
-          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold border ${
-            record.technicalStatus === "satisfied" && policyStatus === "satisfied"
-              ? "bg-emerald-100 border-emerald-300 text-emerald-800"
-              : record.technicalStatus === "satisfied" && policyStatus !== "satisfied"
-              ? "bg-amber-100 border-amber-300 text-amber-800"
-              : record.technicalStatus !== "satisfied" && policyStatus === "satisfied"
-              ? "bg-amber-100 border-amber-300 text-amber-800"
-              : "bg-red-50 border-red-200 text-red-700"
-          }`}>
-            {record.technicalStatus === "satisfied" && policyStatus === "satisfied"
-              ? "Fully Implemented"
-              : record.technicalStatus === "satisfied" && policyStatus !== "satisfied"
-              ? "Policy Gap"
-              : record.technicalStatus !== "satisfied" && policyStatus === "satisfied"
-              ? "Evidence Gap"
-              : "Not Implemented"}
-          </span>
-        )}
-        {familyCode && (
-          <span className="text-xs font-medium text-[var(--color-gray-500)]">{familyCode}</span>
-        )}
-        {sctmOptimized?.compliance_meta?.satisfaction_type && (
-          <span className="rounded-full bg-[var(--color-blue-accent)]/10 px-2.5 py-0.5 text-xs font-medium text-[var(--color-blue-accent)]">
-            {sctmOptimized.compliance_meta.satisfaction_type.replace(/-/g, " ")}
-          </span>
-        )}
-        {record.satisfiedByHybrid ? (
-          <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-teal-100 text-teal-800" title="Hybrid (OS + gov docs).">Hybrid</span>
-        ) : (
-          <>
-            {record.satisfiedByOs && <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-700" title="Met by OS configuration (73).">OS</span>}
-            {record.satisfiedByCloud && <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-sky-100 text-sky-800" title="Met by cloud (5 inherited + 7 Azure/Entra).">Cloud</span>}
-            {record.satisfiedByGovernance && <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-violet-100 text-violet-800" title="Met by governance (18).">Governance</span>}
-          </>
-        )}
-        {record.monitoringCadence && (
-          <span className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium bg-[var(--color-gray-100)] text-[var(--color-gray-600)]">
-            <Clock className="h-3 w-3" />{record.monitoringCadence}
-          </span>
-        )}
-        {record.roleName && <span className="text-xs text-[var(--color-gray-400)]">· {record.roleName}</span>}
-      </div>
-      {/* Display title — always visible */}
-      {displayTitle && (
-        <h1 className="text-base font-semibold text-[var(--color-gray-900)] mb-4">{displayTitle}</h1>
-      )}
-
-      {/* ── NIST guide sections ── */}
-      <div className="mb-4">
-        <CollapsibleBlock label="Requirement" defaultOpen icon={BookOpen} contentClassName="bg-white/90">
-          <div className="flex items-center gap-2 mb-2">
-            {sctmOptimized?.scoring && (
-              <span className="rounded-full bg-white/60 px-2 py-0.5 text-xs font-medium text-[var(--color-gray-700)] backdrop-blur-sm border border-white/40">
-                SPRS {sctmOptimized.scoring.sprs} · {sctmOptimized.scoring.weight}
-              </span>
+      {/* ── Sticky header: control ID + title + save ── */}
+      <div className="sticky top-0 z-20 -mx-5 px-5 py-2.5 mb-4 bg-white/95 backdrop-blur-sm border-b border-[var(--color-border)]">
+        <div className="flex items-start justify-between gap-3 flex-wrap">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-mono text-lg font-bold text-[var(--color-navy-primary)]">{record.controlId}</span>
+              <StatusBadge status={record.implementationStatus} />
+              {record.monitoringCadence && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600">
+                  <Clock className="h-2.5 w-2.5" />{record.monitoringCadence}
+                </span>
+              )}
+              {record.satisfiedByHybrid ? (
+                <span className="inline-flex items-center rounded-full bg-teal-100 px-2 py-0.5 text-[10px] font-medium text-teal-800">Hybrid</span>
+              ) : (
+                <>
+                  {record.satisfiedByOs && <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-700">OS</span>}
+                  {record.satisfiedByCloud && <span className="inline-flex items-center rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-medium text-sky-800">Cloud</span>}
+                  {record.satisfiedByGovernance && <span className="inline-flex items-center rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-medium text-violet-800">Governance</span>}
+                </>
+              )}
+              {sctmOptimized?.scoring && (
+                <span className="inline-flex items-center rounded-full bg-gray-50 border border-gray-200 px-2 py-0.5 text-[10px] font-medium text-gray-600">
+                  SPRS {sctmOptimized.scoring.sprs}
+                </span>
+              )}
+            </div>
+            {displayTitle && (
+              <h1 className="mt-0.5 text-sm font-semibold text-[var(--color-gray-900)] leading-tight">{displayTitle}</h1>
             )}
           </div>
-          {displayTitle && <p className="text-base font-medium text-[var(--color-gray-900)] mb-1">{displayTitle}</p>}
-          {requirementText ? (
-            <p className="text-[15px] leading-[1.7] text-[var(--color-gray-800)] whitespace-pre-wrap max-w-none">{requirementText}</p>
-          ) : (
-            <p className="text-[15px] text-[var(--color-gray-400)] italic">Requirement text will appear here once loaded.</p>
+          {!isAssessor && (
+            <button
+              type="button"
+              onClick={saveAll}
+              disabled={saving}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--color-primary)] px-3.5 py-2 text-sm font-semibold text-white hover:bg-[var(--color-primary-hover)] disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2 shadow-sm"
+            >
+              <Save className="h-3.5 w-3.5" />
+              {saving ? "Saving…" : "Save adjudication"}
+            </button>
           )}
-        </CollapsibleBlock>
+        </div>
       </div>
 
-      {/* ── Implementation record — PRIMARY ACTION (moved up for UX) ── */}
-      <div className="mb-4">
-        <CollapsibleBlock label="Implementation record" defaultOpen icon={ClipboardList}>
-          <div className="space-y-5">
 
-            {/* Status selector */}
-            <div>
-              <p className="text-sm font-medium text-[var(--color-gray-700)] mb-2">Implementation status</p>
-              <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6">
-                {STATUS_OPTIONS.map((opt) => {
-                  const isSelected = localStatus === opt.value;
-                  const colors = STATUS_COLORS[opt.value];
-                  return (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      disabled={isAssessor}
-                      onClick={() => setLocalStatus(opt.value)}
-                      className={`rounded-lg border px-2 py-2 text-xs text-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] disabled:cursor-not-allowed disabled:opacity-60 ${
-                        isSelected ? colors.active : colors.base
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  );
-                })}
-              </div>
-              {localStatus && (
-                <p className="mt-2 text-xs italic text-[var(--color-gray-500)]">
-                  {STATUS_CONSEQUENCE[localStatus]}
-                </p>
-              )}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
+
+        <div className="space-y-3 min-w-0">
+
+          {/* Requirement */}
+          <section className="rounded-xl border border-[var(--color-border)] bg-white p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <BookOpen className="h-3.5 w-3.5 text-[var(--color-gray-400)]" />
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-gray-500)]">Requirement</h3>
             </div>
+            {requirementText ? (
+              <p className="text-sm leading-relaxed text-[var(--color-gray-800)] whitespace-pre-wrap">{requirementText}</p>
+            ) : (
+              <p className="text-sm text-[var(--color-gray-400)] italic">Requirement text will appear here once loaded.</p>
+            )}
+          </section>
 
-            {/* Narrative */}
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <div className="flex items-center gap-2">
-                  <label htmlFor="sctm-narrative" className="text-sm font-medium text-[var(--color-gray-700)]">
-                    Implementation narrative
-                  </label>
-                  {!isAssessor && !narrative.trim() && buildVaultNarrative(record.controlId) && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const vn = buildVaultNarrative(record.controlId);
-                        if (vn) setNarrative(vn);
-                      }}
-                      className="inline-flex items-center gap-1 rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[11px] font-medium text-indigo-700 hover:bg-indigo-100 transition-colors"
-                    >
-                      <Lightbulb className="h-3 w-3" />
-                      Load Vault narrative
-                    </button>
-                  )}
-                </div>
-                {narrative.trim().length > 0 && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-[var(--color-gray-400)]">{narrative.trim().length} chars</span>
-                    <div className="flex items-center gap-1.5">
-                      <div className="h-1.5 w-20 rounded-full bg-[var(--color-gray-100)] overflow-hidden">
-                        <div className={`h-full rounded-full transition-all ${strength.color}`} style={{ width: `${strength.pct}%` }} />
-                      </div>
-                      <span className={`text-xs font-medium ${
-                        strength.label === "Strong" ? "text-teal-600" :
-                        strength.label === "Adequate" ? "text-blue-600" :
-                        strength.label === "Developing" ? "text-amber-600" :
-                        "text-red-500"
-                      }`}>{strength.label}</span>
-                    </div>
+          {/* C3PAO Focus */}
+          {intel && (intel.c3paoExaminerNote || intel.conmonTrigger) && (
+            <section className="rounded-xl border border-indigo-200 bg-indigo-50/40 p-4">
+              {intel.c3paoExaminerNote && (
+                <>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Eye className="h-3.5 w-3.5 text-indigo-500" />
+                    <h3 className="text-[10px] font-bold uppercase tracking-wider text-indigo-700">What the examiner will do</h3>
                   </div>
+                  <p className="text-sm leading-relaxed text-[var(--color-gray-800)]">{intel.c3paoExaminerNote}</p>
+                </>
+              )}
+              {intel.conmonTrigger && (
+                <div className={intel.c3paoExaminerNote ? "mt-3 pt-3 border-t border-indigo-200/60" : ""}>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+                    <h3 className="text-[10px] font-bold uppercase tracking-wider text-amber-700">Re-adjudication trigger</h3>
+                  </div>
+                  <p className="text-xs leading-relaxed text-[var(--color-gray-700)]">{intel.conmonTrigger}</p>
+                </div>
+              )}
+            </section>
+          )}
+
+          {/* Metadata grid */}
+          {intel && (
+            <section className="rounded-xl border border-[var(--color-border)] bg-white p-4">
+              <div className="grid grid-cols-3 gap-3 text-xs">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">Disposition</p>
+                  <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${dispositionColorClass(intel.disposition)}`}>
+                    {dispositionLabel(intel.disposition)}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">Lanes</p>
+                  <div className="flex flex-wrap gap-1">
+                    {intel.evidenceLanes.map((lane) => (
+                      <span key={lane} className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${LANE_COLORS[lane]}`}>
+                        {LANE_LABELS[lane]}
+                      </span>
+                    ))}
+                    {intel.evidenceLanes.length === 0 && <span className="text-[10px] text-[var(--color-gray-400)] italic">None</span>}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">Cadence</p>
+                  <span className="text-xs font-medium text-[var(--color-gray-800)]">{cadenceLabel(intel.cadenceType)}</span>
+                </div>
+              </div>
+              {intel.registerRequired && intel.registerSchemaId && intel.registerKey && (
+                <Link
+                  href={`/dashboard/evidence-engine/registers/${intel.registerSchemaId}`}
+                  className="mt-3 inline-flex items-center gap-1 text-xs text-indigo-700 hover:underline"
+                >
+                  <ClipboardList className="h-3 w-3" />
+                  Required register: {intel.registerKey}
+                  <ExternalLink className="h-2.5 w-2.5 opacity-60" />
+                </Link>
+              )}
+              {intel.naRationale && (
+                <p className="mt-2 text-xs text-[var(--color-gray-600)] italic leading-relaxed">{intel.naRationale}</p>
+              )}
+            </section>
+          )}
+
+          {/* Dual-evidence status (if applicable) */}
+          {(record.policyDocRequired || (record.technicalStatus && record.technicalStatus !== "not_started")) && (
+            <section className="rounded-xl border border-[var(--color-border)] bg-white p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <ListChecks className="h-3.5 w-3.5 text-[var(--color-gray-400)]" />
+                <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-gray-500)]">Dual-evidence status</h3>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {record.technicalStatus && record.technicalStatus !== "not_started" && (
+                  <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium border ${
+                    record.technicalStatus === "satisfied" ? "bg-emerald-50 border-emerald-200 text-emerald-700" :
+                    record.technicalStatus === "failed" ? "bg-red-50 border-red-200 text-red-700" :
+                    "bg-slate-50 border-slate-200 text-slate-500"
+                  }`}>
+                    <span className={`h-1.5 w-1.5 rounded-full ${
+                      record.technicalStatus === "satisfied" ? "bg-emerald-500" :
+                      record.technicalStatus === "failed" ? "bg-red-500" :
+                      "bg-slate-400"
+                    }`} />
+                    Technical: {record.technicalStatus === "satisfied" ? "PASS" : record.technicalStatus === "failed" ? "MISSING" : "N/A"}
+                  </span>
+                )}
+                {record.policyDocRequired && (
+                  <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium border ${
+                    policyStatus === "satisfied" ? "bg-emerald-50 border-emerald-200 text-emerald-700" :
+                    (policyStatus === "missing" || policyStatus === "required") ? "bg-amber-50 border-amber-200 text-amber-700" :
+                    "bg-slate-50 border-slate-200 text-slate-500"
+                  }`}>
+                    <span className={`h-1.5 w-1.5 rounded-full ${
+                      policyStatus === "satisfied" ? "bg-emerald-500" :
+                      (policyStatus === "missing" || policyStatus === "required") ? "bg-amber-500" :
+                      "bg-slate-400"
+                    }`} />
+                    Policy: {policyStatus === "satisfied" ? "SATISFIED" : policyStatus === "not_required" ? "N/A" : "MISSING"}
+                  </span>
                 )}
               </div>
-              {!isAssessor && !narrative.trim() && buildVaultNarrative(record.controlId) && (
-                <div className="mb-2 flex items-start gap-2 rounded-lg border border-indigo-100 bg-indigo-50/50 px-3 py-2">
-                  <Lightbulb className="h-4 w-4 text-indigo-500 mt-0.5 shrink-0" />
-                  <p className="text-xs text-indigo-700 leading-relaxed">
-                    MacTech Vault has a pre-written narrative for this control. Click <strong>Load Vault narrative</strong> to pre-populate, then review and save to attest.
-                  </p>
-                </div>
-              )}
-              <textarea
-                id="sctm-narrative"
-                value={narrative}
-                onChange={(e) => setNarrative(e.target.value)}
-                disabled={isAssessor}
-                rows={5}
-                className="w-full rounded-lg border border-[var(--color-border)] bg-white px-3 py-2.5 text-sm text-[var(--color-gray-900)] placeholder:text-[var(--color-gray-400)] focus:border-[var(--color-blue-accent)] focus:outline-none focus:ring-2 focus:ring-[var(--color-blue-accent)]/20 disabled:bg-[var(--color-gray-50)] disabled:text-[var(--color-gray-500)] disabled:cursor-not-allowed resize-y"
-                placeholder="Describe how this control is satisfied — what is in place, how it is enforced, and how it is verified. Consider policies, technical controls, responsible parties, and ongoing monitoring."
-              />
-            </div>
+            </section>
+          )}
+        </div>
 
-            {/* Validation method */}
-            <div>
-              <p className="text-sm font-medium text-[var(--color-gray-700)] mb-2">Validation method</p>
-              <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
-                {VALIDATION_METHODS.map((m) => {
-                  const isSelected = localValidationMethod === m.value;
-                  return (
-                    <button
-                      key={m.value}
-                      type="button"
-                      disabled={isAssessor}
-                      onClick={() => setLocalValidationMethod(isSelected ? "" : m.value)}
-                      className={`rounded-lg border px-3 py-2 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] disabled:cursor-not-allowed disabled:opacity-60 ${
-                        isSelected
-                          ? "border-[var(--color-blue-accent)] bg-[var(--color-blue-accent)]/10 text-[var(--color-blue-accent)]"
-                          : "border-[var(--color-border)] text-[var(--color-gray-600)] hover:bg-[var(--color-gray-50)]"
-                      }`}
-                    >
-                      <p className="text-xs font-medium">{m.label}</p>
-                      <p className="text-[11px] text-[var(--color-gray-400)] mt-0.5 leading-tight">{m.description}</p>
-                    </button>
-                  );
-                })}
+        <div className="space-y-3 min-w-0">
+
+          {/* Status selector */}
+          <section className="rounded-xl border border-[var(--color-border)] bg-white p-4">
+            <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-gray-500)] mb-2">Implementation status</h3>
+            <div className="grid grid-cols-3 gap-1.5">
+              {STATUS_OPTIONS.map((opt) => {
+                const isSelected = localStatus === opt.value;
+                const colors = STATUS_COLORS[opt.value];
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    disabled={isAssessor}
+                    onClick={() => setLocalStatus(opt.value)}
+                    className={`rounded-lg border px-2 py-1.5 text-xs text-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] disabled:cursor-not-allowed disabled:opacity-60 ${
+                      isSelected ? colors.active : colors.base
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+            {localStatus && (
+              <p className="mt-2 text-[11px] italic text-[var(--color-gray-500)] leading-relaxed">
+                {STATUS_CONSEQUENCE[localStatus]}
+              </p>
+            )}
+          </section>
+
+          {/* Narrative */}
+          <section className="rounded-xl border border-[var(--color-border)] bg-white p-4">
+            <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-gray-500)]">Implementation narrative</h3>
+              <div className="flex items-center gap-2">
+                {!isAssessor && !narrative.trim() && vaultNarrative && (
+                  <button
+                    type="button"
+                    onClick={() => setNarrative(vaultNarrative)}
+                    className="inline-flex items-center gap-1 rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[10px] font-medium text-indigo-700 hover:bg-indigo-100"
+                  >
+                    <Lightbulb className="h-3 w-3" />
+                    Load Vault narrative
+                  </button>
+                )}
+                {narrative.trim().length > 0 && (
+                  <span className={`text-[10px] font-medium ${strength.toneClass}`}>
+                    {strength.label} · {narrative.trim().length} chars
+                  </span>
+                )}
               </div>
             </div>
+            <textarea
+              id="sctm-narrative"
+              value={narrative}
+              onChange={(e) => setNarrative(e.target.value)}
+              disabled={isAssessor}
+              rows={10}
+              className="w-full rounded-lg border border-[var(--color-border)] bg-white px-3 py-2 text-sm text-[var(--color-gray-900)] placeholder:text-[var(--color-gray-400)] focus:border-[var(--color-blue-accent)] focus:outline-none focus:ring-2 focus:ring-[var(--color-blue-accent)]/20 disabled:bg-[var(--color-gray-50)] disabled:text-[var(--color-gray-500)] disabled:cursor-not-allowed resize-y font-sans leading-relaxed"
+              placeholder="Describe how this control is satisfied — what is in place, how it is enforced, and how it is verified."
+            />
+          </section>
 
-            {/* Review cadence */}
-            <div className="flex flex-wrap gap-4">
-              <div className="flex-1 min-w-[140px]">
-                <label htmlFor="sctm-cadence" className="block text-sm font-medium text-[var(--color-gray-700)] mb-1.5">
-                  Review cadence
-                </label>
+          {/* Validation + Cadence */}
+          <section className="rounded-xl border border-[var(--color-border)] bg-white p-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">Validation method</h3>
+                <select
+                  value={localValidationMethod}
+                  onChange={(e) => setLocalValidationMethod(e.target.value)}
+                  disabled={isAssessor}
+                  className="w-full rounded-lg border border-[var(--color-border)] bg-white px-2.5 py-1.5 text-xs text-[var(--color-gray-900)] focus:border-[var(--color-blue-accent)] focus:outline-none focus:ring-2 focus:ring-[var(--color-blue-accent)]/20 disabled:bg-[var(--color-gray-50)] disabled:cursor-not-allowed"
+                >
+                  <option value="">— Not set</option>
+                  {VALIDATION_METHODS.map((m) => (
+                    <option key={m.value} value={m.value}>{m.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">Review cadence</h3>
                 <select
                   id="sctm-cadence"
                   value={localCadence}
                   onChange={(e) => setLocalCadence(e.target.value)}
                   disabled={isAssessor}
-                  className="w-full rounded-lg border border-[var(--color-border)] bg-white px-3 py-2 text-sm text-[var(--color-gray-900)] focus:border-[var(--color-blue-accent)] focus:outline-none focus:ring-2 focus:ring-[var(--color-blue-accent)]/20 disabled:bg-[var(--color-gray-50)] disabled:cursor-not-allowed"
+                  className="w-full rounded-lg border border-[var(--color-border)] bg-white px-2.5 py-1.5 text-xs text-[var(--color-gray-900)] focus:border-[var(--color-blue-accent)] focus:outline-none focus:ring-2 focus:ring-[var(--color-blue-accent)]/20 disabled:bg-[var(--color-gray-50)] disabled:cursor-not-allowed"
                 >
                   <option value="">— Not set</option>
                   <option value="Monthly">Monthly</option>
@@ -836,269 +875,234 @@ export function SCTMControlDetail({
                   <option value="Annual">Annual</option>
                 </select>
               </div>
-              {record.lastValidationDate && (
-                <div className="flex-1 min-w-[140px]">
-                  <p className="text-sm font-medium text-[var(--color-gray-700)] mb-1.5">Last validated</p>
-                  <p className="text-sm text-[var(--color-gray-600)] py-2">
-                    {formatDate(String(record.lastValidationDate))}
-                  </p>
-                </div>
-              )}
             </div>
-
-            {/* Save button */}
-            {!isAssessor && (
-              <div className="flex justify-end pt-1">
-                <button
-                  type="button"
-                  onClick={saveAll}
-                  disabled={saving}
-                  className="inline-flex items-center gap-2 rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-primary-hover)] disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2"
-                >
-                  <Save className="h-3.5 w-3.5" />
-                  {saving ? "Saving…" : "Save implementation"}
-                </button>
-              </div>
+            {record.lastValidationDate && (
+              <p className="mt-2 text-[10px] text-[var(--color-gray-500)]">Last validated: {formatDate(String(record.lastValidationDate))}</p>
             )}
-          </div>
-        </CollapsibleBlock>
+          </section>
+        </div>
       </div>
 
-      {/* ── C3PAO Intelligence Panel (moved up for UX) ── */}
-      {(() => {
-        const intel = getControlIntelligence(record.controlId);
-        if (!intel) return null;
-        return (
-          <div className="mb-4">
-            <CollapsibleBlock
-              label="C3PAO Intelligence"
-              defaultOpen
-              icon={Eye}
-              className="rounded-xl border-2 border-indigo-100 overflow-hidden"
-              contentClassName="bg-indigo-50/20"
+      {/* ── Tabs: reference material + tracking ── */}
+      <div className="border-t border-[var(--color-border)] pt-3">
+        <div className="flex gap-1 overflow-x-auto border-b border-[var(--color-border)] mb-4 -mb-px">
+          {([
+            { id: "guide", label: "Guide" },
+            ...(record.policyDocRequired ? [{ id: "policy" as const, label: "Policy", alert: policyStatus === "missing" || policyStatus === "required" }] : []),
+            { id: "evidence", label: `Evidence${evidenceLinks.length > 0 ? ` (${evidenceLinks.length})` : ""}` },
+            { id: "poam", label: "POA&M" },
+            { id: "history", label: `History${history.length > 0 ? ` (${history.length})` : ""}` },
+          ] as { id: typeof activeTab; label: string; alert?: boolean }[]).map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-3 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] ${
+                activeTab === tab.id
+                  ? "border-[var(--color-primary)] text-[var(--color-primary)]"
+                  : "border-transparent text-[var(--color-gray-500)] hover:text-[var(--color-gray-800)] hover:border-[var(--color-gray-300)]"
+              }`}
             >
-              <p className="text-xs text-indigo-700/70 mb-4 leading-relaxed">
-                What a C3PAO examiner will specifically look for, ask, and test for this control.
-              </p>
+              {tab.label}
+              {tab.alert && <span className="ml-1 inline-block h-1.5 w-1.5 rounded-full bg-amber-500" />}
+            </button>
+          ))}
+        </div>
 
-              {/* C3PAO Examiner Note — most important, show first */}
-              {intel.c3paoExaminerNote && (
-                <div className="rounded-lg border border-indigo-200 bg-white/70 px-4 py-3 mb-4">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-indigo-600 mb-1.5">
-                    What the examiner will do
-                  </p>
-                  <p className="text-[13px] leading-relaxed text-[var(--color-gray-800)]">
-                    {intel.c3paoExaminerNote}
-                  </p>
-                </div>
-              )}
+        {activeTab === "guide" && (
+          <div className="space-y-3">
+            {(sctmOptimized?.objectives?.length ?? 0) > 0 && (
+              <section className="rounded-xl border border-[var(--color-border)] bg-white p-4">
+                <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-gray-500)] mb-2 flex items-center gap-1.5">
+                  <ListChecks className="h-3 w-3" />
+                  Assessment objectives
+                </h3>
+                <ul className="space-y-1.5" role="list">
+                  {(sctmOptimized?.objectives ?? []).map((obj) => (
+                    <li key={obj.id} className="flex gap-2 text-sm leading-relaxed text-[var(--color-gray-800)]">
+                      <span className="font-mono text-xs text-[var(--color-gray-500)] shrink-0 mt-0.5">{obj.id.split("-").pop()}</span>
+                      <span>{obj.text}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
 
-              {/* ConMon Trigger */}
-              {intel.conmonTrigger && (
-                <div className="rounded-lg border border-amber-200 bg-amber-50/60 px-4 py-3 mb-4">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-700 mb-1.5">
-                    Re-adjudication trigger
-                  </p>
-                  <p className="text-[13px] leading-relaxed text-[var(--color-gray-800)]">
-                    {intel.conmonTrigger}
-                  </p>
+            {sctmOptimized?.onboarding_tips && (
+              <section className="rounded-xl border border-amber-200 bg-amber-50/30 p-4">
+                <h3 className="text-[10px] font-bold uppercase tracking-wider text-amber-700 mb-2 flex items-center gap-1.5">
+                  <Lightbulb className="h-3 w-3" />
+                  Onboarding guidance
+                </h3>
+                <div className="text-sm leading-relaxed text-[var(--color-gray-700)] whitespace-pre-wrap break-words [&_strong]:font-semibold [&_strong]:text-[var(--color-gray-800)]">
+                  <TextWithBold text={sctmOptimized.onboarding_tips} />
                 </div>
-              )}
+              </section>
+            )}
 
-              {/* Disposition + Evidence Lanes + Cadence */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">Disposition</p>
-                  <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${dispositionColorClass(intel.disposition)}`}>
-                    {dispositionLabel(intel.disposition)}
-                  </span>
+            {sctmOptimized?.nist_guidance && (
+              <section className="rounded-xl border border-[var(--color-border)] bg-white p-4">
+                <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-gray-500)] mb-2 flex items-center gap-1.5">
+                  <BookOpen className="h-3 w-3" />
+                  NIST guidance
+                </h3>
+                <div className="text-sm leading-relaxed text-[var(--color-gray-700)] whitespace-pre-wrap [&_strong]:font-semibold [&_strong]:text-[var(--color-gray-800)]">
+                  <TextWithBold text={sctmOptimized.nist_guidance} />
                 </div>
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">Evidence Lanes</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {intel.evidenceLanes.map((lane) => (
-                      <span key={lane} className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium ${LANE_COLORS[lane]}`}>
-                        {LANE_LABELS[lane]}
-                      </span>
-                    ))}
-                  </div>
+              </section>
+            )}
+
+            {assessmentGuideSections.length > 0 && (
+              <section className="rounded-xl border border-[var(--color-border)] bg-white p-4">
+                <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-gray-500)] mb-2 flex items-center gap-1.5">
+                  <BookOpen className="h-3 w-3" />
+                  Assessor detail
+                </h3>
+                <div className="space-y-2">
+                  {assessmentGuideSections.map((section, i) => (
+                    <CollapsibleSection key={`${section.label}-${i}`} section={section} defaultOpen={false} />
+                  ))}
                 </div>
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">Cadence</p>
-                  <div className="flex items-center gap-1.5">
-                    <Clock className="h-3.5 w-3.5 text-[var(--color-gray-400)]" />
-                    <span className="text-xs font-medium text-[var(--color-gray-800)]">{cadenceLabel(intel.cadenceType)}</span>
-                  </div>
-                  {intel.registerRequired && intel.registerKey && (
-                    <Link
-                      href={`/dashboard/evidence-engine/registers/${intel.registerSchemaId}`}
-                      className="mt-1.5 inline-flex items-center gap-1 text-xs text-indigo-700 hover:underline"
+              </section>
+            )}
+
+            {(!assessmentGuideSections.length && nist?.nistDiscussionGuidance) && (
+              <section className="rounded-xl border border-[var(--color-border)] bg-white p-4">
+                <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-gray-500)] mb-2 flex items-center gap-1.5">
+                  <FileText className="h-3 w-3" />
+                  Discussion
+                </h3>
+                <div className="text-sm leading-relaxed text-[var(--color-gray-700)] whitespace-pre-wrap">
+                  <TextWithBold text={cleanDisplayText(nist.nistDiscussionGuidance)} />
+                </div>
+              </section>
+            )}
+
+            {record.satisfiedByHybrid && hybridLabels && (
+              <section className="rounded-xl border border-teal-200 bg-teal-50/30 p-4">
+                <h3 className="text-[10px] font-bold uppercase tracking-wider text-teal-700 mb-2 flex items-center gap-1.5">
+                  <ListChecks className="h-3 w-3" />
+                  Hybrid satisfaction criteria
+                </h3>
+                <p className="text-xs text-teal-700 mb-3">Mark each criterion when satisfied.</p>
+                <div className="space-y-3">
+                  <label className="flex items-start gap-3 cursor-pointer group">
+                    <input
+                      type="checkbox"
+                      checked={technicalSatisfied}
+                      onChange={handleTechnicalToggle}
+                      disabled={savingHybrid || isAssessor}
+                      className="h-4 w-4 mt-0.5 rounded border-teal-300 text-teal-600 focus:ring-teal-500"
+                    />
+                    <div>
+                      <span className="text-sm font-medium text-teal-900 group-hover:text-teal-800">{hybridLabels.technical}</span>
+                      {technicalSatisfied && <span className="ml-2 text-xs text-teal-600">Satisfied</span>}
+                      {enclaveEntry && enclaveEntry.evidence_files?.length > 0 && (
+                        <p className="mt-0.5 text-xs text-teal-700"><span className="font-medium">Evidence files:</span> {enclaveEntry.evidence_files.join(", ")}</p>
+                      )}
+                    </div>
+                  </label>
+                  <label className="flex items-start gap-3 cursor-pointer group">
+                    <input
+                      type="checkbox"
+                      checked={governanceSatisfied}
+                      onChange={handleGovernanceToggle}
+                      disabled={savingHybrid || isAssessor}
+                      className="h-4 w-4 mt-0.5 rounded border-teal-300 text-teal-600 focus:ring-teal-500"
+                    />
+                    <div>
+                      <span className="text-sm font-medium text-teal-900 group-hover:text-teal-800">{hybridLabels.governance}</span>
+                      {governanceSatisfied && <span className="ml-2 text-xs text-teal-600">Satisfied</span>}
+                      {hybridArtifacts.governance.length > 0 && (
+                        <p className="mt-0.5 text-xs text-teal-700"><span className="font-medium">Required:</span> {hybridArtifacts.governance.join("; ")}</p>
+                      )}
+                    </div>
+                  </label>
+                </div>
+              </section>
+            )}
+
+            {!sctmOptimized?.onboarding_tips && !sctmOptimized?.nist_guidance && !assessmentGuideSections.length && !nist?.nistDiscussionGuidance && (sctmOptimized?.objectives?.length ?? 0) === 0 && (
+              <p className="text-sm text-[var(--color-gray-400)] italic py-6 text-center">No assessment guide material available for this control.</p>
+            )}
+          </div>
+        )}
+
+        {activeTab === "policy" && record.policyDocRequired && (
+          <section className={`rounded-xl border p-4 ${policyStatus === "satisfied" ? "border-[var(--color-border)] bg-white" : "border-amber-200 bg-amber-50/20"}`}>
+            <p className="text-xs text-[var(--color-gray-600)] leading-relaxed mb-3">
+              This control requires both a <strong>technical evidence</strong> file from your enclave AND a <strong>policy document</strong> on file.
+            </p>
+            {!isAssessor && (
+              <div className="mb-3">
+                <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">Policy status</h3>
+                <div className="flex gap-2">
+                  {[
+                    { value: "missing", label: "Missing", activeClass: "bg-amber-100 border-amber-500 text-amber-800 font-semibold", baseClass: "border-amber-200 text-amber-600 hover:bg-amber-50" },
+                    { value: "satisfied", label: "Satisfied", activeClass: "bg-emerald-100 border-emerald-500 text-emerald-800 font-semibold", baseClass: "border-emerald-200 text-emerald-700 hover:bg-emerald-50" },
+                  ].map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setPolicyStatus(opt.value)}
+                      className={`rounded-lg border px-3 py-1 text-xs transition-colors ${policyStatus === opt.value ? opt.activeClass : opt.baseClass}`}
                     >
-                      <ClipboardList className="h-3 w-3" />
-                      {intel.registerKey}
-                      <ExternalLink className="h-2.5 w-2.5 opacity-60" />
-                    </Link>
-                  )}
+                      {opt.label}
+                    </button>
+                  ))}
                 </div>
               </div>
-            </CollapsibleBlock>
-          </div>
-        );
-      })()}
-
-      {/* ── Reference material ── */}
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-gray-400)] mt-6 mb-2 px-1">Reference material</p>
-
-      {(sctmOptimized?.objectives?.length ?? 0) > 0 && (
-        <div className="mb-4">
-          <CollapsibleBlock label="Assessment objectives" defaultOpen={false} icon={ListChecks}>
-            <ul className="space-y-2" role="list">
-              {(sctmOptimized?.objectives ?? []).map((obj) => (
-                <li key={obj.id} className="flex gap-2 text-[15px] leading-relaxed text-[var(--color-gray-800)]">
-                  <span className="font-mono text-xs text-[var(--color-gray-500)] shrink-0">{obj.id.split("-").pop()}</span>
-                  <span>{obj.text}</span>
-                </li>
-              ))}
-            </ul>
-          </CollapsibleBlock>
-        </div>
-      )}
-
-      {sctmOptimized?.nist_guidance && (
-        <div className="mb-4">
-          <CollapsibleBlock label="NIST guidance" defaultOpen={false} icon={BookOpen} contentClassName="bg-white/90">
-            <div className="text-[15px] leading-[1.7] text-[var(--color-gray-700)] whitespace-pre-wrap [&_strong]:font-semibold [&_strong]:text-[var(--color-gray-800)]">
-              <TextWithBold text={sctmOptimized.nist_guidance} />
+            )}
+            <div>
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">Policy document reference</h3>
+              {isAssessor ? (
+                <p className="text-sm text-[var(--color-gray-700)] leading-relaxed whitespace-pre-wrap rounded-lg border border-[var(--color-border)] bg-[var(--color-gray-50)] px-3 py-2 min-h-[60px]">
+                  {policyNarrative || <span className="italic text-[var(--color-gray-400)]">No policy document recorded.</span>}
+                </p>
+              ) : (
+                <textarea
+                  value={policyNarrative}
+                  onChange={(e) => setPolicyNarrative(e.target.value)}
+                  rows={4}
+                  className="w-full rounded-lg border border-[var(--color-border)] bg-white px-3 py-2 text-sm focus:border-[var(--color-blue-accent)] focus:outline-none focus:ring-2 focus:ring-[var(--color-blue-accent)]/20 resize-y"
+                  placeholder="e.g. MAC-SOP-246 v1.0 — Media Sanitization Procedure. SHA-256: d411540..."
+                />
+              )}
             </div>
-          </CollapsibleBlock>
-        </div>
-      )}
-
-      {sctmOptimized?.onboarding_tips && (
-        <div className="mb-4">
-          <CollapsibleBlock label="Onboarding tips" defaultOpen={false} icon={Lightbulb} contentClassName="bg-gradient-to-b from-amber-50/50 to-white/90">
-            <div className="text-[15px] leading-[1.7] text-[var(--color-gray-700)] whitespace-pre-wrap break-words space-y-2 [&_strong]:font-semibold [&_strong]:text-[var(--color-gray-800)]">
-              <TextWithBold text={sctmOptimized.onboarding_tips} />
-            </div>
-          </CollapsibleBlock>
-        </div>
-      )}
-
-      {(() => {
-        const allSections = buildAssessmentGuideSections(
-          record.controlId,
-          nist?.nistDiscussionGuidance,
-          sctmOptimized,
-          getPlatformHelpForControl
-        );
-        return (
-          <div className="mb-4">
-            <CollapsibleBlock label="Assessment guide" defaultOpen={false} icon={BookOpen} contentClassName="bg-transparent pt-0">
-              <div className="space-y-2">
-                {allSections.map((section, i) => (
-                  <CollapsibleSection key={`${section.label}-${i}`} section={section} defaultOpen={false} />
-                ))}
+            {policyStatus === "satisfied" && record.policyDocLinkedAt && (
+              <p className="mt-2 text-xs text-emerald-700">Marked satisfied on {formatDate(record.policyDocLinkedAt)}.</p>
+            )}
+            {!isAssessor && (
+              <div className="mt-3 flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => savePolicyLane()}
+                  disabled={savingPolicy}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--color-primary)] px-3 py-1.5 text-xs font-medium text-white hover:bg-[var(--color-primary-hover)] disabled:opacity-60"
+                >
+                  <Save className="h-3 w-3" />
+                  {savingPolicy ? "Saving…" : policyStatus === "satisfied" ? "Save & mark satisfied" : "Save"}
+                </button>
+                {policyStatus === "satisfied" && (
+                  <button
+                    type="button"
+                    onClick={() => { setPolicyStatus("missing"); savePolicyLane("missing"); }}
+                    disabled={savingPolicy}
+                    className="text-xs text-[var(--color-gray-500)] hover:text-[var(--color-gray-700)] underline underline-offset-2"
+                  >
+                    Re-evaluate
+                  </button>
+                )}
               </div>
-            </CollapsibleBlock>
-          </div>
-        );
-      })()}
+            )}
+          </section>
+        )}
 
-      {(!nist?.nistDiscussionGuidance || guideSections.length === 0) && nist?.nistDiscussionGuidance && (
-        <div className="mb-4">
-          <CollapsibleBlock label="Discussion & guidance" defaultOpen={false} icon={FileText} contentClassName="bg-white/90">
-            <div className="text-[15px] leading-[1.7] text-[var(--color-gray-700)] whitespace-pre-wrap [&_strong]:font-semibold [&_strong]:text-[var(--color-gray-800)]">
-              <TextWithBold text={cleanDisplayText(nist.nistDiscussionGuidance)} />
+        {activeTab === "evidence" && (
+          <div className="space-y-3">
+            <div className="rounded-lg border border-blue-200 bg-blue-50/50 px-3 py-2 text-xs text-blue-800 leading-relaxed">
+              <strong>Metadata only.</strong> CUI evidence artifacts never leave the enclave — link by providing the RunId, file path, and SHA-256.
             </div>
-          </CollapsibleBlock>
-        </div>
-      )}
-
-      {record.satisfiedByHybrid && hybridLabels && (
-        <div className="mb-4">
-          <CollapsibleBlock
-            label="Hybrid — satisfaction criteria"
-            defaultOpen={false}
-            icon={ListChecks}
-            className="rounded-xl border-2 border-teal-200 overflow-hidden"
-            contentClassName="bg-teal-50/30 border-teal-200/50"
-          >
-            <p className="text-xs text-teal-700 mb-3">Mark each criterion when satisfied.</p>
-            <div className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="flex items-center gap-3 cursor-pointer group">
-                  <input
-                    type="checkbox"
-                    checked={technicalSatisfied}
-                    onChange={handleTechnicalToggle}
-                    disabled={savingHybrid || isAssessor}
-                    className="h-4 w-4 rounded border-teal-300 text-teal-600 focus:ring-teal-500"
-                  />
-                  <span className="text-sm font-medium text-teal-900 group-hover:text-teal-800">{hybridLabels.technical}</span>
-                  {technicalSatisfied && <span className="text-xs text-teal-600">Satisfied</span>}
-                </label>
-                <div className="ml-7 text-xs text-teal-800 space-y-0.5">
-                  {requirementText && (() => {
-                    const firstSentence = requirementText.split(/[.!?]/)[0]?.trim() ?? "";
-                    const hasPunct = /[.!?]/.test(requirementText);
-                    return (
-                      <>
-                        <p className="font-medium">Technical requirement:</p>
-                        <p className="text-teal-700">{firstSentence}{hasPunct ? "." : ""}</p>
-                      </>
-                    );
-                  })()}
-                  {enclaveEntry && enclaveEntry.evidence_files?.length > 0 && (
-                    <p className="mt-1"><span className="font-medium">Required config / evidence files:</span> {enclaveEntry.evidence_files.join(", ")}</p>
-                  )}
-                  {hybridArtifacts.technical.length > 0 && (
-                    <p className="mt-1"><span className="font-medium">Required evidence:</span> {hybridArtifacts.technical.join("; ")}</p>
-                  )}
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <label className="flex items-center gap-3 cursor-pointer group">
-                  <input
-                    type="checkbox"
-                    checked={governanceSatisfied}
-                    onChange={handleGovernanceToggle}
-                    disabled={savingHybrid || isAssessor}
-                    className="h-4 w-4 rounded border-teal-300 text-teal-600 focus:ring-teal-500"
-                  />
-                  <span className="text-sm font-medium text-teal-900 group-hover:text-teal-800">{hybridLabels.governance}</span>
-                  {governanceSatisfied && <span className="text-xs text-teal-600">Satisfied</span>}
-                </label>
-                <div className="ml-7 text-xs text-teal-800 space-y-0.5">
-                  {hybridArtifacts.governance.length > 0 ? (
-                    <p><span className="font-medium">Required governance docs:</span> {hybridArtifacts.governance.join("; ")}</p>
-                  ) : (
-                    <p className="text-teal-700">Policy, procedure, or documentation addressing this control.</p>
-                  )}
-                </div>
-              </div>
-              {savingHybrid && <p className="text-xs text-teal-600">Saving…</p>}
-            </div>
-          </CollapsibleBlock>
-        </div>
-      )}
-
-      {/* ── Evidence & tracking ── */}
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-gray-400)] mt-6 mb-2 px-1">Evidence & tracking</p>
-
-      {/* ── Evidence metadata ── */}
-      <div className="mb-4">
-        <CollapsibleBlock
-          label={`Evidence metadata${evidenceLinks.length > 0 ? ` (${evidenceLinks.length})` : ""}`}
-          defaultOpen={evidenceLinks.length > 0}
-          icon={FileText}
-        >
-          <div className="space-y-4">
-            {/* Metadata-only explanation */}
-            <div className="rounded-lg border border-blue-200 bg-blue-50/60 px-4 py-3 text-xs text-blue-800 leading-relaxed">
-              <strong>Metadata only.</strong> CUI evidence artifacts never leave the enclave. Link evidence by providing the RunId, file path within the enclave, and its SHA-256 hash — no file is transferred to this platform.
-            </div>
-
-            {/* Links table */}
             {loadingLinks ? (
               <p className="text-sm text-[var(--color-gray-400)]">Loading…</p>
             ) : evidenceLinks.length > 0 ? (
@@ -1136,12 +1140,7 @@ export function SCTMControlDetail({
                           </td>
                           {!isAssessor && (
                             <td className="px-3 py-2">
-                              <button
-                                type="button"
-                                onClick={() => deleteLink(link.id)}
-                                className="text-[var(--color-gray-400)] hover:text-red-500 transition-colors"
-                                title="Remove link"
-                              >
+                              <button type="button" onClick={() => deleteLink(link.id)} className="text-[var(--color-gray-400)] hover:text-red-500" title="Remove link">
                                 <Trash2 className="h-3.5 w-3.5" />
                               </button>
                             </td>
@@ -1153,103 +1152,37 @@ export function SCTMControlDetail({
                 </table>
               </div>
             ) : (
-              <p className="text-sm text-[var(--color-gray-400)]">
-                No evidence linked yet. Use <em>Link evidence</em> to record a RunId and file reference from your enclave.
-              </p>
+              <p className="text-sm text-[var(--color-gray-400)] text-center py-6">No evidence linked yet.</p>
             )}
-
-            {/* Link Evidence button / inline form */}
             {!isAssessor && (
               <div>
                 {!showLinkForm ? (
                   <button
                     type="button"
                     onClick={() => setShowLinkForm(true)}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm font-medium text-[var(--color-gray-700)] hover:bg-[var(--color-gray-50)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)]"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] px-3 py-1.5 text-xs font-medium text-[var(--color-gray-700)] hover:bg-[var(--color-gray-50)]"
                   >
-                    <Plus className="h-3.5 w-3.5" />
+                    <Plus className="h-3 w-3" />
                     Link evidence
                   </button>
                 ) : (
-                  <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-gray-50)]/60 p-4 space-y-3">
-                    <p className="text-sm font-medium text-[var(--color-gray-800)]">Link enclave evidence</p>
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                      <div>
-                        <label className="block text-xs font-medium text-[var(--color-gray-600)] mb-1">Run ID <span className="text-red-500">*</span></label>
-                        <input
-                          type="text"
-                          value={linkForm.runId}
-                          onChange={(e) => setLinkForm((f) => ({ ...f, runId: e.target.value }))}
-                          placeholder="e.g. run-20240115-abc123"
-                          className="w-full rounded-md border border-[var(--color-border)] bg-white px-2.5 py-1.5 text-sm focus:border-[var(--color-blue-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--color-blue-accent)]/30"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-[var(--color-gray-600)] mb-1">Source</label>
-                        <input
-                          type="text"
-                          value={linkForm.source}
-                          onChange={(e) => setLinkForm((f) => ({ ...f, source: e.target.value }))}
-                          placeholder="e.g. windows-collector"
-                          className="w-full rounded-md border border-[var(--color-border)] bg-white px-2.5 py-1.5 text-sm focus:border-[var(--color-blue-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--color-blue-accent)]/30"
-                        />
-                      </div>
+                  <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-gray-50)]/60 p-3 space-y-2">
+                    <p className="text-xs font-medium text-[var(--color-gray-800)]">Link enclave evidence</p>
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      <input type="text" value={linkForm.runId} onChange={(e) => setLinkForm((f) => ({ ...f, runId: e.target.value }))} placeholder="Run ID *" className="rounded-md border border-[var(--color-border)] bg-white px-2 py-1 text-xs" />
+                      <input type="text" value={linkForm.source} onChange={(e) => setLinkForm((f) => ({ ...f, source: e.target.value }))} placeholder="Source" className="rounded-md border border-[var(--color-border)] bg-white px-2 py-1 text-xs" />
                     </div>
-                    <div>
-                      <label className="block text-xs font-medium text-[var(--color-gray-600)] mb-1">File path <span className="text-red-500">*</span></label>
-                      <input
-                        type="text"
-                        value={linkForm.filePath}
-                        onChange={(e) => setLinkForm((f) => ({ ...f, filePath: e.target.value }))}
-                        placeholder="e.g. /evidence/audit-policy.log"
-                        className="w-full rounded-md border border-[var(--color-border)] bg-white px-2.5 py-1.5 text-sm font-mono focus:border-[var(--color-blue-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--color-blue-accent)]/30"
-                      />
+                    <input type="text" value={linkForm.filePath} onChange={(e) => setLinkForm((f) => ({ ...f, filePath: e.target.value }))} placeholder="File path *" className="w-full rounded-md border border-[var(--color-border)] bg-white px-2 py-1 text-xs font-mono" />
+                    <input type="text" value={linkForm.sha256Hash} onChange={(e) => setLinkForm((f) => ({ ...f, sha256Hash: e.target.value }))} placeholder="SHA-256 hash *" className="w-full rounded-md border border-[var(--color-border)] bg-white px-2 py-1 text-xs font-mono" />
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      <input type="text" value={linkForm.description} onChange={(e) => setLinkForm((f) => ({ ...f, description: e.target.value }))} placeholder="Description" className="rounded-md border border-[var(--color-border)] bg-white px-2 py-1 text-xs" />
+                      <input type="date" value={linkForm.expiresAt} onChange={(e) => setLinkForm((f) => ({ ...f, expiresAt: e.target.value }))} className="rounded-md border border-[var(--color-border)] bg-white px-2 py-1 text-xs" />
                     </div>
-                    <div>
-                      <label className="block text-xs font-medium text-[var(--color-gray-600)] mb-1">SHA-256 hash <span className="text-red-500">*</span></label>
-                      <input
-                        type="text"
-                        value={linkForm.sha256Hash}
-                        onChange={(e) => setLinkForm((f) => ({ ...f, sha256Hash: e.target.value }))}
-                        placeholder="e.g. a1b2c3d4e5f6…"
-                        className="w-full rounded-md border border-[var(--color-border)] bg-white px-2.5 py-1.5 text-sm font-mono focus:border-[var(--color-blue-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--color-blue-accent)]/30"
-                      />
-                    </div>
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                      <div>
-                        <label className="block text-xs font-medium text-[var(--color-gray-600)] mb-1">Description</label>
-                        <input
-                          type="text"
-                          value={linkForm.description}
-                          onChange={(e) => setLinkForm((f) => ({ ...f, description: e.target.value }))}
-                          placeholder="Optional note"
-                          className="w-full rounded-md border border-[var(--color-border)] bg-white px-2.5 py-1.5 text-sm focus:border-[var(--color-blue-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--color-blue-accent)]/30"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-[var(--color-gray-600)] mb-1">Expires at</label>
-                        <input
-                          type="date"
-                          value={linkForm.expiresAt}
-                          onChange={(e) => setLinkForm((f) => ({ ...f, expiresAt: e.target.value }))}
-                          className="w-full rounded-md border border-[var(--color-border)] bg-white px-2.5 py-1.5 text-sm focus:border-[var(--color-blue-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--color-blue-accent)]/30"
-                        />
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 pt-1">
-                      <button
-                        type="button"
-                        onClick={saveLinkEvidence}
-                        disabled={savingLink || !linkForm.runId || !linkForm.filePath || !linkForm.sha256Hash}
-                        className="rounded-lg bg-[var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[var(--color-primary-hover)] disabled:opacity-60"
-                      >
-                        {savingLink ? "Linking…" : "Link evidence"}
+                    <div className="flex items-center gap-2">
+                      <button type="button" onClick={saveLinkEvidence} disabled={savingLink || !linkForm.runId || !linkForm.filePath || !linkForm.sha256Hash} className="rounded-lg bg-[var(--color-primary)] px-3 py-1 text-xs font-medium text-white hover:bg-[var(--color-primary-hover)] disabled:opacity-60">
+                        {savingLink ? "Linking…" : "Link"}
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => { setShowLinkForm(false); setLinkForm({ runId: "", filePath: "", sha256Hash: "", description: "", source: "", expiresAt: "" }); }}
-                        className="rounded-lg border border-[var(--color-border)] px-3 py-1.5 text-sm font-medium text-[var(--color-gray-600)] hover:bg-[var(--color-gray-50)]"
-                      >
+                      <button type="button" onClick={() => { setShowLinkForm(false); setLinkForm({ runId: "", filePath: "", sha256Hash: "", description: "", source: "", expiresAt: "" }); }} className="text-xs text-[var(--color-gray-500)] hover:text-[var(--color-gray-700)]">
                         Cancel
                       </button>
                     </div>
@@ -1258,116 +1191,16 @@ export function SCTMControlDetail({
               </div>
             )}
           </div>
-        </CollapsibleBlock>
-      </div>
+        )}
 
-      {/* ── Section 2b: Policy Document (dual-evidence controls only) ── */}
-      {record.policyDocRequired && (
-        <div className="mb-4">
-          <CollapsibleBlock
-            label="Policy document"
-            defaultOpen={policyStatus === "missing" || policyStatus === "required"}
-            icon={FileText}
-            className={policyStatus === "satisfied" ? "" : "rounded-xl border-2 border-amber-200 overflow-hidden"}
-            contentClassName={policyStatus === "satisfied" ? "" : "bg-amber-50/20"}
-          >
-            <div className="space-y-4">
-              <p className="text-xs text-[var(--color-gray-500)] leading-relaxed">
-                This control requires both a <strong>technical evidence</strong> file from your enclave AND a <strong>policy document</strong>
-                {" "}on file. Identify which governance document satisfies the policy requirement, then mark it satisfied.
-              </p>
-
-              {/* Policy status selector */}
-              {!isAssessor && (
-                <div>
-                  <p className="text-sm font-medium text-[var(--color-gray-700)] mb-2">Policy document status</p>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      { value: "missing", label: "Missing", activeClass: "bg-amber-100 border-amber-500 text-amber-800 font-semibold", baseClass: "border-amber-200 text-amber-600 hover:bg-amber-50" },
-                      { value: "satisfied", label: "Satisfied", activeClass: "bg-emerald-100 border-emerald-500 text-emerald-800 font-semibold", baseClass: "border-emerald-200 text-emerald-700 hover:bg-emerald-50" },
-                    ].map((opt) => (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        onClick={() => setPolicyStatus(opt.value)}
-                        className={`rounded-lg border px-3 py-1.5 text-xs transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] ${
-                          policyStatus === opt.value ? opt.activeClass : opt.baseClass
-                        }`}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Narrative textarea */}
-              <div>
-                <label className="block text-sm font-medium text-[var(--color-gray-700)] mb-1.5">
-                  Policy document reference
-                </label>
-                {isAssessor ? (
-                  <p className="text-sm text-[var(--color-gray-700)] leading-relaxed whitespace-pre-wrap rounded-lg border border-[var(--color-border)] bg-[var(--color-gray-50)] px-3 py-2.5 min-h-[60px]">
-                    {policyNarrative || <span className="italic text-[var(--color-gray-400)]">No policy document recorded.</span>}
-                  </p>
-                ) : (
-                  <textarea
-                    value={policyNarrative}
-                    onChange={(e) => setPolicyNarrative(e.target.value)}
-                    rows={4}
-                    className="w-full rounded-lg border border-[var(--color-border)] bg-white px-3 py-2.5 text-sm text-[var(--color-gray-900)] placeholder:text-[var(--color-gray-400)] focus:border-[var(--color-blue-accent)] focus:outline-none focus:ring-2 focus:ring-[var(--color-blue-accent)]/20 resize-y"
-                    placeholder="e.g. MAC-SOP-246 v1.0 — Media Sanitization Procedure. Verified via governance manifest GOV-20260411025839-fa9fdb. SHA-256: d411540584ad1e... Controlled copy: /docs/procedures/"
-                  />
-                )}
-              </div>
-
-              {/* Satisfied state — show timestamp + re-evaluate */}
-              {policyStatus === "satisfied" && record.policyDocLinkedAt && (
-                <p className="text-xs text-emerald-700">
-                  Marked satisfied on {formatDate(record.policyDocLinkedAt)}.
-                </p>
-              )}
-
-              {/* Save button */}
-              {!isAssessor && (
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => savePolicyLane()}
-                    disabled={savingPolicy}
-                    className="inline-flex items-center gap-2 rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-primary-hover)] disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2"
-                  >
-                    <Save className="h-3.5 w-3.5" />
-                    {savingPolicy ? "Saving…" : policyStatus === "satisfied" ? "Save & mark satisfied" : "Save"}
-                  </button>
-                  {policyStatus === "satisfied" && (
-                    <button
-                      type="button"
-                      onClick={() => { setPolicyStatus("missing"); savePolicyLane("missing"); }}
-                      disabled={savingPolicy}
-                      className="text-xs text-[var(--color-gray-500)] hover:text-[var(--color-gray-700)] underline underline-offset-2"
-                    >
-                      Re-evaluate
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          </CollapsibleBlock>
-        </div>
-      )}
-
-      {/* ── Section 3: POA&M integration ── */}
-      <div className="mb-4">
-        <CollapsibleBlock label="POA&M" defaultOpen={false} icon={Shield}>
-          <div className="space-y-4">
+        {activeTab === "poam" && (
+          <section className="rounded-xl border border-[var(--color-border)] bg-white p-4">
             {poamEntry === undefined ? (
               <p className="text-sm text-[var(--color-gray-400)]">Loading…</p>
             ) : poamEntry !== null ? (
-              /* Entry exists */
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <div className="flex flex-wrap items-center gap-3">
-                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                  <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${
                     poamEntry.status === "closed" ? "bg-emerald-100 text-emerald-700" :
                     poamEntry.status === "risk_accepted" ? "bg-amber-100 text-amber-700" :
                     "bg-red-100 text-red-700"
@@ -1375,96 +1208,82 @@ export function SCTMControlDetail({
                     {poamEntry.status === "open" ? "Open" : poamEntry.status === "closed" ? "Closed" : "Risk accepted"}
                   </span>
                   {poamEntry.scheduledCompletionDate && (
-                    <span className="text-xs text-[var(--color-gray-500)]">
-                      Due: {poamEntry.scheduledCompletionDate}
-                    </span>
+                    <span className="text-xs text-[var(--color-gray-500)]">Due: {poamEntry.scheduledCompletionDate}</span>
                   )}
                 </div>
                 {poamEntry.weaknessDescription && (
                   <p className="text-sm text-[var(--color-gray-700)] leading-relaxed">{poamEntry.weaknessDescription}</p>
                 )}
-                <Link
-                  href="/dashboard/poam"
-                  className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
-                >
-                  <ExternalLink className="h-3.5 w-3.5" />
+                <Link href="/dashboard/poam" className="inline-flex items-center gap-1 text-xs font-medium text-[var(--color-blue-accent)] hover:underline">
+                  <ExternalLink className="h-3 w-3" />
                   Open POA&M dashboard
                 </Link>
               </div>
             ) : (
-              /* No entry */
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {poamWarrantsCreation && !isAssessor ? (
                   <>
                     <p className="text-sm text-[var(--color-gray-600)]">
-                      This control is <strong>{localStatus === "not_started" ? "not started" : "in progress"}</strong> — consider opening a POA&M entry to track remediation.
+                      This control is <strong>{localStatus === "not_started" ? "not started" : "in progress"}</strong> — consider opening a POA&M entry.
                     </p>
                     <button
                       type="button"
                       onClick={createPoamEntry}
                       disabled={creatingPoam}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm font-medium text-[var(--color-gray-700)] hover:bg-[var(--color-gray-50)] disabled:opacity-60"
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] px-3 py-1.5 text-xs font-medium text-[var(--color-gray-700)] hover:bg-[var(--color-gray-50)] disabled:opacity-60"
                     >
-                      <Plus className="h-3.5 w-3.5" />
+                      <Plus className="h-3 w-3" />
                       {creatingPoam ? "Creating…" : "Add to POA&M"}
                     </button>
                   </>
                 ) : (
                   <p className="text-sm text-[var(--color-gray-400)]">
-                    No POA&M entry for this control.{" "}
+                    No POA&M entry for this control.
                     {!isAssessor && (
-                      <button
-                        type="button"
-                        onClick={createPoamEntry}
-                        disabled={creatingPoam}
-                        className="font-medium text-[var(--color-blue-accent)] hover:underline"
-                      >
-                        Create one
-                      </button>
+                      <>
+                        {" "}
+                        <button type="button" onClick={createPoamEntry} disabled={creatingPoam} className="font-medium text-[var(--color-blue-accent)] hover:underline">
+                          Create one
+                        </button>
+                      </>
                     )}
                   </p>
                 )}
               </div>
             )}
-          </div>
-        </CollapsibleBlock>
-      </div>
+          </section>
+        )}
 
-      {/* ── Section 4: Implementation history ── */}
-      <div className="mb-4">
-        <CollapsibleBlock
-          label={`History${history.length > 0 ? ` (${history.length})` : ""}`}
-          defaultOpen={false}
-          icon={Clock}
-        >
-          {loadingHistory ? (
-            <p className="text-sm text-[var(--color-gray-400)]">Loading…</p>
-          ) : history.length === 0 ? (
-            <p className="text-sm text-[var(--color-gray-400)]">No changes recorded yet.</p>
-          ) : (
-            <ol className="relative border-l border-[var(--color-border)] ml-3 space-y-4">
-              {history.map((entry) => {
-                const fieldLabel = HISTORY_FIELD_LABELS[entry.fieldName] ?? entry.fieldName;
-                return (
-                  <li key={entry.id} className="ml-4">
-                    <div className="absolute -left-1.5 mt-1 h-3 w-3 rounded-full border border-[var(--color-border)] bg-white" />
-                    <time className="block text-xs text-[var(--color-gray-400)] mb-0.5">{formatDate(entry.createdAt)}</time>
-                    <p className="text-sm text-[var(--color-gray-700)]">
-                      <span className="font-medium text-[var(--color-gray-800)]">{fieldLabel}</span>
-                      {" "}changed
-                      {entry.oldValue != null && (
-                        <> from <code className="rounded bg-[var(--color-gray-100)] px-1 py-0.5 text-xs">{entry.oldValue}</code></>
-                      )}
-                      {entry.newValue != null && (
-                        <> to <code className="rounded bg-[var(--color-blue-accent)]/10 px-1 py-0.5 text-xs text-[var(--color-blue-accent)]">{entry.newValue}</code></>
-                      )}
-                    </p>
-                  </li>
-                );
-              })}
-            </ol>
-          )}
-        </CollapsibleBlock>
+        {activeTab === "history" && (
+          <section className="rounded-xl border border-[var(--color-border)] bg-white p-4">
+            {loadingHistory ? (
+              <p className="text-sm text-[var(--color-gray-400)]">Loading…</p>
+            ) : history.length === 0 ? (
+              <p className="text-sm text-[var(--color-gray-400)] text-center py-4">No changes recorded yet.</p>
+            ) : (
+              <ol className="relative border-l border-[var(--color-border)] ml-2 space-y-3">
+                {history.map((entry) => {
+                  const fieldLabel = HISTORY_FIELD_LABELS[entry.fieldName] ?? entry.fieldName;
+                  return (
+                    <li key={entry.id} className="ml-4">
+                      <div className="absolute -left-1.5 mt-1 h-3 w-3 rounded-full border border-[var(--color-border)] bg-white" />
+                      <time className="block text-[10px] text-[var(--color-gray-400)] mb-0.5">{formatDate(entry.createdAt)}</time>
+                      <p className="text-xs text-[var(--color-gray-700)]">
+                        <span className="font-medium text-[var(--color-gray-800)]">{fieldLabel}</span> changed
+                        {entry.oldValue != null && (
+                          <> from <code className="rounded bg-[var(--color-gray-100)] px-1 py-0.5 text-[10px]">{entry.oldValue}</code></>
+                        )}
+                        {entry.newValue != null && (
+                          <> to <code className="rounded bg-[var(--color-blue-accent)]/10 px-1 py-0.5 text-[10px] text-[var(--color-blue-accent)]">{entry.newValue}</code></>
+                        )}
+                      </p>
+                    </li>
+                  );
+                })}
+              </ol>
+            )}
+          </section>
+        )}
       </div>
 
     </div>
