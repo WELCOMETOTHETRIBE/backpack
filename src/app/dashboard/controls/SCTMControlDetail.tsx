@@ -43,72 +43,17 @@ import {
   LANE_COLORS,
   cadenceLabel,
 } from "@/data/cmmc/control-intelligence";
-import { VAULT_CONTROL_MAP, type VaultControl } from "@/data/vault-control-map";
+import vaultNarratives from "@/data/cmmc/vault-narratives.json";
 
-// ─── Vault narrative builder ──────────────────────────────────────────────────
+// ─── Vault narrative lookup ───────────────────────────────────────────────────
 
-const VAULT_BY_ID = new Map<string, VaultControl>(
-  VAULT_CONTROL_MAP.map((v) => [v.controlId, v])
-);
+const VAULT_NARRATIVES = vaultNarratives as Record<string, string>;
 
 function buildVaultNarrative(controlId: string): string | null {
-  const vc = VAULT_BY_ID.get(controlId);
-  if (!vc) return null;
-
-  const lines: string[] = [];
-
-  // Tier summary
-  if (vc.tier === "azure_inherited") {
-    lines.push("This control is fully inherited from the Azure Government FedRAMP High authorization.");
-  } else if (vc.tier === "not_applicable") {
-    lines.push(`This control is not applicable to the current system boundary.${vc.naJustification ? ` Justification: ${vc.naJustification}` : ""}`);
-  } else if (vc.tier === "shared") {
-    lines.push("This control is implemented under a shared responsibility model between MacTech (platform provider) and the organization.");
-  } else if (vc.tier === "customer_managed") {
-    lines.push("This control is customer-managed. The organization is responsible for full implementation.");
-  }
-
-  // MacTech-provided capabilities
-  if (vc.mactechProvides?.length) {
-    lines.push("");
-    lines.push("MacTech Vault provides: " + vc.mactechProvides.join("; ") + ".");
-  }
-
-  // Azure-inherited capabilities
-  if (vc.azureProvides?.length) {
-    lines.push("");
-    lines.push("Azure Government provides: " + vc.azureProvides.join("; ") + ".");
-  }
-
-  // Technical coverage
-  if (vc.technicalCoverage && vc.technicalCoverage !== "NONE") {
-    lines.push("");
-    const coverageDesc =
-      vc.technicalCoverage === "STRONG" ? "Full technical evidence is collected by the OS Evidence Collector." :
-      vc.technicalCoverage === "PARTIAL" ? "Partial technical evidence is collected by the OS Evidence Collector; additional governance documentation is required." :
-      "This control requires governance documentation only (no automated technical evidence collection).";
-    lines.push(coverageDesc);
-  }
-
-  // Customer responsibilities
-  if (vc.customerRequired?.length) {
-    lines.push("");
-    lines.push("Organization responsibilities: " + vc.customerRequired.join("; ") + ".");
-  }
-
-  // Governance documents
-  if (vc.governanceDocIds?.length) {
-    lines.push("");
-    lines.push("Required governance documents: " + vc.governanceDocIds.join(", ") + ".");
-  }
-
-  // Evidence registers
-  if (vc.evidenceRegisters?.length) {
-    lines.push("");
-    lines.push("Mapped evidence registers: " + vc.evidenceRegisters.join(", ") + ".");
-  }
-
-  return lines.length > 0 ? lines.join("\n") : null;
+  const raw = VAULT_NARRATIVES[controlId];
+  if (!raw) return null;
+  // The JSON stores \\n as literal — convert to real newlines
+  return raw.replace(/\\n/g, "\n");
 }
 
 // ─── Text helpers ──────────────────────────────────────────────────────────────

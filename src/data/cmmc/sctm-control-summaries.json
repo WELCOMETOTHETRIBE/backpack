@@ -1,0 +1,662 @@
+{
+  "3.1.1": {
+    "title": "Authorized Access Control [CUI Data]",
+    "summary": "Limit system access to authorized users, processes acting on behalf of authorized users, and devices (including other systems).",
+    "requirement": "Limit system access to authorized users, processes acting on behalf of authorized users, and devices (including other systems).",
+    "onboarding_tips": "Identify every user account, service account, and device authorized to access systems containing CUI. Maintain an authoritative access list in Active Directory or your IAM system, and conduct quarterly access reviews to remove access for terminated employees and role changes. Automated processes and service accounts must be tied to a named owner — generic shared accounts are prohibited. Disable all guest and built-in default accounts. Assessors will inspect account provisioning records, AD group memberships, and HR offboarding procedures. Watch for role creep where users accumulate permissions over time from multiple project assignments."
+  },
+  "3.1.2": {
+    "title": "Transaction & Function Control",
+    "summary": "Limit system access to the types of transactions and functions that authorized users are permitted to execute.",
+    "requirement": "Limit system access to the types of transactions and functions that authorized users are permitted to execute.",
+    "onboarding_tips": "Define organizational roles and map each role to the specific system functions, applications, and data sets it requires. Use Role-Based Access Control (RBAC) in Active Directory, Entra ID, or your IAM platform to enforce these boundaries. Maintain a role-permission matrix showing which job functions map to which system privileges and review it at least annually. Assessors will test that users in different roles cannot access functions outside their role, and will inspect both the policy documentation and the technical access control configurations. Watch for role creep where users accumulate permissions over time that they no longer need."
+  },
+  "3.1.3": {
+    "title": "Control CUI Flow",
+    "summary": "Control the flow of CUI in accordance with approved authorizations.",
+    "requirement": "Control the flow of CUI in accordance with approved authorizations.",
+    "onboarding_tips": "Document all CUI data flows — between systems, across network segments, to external parties, and through cloud services — in a data flow diagram. Implement technical enforcement via firewalls, DLP tools, and network segmentation to prevent CUI from reaching unauthorized destinations. Approved flows must be enforced technically, not just described in policy. Assessors will examine firewall rules, DLP configurations, and data flow diagrams. Email, USB media, and cloud storage are the most common unauthorized CUI flow paths. Any CUI traversing an untrusted network must be encrypted in transit."
+  },
+  "3.1.4": {
+    "title": "Separation Of Duties",
+    "summary": "Separate the duties of individuals to reduce the risk of malevolent activity without collusion.",
+    "requirement": "Separate the duties of individuals to reduce the risk of malevolent activity without collusion.",
+    "onboarding_tips": "Identify sensitive functions — approving transactions, administering security systems, generating and approving financial records — and ensure no single person can complete them end-to-end without another person's involvement. Document role assignments in an access control matrix that shows conflicting duties are separated. For small organizations where full separation is impractical, implement compensating controls: enhanced logging, supervisory review, or automated alerts on privilege use. Assessors will examine org charts, role assignments, and access configurations. Having one person hold both modify and approve rights over the same system is the most common finding."
+  },
+  "3.1.5": {
+    "title": "Least Privilege",
+    "summary": "Employ the principle of least privilege, including for specific security functions and privileged accounts.",
+    "requirement": "Employ the principle of least privilege, including for specific security functions and privileged accounts.",
+    "onboarding_tips": "Assign users only the permissions needed for their documented job function — standard user accounts must not have local administrator rights on workstations. Privileged accounts must be separate accounts used exclusively for administrative tasks, not for daily work like email and web browsing. Conduct privilege reviews at least annually to identify and remove excessive permissions. Document your privilege assignment and approval workflow. Assessors will inspect group memberships, test accounts directly, and look for widespread local admin rights, Domain Admin membership for non-IT staff, and shared privileged accounts."
+  },
+  "3.1.6": {
+    "title": "Non-Privileged Account Use",
+    "summary": "Use non-privileged accounts or roles when accessing nonsecurity functions.",
+    "requirement": "Use non-privileged accounts or roles when accessing nonsecurity functions.",
+    "onboarding_tips": "Users with privileged (administrative) accounts must also maintain separate standard user accounts for everyday tasks: email, web browsing, and office productivity. Privileged accounts must not be used for routine non-administrative work. Enforce this with Group Policy restricting privileged account logon to administrative workstations only. Assessors will ask administrators to demonstrate which account they use for daily work versus administrative tasks and will inspect logon history to verify privileged accounts are not used for routine activity. This reduces attack surface from phishing and malware that targets daily-use accounts."
+  },
+  "3.1.7": {
+    "title": "Privileged Functions",
+    "summary": "Prevent non-privileged users from executing privileged functions and capture the execution of such functions in audit logs.",
+    "requirement": "Prevent non-privileged users from executing privileged functions and capture the execution of such functions in audit logs.",
+    "onboarding_tips": "Enable auditing for all privileged function use: changes to security settings, user account management, software installation, and access to security audit logs. Privileged activity must generate records that are reviewed regularly and retained in a protected log repository. Consider implementing Privileged Access Workstations (PAWs) for highly sensitive administrative actions. Assessors will examine audit log configurations, review samples of privilege-use logs, and look for evidence of regular review. Common gaps include logging disabled on legacy systems and no formal review process for privilege-use audit records."
+  },
+  "3.1.8": {
+    "title": "Unsuccessful Logon Attempts",
+    "summary": "Limit unsuccessful logon attempts.",
+    "requirement": "Limit unsuccessful logon attempts.",
+    "onboarding_tips": "Configure lockout policies on all CUI systems to lock accounts after 3–5 consecutive failed login attempts. The lockout duration must deter automated attacks — use 15–30 minutes minimum, or require administrator unlock. Document lockout settings in your configuration baseline and apply them to all authentication points: VPN, web applications, and domain workstations, not just domain logon. Assessors will test lockout behavior directly on systems and inspect GPO or equivalent configuration files. Remote access portals missing lockout settings are one of the most frequently cited findings."
+  },
+  "3.1.9": {
+    "title": "Privacy & Security Notices",
+    "summary": "Provide privacy and security notices consistent with applicable CUI rules.",
+    "requirement": "Provide privacy and security notices consistent with applicable CUI rules.",
+    "onboarding_tips": "Display a warning banner to all users before they are granted access to CUI systems. The banner must state the system is for authorized use only, that monitoring is conducted, and that use constitutes consent to monitoring. Implement banners on workstation logon screens, VPN login pages, web portals, and SSH/RDP connections. Have the language reviewed by legal counsel. Assessors will verify banner text meets requirements and is displayed at all access points. Common gaps include missing banners on remote access portals, SSH servers, and web-based applications that were deployed outside the standard baseline process."
+  },
+  "3.1.10": {
+    "title": "Session Lock",
+    "summary": "Use session lock with pattern-hiding displays to prevent access and viewing of data after a period of inactivity.",
+    "requirement": "Use session lock with pattern-hiding displays to prevent access and viewing of data after a period of inactivity.",
+    "onboarding_tips": "Configure all workstations and portable devices to automatically initiate a screen lock requiring re-authentication after 15 minutes of inactivity or less. Enforce via Group Policy for Windows endpoints, MDM policy for mobile devices, and OS configuration for servers. Assessors will verify the lock timeout setting and test it directly on representative endpoints. Common findings include exceptions for kiosk or shared workstations that don't lock, server consoles without a configured lock setting, and individual users who have been granted GPO exemptions without documented justification."
+  },
+  "3.1.11": {
+    "title": "Session Termination",
+    "summary": "Terminate (automatically) a user session after a defined condition.",
+    "requirement": "Terminate (automatically) a user session after a defined condition.",
+    "onboarding_tips": "Configure systems to automatically terminate — not merely lock — sessions after a defined period of inactivity. This is distinct from session locking: the session ends and requires full re-authentication. Apply to web applications, remote access sessions (VPN, RDP), privileged management consoles, and database connections. Document session timeout settings in your system configurations. Assessors will inspect web application session timeout settings, VPN idle session limits, and database connection configurations. Web applications with no session timeout or timeouts exceeding 8 hours are a very common finding."
+  },
+  "3.1.12": {
+    "title": "Control Remote Access",
+    "summary": "Monitor and control remote access sessions.",
+    "requirement": "Monitor and control remote access sessions.",
+    "onboarding_tips": "Document a remote access policy and implement technical controls governing all remote connections to CUI systems. All remote access must use only approved methods (VPN with MFA, approved RDP solutions) and must be authorized, logged, and encrypted. Maintain an inventory of who is authorized for remote access and the methods they may use. Assessors will verify the policy, examine VPN configurations, review authorization lists, and confirm sessions are encrypted and logged. Generic or shared VPN accounts — where activity cannot be traced to an individual — are a common finding."
+  },
+  "3.1.13": {
+    "title": "Remote Access Confidentiality",
+    "summary": "Employ cryptographic mechanisms to protect the confidentiality of remote access sessions.",
+    "requirement": "Employ cryptographic mechanisms to protect the confidentiality of remote access sessions.",
+    "onboarding_tips": "Ensure all remote access sessions are encrypted using FIPS-validated cryptographic modules. VPN tunnels must use IKEv2/IPsec or TLS 1.2+ with approved cipher suites. RDP sessions must use TLS. SSH must be configured with approved algorithms (disable SSHv1, weak MACs and ciphers). Document cryptographic standards for remote access in your SSP. Assessors will inspect VPN gateway configurations, review SSL/TLS cipher suite settings, and may run protocol analysis to confirm FIPS-compliant encryption. Outdated protocols (TLS 1.0/1.1, SSL) and weak cipher suites are among the most common configuration findings."
+  },
+  "3.1.14": {
+    "title": "Remote Access Routing",
+    "summary": "Route remote access via managed access control points.",
+    "requirement": "Route remote access via managed access control points.",
+    "onboarding_tips": "Configure remote access systems so all traffic from remote endpoints routes through organization-controlled infrastructure before reaching the internet — this means enforcing full-tunnel VPN, not split-tunnel. All internet browsing, email, and other traffic from remote workers must pass through organizational gateways for inspection and filtering. Document the routing requirement and validate it in the VPN configuration. Assessors will inspect VPN configuration files and test traffic routing during a live remote session to confirm all traffic traverses organizational controls. Split-tunnel VPN is a very common finding for this control."
+  },
+  "3.1.15": {
+    "title": "Privileged Remote Access",
+    "summary": "Authorize remote execution of privileged commands and remote access to security-relevant information.",
+    "requirement": "Authorize remote execution of privileged commands and remote access to security-relevant information.",
+    "onboarding_tips": "Require privileged users to use separate, specifically authorized remote access methods beyond those available to standard users. Privileged remote access must be subject to additional controls: dedicated PAW, separate VPN profile, enhanced session logging, and potentially just-in-time access grants. Document which individuals have privileged remote access and the specific controls applied to those sessions. Assessors will verify that privileged accounts cannot connect remotely via the same method as standard users and will review logs of privileged remote sessions to confirm controls are enforced."
+  },
+  "3.1.16": {
+    "title": "Wireless Access Authorization",
+    "summary": "Authorize wireless access prior to allowing such connections.",
+    "requirement": "Authorize wireless access prior to allowing such connections.",
+    "onboarding_tips": "Authorize all wireless access points before deployment and maintain an inventory of all authorized APs and configured SSIDs. Implement a rogue AP detection process — conduct periodic wireless scans to identify unauthorized devices. Establish an authorization approval process for new wireless infrastructure. Assessors will review the AP inventory, examine wireless authorization procedures, and may conduct a wireless scan to identify undocumented APs. Unsecured guest wireless networks that share a broadcast domain with CUI systems are a frequent finding, as are shadow IT access points installed by employees."
+  },
+  "3.1.17": {
+    "title": "Wireless Access Protection",
+    "summary": "Protect wireless access using authentication and encryption.",
+    "requirement": "Protect wireless access using authentication and encryption.",
+    "onboarding_tips": "Protect wireless access using WPA3-Enterprise or WPA2-Enterprise with 802.1X authentication and AES encryption. Avoid shared PSK authentication for any network that connects to or could reach CUI systems. Implement per-user certificate-based or credential-based authentication. Configure NAC to enforce device compliance before allowing wireless clients onto CUI network segments. Document wireless security settings in your configuration baseline. Assessors will inspect AP configurations and authentication settings. WPA2-Personal (PSK) with a shared passphrase on any network accessible from CUI systems is generally a finding."
+  },
+  "3.1.18": {
+    "title": "Mobile Device Connection",
+    "summary": "Control connection of mobile devices.",
+    "requirement": "Control connection of mobile devices.",
+    "onboarding_tips": "Define which mobile device types are authorized to connect to organizational systems containing CUI. Implement MDM to enforce security policies on all authorized devices. Unenrolled or personal devices must be prohibited from accessing CUI unless governed by a formal BYOD policy with MDM controls equivalent to corporate-owned devices. Assessors will review MDM enrollment records, device compliance policies, and access control settings. The most common finding is employees accessing CUI email or files on personal devices that are not enrolled in MDM and therefore not subject to organizational security controls."
+  },
+  "3.1.19": {
+    "title": "Encrypt CUI On Mobile",
+    "summary": "Encrypt CUI on mobile devices and mobile computing platforms.",
+    "requirement": "Encrypt CUI on mobile devices and mobile computing platforms.",
+    "onboarding_tips": "Encrypt CUI on all mobile devices using hardware-backed encryption — on iOS and Android this is enabled by default when a strong passcode is set. MDM policy must enforce encryption and a minimum passcode/PIN complexity. For laptops, implement full-disk encryption (BitLocker with TPM for Windows, FileVault for Mac). Assessors will verify encryption enforcement via MDM compliance reports and may inspect device settings directly. Common findings include devices with encryption technically enabled but recovery keys stored insecurely, or encryption bypassed because the device uses only a 4-digit PIN rather than an alphanumeric passcode."
+  },
+  "3.1.20": {
+    "title": "External Connections [CUI Data]",
+    "summary": "Verify and control/limit connections to and use of external systems.",
+    "requirement": "Verify and control/limit connections to and use of external systems.",
+    "onboarding_tips": "Identify and document all external systems, contractors, cloud services, and partner networks that connect to your environment. Establish formal connection agreements or Interconnection Security Agreements (ISAs) for each external connection. Each connection must be authorized, scoped to the minimum required access, and reviewed annually. Terminate connections that are no longer required. Assessors will request the external connection inventory, verify ISAs exist for each, and inspect firewall rules to confirm connections are limited to documented authorized flows. Forgotten VPN tunnels to former contractors or expired external connections that are still active are a common finding."
+  },
+  "3.1.21": {
+    "title": "Portable Storage Use",
+    "summary": "Limit use of portable storage devices on external systems.",
+    "requirement": "Limit use of portable storage devices on external systems.",
+    "onboarding_tips": "Establish a policy governing the use of portable storage devices (USB drives, external drives, SD cards) — restrict CUI systems to organization-owned, encrypted, approved devices only. Implement technical controls (GPO, endpoint DLP) to block unauthorized USB storage. Maintain an inventory of authorized portable storage devices and log their use. Assessors will test USB restrictions on representative CUI endpoints and review the policy and device inventory. USB restrictions configured in policy but not technically enforced, and exceptions for individual users that are undocumented, are common gaps."
+  },
+  "3.1.22": {
+    "title": "Control Public Information [CUI Data]",
+    "summary": "Control CUI posted or processed on publicly accessible systems.",
+    "requirement": "Control CUI posted or processed on publicly accessible systems.",
+    "onboarding_tips": "Implement a review and approval process before any information is posted to publicly accessible systems — websites, cloud file shares, public repositories. Designate individuals authorized to make public-information decisions and document the review workflow. Conduct periodic audits of publicly accessible organizational content to verify no CUI has been inadvertently disclosed. Assessors will review the public information review process and may audit publicly accessible sites and repositories. The most common finding is no formal review process — content is posted based on the author's judgment alone with no independent verification that it contains no CUI."
+  },
+  "3.2.1": {
+    "title": "Role-Based Risk Awareness",
+    "summary": "Ensure that managers, systems administrators, and users of organizational systems are made aware of the security risks associated with their activities and of the applicable policies, standards, and procedures related to the security of those systems.",
+    "requirement": "Ensure that managers, systems administrators, and users of organizational systems are made aware of the security risks associated with their activities and of the applicable policies, standards, and procedures related to the security of those systems.",
+    "onboarding_tips": "Ensure all individuals with access to CUI receive role-based security awareness training that covers risks specific to their activities. Training must address CUI handling requirements, phishing, social engineering, insider threat indicators, and reporting obligations. Maintain completion records with employee name, date, training content version, and acknowledgment. Conduct training at hire and at minimum annually. Assessors will request training records and verify all current CUI-accessing personnel completed training within the past 12 months. Contractors and third-party vendors with CUI access are frequently excluded from training programs — they must be included."
+  },
+  "3.2.2": {
+    "title": "Role-Based Training",
+    "summary": "Ensure that personnel are trained to carry out their assigned information security-related duties and responsibilities.",
+    "requirement": "Ensure that personnel are trained to carry out their assigned information security-related duties and responsibilities.",
+    "onboarding_tips": "Provide role-specific training before granting system access and when responsibilities change. IT administrators need training on secure configuration and patch management; developers need secure coding training; executives need governance training. Document the specific training content provided to each role and completion dates. Standard awareness training alone does not satisfy this control — it must be demonstrably role-specific. Assessors will match training records to personnel roles and verify individuals received appropriate training before access was granted. Training content that is identical for all roles does not satisfy the role-based requirement."
+  },
+  "3.2.3": {
+    "title": "Insider Threat Awareness",
+    "summary": "Provide security awareness training on recognizing and reporting potential indicators of insider threat.",
+    "requirement": "Provide security awareness training on recognizing and reporting potential indicators of insider threat.",
+    "onboarding_tips": "Include insider threat awareness as a specifically documented component of your security training program. All users must understand behavioral indicators of insider threats, reporting mechanisms, and their personal obligations to report suspicious activity. Cover scenarios relevant to your CUI environment: unusual data access, unauthorized copying, disgruntlement indicators, and social engineering by outsiders targeting insiders. Assessors will review training content to confirm insider threat topics are specifically and explicitly addressed. Generic security awareness training without dedicated insider threat content does not satisfy this control — document the insider threat component separately."
+  },
+  "3.3.1": {
+    "title": "System Auditing",
+    "summary": "Create and retain system audit logs and records to the extent needed to enable the monitoring, analysis, investigation, and reporting of unlawful or unauthorized system activity.",
+    "requirement": "Create and retain system audit logs and records to the extent needed to enable the monitoring, analysis, investigation, and reporting of unlawful or unauthorized system activity.",
+    "onboarding_tips": "Enable audit logging on all systems that create, process, or store CUI. Records must capture sufficient detail to reconstruct events: user ID, event type, date/time, source address, and success/failure status. Aggregate and retain logs centrally via a SIEM. Establish a minimum 3-year log retention policy for DFARS compliance programs. Protect logs from unauthorized modification using append-only or write-once storage. Assessors will inspect audit configurations on representative systems and verify SIEM ingestion and retention settings. Logging enabled but incomplete — missing logon failures, privilege use events, or object access — and logs stored only on local systems are common findings."
+  },
+  "3.3.2": {
+    "title": "User Accountability",
+    "summary": "Ensure that the actions of individual system users can be uniquely traced to those users so they can be held accountable for their actions.",
+    "requirement": "Ensure that the actions of individual system users can be uniquely traced to those users so they can be held accountable for their actions.",
+    "onboarding_tips": "Configure audit systems so all actions can be traced back to a specific named individual. Shared accounts, generic accounts, and anonymous identifiers that cannot be mapped to an individual are prohibited for CUI systems. Every audit record must include a unique identifier tied to a specific identifiable person. This means eliminating shared admin accounts (e.g., a common 'admin' account used by multiple IT staff). Assessors will inspect audit records for non-individual user identifiers and will test whether all account activity can be definitively traced to a named person. Shared privileged accounts are the most common accountability failure across CMMC assessments."
+  },
+  "3.3.3": {
+    "title": "Event Review",
+    "summary": "Review and update logged events.",
+    "requirement": "Review and update logged events.",
+    "onboarding_tips": "Establish a formal, documented schedule for reviewing audit logs. High-priority events — authentication failures, privilege escalation, after-hours access — should be reviewed daily; broader review can be weekly or monthly. Document who is responsible for review, what they are reviewing for, and how findings are escalated. Maintain evidence of review activity (tickets, analyst notes, review logs). Assessors will request this evidence and verify it reflects ongoing activity. The most common gap is that logging is technically configured but no one actually reviews the logs — or 'review' consists only of automated alerting with no human analysis or documentation."
+  },
+  "3.3.4": {
+    "title": "Audit Failure Alerting",
+    "summary": "Alert in the event of an audit logging process failure.",
+    "requirement": "Alert in the event of an audit logging process failure.",
+    "onboarding_tips": "Configure automated alerting to notify security personnel when audit logging fails: when storage reaches capacity, when log forwarding is interrupted, or when logging is disabled on a monitored system. Alerts must route to individuals who can take immediate remediation action. Test the alerting mechanisms annually and document the results. Assessors will examine alerting configurations in the SIEM and will ask administrators to describe what happens when logging fails. Common finding: log failure alerts are configured but routed to a monitored inbox with no defined response procedure, or routed to a mailbox that is not actively monitored."
+  },
+  "3.3.5": {
+    "title": "Audit Correlation",
+    "summary": "Correlate audit record review, analysis, and reporting processes for investigation and response to indications of unlawful, unauthorized, suspicious, or unusual activity.",
+    "requirement": "Correlate audit record review, analysis, and reporting processes for investigation and response to indications of unlawful, unauthorized, suspicious, or unusual activity.",
+    "onboarding_tips": "Implement the ability to correlate audit records across multiple systems and time periods to support incident investigation. A SIEM with correlation rules and cross-source search capability by user, IP, and time range is typically required. Maintain NTP time synchronization across all systems so timestamps are consistent and comparable. Assessors will test correlation by requesting a demonstration: 'Show me all activity for this user account across all systems on this date.' Inconsistent timestamps due to poor NTP configuration are a common finding that directly undermines cross-system correlation."
+  },
+  "3.3.6": {
+    "title": "Reduction & Reporting",
+    "summary": "Provide audit record reduction and report generation to support on-demand analysis and reporting.",
+    "requirement": "Provide audit record reduction and report generation to support on-demand analysis and reporting.",
+    "onboarding_tips": "Configure your log management capability to reduce raw audit volume to actionable subsets. Implement SIEM dashboards, automated reports, and noise filters so reviewers receive meaningful signals rather than raw log streams. Maintain the ability to generate audit reduction reports for compliance reporting and incident investigation. Assessors will assess whether your log management actually supports analysis — presenting raw, unfiltered log exports does not demonstrate audit reduction capability. Document your log analysis workflow, tools used, filter logic, and the reporting formats produced for each review cycle."
+  },
+  "3.3.7": {
+    "title": "Authoritative Time Source",
+    "summary": "Provide a system capability that compares and synchronizes internal system clocks with an authoritative source to generate time stamps for audit records.",
+    "requirement": "Provide a system capability that compares and synchronizes internal system clocks with an authoritative source to generate time stamps for audit records.",
+    "onboarding_tips": "Synchronize all system clocks to an authoritative time source using NTP. Build a hierarchy: internal NTP servers sync to trusted external sources (NIST, US Naval Observatory). Configure all systems — workstations, servers, network devices, and security appliances — to use this hierarchy. Verify synchronization by checking NTP stratum levels and monitoring for drift. Assessors will inspect NTP configurations on representative systems and may compare timestamps across log sources from different systems. Time drift greater than a few seconds across CUI systems undermines audit correlation and log integrity."
+  },
+  "3.3.8": {
+    "title": "Audit Protection",
+    "summary": "Protect audit information and audit logging tools from unauthorized access, modification, and deletion.",
+    "requirement": "Protect audit information and audit logging tools from unauthorized access, modification, and deletion.",
+    "onboarding_tips": "Protect audit records from unauthorized access, modification, or deletion. Route logs to a dedicated, hardened SIEM or log management system where only authorized security personnel can modify retention settings. Use write-once or append-only log storage. Restrict access to log management interfaces using separate privileged accounts, and audit access to the log management system itself. Assessors will attempt to modify or delete audit records using standard user credentials to test controls. The most critical finding is when the same administrators whose actions are being audited have the ability to delete or modify those audit records."
+  },
+  "3.3.9": {
+    "title": "Audit Management",
+    "summary": "Limit management of audit logging functionality to a subset of privileged users.",
+    "requirement": "Limit management of audit logging functionality to a subset of privileged users.",
+    "onboarding_tips": "Designate named roles responsible for audit system management: configuration, capacity planning, log review, and retention management. Document these responsibilities in your SSP and role assignment documentation. Implement capacity monitoring with alerts before log storage reaches capacity — never allow silent overwrite. Define procedures for expanding log storage capacity on alert. Assessors will verify named individuals own audit management responsibilities, that capacity monitoring is active, and that there is a documented process for log management decisions. Audit systems configured to silently overwrite oldest logs when full are a serious deficiency."
+  },
+  "3.4.1": {
+    "title": "System Baselining",
+    "summary": "Establish and maintain baseline configurations and inventories of organizational systems (including hardware, software, firmware, and documentation) throughout the respective system development life cycles.",
+    "requirement": "Establish and maintain baseline configurations and inventories of organizational systems (including hardware, software, firmware, and documentation) throughout the respective system development life cycles.",
+    "onboarding_tips": "Establish and document security configuration baselines for all hardware, operating systems, applications, and network devices. Use CIS Benchmarks or DISA STIGs as starting points and document any deviations with risk justification and approver signature. Maintain baseline documents under version control and track all approved deviations. Assessors will request baseline documents and compare them against actual system configurations using configuration assessment tools (CIS-CAT, STIG Viewer). The absence of formal baselines — relying on vendor defaults or tribal knowledge — is one of the most common deficiencies found across all CMMC assessments."
+  },
+  "3.4.2": {
+    "title": "Security Configuration Enforcement",
+    "summary": "Establish and enforce security configuration settings for information technology products employed in organizational systems.",
+    "requirement": "Establish and enforce security configuration settings for information technology products employed in organizational systems.",
+    "onboarding_tips": "Implement technical enforcement of your security configuration baselines using automated mechanisms. Use Group Policy Objects for Windows, MDM for endpoints, and configuration management tools (Ansible, Chef, Puppet) for servers to push and maintain baseline settings. Manual configuration alone is insufficient — configuration drift will occur. Run automated configuration compliance scans periodically to detect and remediate deviations. Assessors will test endpoints against the documented baseline and expect to see deviations below a defined threshold. Systems significantly out of compliance with the documented baseline demonstrate this control is not effectively implemented."
+  },
+  "3.4.3": {
+    "title": "System Change Management",
+    "summary": "Track, review, approve or disapprove, and log changes to organizational systems.",
+    "requirement": "Track, review, approve or disapprove, and log changes to organizational systems.",
+    "onboarding_tips": "Implement a formal change control process for all changes to CUI systems: request, document, review for security impact, approve, test, implement, and record results. No change should be made to a production CUI system without an approved change request. Use a ticketing system to track all changes end-to-end. Assessors will request change records and verify that recent production changes were properly documented and approved before implementation. Emergency undocumented changes applied directly to production — common in IT-mature but compliance-immature organizations — are a frequent and serious finding."
+  },
+  "3.4.4": {
+    "title": "Security Impact Analysis",
+    "summary": "Analyze the security impact of changes prior to implementation.",
+    "requirement": "Analyze the security impact of changes prior to implementation.",
+    "onboarding_tips": "Before implementing any change to CUI systems, conduct and document a security impact analysis. The analysis must consider new attack surface introduced, changes to access controls, configuration changes, and potential unintended consequences. A qualified security person (security officer, IT security staff) must perform and document the analysis before the change is approved. Assessors will select sample change records and verify security impact analysis was completed before implementation. Change management processes that route through IT but have no security review step are a very common gap."
+  },
+  "3.4.5": {
+    "title": "Access Restrictions For Change",
+    "summary": "Define, document, approve, and enforce physical and logical access restrictions associated with changes to organizational systems.",
+    "requirement": "Define, document, approve, and enforce physical and logical access restrictions associated with changes to organizational systems.",
+    "onboarding_tips": "Restrict who can make configuration changes to CUI systems and separate the roles of requester, approver, and implementer. The same individual must not both approve and implement a change. Access to production configuration management tools and systems must be limited to authorized change implementers only. Document the access restriction in your change management process and access control documentation. Assessors will verify change records show different individuals in each role and that access to production systems is restricted. Organizations where the change requester and approver are the same person are a common finding."
+  },
+  "3.4.6": {
+    "title": "Least Functionality",
+    "summary": "Employ the principle of least functionality by configuring organizational systems to provide only essential capabilities.",
+    "requirement": "Employ the principle of least functionality by configuring organizational systems to provide only essential capabilities.",
+    "onboarding_tips": "Configure each system to provide only the capabilities necessary for its intended function. Disable or remove all unused services, protocols, and open network ports. Server roles should be purpose-specific — do not co-locate IIS, SQL Server, and file server roles unless operationally required with documented justification. Document approved services and ports for each system type in your configuration baseline. Assessors will inspect running services, installed software, and open ports on representative systems and compare to the documented baseline. Systems with dozens of unrelated running services and unjustified open ports are a common finding."
+  },
+  "3.4.7": {
+    "title": "Nonessential Functionality",
+    "summary": "Restrict, disable, or prevent the use of nonessential programs, functions, ports, protocols, and services.",
+    "requirement": "Restrict, disable, or prevent the use of nonessential programs, functions, ports, protocols, and services.",
+    "onboarding_tips": "Identify all nonessential programs, functions, ports, protocols, and services and eliminate, disable, or restrict them. Nonessential means anything not required for the system's primary business function. Includes legacy protocols (Telnet, FTP, SMBv1, NetBIOS), unnecessary scheduled tasks, default application accounts, and demo software. Maintain a documented list of what has been disabled and the rationale. Assessors will compare running services and enabled features against what is justified by the system's function. Systems still running SMBv1, Telnet, or outdated legacy protocols without documented business justification are common findings."
+  },
+  "3.4.8": {
+    "title": "Application Execution Policy",
+    "summary": "Apply deny-by-exception (blacklisting) policy to prevent the use of unauthorized software or deny-all, permit-by-exception (whitelisting) policy to allow the execution of authorized software.",
+    "requirement": "Apply deny-by-exception (blacklisting) policy to prevent the use of unauthorized software or deny-all, permit-by-exception (whitelisting) policy to allow the execution of authorized software.",
+    "onboarding_tips": "Implement application execution controls — application allowlisting — to prevent execution of unauthorized software on CUI systems. Use Windows Defender Application Control (WDAC), AppLocker, or a comparable third-party solution configured to permit only approved applications. Maintain the allowlist through the change management process. Assessors will attempt to run unauthorized executables on CUI endpoints and expect execution to be blocked. Audit mode (logging without blocking) does not satisfy this control. Allowlisting is one of the more technically demanding CMMC controls — plan for an extensive testing phase before enforcing."
+  },
+  "3.4.9": {
+    "title": "User-Installed Software",
+    "summary": "Control and monitor user-installed software.",
+    "requirement": "Control and monitor user-installed software.",
+    "onboarding_tips": "Prohibit users from installing unauthorized software on CUI systems and enforce this prohibition technically, not just through policy. Remove local administrator rights from standard users, and supplement with application allowlisting where possible. Implement a formal IT software approval and deployment process for business applications. Assessors will test whether standard users can install software on CUI systems — the policy alone without technical enforcement is a finding. Users who retain local admin rights can install any software, making this control and the least-functionality controls difficult to satisfy simultaneously."
+  },
+  "3.5.1": {
+    "title": "Identification [CUI Data]",
+    "summary": "Identify system users, processes acting on behalf of users, and devices.",
+    "requirement": "Identify system users, processes acting on behalf of users, and devices.",
+    "onboarding_tips": "Assign a unique identifier to every user, process, and device that accesses CUI systems. Shared user accounts, group accounts, and anonymous access are prohibited. Each individual must have their own account with a unique username tied to their verified identity. Service accounts must be uniquely named to indicate purpose and owner and managed through a privileged account management process. Assessors will request the complete account listing for CUI systems and look for shared accounts (admin, operator, guest) that are enabled. Unique identification is foundational to the entire audit and accountability control family — shared accounts undermine multiple controls simultaneously."
+  },
+  "3.5.2": {
+    "title": "Authentication [CUI Data]",
+    "summary": "Authenticate (or verify) the identities of users, processes, or devices, as a prerequisite to allowing access to organizational systems.",
+    "requirement": "Authenticate (or verify) the identities of users, processes, or devices, as a prerequisite to allowing access to organizational systems.",
+    "onboarding_tips": "Authenticate all users, processes, and devices before granting any access to CUI systems. Authentication must be based on something the user knows, has, or is. Change all default or factory credentials before system deployment — never allow any system to enter production with default credentials. Protect credentials in storage (hashed) and transit (encrypted). Assessors will attempt to access CUI systems without credentials, test for default credentials on network devices and applications, and verify authentication is required at all access points including internally facing systems. Default credentials on network appliances, printers, and embedded systems are a frequent critical finding."
+  },
+  "3.5.3": {
+    "title": "Multifactor Authentication",
+    "summary": "Use multifactor authentication for local and network access to privileged accounts and for network access to non-privileged accounts.",
+    "requirement": "Use multifactor authentication for local and network access to privileged accounts and for network access to non-privileged accounts.",
+    "onboarding_tips": "Enforce multi-factor authentication (MFA) for all privileged account logons, all remote access to CUI systems, and all network access to CUI systems. MFA requires two or more: something you know (password), something you have (TOTP app, hardware token, PIV/CAC), or something you are (biometric). Enforce MFA via conditional access policies in Entra ID/Azure AD or equivalent — ensure no broad exclusions bypass MFA for administrative accounts or remote workers. Assessors will attempt to authenticate using only a password and verify it fails. MFA enforced for external access but not for internal privileged account logons is a common gap."
+  },
+  "3.5.4": {
+    "title": "Replay-Resistant Authentication",
+    "summary": "Employ replay-resistant authentication mechanisms for network access to privileged and non-privileged accounts.",
+    "requirement": "Employ replay-resistant authentication mechanisms for network access to privileged and non-privileged accounts.",
+    "onboarding_tips": "Use authentication mechanisms that are resistant to replay attacks — where a captured credential is reused to gain unauthorized access. Modern protocols satisfy this: Kerberos, TLS-based authentication, TOTP/HOTP, and hardware tokens. Identify and disable legacy protocols that are replay-susceptible: NTLM v1, basic HTTP authentication, and older RADIUS configurations that use PAP. Assess all authentication paths to CUI systems and document the protocols in use. Assessors will inspect authentication protocol configurations and may run protocol analysis. Continued use of NTLM v1 or basic authentication for CUI system access is a finding."
+  },
+  "3.5.5": {
+    "title": "Identifier Reuse",
+    "summary": "Prevent reuse of identifiers for a defined period.",
+    "requirement": "Prevent reuse of identifiers for a defined period.",
+    "onboarding_tips": "Prevent the reuse of user account identifiers after they have been assigned to and used by a previous employee or contractor. When an account is terminated, it must be disabled and eventually deleted — the username must not be reassigned to a new employee. For service accounts and device names, apply the same principle. Document identifier management procedures including the minimum retention period before a retired identifier could theoretically be reused (NIST recommends not reusing identifiers). Assessors will review account creation and termination procedures and may examine directory service history logs to verify identifiers are not reused."
+  },
+  "3.5.6": {
+    "title": "Identifier Handling",
+    "summary": "Disable identifiers after a defined period of inactivity.",
+    "requirement": "Disable identifiers after a defined period of inactivity.",
+    "onboarding_tips": "Establish lifecycle management procedures for all identifiers: initial assignment, status during name or role changes, suspension, and deletion upon separation. Implement defined timelines — accounts must be disabled within 24 hours of employment termination and deleted within 90 days. Apply to all systems: AD, cloud apps, VPN, and application-specific accounts. Review all accounts against current HR records quarterly. Assessors will cross-reference HR termination dates against account disable dates to verify timely action. Accounts of former employees or contractors remaining active for days, weeks, or months after termination is one of the most commonly cited findings in CMMC assessments."
+  },
+  "3.5.7": {
+    "title": "Password Complexity",
+    "summary": "Enforce a minimum password complexity and change of characters when new passwords are created.",
+    "requirement": "Enforce a minimum password complexity and change of characters when new passwords are created.",
+    "onboarding_tips": "Implement and technically enforce password complexity requirements for all CUI system accounts: minimum 12-character length with mixed case, numbers, and special characters — or a longer passphrase policy aligned to NIST SP 800-63B. Enforce through technical controls: Active Directory Fine-Grained Password Policy, application-level configuration, and MDM device passcode policy. Policy documentation alone without technical enforcement is a finding. Assessors will review password policy configurations on domain controllers and applications and will test password policy enforcement. Policies that exist in writing but are technically set to weaker parameters are common."
+  },
+  "3.5.8": {
+    "title": "Password Reuse",
+    "summary": "Prohibit password reuse for a specified number of generations.",
+    "requirement": "Prohibit password reuse for a specified number of generations.",
+    "onboarding_tips": "Configure password history settings to prevent reuse of the last 24 or more passwords on all CUI system accounts. Combine with a minimum password age (e.g., 1 day) to prevent users from cycling through the history to return to their preferred password. Apply to domain accounts, local accounts, and application-specific accounts. Assessors will inspect password policy settings in Active Directory, local policy, and application configuration. A history count of fewer than 24 is a gap; a history count of 24 but no minimum password age allows trivial circumvention and is also a finding."
+  },
+  "3.5.9": {
+    "title": "Temporary Passwords",
+    "summary": "Allow temporary password use for system logons with an immediate change to a permanent password.",
+    "requirement": "Allow temporary password use for system logons with an immediate change to a permanent password.",
+    "onboarding_tips": "Configure systems so that temporary passwords — used for initial account setup or administrator-initiated resets — require change on first use. Temporary passwords must expire within 24 hours if unused. Never transmit temporary passwords via unencrypted email; use a secure out-of-band delivery method. Implement a secure identity-verified password reset mechanism. Assessors will review the account provisioning process and test whether temporary passwords force immediate change at first logon. Sending initial passwords via plaintext email without a forced-change requirement is a very common finding."
+  },
+  "3.5.10": {
+    "title": "Cryptographically-Protected Passwords",
+    "summary": "Store and transmit only cryptographically-protected passwords.",
+    "requirement": "Store and transmit only cryptographically-protected passwords.",
+    "onboarding_tips": "Store all passwords using strong, modern one-way cryptographic hashing: bcrypt, Argon2, PBKDF2, or scrypt with an appropriate work factor. Never store passwords in plaintext, with reversible encryption, or using weak hash algorithms (MD5, SHA-1, unsalted hashes). Validate that all applications and systems use secure password storage frameworks. For custom-built applications, conduct a code review of authentication modules. Assessors will examine how passwords are stored in databases and authentication systems. Custom applications storing passwords with weak hashing algorithms are a serious finding that often indicates broader application security immaturity."
+  },
+  "3.5.11": {
+    "title": "Obscure Feedback",
+    "summary": "Obscure feedback of authentication information.",
+    "requirement": "Obscure feedback of authentication information.",
+    "onboarding_tips": "Configure all authentication interfaces to mask password input — display only asterisks, dots, or blank characters as the user types. Never display typed password characters in plaintext at any point in any interface. Apply to login screens, password change forms, SSH clients, web portals, and any other interface where a password is entered on a CUI system. Password hints that effectively reveal the password are also prohibited. Assessors will verify masking on all authentication interfaces for CUI system access. Most modern systems satisfy this by default, but legacy or custom-built applications that were not purpose-built for security sometimes expose cleartext password input."
+  },
+  "3.6.1": {
+    "title": "Incident Handling",
+    "summary": "Establish an operational incident-handling capability for organizational systems that includes preparation, detection, analysis, containment, recovery, and user response activities.",
+    "requirement": "Establish an operational incident-handling capability for organizational systems that includes preparation, detection, analysis, containment, recovery, and user response activities.",
+    "onboarding_tips": "Establish a documented incident response capability covering: detection, reporting, triage, containment, eradication, recovery, and post-incident review. Assign specific named roles and responsibilities. Include CUI-specific incident scenarios: unauthorized disclosure, system compromise, ransomware, and insider threat. Keep the plan accessible to all incident responders and ensure it is exercised. Assessors will request the Incident Response Plan, verify it has been distributed and trained, and look for evidence of exercises or tabletop simulations. Plans that exist on a shared drive but have never been tested, distributed, or briefed to relevant personnel do not satisfy this control."
+  },
+  "3.6.2": {
+    "title": "Incident Reporting",
+    "summary": "Track, document, and report incidents to designated officials and/or authorities both internal and external to the organization.",
+    "requirement": "Track, document, and report incidents to designated officials and/or authorities both internal and external to the organization.",
+    "onboarding_tips": "Document and communicate both internal and external incident reporting obligations. Internal escalation paths must be defined with contact information and timelines. External reporting: DFARS 252.204-7012 requires reporting cyber incidents to DoD via DC3/DIBNet within 72 hours. Ensure incident responders know this obligation, have the required contact information, and know what information to include. Assessors will verify both the internal escalation process and specific knowledge of the DFARS 72-hour external reporting requirement. Many organizations have adequate internal processes but are unprepared for the DoD external reporting requirement — this is a very common gap."
+  },
+  "3.6.3": {
+    "title": "Incident Response Testing",
+    "summary": "Test the organizational incident response capability.",
+    "requirement": "Test the organizational incident response capability.",
+    "onboarding_tips": "Test your incident response capability at least annually via tabletop exercises, functional exercises, or actual incident reviews documented with lessons learned. Document the test scenario, participants, findings, and corrective actions. Update the Incident Response Plan based on lessons learned from testing. Assessors will request the most recent test documentation: exercise plan, attendance record, after-action report, and any resulting plan updates. Organizations that have a plan but have never exercised it will not satisfy this control. Testing must produce documented evidence — a meeting where you 'talked through' the plan informally does not demonstrate a structured test."
+  },
+  "3.7.1": {
+    "title": "Perform Maintenance",
+    "summary": "Perform maintenance on organizational systems.",
+    "requirement": "Perform maintenance on organizational systems.",
+    "onboarding_tips": "Perform maintenance on CUI systems using controlled, documented procedures. Log all maintenance activities including: who performed the work, date and time, what was performed, and which systems were affected. Route planned maintenance through the change management process. Capture system state before and after significant maintenance. Assessors will request maintenance logs and verify entries exist for recent maintenance activities. The finding 'someone fixed it last week, I'm not sure who' demonstrates this control is not implemented. All configuration changes made during maintenance must also generate change management records."
+  },
+  "3.7.2": {
+    "title": "System Maintenance Control",
+    "summary": "Provide controls on the tools, techniques, mechanisms, and personnel used to conduct system maintenance.",
+    "requirement": "Provide controls on the tools, techniques, mechanisms, and personnel used to conduct system maintenance.",
+    "onboarding_tips": "Implement controls over all maintenance personnel. Authorize individuals before they perform maintenance on CUI systems. For remote maintenance vendor sessions, require MFA, maintain real-time monitoring, and retain session logs. For on-site third-party maintenance, escort technicians and monitor their work, or sanitize CUI from systems before allowing unescorted vendor access. Document maintenance personnel authorizations and supervision records. Assessors will review maintenance authorization procedures and verify third-party maintenance is controlled and documented. Allowing hardware vendors to perform unescorted, unmonitored on-site maintenance is a common finding."
+  },
+  "3.7.3": {
+    "title": "Equipment Sanitization",
+    "summary": "Ensure equipment removed for off-site maintenance is sanitized of any CUI.",
+    "requirement": "Ensure equipment removed for off-site maintenance is sanitized of any CUI.",
+    "onboarding_tips": "Before releasing equipment for off-site maintenance, repair, or disposal, remove or sanitize all CUI using NIST SP 800-88 compliant methods (overwrite, degauss, or physical destruction based on media type and sensitivity). Document each sanitization event: media type, serial number, sanitization method, tool used, date, and responsible individual. For virtual media, ensure VM snapshots and disk images are also sanitized before sharing with vendors. Assessors will review sanitization procedures and records. Sending hard drives to a vendor for repair without first removing or sanitizing CUI is a critical finding."
+  },
+  "3.7.4": {
+    "title": "Media Inspection",
+    "summary": "Check media containing diagnostic and test programs for malicious code before the media are used in organizational systems.",
+    "requirement": "Check media containing diagnostic and test programs for malicious code before the media are used in organizational systems.",
+    "onboarding_tips": "Before returning equipment from external maintenance or repair to the CUI environment, have a qualified individual inspect it for tampering or malicious modifications — added hardware components (keyloggers, USB implants), unauthorized software changes, or configuration alterations. Document the inspection process and results for each returned device. Assessors will review the post-maintenance inspection process and look for documented evidence that inspections occur. Most organizations have no formal inspection process for returned equipment — this control is widely unimplemented."
+  },
+  "3.7.5": {
+    "title": "Nonlocal Maintenance",
+    "summary": "Require multifactor authentication to establish nonlocal maintenance sessions via external network connections and terminate such connections when nonlocal maintenance is complete.",
+    "requirement": "Require multifactor authentication to establish nonlocal maintenance sessions via external network connections and terminate such connections when nonlocal maintenance is complete.",
+    "onboarding_tips": "Control remote maintenance sessions (vendor support, remote IT administration) with the same rigor as local maintenance. Require MFA for all remote maintenance connections, encrypt all sessions, maintain real-time oversight capability, log all session activity, and terminate remote credentials after session completion. Use approved, monitored remote access tools rather than ad-hoc screen sharing. Assessors will review remote maintenance session logs and verify encryption, authentication, and monitoring controls. Permanent, always-on vendor remote access credentials that are not session-specific and not revoked after use are a common finding."
+  },
+  "3.7.6": {
+    "title": "Maintenance Personnel",
+    "summary": "Supervise the maintenance activities of maintenance personnel without required access authorization.",
+    "requirement": "Supervise the maintenance activities of maintenance personnel without required access authorization.",
+    "onboarding_tips": "Define and document the process for vetting and authorizing maintenance personnel — both employees and contractors. For individuals without CUI-appropriate background screening or authorization, require escort and supervision during maintenance in CUI areas or on CUI systems. Maintain records of who performed maintenance and their authorization basis. For third-party vendors, verify they have signed appropriate agreements and been vetted before allowing access. Assessors will review the authorized maintenance personnel list, the vetting process documentation, and supervision records for third-party maintenance. Organizations that treat all vendor technicians as automatically trusted are a common finding."
+  },
+  "3.8.1": {
+    "title": "Media Protection",
+    "summary": "Protect (i.",
+    "requirement": "Protect (i.e., physically control and securely store) system media containing CUI, both paper and digital.",
+    "onboarding_tips": "Protect all system media — electronic (hard drives, USB drives, backup tapes, optical discs, memory cards) and non-electronic (printed reports, handwritten notes) — containing CUI from unauthorized access. Implement physical controls: locked storage rooms or cabinets for media at rest, access-controlled areas for CUI processing. Maintain an inventory of media containing CUI. Assessors will review media protection policies, inspect physical controls for media storage, and review the media inventory. Printed CUI left unsecured on desks (clean desk violations) and unencrypted USB drives with CUI are among the most common physical findings during CMMC assessments."
+  },
+  "3.8.2": {
+    "title": "Media Access",
+    "summary": "Limit access to CUI on system media to authorized users.",
+    "requirement": "Limit access to CUI on system media to authorized users.",
+    "onboarding_tips": "Restrict access to CUI-containing media to authorized individuals. Implement access controls on digital media (encrypted, access-controlled storage) and physical controls (locked storage, access logs) for paper records. Maintain records of who accessed which sensitive media and when. Assessors will verify CUI media access is restricted and logged. Common findings: shared network drives containing CUI that are accessible to the entire organization with no access controls; filing cabinets containing CUI documents that are unlocked and accessible to anyone in the workspace."
+  },
+  "3.8.3": {
+    "title": "Media Disposal [CUI Data]",
+    "summary": "Sanitize or destroy system media containing CUI before disposal or release for reuse.",
+    "requirement": "Sanitize or destroy system media containing CUI before disposal or release for reuse.",
+    "onboarding_tips": "Sanitize or destroy media containing CUI before disposal, repurposing, or transfer outside organizational control. Follow NIST SP 800-88: use DoD-standard overwrite tools, degaussing, or physical destruction appropriate to the media type and sensitivity level. Maintain disposal records: media description, serial number, sanitization method, date, and responsible individual. For paper records, use a cross-cut shredder rated DIN 66399 Level P-4 or higher, or a certified destruction service. Assessors will review disposal procedures and records. Disposing of hard drives or CUI documents in regular trash without sanitization is a critical finding."
+  },
+  "3.8.4": {
+    "title": "Media Markings",
+    "summary": "Mark media with necessary CUI markings and distribution limitations.",
+    "requirement": "Mark media with necessary CUI markings and distribution limitations.",
+    "onboarding_tips": "Mark all CUI-containing media with the appropriate CUI designation. Physically label electronic media (drives, USB sticks, backup tapes) with CUI markings. Electronic files must include CUI headers/footers or document-level markings per your CUI handling policy. Physical documents must be marked on the cover/front page and any continuation pages. Train users on marking requirements and verify through random spot checks. Assessors will inspect media and documents in the work environment for proper markings. Unmarked USB drives known to contain CUI, and electronic files without CUI designation headers, are common findings."
+  },
+  "3.8.5": {
+    "title": "Media Accountability",
+    "summary": "Control access to media containing CUI and maintain accountability for media during transport outside of controlled areas.",
+    "requirement": "Control access to media containing CUI and maintain accountability for media during transport outside of controlled areas.",
+    "onboarding_tips": "Maintain accountability for CUI-containing media throughout its lifecycle: from creation or receipt, through storage, transport, and final disposition. Track each piece of media: responsible custodian, current location, and disposition status. Conduct periodic physical inventories to verify all media is accounted for and initiate incident response if any cannot be located. Assessors will request the media inventory and verify completeness and currency. Organizations that can account for all computers but cannot account for backup tapes, USB drives, or external drives that may contain CUI have a significant accountability gap."
+  },
+  "3.8.6": {
+    "title": "Portable Storage Encryption",
+    "summary": "Implement cryptographic mechanisms to protect the confidentiality of CUI stored on digital media during transport unless otherwise protected by alternative physical safeguards.",
+    "requirement": "Implement cryptographic mechanisms to protect the confidentiality of CUI stored on digital media during transport unless otherwise protected by alternative physical safeguards.",
+    "onboarding_tips": "Encrypt all CUI on portable digital media using FIPS 140-2 validated encryption. For USB drives, use hardware-encrypted devices with AES-256. For laptop hard drives, use BitLocker with TPM (in FIPS mode) or FileVault. For backup media, encrypt at the backup software level using approved algorithms. Never store CUI on unencrypted portable media. Assessors will request the portable storage inventory and inspect devices to verify encryption is enabled and properly configured. Unencrypted backup media and non-hardware-encrypted USB drives containing CUI are among the most commonly cited CMMC findings across all assessments."
+  },
+  "3.8.7": {
+    "title": "Removeable Media",
+    "summary": "Control the use of removable media on system components.",
+    "requirement": "Control the use of removable media on system components.",
+    "onboarding_tips": "Restrict the use of removable media on CUI systems — only approved, organization-owned, properly configured devices are permitted. Implement technical controls (GPO, endpoint DLP, EDR) to block unauthorized removable media. For cases where removable media is operationally necessary, implement an approval and check-out process with logging. Assessors will test removable media controls on representative CUI endpoints. USB restrictions defined in policy but not technically enforced, and blanket exceptions for specific users without documented justification and review, are common gaps."
+  },
+  "3.8.8": {
+    "title": "Shared Media",
+    "summary": "Prohibit the use of portable storage devices when such devices have no identifiable owner.",
+    "requirement": "Prohibit the use of portable storage devices when such devices have no identifiable owner.",
+    "onboarding_tips": "Control shared media and digital workspaces to ensure CUI is accessible only to authorized users. When digital media is shared between users or systems, sanitize CUI before sharing with individuals not authorized for that CUI, or ensure all users with access to the shared environment are authorized for the CUI it contains. Cloud file sharing services used for CUI must have access controls restricting sharing to authorized users. Assessors will review shared storage configurations and access controls. CUI placed in publicly accessible or broadly shared cloud storage folders — Dropbox, personal OneDrive, Google Drive — without access restrictions is a common finding."
+  },
+  "3.8.9": {
+    "title": "Protect Backups",
+    "summary": "Protect the confidentiality of backup CUI at storage locations.",
+    "requirement": "Protect the confidentiality of backup CUI at storage locations.",
+    "onboarding_tips": "Protect backup copies of CUI with the same level of controls as primary copies. Encrypt all backup media, store backups in access-controlled physical or logical locations, and test backup integrity and restorability at least annually. Follow 3-2-1 principles: 3 copies, on 2 different media types, with 1 stored offsite. Verify that offsite storage locations have appropriate physical security. Assessors will review backup policies and configurations, verify encryption settings, inspect the physical security of offsite backup storage, and request backup restoration test evidence. Unencrypted tapes in unlocked offsite storage or backup systems with no documented restoration test are common findings."
+  },
+  "3.9.1": {
+    "title": "Screen Individuals",
+    "summary": "Screen individuals prior to authorizing access to organizational systems containing CUI.",
+    "requirement": "Screen individuals prior to authorizing access to organizational systems containing CUI.",
+    "onboarding_tips": "Screen all individuals with access to CUI before granting access — this includes employees, contractors, and third-party vendors. Screening must be appropriate to the sensitivity of the CUI and the level of access. For DoD contractor environments, this typically means background investigation to the level required by the contract. Document screening requirements in your personnel security policy and maintain records of screening completion. Assessors will review the personnel screening policy and verify that background checks were completed for current staff with CUI access. Contractors and third parties who access CUI environments must be screened under the same standards as employees."
+  },
+  "3.9.2": {
+    "title": "Personnel Actions",
+    "summary": "Ensure that organizational systems containing CUI are protected during and after personnel actions such as terminations and transfers.",
+    "requirement": "Ensure that organizational systems containing CUI are protected during and after personnel actions such as terminations and transfers.",
+    "onboarding_tips": "Implement documented security procedures for all personnel actions: termination, transfer, and role change. Upon termination: disable all system access within 24 hours, recover organizational devices and credentials, conduct a security exit briefing, and document all actions taken. For transfers: review and update access based on the new role using least privilege. Maintain records of personnel security actions with timestamps. Assessors will cross-reference recent HR terminations against IT access disable records to verify timeliness. Late account disabling — accounts remaining active for days or weeks after a termination event — is one of the most universally cited findings in CMMC assessments."
+  },
+  "3.10.1": {
+    "title": "Limit Physical Access [CUI Data]",
+    "summary": "Limit physical access to organizational systems, equipment, and the respective operating environments to authorized individuals.",
+    "requirement": "Limit physical access to organizational systems, equipment, and the respective operating environments to authorized individuals.",
+    "onboarding_tips": "Control and limit physical access to facilities and systems containing CUI using access control systems: key card readers, biometric entry, or managed physical key systems with accountability. Maintain an access list and review it quarterly to remove access for personnel who no longer require it. Implement visitor management procedures for all non-permanent access. Assessors will inspect physical access controls at CUI processing areas, review access logs, and verify the access roster is current. Shared access codes or PINs — which cannot provide individual accountability — and access rosters that have not been reviewed since initial setup are common findings."
+  },
+  "3.10.2": {
+    "title": "Monitor Facility",
+    "summary": "Protect and monitor the physical facility and support infrastructure for organizational systems.",
+    "requirement": "Protect and monitor the physical facility and support infrastructure for organizational systems.",
+    "onboarding_tips": "Implement physical monitoring for all facilities containing CUI: CCTV cameras at entry points, server rooms, and CUI processing areas; intrusion detection systems; and security guard services as appropriate. Retain camera footage for a minimum of 90 days to support incident investigations. Review monitoring outputs regularly. Assessors will verify monitoring systems are functional, recording, and retaining footage for the required period. Cameras that are installed but not recording, recording to media that overwrites within 24–72 hours, or footage that is never reviewed are common findings."
+  },
+  "3.10.3": {
+    "title": "Escort Visitors [CUI Data]",
+    "summary": "Escort visitors and monitor visitor activity.",
+    "requirement": "Escort visitors and monitor visitor activity.",
+    "onboarding_tips": "Require all visitors to CUI facilities — including contractors, delivery personnel, and maintenance technicians — to be escorted by an authorized employee at all times while in controlled areas. Implement a formal visitor management process: pre-approval, ID verification on arrival, badge issuance distinguishing visitors from employees, escort assignment, and sign-out. Maintain visitor logs. Assessors will review visitor management procedures, inspect visitor logs, and may physically observe whether escort procedures are followed. Relying on an honor system or informal common sense rather than a documented process and physical controls is a common gap."
+  },
+  "3.10.4": {
+    "title": "Physical Access Logs [CUI Data]",
+    "summary": "Maintain audit logs of physical access.",
+    "requirement": "Maintain audit logs of physical access.",
+    "onboarding_tips": "Maintain physical access logs for all entry to areas containing CUI systems. Logs must record individual identity (not just badge number), date, and time for each access event. Retain access logs for a minimum of 3 years for DFARS compliance purposes. Review logs periodically for anomalous patterns: after-hours access, unusual frequency, or access by individuals whose employment status has changed. Assessors will request access control records and verify retention, completeness, and evidence of review. Key card systems that record only swipe counts or that overwrite logs after a short period are a common finding."
+  },
+  "3.10.5": {
+    "title": "Manage Physical Access [CUI Data]",
+    "summary": "Control and manage physical access devices.",
+    "requirement": "Control and manage physical access devices.",
+    "onboarding_tips": "Manage physical access credentials (badges, keys, tokens) throughout their full lifecycle: issue based on approved access needs, maintain an inventory of outstanding credentials, and recover all credentials upon termination, transfer, or role change. Audit physical access credentials against the current authorized access list at least quarterly. Update access lists and credentials when responsibilities change. Assessors will compare active physical access credentials against the current HR-verified authorized access roster. Former employees or contractors who retain active physical access credentials after separation are a common finding with serious implications."
+  },
+  "3.10.6": {
+    "title": "Alternative Work Sites",
+    "summary": "Enforce safeguarding measures for CUI at alternate work sites.",
+    "requirement": "Enforce safeguarding measures for CUI at alternate work sites.",
+    "onboarding_tips": "Address physical and environmental security for employees working at alternative work sites (home offices, telework locations). The remote work policy must address: CUI storage at home (clean desk, locked storage), restrictions on discussing CUI in non-private settings, prohibition on printing CUI at home without approved controls, and home network security requirements. Provide guidance and training on home security practices. Assessors will review the alternative work site policy for physical security requirements. Organizations with IT-focused remote work policies that address VPN and endpoint security but omit the physical security of CUI at home sites are a common gap."
+  },
+  "3.11.1": {
+    "title": "Risk Assessments",
+    "summary": "Periodically assess the risk to organizational operations (including mission, functions, image, or reputation), organizational assets, and individuals, resulting from the operation of organizational systems and the associated processing, storage, or transmission of CUI.",
+    "requirement": "Periodically assess the risk to organizational operations (including mission, functions, image, or reputation), organizational assets, and individuals, resulting from the operation of organizational systems and the associated processing, storage, or transmission of CUI.",
+    "onboarding_tips": "Conduct a formal risk assessment of your CUI environment at least annually, and whenever there are significant changes to the system, threats, or operational environment. The assessment must identify threats, vulnerabilities, likelihood, potential impact, and resulting risk level. Document findings and use them to prioritize your POA&M and security investment decisions. Obtain senior management review and sign-off. Assessors will request the most recent risk assessment, verify its date and scope cover all CUI systems, and check whether findings are reflected in the POA&M. A risk assessment conducted but filed away with no resulting corrective actions is insufficient — it must drive the security program."
+  },
+  "3.11.2": {
+    "title": "Vulnerability Scan",
+    "summary": "Scan for vulnerabilities in organizational systems and applications periodically and when new vulnerabilities affecting those systems and applications are identified.",
+    "requirement": "Scan for vulnerabilities in organizational systems and applications periodically and when new vulnerabilities affecting those systems and applications are identified.",
+    "onboarding_tips": "Conduct vulnerability scanning of all CUI systems at minimum quarterly. Use credentialed (authenticated) scans — unauthenticated network-only scans miss the majority of software vulnerabilities and misconfigurations. Scan all CUI systems: workstations, servers, network devices, and cloud instances. Retain scan results and document the scanning cadence and tool configurations. Assessors will request recent scan reports, verify the scanning frequency, and compare findings against remediation records. Common gaps: scanning only internet-facing systems while missing internal CUI systems, and conducting unauthenticated scans that produce incomplete results."
+  },
+  "3.11.3": {
+    "title": "Vulnerability Remediation",
+    "summary": "Remediate vulnerabilities in accordance with risk assessments.",
+    "requirement": "Remediate vulnerabilities in accordance with risk assessments.",
+    "onboarding_tips": "Remediate identified vulnerabilities based on risk — critical findings within 14–30 days, high within 60 days, medium within 90 days. Document the remediation process: responsible owner, planned remediation, and target date. Track open vulnerabilities in your POA&M. For vulnerabilities that cannot be immediately remediated, document compensating controls and an accepted risk decision. Assessors will compare vulnerability scan results to patch deployment and remediation records. Critical vulnerabilities from scans conducted more than 30 days ago that remain unpatched are a serious finding. An empty remediation record while scans show open findings demonstrates the scanning program has no follow-through."
+  },
+  "3.12.1": {
+    "title": "Security Control Assessment",
+    "summary": "Periodically assess the security controls in organizational systems to determine if the controls are effective in their application.",
+    "requirement": "Periodically assess the security controls in organizational systems to determine if the controls are effective in their application.",
+    "onboarding_tips": "Conduct a periodic assessment of all security controls in your SSP to determine whether they are implemented correctly, operating as intended, and producing the desired outcome. Use a combination of document review, interviews, observation, and technical testing. Address all identified gaps with formal POA&M items. Assessors will review assessment records and verify the scope, methodology, and resulting corrective actions. Assessments that consist only of documentation review without any technical testing or interviews are generally insufficient. Self-assessment results must be honest — overstating control implementation is a false claim under 32 CFR Part 170."
+  },
+  "3.12.2": {
+    "title": "Operational Plan Of Action",
+    "summary": "Develop and implement plans of action designed to correct deficiencies and reduce or eliminate vulnerabilities in organizational systems.",
+    "requirement": "Develop and implement plans of action designed to correct deficiencies and reduce or eliminate vulnerabilities in organizational systems.",
+    "onboarding_tips": "Develop and maintain a current Plan of Action and Milestones (POA&M) documenting all known security weaknesses. Each item must include: the weakness description, responsible party, planned remedy, and scheduled completion date with milestones. Update the POA&M as new weaknesses are identified and as existing items are resolved. Assessors will request the POA&M and verify it reflects all known weaknesses. A POA&M with zero items in an organization with documented security gaps is a red flag — assessors view a well-managed POA&M with active items as a sign of a mature security program, not a weakness."
+  },
+  "3.12.3": {
+    "title": "Security Control Monitoring",
+    "summary": "Monitor security controls on an ongoing basis to ensure the continued effectiveness of the controls.",
+    "requirement": "Monitor security controls on an ongoing basis to ensure the continued effectiveness of the controls.",
+    "onboarding_tips": "Establish an ongoing monitoring program that continuously tracks the security posture of CUI systems between formal assessments. This includes: automated vulnerability scanning, configuration compliance checking, SIEM-based event monitoring, and periodic access control reviews. Define monitoring frequencies for each control type and document them. Feed monitoring results into the risk assessment and POA&M. Assessors will review the monitoring program structure, look at monitoring outputs and evidence of regular review, and verify the defined frequencies. Organizations that conduct annual point-in-time assessments only — with no ongoing monitoring between assessments — do not satisfy this control."
+  },
+  "3.12.4": {
+    "title": "System Security Plan",
+    "summary": "Develop, document, and periodically update system security plans that describe system boundaries, system environments of operation, how security requirements are implemented, and the relationships with or connections to other systems.",
+    "requirement": "Develop, document, and periodically update system security plans that describe system boundaries, system environments of operation, how security requirements are implemented, and the relationships with or connections to other systems.",
+    "onboarding_tips": "Develop and maintain a System Security Plan (SSP) that accurately describes the system boundary, CUI data flows, the operational environment, and the current implementation status of all 110 CMMC Level 2 controls. The SSP must reflect actual configurations and practices — not aspirational or planned states. Review and update the SSP at least annually and whenever significant system changes occur. Assessors will compare SSP control implementation statements against observed system configurations and practices throughout the assessment. SSP statements that claim controls are 'implemented' when they are not, or describe configurations that do not match observed reality, directly undermine the assessment and can result in serious findings."
+  },
+  "3.13.1": {
+    "title": "Boundary Protection [CUI Data]",
+    "summary": "Monitor, control, and protect communications (i.",
+    "requirement": "Monitor, control, and protect communications (i.e., information transmitted or received by organizational systems) at the external boundaries and key internal boundaries of organizational systems.",
+    "onboarding_tips": "Define and document a clear system boundary. Implement boundary protection — firewall, next-generation firewall, proxy — to monitor and control all traffic at the boundary between the CUI environment and other networks. Implement network segmentation using VLANs, subnets, and firewall rules to isolate CUI systems from general-purpose networks. Enforce traffic policies based on deny-all/permit-by-exception. Assessors will review firewall configurations, boundary diagrams, and network architecture. Overly permissive firewall rules, poorly defined system boundaries, and no network segmentation between CUI systems and general business systems are common findings."
+  },
+  "3.13.2": {
+    "title": "Security Engineering",
+    "summary": "Employ architectural designs, software development techniques, and systems engineering principles that promote effective information security within organizational systems.",
+    "requirement": "Employ architectural designs, software development techniques, and systems engineering principles that promote effective information security within organizational systems.",
+    "onboarding_tips": "Apply security engineering principles during the development, acquisition, implementation, and modification of CUI systems: defense in depth, least privilege, fail-secure defaults, separation of functions, and minimizing the attack surface. Require security review as part of all system change and procurement processes. Maintain system architecture documentation that reflects security design decisions. Assessors will review architecture documentation and assess whether security was considered systematically during design and change. Organizations that deploy systems based on vendor recommendations without any security engineering review, and with no architecture documentation, struggle with this control."
+  },
+  "3.13.3": {
+    "title": "Role Separation",
+    "summary": "Separate user functionality from system management functionality.",
+    "requirement": "Separate user functionality from system management functionality.",
+    "onboarding_tips": "Separate user functionality from security management functionality at a technical level — users must not be able to access or modify security controls, audit configurations, or security management interfaces. Administrative interfaces must be separately authenticated and access-controlled. For web applications, the administrative interface must be completely separate from the user-facing interface with its own authentication path. Assessors will verify that standard users cannot reach security management functions and that admin interfaces are separately protected. Web application administrative panels reachable from the same user-facing URL path with insufficient access controls are a critical finding."
+  },
+  "3.13.4": {
+    "title": "Shared Resource Control",
+    "summary": "Prevent unauthorized and unintended information transfer via shared system resources.",
+    "requirement": "Prevent unauthorized and unintended information transfer via shared system resources.",
+    "onboarding_tips": "Implement mechanisms that prevent unauthorized information transfer between shared system resources — ensuring one process cannot read memory or storage allocated to another, and that storage is cleared before reallocation. In virtualization environments, verify VMs cannot access resources allocated to other VMs. For shared cloud environments, validate tenant isolation configurations. Apply to shared workstations, multi-tenant database instances, and any shared computing resource in the CUI environment. Assessors will review virtualization and cloud isolation configurations. Incorrectly configured virtualization hypervisors allowing cross-VM resource access are a finding in virtualized CUI environments."
+  },
+  "3.13.5": {
+    "title": "Public-Access System Separation [CUI Data]",
+    "summary": "Implement subnetworks for publicly accessible system components that are physically or logically separated from internal networks.",
+    "requirement": "Implement subnetworks for publicly accessible system components that are physically or logically separated from internal networks.",
+    "onboarding_tips": "Place publicly accessible systems (web servers, email gateways, VPN concentrators) in a dedicated DMZ that is isolated from internal networks containing CUI. CUI systems must never be directly accessible from the internet. Use firewalls to restrict DMZ-to-internal traffic to the minimum required flows. Document the DMZ architecture in your network boundary diagrams. Assessors will review network diagrams and verify DMZ implementation with firewall rule examination. Finding web servers or externally accessible systems co-located on the same network segment as workstations or servers that process CUI is a common architectural finding."
+  },
+  "3.13.6": {
+    "title": "Network Communication By Exception",
+    "summary": "Deny network communications traffic by default and allow network communications traffic by exception (i.",
+    "requirement": "Deny network communications traffic by default and allow network communications traffic by exception (i.e., deny all, permit by exception).",
+    "onboarding_tips": "Implement a deny-all, permit-by-exception firewall posture for all network communications. Configure all firewalls, security groups, and routing policy to deny traffic by default and explicitly permit only what is necessary and documented. Regularly review and remove stale, overly broad, or undocumented firewall rules. Maintain a firewall rule change log aligned with your change management process. Assessors will review firewall and security group rule sets looking for overly permissive rules (allow any/any), undocumented rules with no business justification, and the absence of a default-deny rule at the end of the policy."
+  },
+  "3.13.7": {
+    "title": "Split Tunneling",
+    "summary": "Prevent remote devices from simultaneously establishing non-remote connections with organizational systems and communicating via some other connection to resources in external networks (i.",
+    "requirement": "Prevent remote devices from simultaneously establishing non-remote connections with organizational systems and communicating via some other connection to resources in external networks (i.e., split tunneling).",
+    "onboarding_tips": "Configure VPN and remote access systems to use full-tunnel mode so all traffic from remote endpoints routes through organizational infrastructure before going to any destination. Full-tunnel VPN ensures remote worker traffic is subject to the same monitoring, filtering, and logging as on-site users. Document the VPN configuration and confirm no split-tunnel exceptions exist. Assessors will inspect VPN configuration files and test a live remote session to verify routing behavior. Split-tunnel VPN configurations — where only internal traffic routes through the VPN — are one of the most common findings for this control."
+  },
+  "3.13.8": {
+    "title": "Data In Transit",
+    "summary": "Implement cryptographic mechanisms to prevent unauthorized disclosure of CUI during transmission unless otherwise protected by alternative physical safeguards.",
+    "requirement": "Implement cryptographic mechanisms to prevent unauthorized disclosure of CUI during transmission unless otherwise protected by alternative physical safeguards.",
+    "onboarding_tips": "Protect all CUI transmitted over external networks using FIPS-validated cryptographic mechanisms. All web portals and APIs handling CUI must use TLS 1.2+ with strong cipher suites. Email with CUI must be encrypted using S/MIME, PGP, or a secure email gateway. File transfers must use SFTP, FTPS, or HTTPS. Disable deprecated protocols: SSL, TLS 1.0, TLS 1.1, and weak cipher suites (RC4, DES, 3DES). Assessors will run protocol analysis on all external-facing services (use SSL Labs for web services) and inspect email and file transfer configurations. Legacy protocols and weak cipher suites remaining enabled are among the most common technical findings."
+  },
+  "3.13.9": {
+    "title": "Connections Termination",
+    "summary": "Terminate network connections associated with communications sessions at the end of the sessions or after a defined period of inactivity.",
+    "requirement": "Terminate network connections associated with communications sessions at the end of the sessions or after a defined period of inactivity.",
+    "onboarding_tips": "Configure idle timeout and session termination for all network connections involving CUI: application sessions, database connections, management interfaces, and network sessions on firewalls and switches. Define and enforce maximum session durations for each connection type. Sessions must terminate — not merely lock — after the defined idle period. Assessors will verify idle connection timeout settings across network devices, application servers, and database configurations. Infinite timeouts on database connections, management console sessions, and application programming interfaces are common findings in security control reviews."
+  },
+  "3.13.10": {
+    "title": "Key Management",
+    "summary": "Establish and manage cryptographic keys for cryptography employed in organizational systems.",
+    "requirement": "Establish and manage cryptographic keys for cryptography employed in organizational systems.",
+    "onboarding_tips": "Establish and implement cryptographic key management policies and procedures covering the full key lifecycle: generation (using approved RNGs), storage (HSM or encrypted key vault), distribution (secure channels only), rotation (defined schedule), and destruction (certified wiping or physical destruction). Use a dedicated Key Management System or Hardware Security Module for high-value keys. Document all keys in use, their purpose, custodians, and rotation schedule. Assessors will review key management procedures and examine key storage implementations. Cryptographic keys stored in plaintext configuration files, spreadsheets, or code repositories are a critical finding."
+  },
+  "3.13.11": {
+    "title": "CUI Encryption",
+    "summary": "Employ FIPS-validated cryptography when used to protect the confidentiality of CUI.",
+    "requirement": "Employ FIPS-validated cryptography when used to protect the confidentiality of CUI.",
+    "onboarding_tips": "Implement FIPS 140-2 or 140-3 validated cryptographic modules for all encryption protecting CUI — this means using modules that have completed NIST validation testing, not merely using AES algorithmically. For Windows environments, enable FIPS-compliant algorithms via Group Policy. For cloud services, select services documented as using FIPS-validated modules. For custom applications, use FIPS-validated cryptographic libraries. Maintain a record of FIPS-validated modules in use across the environment. Assessors will verify the FIPS validation status of cryptographic implementations. Using AES algorithmically through a library that has not completed FIPS 140 validation is technically non-compliant."
+  },
+  "3.13.12": {
+    "title": "Collaborative Device Control",
+    "summary": "Prohibit remote activation of collaborative computing devices and provide indication of devices in use to users present at the device.",
+    "requirement": "Prohibit remote activation of collaborative computing devices and provide indication of devices in use to users present at the device.",
+    "onboarding_tips": "Implement controls for collaborative computing devices — cameras, microphones, smart speakers, and interactive whiteboards — in spaces where CUI is discussed or processed. Physical controls: camera covers, microphone mute policies, and clear-room policies for sensitive discussions. For remote collaboration tools used with CUI, approve and vet the tools, configure them for enterprise security (E2E encryption, controlled recording), and prohibit use of consumer-grade personal accounts. Assessors will review the collaborative computing policy and associated physical controls. The most common finding is no policy governing video conferencing tools for CUI discussions, or use of consumer-grade tools without enterprise security assessment."
+  },
+  "3.13.13": {
+    "title": "Mobile Code",
+    "summary": "Control and monitor the use of mobile code.",
+    "requirement": "Control and monitor the use of mobile code.",
+    "onboarding_tips": "Implement controls on the use of mobile code — JavaScript, scripts, applets — on systems processing CUI. Implement Content Security Policy (CSP) headers on all web applications to restrict script execution to approved sources. Configure browsers on CUI systems to restrict or control script execution from untrusted sources. Document the policy governing acceptable mobile code sources and the technical controls enforcing it. Assessors will review web application security headers, browser configuration policies, and mobile code use policies. Web applications lacking CSP headers and allowing script execution from arbitrary third-party CDN sources are common findings."
+  },
+  "3.13.14": {
+    "title": "Voice Over Internet Protocol",
+    "summary": "Control and monitor the use of Voice over Internet Protocol (VoIP) technologies.",
+    "requirement": "Control and monitor the use of Voice over Internet Protocol (VoIP) technologies.",
+    "onboarding_tips": "Assess and manage VoIP system security in CUI environments. Segment VoIP traffic on a dedicated VLAN isolated from data networks. Encrypt VoIP signaling using TLS-protected SIP and media using SRTP. Manage VoIP endpoints as managed devices with firmware update programs and hardened configurations. Assess VoIP infrastructure for vulnerabilities as part of your regular vulnerability management program. Assessors will review VoIP network architecture and security configurations. VoIP and data traffic sharing a flat network without VLAN segmentation, and unencrypted SIP traffic in environments containing CUI, are common findings."
+  },
+  "3.13.15": {
+    "title": "Communications Authenticity",
+    "summary": "Protect the authenticity of communications sessions.",
+    "requirement": "Protect the authenticity of communications sessions.",
+    "onboarding_tips": "Authenticate communications sessions involving CUI to verify communicating parties and protect against message tampering. Use authenticated protocols: TLS for web and API communications, SSH for remote management, STARTTLS/SMTPS for email. Avoid unauthenticated communication protocols for any CUI exchange — no plain FTP, plain HTTP, or unauthenticated SMTP for CUI. Implement certificate validation and mutual TLS (mTLS) for high-sensitivity system-to-system communications. Assessors will inspect communications protocols used for CUI systems and verify session authentication is in place. Unauthenticated file transfer (plain FTP) and plaintext HTTP used for CUI are common findings."
+  },
+  "3.13.16": {
+    "title": "Data At Rest",
+    "summary": "Protect the confidentiality of CUI at rest.",
+    "requirement": "Protect the confidentiality of CUI at rest.",
+    "onboarding_tips": "Encrypt CUI at rest across all storage systems: servers, workstations, databases, NAS/SAN, and backup media. Implement Transparent Data Encryption (TDE) or column-level encryption for databases containing CUI. Use BitLocker (Windows, with TPM), FileVault (macOS), or LUKS (Linux) for system drives. Encrypt backup media at the software or hardware level. Document the encryption implementation for each CUI storage location in your SSP. Assessors will verify encryption on all CUI storage systems identified during boundary scoping. CUI found in unencrypted databases, flat file shares, or on unencrypted workstation drives is one of the most universally cited findings in CMMC assessments."
+  },
+  "3.14.1": {
+    "title": "Flaw Remediation [CUI Data]",
+    "summary": "Identify, report, and correct system flaws in a timely manner.",
+    "requirement": "Identify, report, and correct system flaws in a timely manner.",
+    "onboarding_tips": "Identify, report, and remediate software flaws and security vulnerabilities on a defined, risk-based schedule: critical within 14–30 days, high within 60 days, medium within 90 days. Apply patches to all components: operating systems, applications, firmware, network devices, and security appliances — not only server OS. Document the patch management process with defined timelines, responsibilities, and tracking mechanisms. Assessors will compare vulnerability scan results against patch deployment records and will test systems for known unpatched vulnerabilities. Finding critical vulnerabilities months old on CUI systems is one of the most common and impactful findings in CMMC Level 2 assessments."
+  },
+  "3.14.2": {
+    "title": "Malicious Code Protection [CUI Data]",
+    "summary": "Provide protection from malicious code at designated locations within organizational systems.",
+    "requirement": "Provide protection from malicious code at designated locations within organizational systems.",
+    "onboarding_tips": "Deploy endpoint detection and response (EDR) or antimalware on all workstations, servers, and endpoints that access CUI. Protection must be active, updated to current signatures, and configured for real-time on-access scanning. Use centralized management so administrators can verify protection status across all endpoints. Configure automatic remediation and quarantine for detected threats. Assessors will inspect endpoint protection on representative systems, verify real-time protection is enabled and signatures are current, and review the central management console. Systems with protection installed but disabled, expired signatures, or protection not deployed uniformly across all CUI endpoints are common findings."
+  },
+  "3.14.3": {
+    "title": "Security Alerts & Advisories",
+    "summary": "Monitor system security alerts and advisories and take action in response.",
+    "requirement": "Monitor system security alerts and advisories and take action in response.",
+    "onboarding_tips": "Establish a formal process for receiving, reviewing, and acting on security alerts and advisories from US-CERT, vendor security bulletins, DoD advisories, and relevant ISACs. Designate a named individual responsible for monitoring these sources on a defined schedule. Document how advisories are evaluated for applicability to your environment and how findings are translated into action items, vulnerability scan tasks, or POA&M entries. Assessors will ask who is responsible for advisory monitoring, review documentation of the advisory intake process, and request evidence of recent advisory review cycles. Organizations without a formal advisory monitoring process — relying on ad-hoc discovery — have a gap."
+  },
+  "3.14.4": {
+    "title": "Update Malicious Code Protection [CUI Data]",
+    "summary": "Update malicious code protection mechanisms when new releases are available.",
+    "requirement": "Update malicious code protection mechanisms when new releases are available.",
+    "onboarding_tips": "Configure endpoint protection to update signatures automatically and at minimum daily. For cloud-based or AI/ML-driven protection platforms, ensure cloud lookup and threat intelligence feeds are enabled. Do not allow update delays or stale signatures on any CUI endpoint. Implement monitoring in the central management console to alert on endpoints with protection out of date by more than 24 hours. Assessors will inspect signature update dates on representative endpoints via the management console. Systems with signatures more than a few days old, or update checks blocked by network or proxy configuration, are findings."
+  },
+  "3.14.5": {
+    "title": "System & File Scanning [CUI Data]",
+    "summary": "Perform periodic scans of organizational systems and real-time scans of files from external sources as files are downloaded, opened, or executed.",
+    "requirement": "Perform periodic scans of organizational systems and real-time scans of files from external sources as files are downloaded, opened, or executed.",
+    "onboarding_tips": "Configure malicious code protection to perform on-access (real-time) scanning for all file system operations on CUI systems. Schedule full-system scans at minimum weekly. Implement email gateway scanning for malicious attachments and links. For web access, deploy proxy-based or DNS-based content filtering. Review scan logs and quarantine activity on a regular schedule. Assessors will verify on-access scanning is enabled, scheduled full scans are configured and completing successfully, and scan/quarantine logs are reviewed. Real-time scanning enabled but periodic full scans never scheduled or consistently failing to complete is a common configuration finding."
+  },
+  "3.14.6": {
+    "title": "Monitor Communications For Attacks",
+    "summary": "Monitor organizational systems, including inbound and outbound communications traffic, to detect attacks and indicators of potential attacks.",
+    "requirement": "Monitor organizational systems, including inbound and outbound communications traffic, to detect attacks and indicators of potential attacks.",
+    "onboarding_tips": "Monitor network communications involving CUI systems for attack indicators and anomalous activity. Implement network-based IDS/IPS at key ingress/egress points and critical internal network segments. Analyze network flow data for behavioral anomalies. Configure EDR behavioral detection for endpoint-level attack indicators. Define and document the monitoring coverage in your SSP. Assign named responsibility for reviewing alerts. Assessors will review IDS/IPS configurations, network monitoring coverage, alert review processes, and coverage documentation. Having a firewall with no traffic inspection beyond basic ACL filtering — no IDS/IPS, no flow analysis — is a common gap."
+  },
+  "3.14.7": {
+    "title": "Identify Unauthorized Use",
+    "summary": "Identify unauthorized use of organizational systems.",
+    "requirement": "Identify unauthorized use of organizational systems.",
+    "onboarding_tips": "Implement technical capability to detect unauthorized use of CUI systems beyond basic access control. Deploy behavioral monitoring via UEBA tools or SIEM-based anomaly detection configured with user baselines. Define normal access patterns for key user populations and configure alerts for deviations: after-hours access, access from new locations, bulk data downloads, access to resources outside normal job scope. Review behavioral alerts on a defined schedule. Assessors will ask how the organization would detect unauthorized system use and look for technical evidence of behavioral monitoring capability. Organizations that rely solely on reactive investigation of user reports — with no proactive behavioral monitoring — do not satisfy this control."
+  }
+}
