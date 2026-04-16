@@ -599,8 +599,8 @@ export function SCTMControlDetail({
       )}
 
       {/* Header row */}
-      <div className="flex flex-wrap items-center gap-2 mb-3">
-        <span className="font-mono text-sm font-semibold text-[var(--color-navy-primary)]">{record.controlId}</span>
+      <div className="flex flex-wrap items-center gap-2 mb-1">
+        <span className="font-mono text-lg font-bold text-[var(--color-navy-primary)]">{record.controlId}</span>
         <StatusBadge status={record.implementationStatus} />
         {/* ── Dual-evidence lane badges ── */}
         {(record.technicalStatus && record.technicalStatus !== "not_started") && (
@@ -676,10 +676,14 @@ export function SCTMControlDetail({
         )}
         {record.roleName && <span className="text-xs text-[var(--color-gray-400)]">· {record.roleName}</span>}
       </div>
+      {/* Display title — always visible */}
+      {displayTitle && (
+        <h1 className="text-base font-semibold text-[var(--color-gray-900)] mb-4">{displayTitle}</h1>
+      )}
 
       {/* ── NIST guide sections ── */}
       <div className="mb-4">
-        <CollapsibleBlock label="Requirement" defaultOpen={false} icon={BookOpen} contentClassName="bg-white/90">
+        <CollapsibleBlock label="Requirement" defaultOpen icon={BookOpen} contentClassName="bg-white/90">
           <div className="flex items-center gap-2 mb-2">
             {sctmOptimized?.scoring && (
               <span className="rounded-full bg-white/60 px-2 py-0.5 text-xs font-medium text-[var(--color-gray-700)] backdrop-blur-sm border border-white/40">
@@ -695,6 +699,255 @@ export function SCTMControlDetail({
           )}
         </CollapsibleBlock>
       </div>
+
+      {/* ── Implementation record — PRIMARY ACTION (moved up for UX) ── */}
+      <div className="mb-4">
+        <CollapsibleBlock label="Implementation record" defaultOpen icon={ClipboardList}>
+          <div className="space-y-5">
+
+            {/* Status selector */}
+            <div>
+              <p className="text-sm font-medium text-[var(--color-gray-700)] mb-2">Implementation status</p>
+              <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6">
+                {STATUS_OPTIONS.map((opt) => {
+                  const isSelected = localStatus === opt.value;
+                  const colors = STATUS_COLORS[opt.value];
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      disabled={isAssessor}
+                      onClick={() => setLocalStatus(opt.value)}
+                      className={`rounded-lg border px-2 py-2 text-xs text-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] disabled:cursor-not-allowed disabled:opacity-60 ${
+                        isSelected ? colors.active : colors.base
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
+              {localStatus && (
+                <p className="mt-2 text-xs italic text-[var(--color-gray-500)]">
+                  {STATUS_CONSEQUENCE[localStatus]}
+                </p>
+              )}
+            </div>
+
+            {/* Narrative */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-2">
+                  <label htmlFor="sctm-narrative" className="text-sm font-medium text-[var(--color-gray-700)]">
+                    Implementation narrative
+                  </label>
+                  {!isAssessor && !narrative.trim() && buildVaultNarrative(record.controlId) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const vn = buildVaultNarrative(record.controlId);
+                        if (vn) setNarrative(vn);
+                      }}
+                      className="inline-flex items-center gap-1 rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[11px] font-medium text-indigo-700 hover:bg-indigo-100 transition-colors"
+                    >
+                      <Lightbulb className="h-3 w-3" />
+                      Load Vault narrative
+                    </button>
+                  )}
+                </div>
+                {narrative.trim().length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-[var(--color-gray-400)]">{narrative.trim().length} chars</span>
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-1.5 w-20 rounded-full bg-[var(--color-gray-100)] overflow-hidden">
+                        <div className={`h-full rounded-full transition-all ${strength.color}`} style={{ width: `${strength.pct}%` }} />
+                      </div>
+                      <span className={`text-xs font-medium ${
+                        strength.label === "Strong" ? "text-teal-600" :
+                        strength.label === "Adequate" ? "text-blue-600" :
+                        strength.label === "Developing" ? "text-amber-600" :
+                        "text-red-500"
+                      }`}>{strength.label}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+              {!isAssessor && !narrative.trim() && buildVaultNarrative(record.controlId) && (
+                <div className="mb-2 flex items-start gap-2 rounded-lg border border-indigo-100 bg-indigo-50/50 px-3 py-2">
+                  <Lightbulb className="h-4 w-4 text-indigo-500 mt-0.5 shrink-0" />
+                  <p className="text-xs text-indigo-700 leading-relaxed">
+                    MacTech Vault has a pre-written narrative for this control. Click <strong>Load Vault narrative</strong> to pre-populate, then review and save to attest.
+                  </p>
+                </div>
+              )}
+              <textarea
+                id="sctm-narrative"
+                value={narrative}
+                onChange={(e) => setNarrative(e.target.value)}
+                disabled={isAssessor}
+                rows={5}
+                className="w-full rounded-lg border border-[var(--color-border)] bg-white px-3 py-2.5 text-sm text-[var(--color-gray-900)] placeholder:text-[var(--color-gray-400)] focus:border-[var(--color-blue-accent)] focus:outline-none focus:ring-2 focus:ring-[var(--color-blue-accent)]/20 disabled:bg-[var(--color-gray-50)] disabled:text-[var(--color-gray-500)] disabled:cursor-not-allowed resize-y"
+                placeholder="Describe how this control is satisfied — what is in place, how it is enforced, and how it is verified. Consider policies, technical controls, responsible parties, and ongoing monitoring."
+              />
+            </div>
+
+            {/* Validation method */}
+            <div>
+              <p className="text-sm font-medium text-[var(--color-gray-700)] mb-2">Validation method</p>
+              <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+                {VALIDATION_METHODS.map((m) => {
+                  const isSelected = localValidationMethod === m.value;
+                  return (
+                    <button
+                      key={m.value}
+                      type="button"
+                      disabled={isAssessor}
+                      onClick={() => setLocalValidationMethod(isSelected ? "" : m.value)}
+                      className={`rounded-lg border px-3 py-2 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] disabled:cursor-not-allowed disabled:opacity-60 ${
+                        isSelected
+                          ? "border-[var(--color-blue-accent)] bg-[var(--color-blue-accent)]/10 text-[var(--color-blue-accent)]"
+                          : "border-[var(--color-border)] text-[var(--color-gray-600)] hover:bg-[var(--color-gray-50)]"
+                      }`}
+                    >
+                      <p className="text-xs font-medium">{m.label}</p>
+                      <p className="text-[11px] text-[var(--color-gray-400)] mt-0.5 leading-tight">{m.description}</p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Review cadence */}
+            <div className="flex flex-wrap gap-4">
+              <div className="flex-1 min-w-[140px]">
+                <label htmlFor="sctm-cadence" className="block text-sm font-medium text-[var(--color-gray-700)] mb-1.5">
+                  Review cadence
+                </label>
+                <select
+                  id="sctm-cadence"
+                  value={localCadence}
+                  onChange={(e) => setLocalCadence(e.target.value)}
+                  disabled={isAssessor}
+                  className="w-full rounded-lg border border-[var(--color-border)] bg-white px-3 py-2 text-sm text-[var(--color-gray-900)] focus:border-[var(--color-blue-accent)] focus:outline-none focus:ring-2 focus:ring-[var(--color-blue-accent)]/20 disabled:bg-[var(--color-gray-50)] disabled:cursor-not-allowed"
+                >
+                  <option value="">— Not set</option>
+                  <option value="Monthly">Monthly</option>
+                  <option value="Quarterly">Quarterly</option>
+                  <option value="Annual">Annual</option>
+                </select>
+              </div>
+              {record.lastValidationDate && (
+                <div className="flex-1 min-w-[140px]">
+                  <p className="text-sm font-medium text-[var(--color-gray-700)] mb-1.5">Last validated</p>
+                  <p className="text-sm text-[var(--color-gray-600)] py-2">
+                    {formatDate(String(record.lastValidationDate))}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Save button */}
+            {!isAssessor && (
+              <div className="flex justify-end pt-1">
+                <button
+                  type="button"
+                  onClick={saveAll}
+                  disabled={saving}
+                  className="inline-flex items-center gap-2 rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-primary-hover)] disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2"
+                >
+                  <Save className="h-3.5 w-3.5" />
+                  {saving ? "Saving…" : "Save implementation"}
+                </button>
+              </div>
+            )}
+          </div>
+        </CollapsibleBlock>
+      </div>
+
+      {/* ── C3PAO Intelligence Panel (moved up for UX) ── */}
+      {(() => {
+        const intel = getControlIntelligence(record.controlId);
+        if (!intel) return null;
+        return (
+          <div className="mb-4">
+            <CollapsibleBlock
+              label="C3PAO Intelligence"
+              defaultOpen
+              icon={Eye}
+              className="rounded-xl border-2 border-indigo-100 overflow-hidden"
+              contentClassName="bg-indigo-50/20"
+            >
+              <p className="text-xs text-indigo-700/70 mb-4 leading-relaxed">
+                What a C3PAO examiner will specifically look for, ask, and test for this control.
+              </p>
+
+              {/* C3PAO Examiner Note — most important, show first */}
+              {intel.c3paoExaminerNote && (
+                <div className="rounded-lg border border-indigo-200 bg-white/70 px-4 py-3 mb-4">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-indigo-600 mb-1.5">
+                    What the examiner will do
+                  </p>
+                  <p className="text-[13px] leading-relaxed text-[var(--color-gray-800)]">
+                    {intel.c3paoExaminerNote}
+                  </p>
+                </div>
+              )}
+
+              {/* ConMon Trigger */}
+              {intel.conmonTrigger && (
+                <div className="rounded-lg border border-amber-200 bg-amber-50/60 px-4 py-3 mb-4">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-700 mb-1.5">
+                    Re-adjudication trigger
+                  </p>
+                  <p className="text-[13px] leading-relaxed text-[var(--color-gray-800)]">
+                    {intel.conmonTrigger}
+                  </p>
+                </div>
+              )}
+
+              {/* Disposition + Evidence Lanes + Cadence */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">Disposition</p>
+                  <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${dispositionColorClass(intel.disposition)}`}>
+                    {dispositionLabel(intel.disposition)}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">Evidence Lanes</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {intel.evidenceLanes.map((lane) => (
+                      <span key={lane} className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium ${LANE_COLORS[lane]}`}>
+                        {LANE_LABELS[lane]}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">Cadence</p>
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="h-3.5 w-3.5 text-[var(--color-gray-400)]" />
+                    <span className="text-xs font-medium text-[var(--color-gray-800)]">{cadenceLabel(intel.cadenceType)}</span>
+                  </div>
+                  {intel.registerRequired && intel.registerKey && (
+                    <Link
+                      href={`/dashboard/evidence-engine/registers/${intel.registerSchemaId}`}
+                      className="mt-1.5 inline-flex items-center gap-1 text-xs text-indigo-700 hover:underline"
+                    >
+                      <ClipboardList className="h-3 w-3" />
+                      {intel.registerKey}
+                      <ExternalLink className="h-2.5 w-2.5 opacity-60" />
+                    </Link>
+                  )}
+                </div>
+              </div>
+            </CollapsibleBlock>
+          </div>
+        );
+      })()}
+
+      {/* ── Reference material ── */}
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-gray-400)] mt-6 mb-2 px-1">Reference material</p>
 
       {(sctmOptimized?.objectives?.length ?? 0) > 0 && (
         <div className="mb-4">
@@ -829,295 +1082,10 @@ export function SCTMControlDetail({
         </div>
       )}
 
-      {/* ── C3PAO Intelligence Panel ── */}
-      {(() => {
-        const intel = getControlIntelligence(record.controlId);
-        if (!intel) return null;
-        return (
-          <div className="mb-4">
-            <CollapsibleBlock
-              label="C3PAO Intelligence"
-              defaultOpen={false}
-              icon={Eye}
-              className="rounded-xl border-2 border-indigo-100 overflow-hidden"
-              contentClassName="bg-indigo-50/20"
-            >
-              <p className="text-xs text-indigo-700/70 mb-4 leading-relaxed">
-                What a C3PAO examiner will specifically look for, ask, and test for this control.
-                Read this before your assessment.
-              </p>
+      {/* ── Evidence & tracking ── */}
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-gray-400)] mt-6 mb-2 px-1">Evidence & tracking</p>
 
-              {/* Disposition + Evidence Lanes row */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">
-                    Architecture Disposition
-                  </p>
-                  <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${dispositionColorClass(intel.disposition)}`}>
-                    {dispositionLabel(intel.disposition)}
-                  </span>
-                  {intel.naRationale && (
-                    <p className="mt-1.5 text-xs text-[var(--color-gray-600)] leading-relaxed italic">
-                      {intel.naRationale}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">
-                    Evidence Lanes
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {intel.evidenceLanes.map((lane) => (
-                      <span key={lane} className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium ${LANE_COLORS[lane]}`}>
-                        {LANE_LABELS[lane]}
-                      </span>
-                    ))}
-                    {intel.evidenceLanes.length === 0 && (
-                      <span className="text-xs text-[var(--color-gray-400)] italic">No evidence lanes</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Cadence + Register row */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">
-                    Evidence Cadence
-                  </p>
-                  <div className="flex items-center gap-1.5">
-                    <Clock className="h-3.5 w-3.5 text-[var(--color-gray-400)]" />
-                    <span className="text-xs font-medium text-[var(--color-gray-800)]">
-                      {cadenceLabel(intel.cadenceType)}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-[11px] text-[var(--color-gray-500)]">
-                    {intel.cadenceType === "continuous" && "Re-verified on every OS Collector run"}
-                    {intel.cadenceType === "monthly" && "Evidence must be refreshed monthly"}
-                    {intel.cadenceType === "quarterly" && "Evidence must be refreshed quarterly"}
-                    {intel.cadenceType === "annual" && "Evidence must be refreshed annually"}
-                    {intel.cadenceType === "per_event" && "Evidence required on each change event"}
-                    {intel.cadenceType === "one_time" && "One-time documentation required"}
-                    {intel.cadenceType === "ongoing" && "Continuously maintained"}
-                  </p>
-                </div>
-                {intel.registerRequired && intel.registerSchemaId && (
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-gray-500)] mb-1.5">
-                      Required Register
-                    </p>
-                    <Link
-                      href={`/dashboard/evidence-engine/registers/${intel.registerSchemaId}`}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-100 transition-colors"
-                    >
-                      <ClipboardList className="h-3.5 w-3.5" />
-                      {intel.registerKey}
-                      <ExternalLink className="h-3 w-3 opacity-60" />
-                    </Link>
-                    <p className="mt-1 text-[11px] text-[var(--color-gray-500)]">
-                      A C3PAO examiner will request this register.
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* C3PAO Examiner Note */}
-              {intel.c3paoExaminerNote && (
-                <div className="rounded-lg border border-indigo-200 bg-white/70 px-4 py-3 mb-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-indigo-600 mb-1.5">
-                    What the examiner will do
-                  </p>
-                  <p className="text-[13px] leading-relaxed text-[var(--color-gray-800)]">
-                    {intel.c3paoExaminerNote}
-                  </p>
-                </div>
-              )}
-
-              {/* ConMon Trigger */}
-              {intel.conmonTrigger && (
-                <div className="rounded-lg border border-amber-200 bg-amber-50/60 px-4 py-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-700 mb-1.5">
-                    Re-adjudication trigger
-                  </p>
-                  <p className="text-[13px] leading-relaxed text-[var(--color-gray-800)]">
-                    {intel.conmonTrigger}
-                  </p>
-                </div>
-              )}
-            </CollapsibleBlock>
-          </div>
-        );
-      })()}
-
-      {/* ── Divider between reference and action sections ── */}
-      <div className="my-5 border-t border-[var(--color-border)]/60" />
-
-      {/* ── Section 1: Implementation record ── */}
-      <div className="mb-4">
-        <CollapsibleBlock label="Implementation record" defaultOpen icon={ClipboardList}>
-          <div className="space-y-5">
-
-            {/* Status selector */}
-            <div>
-              <p className="text-sm font-medium text-[var(--color-gray-700)] mb-2">Implementation status</p>
-              <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6">
-                {STATUS_OPTIONS.map((opt) => {
-                  const isSelected = localStatus === opt.value;
-                  const colors = STATUS_COLORS[opt.value];
-                  return (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      disabled={isAssessor}
-                      onClick={() => setLocalStatus(opt.value)}
-                      className={`rounded-lg border px-2 py-2 text-xs text-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] disabled:cursor-not-allowed disabled:opacity-60 ${
-                        isSelected ? colors.active : colors.base
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  );
-                })}
-              </div>
-              {localStatus && (
-                <p className="mt-2 text-xs italic text-[var(--color-gray-500)]">
-                  {STATUS_CONSEQUENCE[localStatus]}
-                </p>
-              )}
-            </div>
-
-            {/* Narrative */}
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <div className="flex items-center gap-2">
-                  <label htmlFor="sctm-narrative" className="text-sm font-medium text-[var(--color-gray-700)]">
-                    Implementation narrative
-                  </label>
-                  {!isAssessor && !narrative.trim() && buildVaultNarrative(record.controlId) && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const vn = buildVaultNarrative(record.controlId);
-                        if (vn) setNarrative(vn);
-                      }}
-                      className="inline-flex items-center gap-1 rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[11px] font-medium text-indigo-700 hover:bg-indigo-100 transition-colors"
-                    >
-                      <Lightbulb className="h-3 w-3" />
-                      Load Vault narrative
-                    </button>
-                  )}
-                </div>
-                {narrative.trim().length > 0 && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-[var(--color-gray-400)]">{narrative.trim().length} chars</span>
-                    <div className="flex items-center gap-1.5">
-                      <div className="h-1.5 w-20 rounded-full bg-[var(--color-gray-100)] overflow-hidden">
-                        <div className={`h-full rounded-full transition-all ${strength.color}`} style={{ width: `${strength.pct}%` }} />
-                      </div>
-                      <span className={`text-xs font-medium ${
-                        strength.label === "Strong" ? "text-teal-600" :
-                        strength.label === "Adequate" ? "text-blue-600" :
-                        strength.label === "Developing" ? "text-amber-600" :
-                        "text-red-500"
-                      }`}>{strength.label}</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-              {/* Quick-attest banner for vault-backed controls with no narrative yet */}
-              {!isAssessor && !narrative.trim() && buildVaultNarrative(record.controlId) && (
-                <div className="mb-2 flex items-start gap-2 rounded-lg border border-indigo-100 bg-indigo-50/50 px-3 py-2">
-                  <Lightbulb className="h-4 w-4 text-indigo-500 mt-0.5 shrink-0" />
-                  <p className="text-xs text-indigo-700 leading-relaxed">
-                    MacTech Vault has a pre-written narrative for this control. Click <strong>Load Vault narrative</strong> to pre-populate, then review and save to attest.
-                  </p>
-                </div>
-              )}
-              <textarea
-                id="sctm-narrative"
-                value={narrative}
-                onChange={(e) => setNarrative(e.target.value)}
-                disabled={isAssessor}
-                rows={5}
-                className="w-full rounded-lg border border-[var(--color-border)] bg-white px-3 py-2.5 text-sm text-[var(--color-gray-900)] placeholder:text-[var(--color-gray-400)] focus:border-[var(--color-blue-accent)] focus:outline-none focus:ring-2 focus:ring-[var(--color-blue-accent)]/20 disabled:bg-[var(--color-gray-50)] disabled:text-[var(--color-gray-500)] disabled:cursor-not-allowed resize-y"
-                placeholder="Describe how this control is satisfied — what is in place, how it is enforced, and how it is verified. Consider policies, technical controls, responsible parties, and ongoing monitoring."
-              />
-            </div>
-
-            {/* Validation method */}
-            <div>
-              <p className="text-sm font-medium text-[var(--color-gray-700)] mb-2">Validation method</p>
-              <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
-                {VALIDATION_METHODS.map((m) => {
-                  const isSelected = localValidationMethod === m.value;
-                  return (
-                    <button
-                      key={m.value}
-                      type="button"
-                      disabled={isAssessor}
-                      onClick={() => setLocalValidationMethod(isSelected ? "" : m.value)}
-                      className={`rounded-lg border px-3 py-2 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] disabled:cursor-not-allowed disabled:opacity-60 ${
-                        isSelected
-                          ? "border-[var(--color-blue-accent)] bg-[var(--color-blue-accent)]/10 text-[var(--color-blue-accent)]"
-                          : "border-[var(--color-border)] text-[var(--color-gray-600)] hover:bg-[var(--color-gray-50)]"
-                      }`}
-                    >
-                      <p className="text-xs font-medium">{m.label}</p>
-                      <p className="text-[11px] text-[var(--color-gray-400)] mt-0.5 leading-tight">{m.description}</p>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Review cadence */}
-            <div className="flex flex-wrap gap-4">
-              <div className="flex-1 min-w-[140px]">
-                <label htmlFor="sctm-cadence" className="block text-sm font-medium text-[var(--color-gray-700)] mb-1.5">
-                  Review cadence
-                </label>
-                <select
-                  id="sctm-cadence"
-                  value={localCadence}
-                  onChange={(e) => setLocalCadence(e.target.value)}
-                  disabled={isAssessor}
-                  className="w-full rounded-lg border border-[var(--color-border)] bg-white px-3 py-2 text-sm text-[var(--color-gray-900)] focus:border-[var(--color-blue-accent)] focus:outline-none focus:ring-2 focus:ring-[var(--color-blue-accent)]/20 disabled:bg-[var(--color-gray-50)] disabled:cursor-not-allowed"
-                >
-                  <option value="">— Not set</option>
-                  <option value="Monthly">Monthly</option>
-                  <option value="Quarterly">Quarterly</option>
-                  <option value="Annual">Annual</option>
-                </select>
-              </div>
-              {record.lastValidationDate && (
-                <div className="flex-1 min-w-[140px]">
-                  <p className="text-sm font-medium text-[var(--color-gray-700)] mb-1.5">Last validated</p>
-                  <p className="text-sm text-[var(--color-gray-600)] py-2">
-                    {formatDate(String(record.lastValidationDate))}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Save button */}
-            {!isAssessor && (
-              <div className="flex justify-end pt-1">
-                <button
-                  type="button"
-                  onClick={saveAll}
-                  disabled={saving}
-                  className="inline-flex items-center gap-2 rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-primary-hover)] disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2"
-                >
-                  <Save className="h-3.5 w-3.5" />
-                  {saving ? "Saving…" : "Save implementation"}
-                </button>
-              </div>
-            )}
-          </div>
-        </CollapsibleBlock>
-      </div>
-
-      {/* ── Section 2: Evidence metadata ── */}
+      {/* ── Evidence metadata ── */}
       <div className="mb-4">
         <CollapsibleBlock
           label={`Evidence metadata${evidenceLinks.length > 0 ? ` (${evidenceLinks.length})` : ""}`}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Search, LayoutList, LayoutGrid, Layers, Sparkles } from "lucide-react";
+import { Search, LayoutList, LayoutGrid, Layers, Sparkles, ChevronDown } from "lucide-react";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { CONTROL_FAMILIES, getControlFamilyPrefix } from "@/components/governance-wizard/constants";
 import { StatusBadge } from "@/components/governance-wizard/StatusBadge";
@@ -138,6 +138,7 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [bulkLoading, setBulkLoading] = useState(false);
   const [bulkResult, setBulkResult] = useState<{ updated: number; total: number } | null>(null);
+  const [familiesOpen, setFamiliesOpen] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(searchQuery.trim()), 300);
@@ -336,89 +337,105 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
           </button>
         </div>
       )}
-      {/* Header: Control families section + toolbar */}
+      {/* Header: Compact toolbar + collapsible family cards */}
       <header className="border-b border-[var(--color-border)]/80 bg-white/80 backdrop-blur-xl shadow-sm shadow-black/[0.02]">
-        <div className="px-4 py-4 flex flex-col gap-4">
-          {/* Control families — section header + uniform card grid */}
-          <section className="space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
-                <Layers className="h-4 w-4" aria-hidden />
+        <div className="px-4 py-3 flex flex-col gap-3">
+          {/* Control families — collapsible section */}
+          <section>
+            <button
+              type="button"
+              onClick={() => setFamiliesOpen(!familiesOpen)}
+              className="w-full flex items-center gap-2 text-left"
+            >
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+                <Layers className="h-3.5 w-3.5" aria-hidden />
               </div>
-              <div>
-                <h2 className="text-sm font-semibold tracking-tight text-[var(--color-gray-900)]">Control families</h2>
-                <p className="text-[11px] text-[var(--color-gray-500)]">NIST SP 800-171 Rev 2 · Color indicates implementation progress</p>
-              </div>
-              {/* Legend */}
-              <div className="ml-auto flex flex-wrap items-center gap-3 text-[10px] text-[var(--color-gray-500)]">
-                <div className="flex items-center gap-1">
-                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-gray-400" />
-                  <span>0%</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-rose-500" />
-                  <span>1-33%</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-amber-500" />
-                  <span>34-66%</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-sky-500" />
-                  <span>67-99%</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-teal-500" />
-                  <span>100%</span>
-                </div>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-2">
-              {familyStats.map((f) => {
-                const isActive = family === f.code;
-                const Icon = f.icon;
-                const colors = getPercentageColors(f.pct, isActive);
-                return (
-                  <button
-                    key={f.code}
-                    type="button"
-                    onClick={() => setFamily(isActive ? null : f.code)}
-                    title={`${f.name}: ${f.adjudicated}/${f.total} adjudicated (${f.pct}%)`}
-                    className={`group relative flex min-h-[72px] flex-col items-start rounded-xl border px-3 py-2.5 text-left transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2 ${
-                      isActive
-                        ? `${colors.bgActive} ${colors.borderActive} text-white shadow-md`
-                        : `${colors.bg} ${colors.border} hover:shadow-md hover:shadow-black/[0.04]`
-                    }`}
-                  >
-                    <div className="flex w-full items-center gap-2">
-                      <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md transition-colors ${isActive ? colors.iconActive : colors.icon}`}>
-                        <Icon className="h-3.5 w-3.5" aria-hidden />
-                      </div>
-                      <span className={`font-mono text-xs font-bold tabular-nums truncate ${isActive ? colors.textActive : colors.text}`}>{f.code}</span>
-                    </div>
-                    <span className={`mt-1 line-clamp-2 text-[11px] leading-tight ${isActive ? "text-white/95" : colors.text}`}>
-                      {f.name}
-                    </span>
-                    <div className="mt-2 w-full space-y-1">
-                      <div className="flex justify-between text-[10px] tabular-nums">
-                        <span className={isActive ? "text-white/80" : "text-[var(--color-gray-500)]"}>
-                          {f.adjudicated}/{f.total}
+              <h2 className="text-sm font-semibold tracking-tight text-[var(--color-gray-900)]">Control families</h2>
+              {/* Compact summary when collapsed */}
+              {!familiesOpen && (
+                <div className="flex items-center gap-2 ml-1">
+                  {family ? (
+                    (() => {
+                      const activeFam = familyStats.find((f) => f.code === family);
+                      if (!activeFam) return null;
+                      const colors = getPercentageColors(activeFam.pct, false);
+                      return (
+                        <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium ${colors.bg} ${colors.border} ${colors.text}`}>
+                          {activeFam.code} — {activeFam.name}
+                          <span className="text-[10px] opacity-70">{activeFam.adjudicated}/{activeFam.total}</span>
                         </span>
-                        {f.total > 0 && (
-                          <span className={isActive ? "text-white/70" : "text-[var(--color-gray-400)]"}>{f.pct}%</span>
-                        )}
-                      </div>
-                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/10">
-                        <div
-                          className={`h-full rounded-full transition-all duration-300 ${isActive ? colors.progressActive : colors.progress}`}
-                          style={{ width: `${Math.min(100, f.pct)}%` }}
-                          aria-hidden
-                        />
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
+                      );
+                    })()
+                  ) : (
+                    <span className="text-xs text-[var(--color-gray-500)]">
+                      {adjudicatedCount}/110 adjudicated
+                    </span>
+                  )}
+                </div>
+              )}
+              <ChevronDown className={`ml-auto h-4 w-4 text-[var(--color-gray-400)] transition-transform ${familiesOpen ? "rotate-180" : ""}`} />
+            </button>
+            {/* Expandable family cards grid */}
+            <div className={`grid transition-[grid-template-rows] duration-200 ${familiesOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+              <div className="overflow-hidden">
+                <div className="pt-3 space-y-2">
+                  {/* Legend */}
+                  <div className="flex flex-wrap items-center gap-3 text-[10px] text-[var(--color-gray-500)]">
+                    <div className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-gray-400" /><span>0%</span></div>
+                    <div className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-rose-500" /><span>1-33%</span></div>
+                    <div className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-amber-500" /><span>34-66%</span></div>
+                    <div className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-sky-500" /><span>67-99%</span></div>
+                    <div className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-teal-500" /><span>100%</span></div>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-2">
+                    {familyStats.map((f) => {
+                      const isActive = family === f.code;
+                      const Icon = f.icon;
+                      const colors = getPercentageColors(f.pct, isActive);
+                      return (
+                        <button
+                          key={f.code}
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); setFamily(isActive ? null : f.code); }}
+                          title={`${f.name}: ${f.adjudicated}/${f.total} adjudicated (${f.pct}%)`}
+                          className={`group relative flex min-h-[72px] flex-col items-start rounded-xl border px-3 py-2.5 text-left transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2 ${
+                            isActive
+                              ? `${colors.bgActive} ${colors.borderActive} text-white shadow-md`
+                              : `${colors.bg} ${colors.border} hover:shadow-md hover:shadow-black/[0.04]`
+                          }`}
+                        >
+                          <div className="flex w-full items-center gap-2">
+                            <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md transition-colors ${isActive ? colors.iconActive : colors.icon}`}>
+                              <Icon className="h-3.5 w-3.5" aria-hidden />
+                            </div>
+                            <span className={`font-mono text-xs font-bold tabular-nums truncate ${isActive ? colors.textActive : colors.text}`}>{f.code}</span>
+                          </div>
+                          <span className={`mt-1 line-clamp-2 text-[11px] leading-tight ${isActive ? "text-white/95" : colors.text}`}>
+                            {f.name}
+                          </span>
+                          <div className="mt-2 w-full space-y-1">
+                            <div className="flex justify-between text-[10px] tabular-nums">
+                              <span className={isActive ? "text-white/80" : "text-[var(--color-gray-500)]"}>
+                                {f.adjudicated}/{f.total}
+                              </span>
+                              {f.total > 0 && (
+                                <span className={isActive ? "text-white/70" : "text-[var(--color-gray-400)]"}>{f.pct}%</span>
+                              )}
+                            </div>
+                            <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/10">
+                              <div
+                                className={`h-full rounded-full transition-all duration-300 ${isActive ? colors.progressActive : colors.progress}`}
+                                style={{ width: `${Math.min(100, f.pct)}%` }}
+                                aria-hidden
+                              />
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
           {/* Stats + filters row */}
@@ -482,7 +499,7 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
                 </button>
               ))}
             </div>
-            <div className="flex items-center gap-0.5">
+            <div className="ml-auto flex items-center gap-0.5">
               <button
                 type="button"
                 onClick={() => setViewMode("list")}
@@ -508,7 +525,7 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
 
       <div className="flex min-h-0 flex-1 min-w-0">
         {/* Left: narrow control list — minimal width, compact cards */}
-        <aside className="w-[13rem] shrink-0 flex flex-col border-r border-white/20 bg-white/40 backdrop-blur-md">
+        <aside className="w-[17rem] shrink-0 flex flex-col border-r border-white/20 bg-white/40 backdrop-blur-md">
           <div className="px-2 py-1.5 border-b border-white/30">
             <div className="relative">
               <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-[var(--color-gray-400)]" aria-hidden />
@@ -548,7 +565,7 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
                     type="button"
                     onClick={() => setControl(isSelected ? null : r.controlId)}
                     className={`w-full text-left rounded-lg border transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-1 ${
-                      viewMode === "grid" ? "p-1.5" : "px-2 py-1.5"
+                      viewMode === "grid" ? "p-2" : "px-2.5 py-2"
                     } ${
                       isSelected
                         ? "bg-white/90 border-[var(--color-primary)]/40 shadow ring-1 ring-[var(--color-primary)]/20 backdrop-blur-sm"
@@ -591,7 +608,7 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
                         </>
                       )}
                     </div>
-                    <p className="mt-0.5 font-medium text-[var(--color-gray-900)] leading-tight line-clamp-2 text-xs min-w-0">
+                    <p className="mt-0.5 font-medium text-[var(--color-gray-900)] leading-tight line-clamp-2 text-[13px] min-w-0">
                       {title}
                     </p>
                   </button>
@@ -603,7 +620,7 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
         </aside>
 
         {/* Detail — wide content area, minimal outer margin */}
-        <main className="min-w-0 flex-1 overflow-y-auto px-3 py-3">
+        <main className="min-w-0 flex-1 overflow-y-auto px-5 py-4">
           {selectedRecord ? (
             <SCTMControlDetail
               record={selectedRecord}
