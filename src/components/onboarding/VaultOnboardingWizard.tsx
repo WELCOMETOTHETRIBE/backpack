@@ -31,6 +31,7 @@ export function VaultOnboardingWizard() {
   const [phaseData, setPhaseData] = useState<Record<string, unknown>>({});
   const [loading, setLoading] = useState(true);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   // On mount: restore state from server
   useEffect(() => {
@@ -39,13 +40,16 @@ export function VaultOnboardingWizard() {
         const res = await fetch("/api/onboarding/state");
         if (res.ok) {
           const data = await res.json();
-          if (data.phase !== undefined) setCurrentPhase(data.phase);
           if (data.completedPhases) setCompletedPhases(data.completedPhases);
           if (data.phaseData) setPhaseData(data.phaseData);
-          // If wizard was already completed, redirect
+          // If wizard was already completed, allow reviewing (Edit setup)
           if (data.completedAt) {
-            window.location.href = "/dashboard";
-            return;
+            setIsEditMode(true);
+            // Show Phase 1 (Org Profile) for review — all phases accessible via nav
+            setCurrentPhase(1);
+            setCompletedPhases(Array.from({ length: 10 }, (_, i) => i));
+          } else if (data.phase !== undefined) {
+            setCurrentPhase(data.phase);
           }
         }
       } catch {
@@ -143,6 +147,14 @@ export function VaultOnboardingWizard() {
           </span>
         </div>
         <div className="flex items-center gap-3">
+          {isEditMode && (
+            <a
+              href="/dashboard"
+              className="text-xs font-mono text-[#8B5CF6] hover:text-[#A78BFA] transition-colors mr-2"
+            >
+              ← Dashboard
+            </a>
+          )}
           <div className="w-32 h-1 bg-[#1E2D3D]">
             <div
               className="h-1 bg-[#8B5CF6] transition-all duration-500"
