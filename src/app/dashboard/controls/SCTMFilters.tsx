@@ -35,6 +35,11 @@ export type SCTMRecord = {
   policyStatus?: string | null;
   policyDocNarrative?: string | null;
   policyDocLinkedAt?: string | null;
+  // Register lane
+  registerRequired?: boolean;
+  registerKey?: string | null;
+  registerSchemaId?: string | null;
+  registerSatisfied?: boolean;
 };
 
 export function SCTMFilters({

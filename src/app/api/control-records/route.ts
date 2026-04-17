@@ -8,6 +8,9 @@ import { controlIdToNist } from "@/lib/compliance/controlId";
 import { syncOrgAzureInheritedControls } from "@/lib/compliance/azure-inherited-controls";
 import { getSatisfactionSources } from "@/lib/compliance/satisfaction-sources";
 import { isHybridControl } from "@/lib/compliance/control-bins";
+import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
+import { governanceRegisters, governanceRegisterEntries, boundaries } from "@/db/schema";
+import { sql } from "drizzle-orm";
 
 const CONTROL_FAMILY_PREFIX: Record<string, string> = {
   AC: "3.1",
@@ -206,8 +209,59 @@ export async function GET(req: Request) {
       }
     }
 
+    // ── Register satisfaction per control ──
+    // Build a map: controlId → boolean (true if all required registers have finalized entries)
+    const intelMap = new Map(CONTROL_INTELLIGENCE.map((c) => [c.controlId, c]));
+    const orgRegisters = await db
+      .select({
+        id: governanceRegisters.id,
+        registerKey: governanceRegisters.registerKey,
+        controlIds: governanceRegisters.controlIds,
+      })
+      .from(governanceRegisters)
+      .where(eq(governanceRegisters.organizationId, orgId));
+
+    const orgBoundaries = await db
+      .select({ id: boundaries.id })
+      .from(boundaries)
+      .where(eq(boundaries.organizationId, orgId));
+    const boundaryIds = orgBoundaries.map((b) => b.id);
+
+    // Count finalized entries per register
+    const registerFinalCounts = new Map<string, number>();
+    if (boundaryIds.length > 0) {
+      for (const reg of orgRegisters) {
+        const [row] = await db
+          .select({ cnt: sql<number>`count(*)::int` })
+          .from(governanceRegisterEntries)
+          .where(
+            and(
+              eq(governanceRegisterEntries.registerId, reg.id),
+              eq(governanceRegisterEntries.status, "final"),
+              sql`${governanceRegisterEntries.boundaryId} IN (${sql.join(
+                boundaryIds.map((id) => sql`${id}`),
+                sql`, `
+              )})`
+            )
+          );
+        registerFinalCounts.set(reg.registerKey, row?.cnt ?? 0);
+      }
+    }
+
+    // Build controlId → registerSatisfied map
+    const registerSatisfiedMap = new Map<string, boolean>();
+    for (const [controlId, intel] of intelMap) {
+      if (!intel.registerRequired || !intel.registerSchemaId) {
+        registerSatisfiedMap.set(controlId, true); // no register needed
+        continue;
+      }
+      const count = registerFinalCounts.get(intel.registerSchemaId) ?? 0;
+      registerSatisfiedMap.set(controlId, count > 0);
+    }
+
     const enriched = withArtifactCount.map((r) => {
       const sources = getSatisfactionSources(r.controlId);
+      const intel = intelMap.get(r.controlId);
       return {
         ...r,
         evidencePartial: partialControlIds.has(r.controlId),
@@ -216,6 +270,10 @@ export async function GET(req: Request) {
         satisfiedByGovernance: sources.governance,
         satisfiedByHybrid: isHybridControl(r.controlId),
         oftenNotApplicable: sources.oftenNotApplicable,
+        registerRequired: intel?.registerRequired ?? false,
+        registerKey: intel?.registerKey ?? null,
+        registerSchemaId: intel?.registerSchemaId ?? null,
+        registerSatisfied: registerSatisfiedMap.get(r.controlId) ?? true,
       };
     });
 

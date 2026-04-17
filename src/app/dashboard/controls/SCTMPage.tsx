@@ -250,13 +250,14 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
   );
   const selectedNist = selectedRecord ? nistByControlId[selectedRecord.controlId] : undefined;
 
-  // A record is fully adjudicated when both evidence lanes are satisfied (if required),
-  // or just the implementation status if no policy doc is required.
+  // A record is fully adjudicated when all evidence lanes are satisfied:
+  // technical + policy (if required) + register (if required).
   function isFullyAdjudicated(r: (typeof records)[0]): boolean {
+    const registerOk = !r.registerRequired || r.registerSatisfied !== false;
     if (r.policyDocRequired) {
-      return r.technicalStatus === "satisfied" && r.policyStatus === "satisfied";
+      return r.technicalStatus === "satisfied" && r.policyStatus === "satisfied" && registerOk;
     }
-    return ADJUDICATED.includes(r.implementationStatus);
+    return ADJUDICATED.includes(r.implementationStatus) && registerOk;
   }
 
   const familyStats = useMemo(() => {
@@ -664,6 +665,13 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
                               {r.satisfiedByCloud && <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-sky-100 text-sky-800">CL</span>}
                               {r.satisfiedByGovernance && <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-violet-100 text-violet-800">GV</span>}
                             </>
+                          )}
+                          {r.registerRequired && (
+                            <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium ${
+                              r.registerSatisfied ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"
+                            }`}>
+                              {r.registerSatisfied ? "REG" : "REG ⚠"}
+                            </span>
                           )}
                         </div>
                         <p className="font-medium text-[var(--color-gray-900)] leading-snug text-[13px] line-clamp-2">

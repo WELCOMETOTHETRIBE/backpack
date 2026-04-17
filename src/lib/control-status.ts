@@ -1,6 +1,12 @@
 /**
  * Server-side control implementation status calculation.
- * Source of truth: controlRecords.implementationStatus. Called after every artifact upload, delete, narrative save, and technical evidence change.
+ * Source of truth: controlRecords.implementationStatus. Called after every artifact upload, delete, narrative save, technical evidence change, and register entry finalization.
+ *
+ * A control is "implemented" only when ALL applicable lanes are satisfied:
+ *   1. Governance lane: required artifacts + narrative (or approved governance docs)
+ *   2. Technical lane: OS/enclave evidence + technical requirements
+ *   3. Policy doc lane: linked policy document (for ~18 hybrid controls)
+ *   4. Register lane: finalized register entries (for controls that require registers)
  */
 import { db } from "@/db";
 import {
@@ -13,8 +19,11 @@ import {
   governanceArtifactCompletions,
   governanceDocumentControlLinks,
   governanceDocuments,
+  governanceRegisters,
+  governanceRegisterEntries,
+  boundaries,
 } from "@/db/schema";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, sql } from "drizzle-orm";
 import {
   getRequiredUploadArtifactLabels,
   getRequiredArtifactSpecs,
@@ -28,6 +37,7 @@ import {
   PURE_TECHNICAL_IDS,
   PURE_GOVERNANCE_IDS,
 } from "./compliance/control-bins";
+import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
 
 export interface GovernanceCompletionRow {
   artifactLabel: string;
@@ -77,15 +87,74 @@ async function getLayerForControl(
   return alloc?.layer ?? (alloc?.rationale as { layer?: string } | undefined)?.layer ?? null;
 }
 
+// Pre-compute control intelligence lookups
+const intelByControlId = new Map(CONTROL_INTELLIGENCE.map((c) => [c.controlId, c]));
+
+/**
+ * Check if a control's required registers are satisfied.
+ * A register is satisfied when at least one finalized entry exists.
+ */
+async function isRegisterSatisfied(
+  organizationId: string,
+  controlId: string
+): Promise<boolean> {
+  const intel = intelByControlId.get(controlId);
+  if (!intel?.registerRequired || !intel.registerSchemaId) return true; // no register needed
+
+  // Find the register for this org with matching register key
+  const [register] = await db
+    .select({ id: governanceRegisters.id })
+    .from(governanceRegisters)
+    .where(
+      and(
+        eq(governanceRegisters.organizationId, organizationId),
+        eq(governanceRegisters.registerKey, intel.registerSchemaId)
+      )
+    )
+    .limit(1);
+
+  if (!register) return false; // register not even set up
+
+  // Check the register's controlIds to confirm this control is mapped
+  // (We trust the intel data; the register existing is the check)
+
+  // Get org boundaries
+  const orgBoundaries = await db
+    .select({ id: boundaries.id })
+    .from(boundaries)
+    .where(eq(boundaries.organizationId, organizationId));
+
+  if (orgBoundaries.length === 0) return false;
+
+  // Check for at least one finalized entry
+  const [row] = await db
+    .select({ cnt: sql<number>`count(*)::int` })
+    .from(governanceRegisterEntries)
+    .where(
+      and(
+        eq(governanceRegisterEntries.registerId, register.id),
+        eq(governanceRegisterEntries.status, "final"),
+        sql`${governanceRegisterEntries.boundaryId} IN (${sql.join(
+          orgBoundaries.map((b) => sql`${b.id}`),
+          sql`, `
+        )})`
+      )
+    );
+
+  return (row?.cnt ?? 0) > 0;
+}
+
 export type ImplementationStatus = "not_started" | "in_progress" | "implemented" | "assessed" | "inherited" | "not_applicable";
 
 /**
  * Recomputes implementationStatus for the given control record and persists it.
  * Logic:
- * - Assessed: leave as assessed.
- * - Governance: all required upload artifacts + narrative.
- * - Technical: when boundary profile exists, all non-inherited technical requirements must have at least one technicalEvidence row with matching requirement_id; inherited requirements are treated as satisfied.
- * - Implemented: governance complete AND technical complete (or no technical requirements).
+ * - Assessed/inherited/not_applicable: terminal states — leave as-is.
+ * - Governance: all required upload artifacts + narrative (or approved governance docs).
+ * - Technical: boundary profile evidence requirements + OS/enclave evidence.
+ * - Policy doc: linked policy document for hybrid controls.
+ * - Register: finalized register entries for controls that require registers.
+ * - Implemented: ALL applicable lanes complete.
  */
 export async function calculateControlStatus(controlRecordId: string): Promise<ImplementationStatus> {
   const [record] = await db
@@ -232,6 +301,11 @@ export async function calculateControlStatus(controlRecordId: string): Promise<I
   const effectiveGovernanceComplete = governanceComplete || hasApprovedGovDocs;
   const effectiveGovernanceDone = effectiveGovernanceComplete && (hasNarrative || hasApprovedGovDocs);
 
+  // ── Register lane ──
+  // Controls flagged as registerRequired in the control intelligence layer must have
+  // at least one finalized register entry to be considered "implemented".
+  const registerComplete = await isRegisterSatisfied(record.organizationId, controlId);
+
   // Derive technical_status for the dual-evidence lane.
   // Note: "inherited" and "not_applicable" are returned early above, so they
   // cannot appear here — cast to string to allow comparison without TS narrowing error.
@@ -256,11 +330,11 @@ export async function calculateControlStatus(controlRecordId: string): Promise<I
 
   let allComplete: boolean;
   if (isPureTechnical) {
-    allComplete = technicalComplete; // governance lane not required
+    allComplete = technicalComplete && registerComplete;
   } else if (isPureGovernance) {
-    allComplete = effectiveGovernanceDone; // technical lane not required
+    allComplete = effectiveGovernanceDone && registerComplete;
   } else {
-    allComplete = effectiveGovernanceDone && technicalComplete; // hybrid: both required
+    allComplete = effectiveGovernanceDone && technicalComplete && registerComplete;
   }
   const hasSomeProgress =
     existingArtifacts.length > 0 ||

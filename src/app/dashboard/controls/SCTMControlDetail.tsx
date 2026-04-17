@@ -214,6 +214,11 @@ export type SCTMRecord = {
   policyStatus?: string | null;
   policyDocNarrative?: string | null;
   policyDocLinkedAt?: string | null;
+  // Register lane
+  registerRequired?: boolean;
+  registerKey?: string | null;
+  registerSchemaId?: string | null;
+  registerSatisfied?: boolean;
 };
 
 export type NistRow = {
@@ -738,12 +743,12 @@ export function SCTMControlDetail({
             </section>
           )}
 
-          {/* Dual-evidence status (if applicable) */}
-          {(record.policyDocRequired || (record.technicalStatus && record.technicalStatus !== "not_started")) && (
+          {/* Evidence lane status — shows live status of all lanes required for this control */}
+          {(record.policyDocRequired || record.registerRequired || (record.technicalStatus && record.technicalStatus !== "not_started")) && (
             <section className="rounded-xl border border-[var(--color-border)] bg-white p-4">
               <div className="flex items-center gap-2 mb-2">
                 <ListChecks className="h-3.5 w-3.5 text-[var(--color-gray-400)]" />
-                <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-gray-500)]">Dual-evidence status</h3>
+                <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-gray-500)]">Evidence lane status</h3>
               </div>
               <div className="flex flex-wrap gap-2">
                 {record.technicalStatus && record.technicalStatus !== "not_started" && (
@@ -772,6 +777,17 @@ export function SCTMControlDetail({
                       "bg-slate-400"
                     }`} />
                     Policy: {policyStatus === "satisfied" ? "SATISFIED" : policyStatus === "not_required" ? "N/A" : "MISSING"}
+                  </span>
+                )}
+                {record.registerRequired && (
+                  <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium border ${
+                    record.registerSatisfied ? "bg-emerald-50 border-emerald-200 text-emerald-700" :
+                    "bg-amber-50 border-amber-200 text-amber-700"
+                  }`}>
+                    <span className={`h-1.5 w-1.5 rounded-full ${
+                      record.registerSatisfied ? "bg-emerald-500" : "bg-amber-500"
+                    }`} />
+                    Register: {record.registerSatisfied ? "SATISFIED" : "MISSING"}
                   </span>
                 )}
               </div>

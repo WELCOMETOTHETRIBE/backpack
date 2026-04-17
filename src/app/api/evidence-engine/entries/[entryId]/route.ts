@@ -7,6 +7,7 @@ import { logGovernanceAudit } from "@/lib/governance/audit";
 import { errorResponse } from "@/lib/evidence-engine/api-errors";
 import { logEntryEvent } from "@/lib/evidence-engine/entry-events";
 import { requireBoundaryForOrg } from "@/lib/evidence-engine/validate-boundary";
+import { recalculateControlsForRegister } from "@/lib/control-status-register";
 
 /**
  * GET /api/evidence-engine/entries/[entryId] — get single entry with register key for summary/labels.
@@ -124,6 +125,8 @@ export async function PATCH(
         .where(eq(governanceRegisterEntries.id, entryId));
       await logGovernanceAudit(orgId, user.id ?? null, "governance_register_entry_finalized", "governance_register_entry", entryId, { registerKey: register.registerKey });
       await logEntryEvent(orgId, entryId, entry.boundaryId, "finalized", user.id ?? null, { summary: "Entry finalized" });
+      // Recalculate control statuses for all controls linked to this register
+      await recalculateControlsForRegister(register.id, orgId);
       const [updated] = await db
         .select()
         .from(governanceRegisterEntries)
@@ -156,6 +159,8 @@ export async function PATCH(
         .where(eq(governanceRegisterEntries.id, entryId));
       await logGovernanceAudit(orgId, user.id ?? null, "governance_register_entry_voided", "governance_register_entry", entryId, { registerKey: register.registerKey, voidReason });
       await logEntryEvent(orgId, entryId, entry.boundaryId, "voided", user.id ?? null, { voidReason });
+      // Recalculate control statuses — voiding may revert a control from "implemented"
+      await recalculateControlsForRegister(register.id, orgId);
       const [updated] = await db
         .select()
         .from(governanceRegisterEntries)

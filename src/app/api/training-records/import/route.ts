@@ -10,6 +10,7 @@ import {
 } from '@/db/schema'
 import { eq, and, asc, like } from 'drizzle-orm'
 import { requireOrg, requireRole } from '@/lib/auth'
+import { recalculateControlsForRegister } from '@/lib/control-status-register'
 import { ensureEvidenceEngineRegistersForOrg } from '@/lib/evidence-engine/control-dashboard'
 import { logEntryEvent } from '@/lib/evidence-engine/entry-events'
 import { getStorageService } from '@/lib/storage'
@@ -244,6 +245,8 @@ export async function POST(req: Request) {
               course_id: meta.course_id,
             },
           )
+          // Recalculate control statuses — imported certs are final, may satisfy register lane
+          await recalculateControlsForRegister(register.id, orgId)
         }
       }
     }

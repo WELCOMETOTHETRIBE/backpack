@@ -10,9 +10,10 @@ import {
   SPRS_MAX,
   SPRS_RANGE,
 } from "@/lib/sprs";
-import { controlRecords } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { controlRecords, governanceRegisters, governanceRegisterEntries, boundaries } from "@/db/schema";
+import { eq, and, sql } from "drizzle-orm";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
+import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
 
 const cardClass = "rounded-xl border border-slate-200 bg-white p-6 shadow-sm";
 
@@ -50,13 +51,64 @@ export default async function ReadinessPage() {
   const sprsScore = await getSprsScore(orgId);
 
   const records = await db
-    .select({ implementationStatus: controlRecords.implementationStatus })
+    .select({
+      controlId: controlRecords.controlId,
+      implementationStatus: controlRecords.implementationStatus,
+      technicalStatus: controlRecords.technicalStatus,
+      policyDocRequired: controlRecords.policyDocRequired,
+      policyStatus: controlRecords.policyStatus,
+    })
     .from(controlRecords)
     .where(eq(controlRecords.organizationId, orgId));
 
-  const implemented = records.filter((r) =>
-    ADJUDICATED_STATUSES.includes(r.implementationStatus as (typeof ADJUDICATED_STATUSES)[number])
-  ).length;
+  // ── Register satisfaction ──
+  const intelMap = new Map(CONTROL_INTELLIGENCE.map((c) => [c.controlId, c]));
+  const orgRegisters = await db
+    .select({ id: governanceRegisters.id, registerKey: governanceRegisters.registerKey })
+    .from(governanceRegisters)
+    .where(eq(governanceRegisters.organizationId, orgId));
+  const orgBoundaries = await db
+    .select({ id: boundaries.id })
+    .from(boundaries)
+    .where(eq(boundaries.organizationId, orgId));
+  const boundaryIds = orgBoundaries.map((b) => b.id);
+
+  const registerFinalCounts = new Map<string, number>();
+  if (boundaryIds.length > 0) {
+    for (const reg of orgRegisters) {
+      const [row] = await db
+        .select({ cnt: sql<number>`count(*)::int` })
+        .from(governanceRegisterEntries)
+        .where(
+          and(
+            eq(governanceRegisterEntries.registerId, reg.id),
+            eq(governanceRegisterEntries.status, "final"),
+            sql`${governanceRegisterEntries.boundaryId} IN (${sql.join(
+              boundaryIds.map((id) => sql`${id}`),
+              sql`, `
+            )})`
+          )
+        );
+      registerFinalCounts.set(reg.registerKey, row?.cnt ?? 0);
+    }
+  }
+
+  const registerSatisfiedMap = new Map<string, boolean>();
+  for (const [controlId, intel] of intelMap) {
+    if (!intel.registerRequired || !intel.registerSchemaId) {
+      registerSatisfiedMap.set(controlId, true);
+      continue;
+    }
+    registerSatisfiedMap.set(controlId, (registerFinalCounts.get(intel.registerSchemaId) ?? 0) > 0);
+  }
+
+  const implemented = records.filter((r) => {
+    const registerOk = registerSatisfiedMap.get(r.controlId) !== false;
+    if (r.policyDocRequired) {
+      return r.technicalStatus === "satisfied" && r.policyStatus === "satisfied" && registerOk;
+    }
+    return ADJUDICATED_STATUSES.includes(r.implementationStatus as (typeof ADJUDICATED_STATUSES)[number]) && registerOk;
+  }).length;
   const total = records.length || TOTAL_CONTROLS;
   const compliancePct = total > 0 ? Math.round((implemented / total) * 100) : 0;
   const controlsImplementedPct =

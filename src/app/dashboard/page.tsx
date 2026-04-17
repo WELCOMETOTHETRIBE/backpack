@@ -20,9 +20,11 @@ import {
   sspSections,
 } from "@/db/schema";
 import { getComplianceRegisterHealth, aggregateRegisterHealth } from "@/lib/registers/compliance-health";
-import { eq, and, desc, lt } from "drizzle-orm";
+import { eq, and, desc, lt, sql } from "drizzle-orm";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { sprsScoringData, SPRS_MAX } from "@/lib/sprs";
+import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
+import { governanceRegisters, governanceRegisterEntries, boundaries } from "@/db/schema";
 import {
   Shield,
   FileStack,
@@ -155,11 +157,53 @@ export default async function DashboardPage() {
     .from(controlRecords)
     .where(eq(controlRecords.organizationId, orgId));
 
-  function isFullyAdjudicated(r: (typeof records)[0]): boolean {
-    if (r.policyDocRequired) {
-      return r.technicalStatus === "satisfied" && r.policyStatus === "satisfied";
+  // ── Register satisfaction map (per control) ──
+  const intelMap = new Map(CONTROL_INTELLIGENCE.map((c) => [c.controlId, c]));
+  const orgRegisters = await db
+    .select({ id: governanceRegisters.id, registerKey: governanceRegisters.registerKey })
+    .from(governanceRegisters)
+    .where(eq(governanceRegisters.organizationId, orgId));
+  const orgBoundaries = await db
+    .select({ id: boundaries.id })
+    .from(boundaries)
+    .where(eq(boundaries.organizationId, orgId));
+  const boundaryIds = orgBoundaries.map((b) => b.id);
+
+  const registerFinalCounts = new Map<string, number>();
+  if (boundaryIds.length > 0) {
+    for (const reg of orgRegisters) {
+      const [row] = await db
+        .select({ cnt: sql<number>`count(*)::int` })
+        .from(governanceRegisterEntries)
+        .where(
+          and(
+            eq(governanceRegisterEntries.registerId, reg.id),
+            eq(governanceRegisterEntries.status, "final"),
+            sql`${governanceRegisterEntries.boundaryId} IN (${sql.join(
+              boundaryIds.map((id) => sql`${id}`),
+              sql`, `
+            )})`
+          )
+        );
+      registerFinalCounts.set(reg.registerKey, row?.cnt ?? 0);
     }
-    return ADJUDICATED_STATUSES.includes(r.implementationStatus as (typeof ADJUDICATED_STATUSES)[number]);
+  }
+
+  const registerSatisfiedMap = new Map<string, boolean>();
+  for (const [controlId, intel] of intelMap) {
+    if (!intel.registerRequired || !intel.registerSchemaId) {
+      registerSatisfiedMap.set(controlId, true);
+      continue;
+    }
+    registerSatisfiedMap.set(controlId, (registerFinalCounts.get(intel.registerSchemaId) ?? 0) > 0);
+  }
+
+  function isFullyAdjudicated(r: (typeof records)[0]): boolean {
+    const registerOk = registerSatisfiedMap.get(r.controlId) !== false;
+    if (r.policyDocRequired) {
+      return r.technicalStatus === "satisfied" && r.policyStatus === "satisfied" && registerOk;
+    }
+    return ADJUDICATED_STATUSES.includes(r.implementationStatus as (typeof ADJUDICATED_STATUSES)[number]) && registerOk;
   }
 
   const adjudicatedCount = records.filter(isFullyAdjudicated).length;
