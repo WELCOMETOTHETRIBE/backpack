@@ -21,6 +21,7 @@ import {
   UserCheck,
   UserX,
   Settings,
+  ClipboardList,
 } from "lucide-react";
 import CertificateImporter from "@/components/training/CertificateImporter";
 
@@ -466,6 +467,52 @@ function UserComplianceRoster({ users, records }: UserComplianceRosterProps) {
         </div>
       )}
     </section>
+  );
+}
+
+// ── Sync Training POAMs Button ───────────────────────────────────────────────
+
+function SyncTrainingPoamsButton() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<{ message: string; isError?: boolean } | null>(null);
+
+  async function handleSync() {
+    setLoading(true);
+    setResult(null);
+    try {
+      const res = await fetch("/api/training-records/sync-poams", { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setResult({ message: data.message ?? "Done." });
+        if (data.created > 0) router.refresh();
+      } else {
+        setResult({ message: data.error ?? "Failed to sync.", isError: true });
+      }
+    } catch {
+      setResult({ message: "Network error.", isError: true });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-3">
+      <button
+        type="button"
+        onClick={handleSync}
+        disabled={loading}
+        className="inline-flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-800 hover:bg-amber-100 disabled:opacity-50 dark:border-amber-700/40 dark:bg-amber-950/20 dark:text-amber-300 dark:hover:bg-amber-950/40"
+      >
+        <ClipboardList className="h-4 w-4" />
+        {loading ? "Generating POAMs..." : "Generate POAMs for Training Gaps"}
+      </button>
+      {result && (
+        <span className={`text-sm ${result.isError ? "text-red-600 dark:text-red-400" : "text-slate-600 dark:text-slate-400"}`}>
+          {result.message}
+        </span>
+      )}
+    </div>
   );
 }
 
@@ -961,6 +1008,28 @@ export default function TrainingClient({ initialRecords }: { initialRecords: Tra
       {/* User Compliance Roster */}
       {!loadingUsers && (
         <UserComplianceRoster users={boundaryUsers} records={records} />
+      )}
+
+      {/* POA&M generation for training gaps */}
+      {!loadingUsers && boundaryUsers.length > 0 && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-sm dark:border-amber-800/40 dark:bg-amber-950/20">
+          <div className="flex items-start gap-3">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-600">
+              <ClipboardList className="h-4 w-4 text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold text-amber-900 dark:text-amber-100">
+                Automated POA&M Generation
+              </h3>
+              <p className="mt-1 mb-3 text-xs text-amber-700 dark:text-amber-300">
+                Scan boundary users for missing or expired training and automatically create POA&M entries
+                for non-compliant NIST 3.2.x controls. Each entry includes a weakness description,
+                remediation plan, 90-day target, and per-user milestones.
+              </p>
+              <SyncTrainingPoamsButton />
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Evidence Engine integration notice */}
