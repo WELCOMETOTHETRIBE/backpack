@@ -196,12 +196,12 @@ export default async function EvidenceEngineRegisterEntriesPage({ params, search
                   <td className="py-2 text-[var(--color-gray-600)]">
                     {new Date(e.createdAt).toLocaleDateString()}
                   </td>
-                  <td className="py-2">
+                  <td className="py-2 flex items-center gap-2">
                     <Link
                       href={`/dashboard/evidence-engine/entries/${e.id}${buildBaseQuery(effectiveBoundaryId)}`}
                       className="font-medium text-[var(--color-blue-accent)] hover:underline"
                     >
-                      View
+                      {e.status === "draft" && canCreate ? "Review & Approve" : "View"}
                     </Link>
                   </td>
                 </tr>

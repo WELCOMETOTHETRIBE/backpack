@@ -214,12 +214,16 @@ export default async function DashboardPage() {
   ).length;
 
   // ── Status bin counts (for the clickable breakdown chips) ──
-  // Counts against ALL 110 controls; missing records count as not_started (outstanding)
+  // Counts against ALL 110 controls; only counts a control if ALL evidence lanes are satisfied
   const statusBins = (() => {
-    const byId = new Map(records.map((r) => [r.controlId, r.implementationStatus]));
+    const byId = new Map(records.map((r) => [r.controlId, r]));
     let implemented = 0, inherited = 0, notApplicable = 0;
     for (const id of ALL_CONTROL_IDS) {
-      const s = byId.get(id);
+      const r = byId.get(id);
+      if (!r) continue;
+      // Only count if register lane is satisfied
+      if (!isFullyAdjudicated(r)) continue;
+      const s = r.implementationStatus;
       if (s === "implemented" || s === "assessed") implemented++;
       else if (s === "inherited") inherited++;
       else if (s === "not_applicable") notApplicable++;

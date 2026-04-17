@@ -8,7 +8,7 @@ export function FinalizeButton({ entryId, registerKey }: { entryId: string; regi
   const [loading, setLoading] = useState(false);
 
   const handleFinalize = async () => {
-    if (!confirm("Finalize this entry? It will be visible to auditors and count toward coverage.")) return;
+    if (!confirm("Approve this entry? Once approved it will be locked, visible to auditors, and count toward compliance coverage.")) return;
     setLoading(true);
     try {
       const res = await fetch(`/api/evidence-engine/entries/${entryId}`, {
@@ -38,7 +38,7 @@ export function FinalizeButton({ entryId, registerKey }: { entryId: string; regi
       disabled={loading}
       className="rounded-[var(--radius-md)] bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
     >
-      {loading ? "Finalizing…" : "Finalize entry"}
+      {loading ? "Approving…" : "Approve entry"}
     </button>
   );
 }
