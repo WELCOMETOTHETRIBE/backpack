@@ -5,23 +5,30 @@ import { feedback, agentRuns, agentRunEvents } from '@/db/schema'
 import { eq, and, inArray, gt, asc } from 'drizzle-orm'
 
 // ────────────────────────────────────────────────────────────────────────────
-// Incorporate-Feedback Agent — Claude Code Remote Trigger Proxy
+// Incorporate-Feedback Agent — Claude Code Routine Proxy
 //
 // This endpoint used to spawn an in-process Anthropic SDK session (costly,
-// billed against ANTHROPIC_API_KEY). It now proxies to a Claude Code remote
-// trigger, which runs on the user's Claude Code subscription — no API tokens.
+// billed against ANTHROPIC_API_KEY). It now fires a Claude Code Routine, which
+// runs on the user's Claude Code subscription — no API tokens consumed.
+//
+// API reference: https://code.claude.com/docs/en/routines
+// Endpoint:      POST https://api.anthropic.com/v1/claude_code/routines/{id}/fire
+// Body:          { "text": "<freeform run context>" }  — routine receives as string
+// Auth:          Bearer <routine-scoped sk-ant-oat01 token>
+// Beta header:   anthropic-beta: experimental-cc-routine-2026-04-01
 //
 // The frontend contract is UNCHANGED:
 //   POST /api/ai/incorporate-feedback              → { runId }
 //   GET  /api/ai/incorporate-feedback?runId&after  → { status, events, lastSeq }
 //
-// The trigger itself writes agent_run_events rows as it works, so polling
+// The routine itself writes agent_run_events rows as it works, so polling
 // keeps streaming the same log/thinking/tool/change/commit/done events.
 // ────────────────────────────────────────────────────────────────────────────
 
-const TRIGGER_API_BASE = 'https://claude.ai/api/v1/code/triggers'
-const TRIGGER_ID = process.env.CLAUDE_CODE_TRIGGER_ID
-const CLAUDE_CODE_TOKEN = process.env.CLAUDE_CODE_TOKEN
+const ROUTINE_API_BASE = 'https://api.anthropic.com/v1/claude_code/routines'
+const ROUTINE_BETA_HEADER = 'experimental-cc-routine-2026-04-01'
+const ROUTINE_ID = process.env.CLAUDE_CODE_ROUTINE_ID
+const ROUTINE_TOKEN = process.env.CLAUDE_CODE_ROUTINE_TOKEN
 
 // ── Event writer ──────────────────────────────────────────────────────────────
 
@@ -45,15 +52,15 @@ export async function POST() {
     return NextResponse.json({ error: 'No organization context' }, { status: 401 })
   }
 
-  if (!TRIGGER_ID) {
+  if (!ROUTINE_ID) {
     return NextResponse.json(
-      { error: 'CLAUDE_CODE_TRIGGER_ID env var is not set — agent cannot be invoked' },
+      { error: 'CLAUDE_CODE_ROUTINE_ID env var is not set — agent cannot be invoked' },
       { status: 500 },
     )
   }
-  if (!CLAUDE_CODE_TOKEN) {
+  if (!ROUTINE_TOKEN) {
     return NextResponse.json(
-      { error: 'CLAUDE_CODE_TOKEN env var is not set — cannot authenticate to Claude Code' },
+      { error: 'CLAUDE_CODE_ROUTINE_TOKEN env var is not set — cannot authenticate to Claude Code' },
       { status: 500 },
     )
   }
@@ -79,51 +86,69 @@ export async function POST() {
   })
   await writeEvent(run.id, 1, {
     type: 'log',
-    message: 'Handing off to Claude Code remote trigger…',
+    message: 'Handing off to Claude Code routine…',
   })
 
-  // Fire the trigger. The trigger prompt receives runId + orgId as input —
-  // it uses those to scope its DB queries and to write its own event stream.
+  // Fire the routine. Routines take freeform `text` (not structured JSON),
+  // so we stringify the context — the routine's prompt is responsible for
+  // parsing runId/orgId out of the text block.
+  const contextText = [
+    `# Incorporate Feedback — Run Context`,
+    ``,
+    `runId: ${run.id}`,
+    `orgId: ${orgId}`,
+    `feedbackCount: ${pendingRows.length}`,
+    ``,
+    `Scope every DB read and write (feedback, agent_runs, agent_run_events)`,
+    `to the orgId above, and write all progress events against the runId above`,
+    `starting at seq=2 (seq 0 and 1 are already written by the proxy).`,
+  ].join('\n')
+
   try {
-    const triggerRes = await fetch(`${TRIGGER_API_BASE}/${TRIGGER_ID}/run`, {
+    const routineRes = await fetch(`${ROUTINE_API_BASE}/${ROUTINE_ID}/fire`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${CLAUDE_CODE_TOKEN}`,
+        Authorization: `Bearer ${ROUTINE_TOKEN}`,
         'Content-Type': 'application/json',
+        'anthropic-beta': ROUTINE_BETA_HEADER,
+        'anthropic-version': '2023-06-01',
         'User-Agent': 'TrustCodex-FeedbackProxy/1.0',
       },
-      body: JSON.stringify({
-        input: JSON.stringify({
-          runId: run.id,
-          orgId,
-          feedbackCount: pendingRows.length,
-        }),
-      }),
+      body: JSON.stringify({ text: contextText }),
     })
 
-    if (!triggerRes.ok) {
-      const errBody = await triggerRes.text().catch(() => '')
+    if (!routineRes.ok) {
+      const errBody = await routineRes.text().catch(() => '')
       await writeEvent(run.id, 2, {
         type: 'error',
-        message: `Trigger invocation failed: HTTP ${triggerRes.status} ${errBody.slice(0, 300)}`,
+        message: `Routine invocation failed: HTTP ${routineRes.status} ${errBody.slice(0, 300)}`,
       })
       await db
         .update(agentRuns)
         .set({ status: 'error', completedAt: new Date() })
         .where(eq(agentRuns.id, run.id))
       return NextResponse.json(
-        { error: `Failed to invoke Claude Code trigger (HTTP ${triggerRes.status})`, runId: run.id },
+        { error: `Failed to fire Claude Code routine (HTTP ${routineRes.status})`, runId: run.id },
         { status: 502 },
       )
     }
 
+    // The fire endpoint returns { claude_code_session_id, claude_code_session_url }
+    // Surface the session URL to the UI for "view full run" linking.
+    const fireData = (await routineRes.json().catch(() => ({}))) as {
+      claude_code_session_id?: string
+      claude_code_session_url?: string
+    }
+
     await writeEvent(run.id, 2, {
       type: 'log',
-      message: 'Trigger accepted — agent starting up…',
+      message: fireData.claude_code_session_url
+        ? `Routine accepted — session: ${fireData.claude_code_session_url}`
+        : 'Routine accepted — agent starting up…',
     })
   } catch (err) {
-    const msg = err instanceof Error ? err.message : 'Network error invoking trigger'
-    await writeEvent(run.id, 2, { type: 'error', message: `Trigger unreachable: ${msg}` })
+    const msg = err instanceof Error ? err.message : 'Network error invoking routine'
+    await writeEvent(run.id, 2, { type: 'error', message: `Routine unreachable: ${msg}` })
     await db
       .update(agentRuns)
       .set({ status: 'error', completedAt: new Date() })
