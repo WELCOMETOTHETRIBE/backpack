@@ -9,12 +9,16 @@ import {
   controlRecords,
   boundaryProfiles,
   organizations,
+  boundaries,
+  governanceRegisters,
 } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { writeAuditLog } from "@/lib/audit";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { getInheritedControls } from "@/lib/compliance";
 import { computeAndPersistSprsScore } from "@/lib/sprs";
+import { REGISTER_DEFINITIONS } from "@/lib/governance/seed-data";
+import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
 
 const requestSchema = z.object({
   name: z.string().optional(),
@@ -104,6 +108,84 @@ export async function POST(req: Request) {
               eq(controlRecords.controlId, controlId)
             )
           );
+      }
+    }
+
+    // ── Create CUI boundary if none exists ──────────────────────────────────
+    // The evidence engine, registers, and OS baselines all require a boundary row.
+    const [existingBoundary] = await db
+      .select({ id: boundaries.id })
+      .from(boundaries)
+      .where(eq(boundaries.organizationId, orgId))
+      .limit(1);
+
+    if (!existingBoundary) {
+      const orgName = body.name?.trim() || "Organization";
+      await db.insert(boundaries).values({
+        organizationId: orgId,
+        name: `${orgName} CUI Enclave`,
+        description: "Primary CUI processing boundary created during onboarding.",
+        scopeComponents: selectedTechnologies.length > 0 ? selectedTechnologies : null,
+        boundaryType: "cui_enclave",
+      });
+    }
+
+    // ── Seed governance registers eagerly ────────────────────────────────────
+    // Registers are needed for dashboard health metrics, evidence engine, and control status.
+    const existingRegs = await db
+      .select({ id: governanceRegisters.id })
+      .from(governanceRegisters)
+      .where(eq(governanceRegisters.organizationId, orgId))
+      .limit(1);
+
+    if (existingRegs.length === 0) {
+      // Build control-to-register mapping from intelligence data
+      const registerControlMap = new Map<string, string[]>();
+      for (const intel of CONTROL_INTELLIGENCE) {
+        if (intel.registerRequired && intel.registerSchemaId) {
+          const existing = registerControlMap.get(intel.registerSchemaId) ?? [];
+          existing.push(intel.controlId);
+          registerControlMap.set(intel.registerSchemaId, existing);
+        }
+      }
+
+      // Ensure global templates exist
+      let templates = await db
+        .select()
+        .from(governanceRegisters)
+        .where(sql`${governanceRegisters.organizationId} IS NULL`);
+
+      if (templates.length === 0) {
+        for (const def of REGISTER_DEFINITIONS) {
+          await db.insert(governanceRegisters).values({
+            organizationId: null,
+            projectId: null,
+            registerKey: def.registerKey,
+            name: def.name,
+            description: def.description ?? null,
+            requiredColumns: def.requiredColumns,
+            retainForDays: def.retainForDays ?? null,
+          });
+        }
+        templates = await db
+          .select()
+          .from(governanceRegisters)
+          .where(sql`${governanceRegisters.organizationId} IS NULL`);
+      }
+
+      // Copy templates to org with controlIds mapping
+      for (const t of templates) {
+        const controlIds = registerControlMap.get(t.registerKey) ?? [];
+        await db.insert(governanceRegisters).values({
+          organizationId: orgId,
+          projectId: null,
+          registerKey: t.registerKey,
+          name: t.name,
+          description: t.description,
+          requiredColumns: t.requiredColumns,
+          retainForDays: t.retainForDays,
+          controlIds: controlIds.length > 0 ? controlIds : null,
+        });
       }
     }
 

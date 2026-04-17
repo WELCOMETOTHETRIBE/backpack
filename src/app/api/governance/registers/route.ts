@@ -4,6 +4,7 @@ import { governanceRegisters, governanceRegisterEntries } from "@/db/schema";
 import { eq, desc, sql } from "drizzle-orm";
 import { requireOrg, requireRole } from "@/lib/auth";
 import { REGISTER_DEFINITIONS } from "@/lib/governance/seed-data";
+import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
 
 /**
  * GET /api/governance/registers — list register definitions for org.
@@ -44,7 +45,18 @@ export async function GET() {
       .where(eq(governanceRegisters.organizationId, orgId));
 
     if (orgRegisters.length === 0) {
+      // Build control-to-register mapping from intelligence data
+      const registerControlMap = new Map<string, string[]>();
+      for (const intel of CONTROL_INTELLIGENCE) {
+        if (intel.registerRequired && intel.registerSchemaId) {
+          const existing = registerControlMap.get(intel.registerSchemaId) ?? [];
+          existing.push(intel.controlId);
+          registerControlMap.set(intel.registerSchemaId, existing);
+        }
+      }
+
       for (const t of templates) {
+        const controlIds = registerControlMap.get(t.registerKey) ?? [];
         await db.insert(governanceRegisters).values({
           organizationId: orgId,
           projectId: null,
@@ -53,6 +65,7 @@ export async function GET() {
           description: t.description,
           requiredColumns: t.requiredColumns,
           retainForDays: t.retainForDays,
+          controlIds: controlIds.length > 0 ? controlIds : null,
         });
       }
       orgRegisters = await db

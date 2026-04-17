@@ -24,7 +24,7 @@ import { eq, and, desc, lt, sql } from "drizzle-orm";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { sprsScoringData, SPRS_MAX } from "@/lib/sprs";
 import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
-import { governanceRegisters, governanceRegisterEntries, boundaries } from "@/db/schema";
+import { governanceRegisters, governanceRegisterEntries, boundaries, governanceDocuments } from "@/db/schema";
 import {
   Shield,
   FileStack,
@@ -377,6 +377,23 @@ export default async function DashboardPage() {
     .limit(1);
   const onboardingStarted = Boolean(boundaryRow) || records.length > 0;
 
+  // ── Boundary check (CUI enclave exists?) ──
+  const [cuiBoundary] = await db
+    .select({ id: boundaries.id })
+    .from(boundaries)
+    .where(eq(boundaries.organizationId, orgId))
+    .limit(1);
+  const hasBoundary = Boolean(cuiBoundary);
+
+  // ── Governance docs check ──
+  const [govDocCount] = await db
+    .select({ cnt: sql<number>`count(*)::int` })
+    .from(governanceDocuments)
+    .where(eq(governanceDocuments.organizationId, orgId));
+  const hasGovDocs = (govDocCount?.cnt ?? 0) > 0;
+
+  // hasAnyRegisterEntries computed below after registerCounts
+
   // ── Org profile ──
   const [orgRow] = await db
     .select({
@@ -394,6 +411,7 @@ export default async function DashboardPage() {
   const registerHealth = await getComplianceRegisterHealth(orgId);
   const registerCounts = aggregateRegisterHealth(registerHealth);
   const registersAllCurrent = registerCounts.overdue === 0 && registerCounts.dueSoon === 0 && registerCounts.neverUsed === 0;
+  const hasAnyRegisterEntries = registerCounts.current > 0 || registerCounts.dueSoon > 0;
   const trainingRegister = registerHealth.find((r) => r.registerKey === "training_completion");
   const trainingCurrent = trainingRegister?.status === "current";
   const overdueRegisters = registerHealth.filter((r) => r.status === "overdue");
@@ -468,7 +486,47 @@ export default async function DashboardPage() {
   return (
     <div className="min-h-0">
       <div className="mx-auto max-w-5xl space-y-6">
-        <DashboardSetupWidget onboardingStarted={onboardingStarted} />
+        <DashboardSetupWidget
+          onboardingStarted={onboardingStarted}
+          checklist={[
+            {
+              label: "Define your CUI boundary",
+              description: "Create a system boundary and register your OS assets",
+              done: hasBoundary,
+              href: "/dashboard/os-baselines",
+            },
+            {
+              label: "Upload governance documents",
+              description: "Upload your policies, SOPs, and plans via the governance bundle",
+              done: hasGovDocs,
+              href: "/dashboard/governance",
+            },
+            {
+              label: "Populate compliance registers",
+              description: "Add entries to access, training, and incident registers",
+              done: hasAnyRegisterEntries,
+              href: "/dashboard/evidence-engine/registers",
+            },
+            {
+              label: "Adjudicate controls",
+              description: "Review and set implementation status for all 110 NIST controls",
+              done: adjudicatedCount >= 10,
+              href: "/dashboard/controls",
+            },
+            {
+              label: "Author SSP sections",
+              description: "Document your system security plan for C3PAO review",
+              done: authoredSections >= 3,
+              href: "/dashboard/ssp",
+            },
+            {
+              label: "Generate POA&Ms for gaps",
+              description: "Create plans of action for any incomplete controls",
+              done: newModelOpenCount > 0 || adjudicatedCount === TOTAL_CONTROLS,
+              href: "/dashboard/poam",
+            },
+          ]}
+        />
 
         {primeCount > 0 && <FlowDownBanner primeCount={primeCount} />}
 
