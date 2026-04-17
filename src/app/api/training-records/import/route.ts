@@ -123,6 +123,7 @@ export async function POST(req: Request) {
 
     // ── Upload PDF ────────────────────────────────────────────────────────────
     let evidenceUrl: string | null = null
+    let pdfWarning: string | null = null
     const pdfEntry = Object.values(zip.files).find(
       (f) => !f.dir && f.name.toLowerCase().endsWith('.pdf'),
     )
@@ -137,9 +138,13 @@ export async function POST(req: Request) {
           mimeType: 'application/pdf',
         })
         evidenceUrl = result.fileUrl
-      } catch {
-        // Storage not configured — proceed without PDF; URL will be null
+      } catch (err) {
+        const errMsg = err instanceof Error ? err.message : String(err)
+        console.error('[training-import] PDF upload failed:', errMsg)
+        pdfWarning = `PDF found in ZIP but upload failed: ${errMsg}. Certificate metadata was still imported.`
       }
+    } else {
+      pdfWarning = 'No PDF file found in the ZIP archive. Only metadata was imported.'
     }
 
     // ── Training record ───────────────────────────────────────────────────────
@@ -259,6 +264,7 @@ export async function POST(req: Request) {
         atControl: meta.at_control,
         certificateId: meta.certificate_id,
         pdfUploaded: !!evidenceUrl,
+        pdfWarning,
       },
       { status: 201 },
     )

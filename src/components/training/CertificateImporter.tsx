@@ -36,6 +36,7 @@ interface ImportResult {
   atControl: string
   certificateId: string
   pdfUploaded: boolean
+  pdfWarning: string | null
 }
 
 type State =
@@ -353,6 +354,11 @@ export default function CertificateImporter({ atControl, onImported }: Props) {
               <p className="text-xs text-emerald-600 mt-1">
                 NIST {result.atControl} ({atMeta.label}) satisfied
                 {result.pdfUploaded && ' · PDF uploaded'}
+              </p>
+            )}
+            {result.pdfWarning && (
+              <p className="text-xs text-amber-600 mt-1">
+                {result.pdfWarning}
               </p>
             )}
             {result.registerId && (

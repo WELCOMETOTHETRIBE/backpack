@@ -137,6 +137,11 @@ export default async function EvidenceEngineRegisterEntriesPage({ params, search
           {register.description && (
             <p className="mt-2 text-sm text-[var(--color-gray-600)]">{register.description}</p>
           )}
+          <div className="mt-2 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-800">
+            <strong>How it works:</strong> New entries start as <span className="rounded bg-gray-200 px-1 font-medium text-gray-700">Draft</span>.
+            An admin reviews and approves them, changing status to <span className="rounded bg-green-200 px-1 font-medium text-green-700">Final</span>.
+            Only finalized entries count toward compliance and are visible in auditor view.
+          </div>
           <div className="mt-3 flex flex-wrap items-center gap-4">
             <AuditorToggle registerKey={registerKey} auditorOnly={auditorOnly} />
             {canCreate && <CreateEntryLink registerKey={registerKey} boundaryId={effectiveBoundaryId} />}
@@ -160,7 +165,7 @@ export default async function EvidenceEngineRegisterEntriesPage({ params, search
                 <th className="py-2 font-semibold text-[var(--color-gray-700)]">Summary</th>
                 <th className="py-2 font-semibold text-[var(--color-gray-700)]">Type</th>
                 <th className="py-2 font-semibold text-[var(--color-gray-700)]">Status</th>
-                <th className="py-2 font-semibold text-[var(--color-gray-700)]">Finalized</th>
+                <th className="py-2 font-semibold text-[var(--color-gray-700)]">Approved On</th>
                 <th className="py-2 font-semibold text-[var(--color-gray-700)]">Created</th>
                 <th className="py-2 font-semibold text-[var(--color-gray-700)]">Actions</th>
               </tr>
@@ -176,11 +181,13 @@ export default async function EvidenceEngineRegisterEntriesPage({ params, search
                     <span
                       className={
                         e.status === "final"
-                          ? "text-green-700 font-medium"
-                          : "text-[var(--color-gray-600)]"
+                          ? "inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700"
+                          : e.status === "void"
+                          ? "inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700"
+                          : "inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700"
                       }
                     >
-                      {e.status}
+                      {e.status === "final" ? "Approved" : e.status === "void" ? "Voided" : "Draft — awaiting approval"}
                     </span>
                   </td>
                   <td className="py-2 text-[var(--color-gray-600)]">
@@ -204,7 +211,7 @@ export default async function EvidenceEngineRegisterEntriesPage({ params, search
         </div>
         {entriesWithSummary.length === 0 && (
           <p className="mt-2 text-sm text-[var(--color-gray-500)]">
-            {auditorOnly ? "No finalized entries." : "No entries yet."}
+            {auditorOnly ? "No approved entries yet." : "No entries yet. Create one to get started."}
           </p>
         )}
       </div>

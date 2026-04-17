@@ -32,12 +32,12 @@ export default function SettingsForm({ organization, user, userRole }: SettingsF
               <p className="text-xs text-slate-500">Read-only identity</p>
             </div>
           </div>
-          <dl className="space-y-3 text-sm">
-            <div className="flex items-baseline justify-between gap-4">
+          <dl className="space-y-2 text-sm">
+            <div className="grid grid-cols-[100px_1fr] items-baseline gap-2">
               <dt className="text-xs uppercase tracking-wide text-slate-500">Name</dt>
               <dd className="font-medium text-slate-900">{organization?.name || "—"}</dd>
             </div>
-            <div className="flex items-baseline justify-between gap-4">
+            <div className="grid grid-cols-[100px_1fr] items-baseline gap-2">
               <dt className="text-xs uppercase tracking-wide text-slate-500">Slug</dt>
               <dd className="font-mono text-xs text-slate-700">{organization?.slug || "—"}</dd>
             </div>
@@ -54,16 +54,16 @@ export default function SettingsForm({ organization, user, userRole }: SettingsF
               <p className="text-xs text-slate-500">Your profile on this tenant</p>
             </div>
           </div>
-          <dl className="space-y-3 text-sm">
-            <div className="flex items-baseline justify-between gap-4">
+          <dl className="space-y-2 text-sm">
+            <div className="grid grid-cols-[100px_1fr] items-baseline gap-2">
               <dt className="text-xs uppercase tracking-wide text-slate-500">Name</dt>
               <dd className="font-medium text-slate-900">{user?.name || "—"}</dd>
             </div>
-            <div className="flex items-baseline justify-between gap-4">
+            <div className="grid grid-cols-[100px_1fr] items-baseline gap-2">
               <dt className="text-xs uppercase tracking-wide text-slate-500">Email</dt>
               <dd className="truncate text-slate-700">{user?.email || "—"}</dd>
             </div>
-            <div className="flex items-baseline justify-between gap-4">
+            <div className="grid grid-cols-[100px_1fr] items-baseline gap-2">
               <dt className="text-xs uppercase tracking-wide text-slate-500">Role</dt>
               <dd className="inline-flex items-center gap-1.5 text-slate-900">
                 <Shield className="h-3.5 w-3.5 text-slate-400" />
@@ -75,18 +75,18 @@ export default function SettingsForm({ organization, user, userRole }: SettingsF
       </div>
 
       {/* System Information */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6">
-        <h2 className="mb-4 text-lg font-semibold text-[#0F172A]">System Information</h2>
-        <div className="space-y-2 text-sm">
-          <div className="flex justify-between">
+      <div className="rounded-lg border border-gray-200 bg-white p-5">
+        <h2 className="mb-3 text-sm font-semibold text-[#0F172A]">System Information</h2>
+        <div className="space-y-1.5 text-sm">
+          <div className="grid grid-cols-[180px_1fr] items-baseline gap-2">
             <span className="text-gray-600">Platform Version</span>
             <span className="font-medium text-gray-900">CMMC OS v1.0</span>
           </div>
-          <div className="flex justify-between">
+          <div className="grid grid-cols-[180px_1fr] items-baseline gap-2">
             <span className="text-gray-600">Compliance Framework</span>
             <span className="font-medium text-gray-900">NIST SP 800-171 Rev 2</span>
           </div>
-          <div className="flex justify-between">
+          <div className="grid grid-cols-[180px_1fr] items-baseline gap-2">
             <span className="text-gray-600">Total Controls</span>
             <span className="font-medium text-gray-900">110</span>
           </div>

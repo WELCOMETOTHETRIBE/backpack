@@ -38,7 +38,7 @@ export default async function SettingsPage() {
         <p className="mt-2 text-gray-600">Manage your organization and account settings.</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-6">
+      <div className="grid grid-cols-1 gap-4">
         <div className={cardClass}>
           <h2 className="mb-4 text-sm font-semibold text-slate-800">Organization & account</h2>
           <SettingsForm

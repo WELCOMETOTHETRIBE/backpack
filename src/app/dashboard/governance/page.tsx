@@ -17,6 +17,7 @@ import {
 import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
 import { PackageOpen, BookMarked, FileText, ClipboardList, FolderOpen } from "lucide-react";
 import RecalculateButton from "./RecalculateButton";
+import { getControlDisplayTitle } from "@/lib/controls/display-title";
 
 const DONE_STATUSES = new Set(["implemented", "assessed", "inherited", "not_applicable"]);
 
@@ -134,7 +135,7 @@ export default async function GovernanceDashboardPage() {
       .where(eq(governanceDocuments.organizationId, orgId)),
 
     db
-      .select({ controlId: controls.controlId, title: controls.title })
+      .select({ controlId: controls.controlId, title: controls.title, nistExactText: controls.nistExactText })
       .from(controls)
       .where(inArray(controls.controlId, allGovIds)),
 
@@ -155,7 +156,7 @@ export default async function GovernanceDashboardPage() {
 
   // Build lookup maps
   const recordMap = new Map(ctrlRecords.map((r) => [r.controlId, r]));
-  const titleMap = new Map(ctrlTitles.map((c) => [c.controlId, c.title]));
+  const titleMap = new Map(ctrlTitles.map((c) => [c.controlId, getControlDisplayTitle(c, c.controlId)]));
   const docInfoMap = new Map(govDocs.map((d) => [d.docId, { title: d.title, status: d.status }]));
 
   // controlId → deduplicated doc codes (across all runs)

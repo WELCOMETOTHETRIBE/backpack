@@ -32,7 +32,7 @@ export function AuditorToggle({
         onChange={toggle}
         className="rounded border-[var(--color-border)]"
       />
-      <span>Auditor view (finalized only)</span>
+      <span>Auditor view (approved entries only)</span>
     </label>
   );
 }
