@@ -280,16 +280,48 @@ function EntryCard({
       {expanded && (
         <div className="border-t border-gray-100 px-5 pb-5 pt-4 space-y-4">
 
+          {/* Evidence lane status indicators */}
+          {entry.status === "open" && (
+            <div className="flex flex-wrap items-center gap-2 text-[10px] font-semibold">
+              <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 ${
+                entry.technicalStatus === "satisfied"
+                  ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                  : "border-red-200 bg-red-50 text-red-700"
+              }`}>
+                {entry.technicalStatus === "satisfied" ? <Check className="h-2.5 w-2.5" /> : <X className="h-2.5 w-2.5" />}
+                Technical
+              </span>
+              <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 ${
+                (["implemented", "assessed", "inherited", "not_applicable"] as string[]).includes(entry.implementationStatus)
+                  ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                  : "border-red-200 bg-red-50 text-red-700"
+              }`}>
+                {(["implemented", "assessed", "inherited", "not_applicable"] as string[]).includes(entry.implementationStatus) ? <Check className="h-2.5 w-2.5" /> : <X className="h-2.5 w-2.5" />}
+                Governance
+              </span>
+              {entry.policyDocRequired && (
+                <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 ${
+                  entry.policyStatus === "satisfied"
+                    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                    : "border-red-200 bg-red-50 text-red-700"
+                }`}>
+                  {entry.policyStatus === "satisfied" ? <Check className="h-2.5 w-2.5" /> : <X className="h-2.5 w-2.5" />}
+                  Policy Doc
+                </span>
+              )}
+            </div>
+          )}
+
           {/* Control now implemented — suggest close */}
           {entry.controlNowImplemented && entry.status === "open" && (
             <div className="flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3.5 py-3">
               <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 mt-0.5" />
               <div className="flex-1">
                 <p className="text-xs font-semibold text-emerald-800">
-                  This control is now marked "{entry.implementationStatus}" in the SCTM.
+                  All evidence lanes satisfied — this control is ready to close.
                 </p>
                 <p className="text-xs text-emerald-700 mt-0.5">
-                  Review the remediation and close this POA&M item when satisfied.
+                  Implementation status: "{entry.implementationStatus}". Technical, governance, and register evidence verified.
                 </p>
               </div>
               <button

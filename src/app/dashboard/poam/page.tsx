@@ -7,8 +7,11 @@ import {
   controlRecords,
   controls,
   controlFamilies,
+  governanceRegisters,
+  governanceRegisterEntries,
+  boundaries,
 } from "@/db/schema";
-import { eq, and, notInArray, inArray, asc } from "drizzle-orm";
+import { eq, and, inArray, asc, sql } from "drizzle-orm";
 import { PoamTracker, type PoamEntry } from "./PoamTracker";
 import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
 import { sprsScoringData } from "@/lib/sprs";
@@ -19,33 +22,6 @@ export default async function PoamPage() {
   const session = await auth();
   const orgId = (session?.user as { organizationId?: string })?.organizationId;
   if (!orgId) redirect("/auth/signin");
-
-  // ── Auto-sync: create POA&M entries for controls that are not yet compliant ──
-  const incompleteRecords = await db
-    .select({ id: controlRecords.id })
-    .from(controlRecords)
-    .where(
-      and(
-        eq(controlRecords.organizationId, orgId),
-        notInArray(controlRecords.implementationStatus, [...DONE_STATUSES])
-      )
-    );
-
-  if (incompleteRecords.length > 0) {
-    const existingLinks = await db
-      .select({ controlRecordId: poamEntries.controlRecordId })
-      .from(poamEntries)
-      .where(eq(poamEntries.organizationId, orgId));
-
-    const existingSet = new Set(existingLinks.map((e) => e.controlRecordId));
-    const toCreate = incompleteRecords.filter((r) => !existingSet.has(r.id));
-
-    if (toCreate.length > 0) {
-      await db.insert(poamEntries).values(
-        toCreate.map((r) => ({ organizationId: orgId, controlRecordId: r.id }))
-      );
-    }
-  }
 
   // ── Fetch all entries with joined control data ──
   const rawEntries = await db
@@ -90,6 +66,56 @@ export default async function PoamPage() {
     milestonesByEntry.get(m.poamEntryId)!.push(m);
   }
 
+  // ── Build register satisfaction map (controlId → satisfied boolean) ──
+  // A control's register is "satisfied" when at least one finalized entry exists.
+  const orgRegisters = await db
+    .select({
+      id: governanceRegisters.id,
+      registerKey: governanceRegisters.registerKey,
+      controlIds: governanceRegisters.controlIds,
+    })
+    .from(governanceRegisters)
+    .where(eq(governanceRegisters.organizationId, orgId));
+
+  const orgBoundaries = await db
+    .select({ id: boundaries.id })
+    .from(boundaries)
+    .where(eq(boundaries.organizationId, orgId));
+  const boundaryIds = orgBoundaries.map((b) => b.id);
+
+  // controlId → true if ALL required registers for that control have ≥1 finalized entry
+  const registerSatisfiedByControl = new Map<string, boolean>();
+  const controlRegisterNames = new Map<string, string[]>();
+
+  if (boundaryIds.length > 0) {
+    for (const reg of orgRegisters) {
+      const cids = (reg.controlIds ?? []) as string[];
+      if (cids.length === 0) continue;
+
+      const [row] = await db
+        .select({ cnt: sql<number>`count(*)::int` })
+        .from(governanceRegisterEntries)
+        .where(
+          and(
+            eq(governanceRegisterEntries.registerId, reg.id),
+            inArray(governanceRegisterEntries.boundaryId, boundaryIds),
+            eq(governanceRegisterEntries.status, "final")
+          )
+        );
+      const hasFinal = (row?.cnt ?? 0) > 0;
+
+      for (const cid of cids) {
+        // Track register names for display
+        if (!controlRegisterNames.has(cid)) controlRegisterNames.set(cid, []);
+        controlRegisterNames.get(cid)!.push(reg.registerKey);
+
+        // A control's registers are satisfied only if ALL mapped registers have entries
+        const prev = registerSatisfiedByControl.get(cid);
+        registerSatisfiedByControl.set(cid, prev === undefined ? hasFinal : prev && hasFinal);
+      }
+    }
+  }
+
   // ── Enrich with intelligence + SPRS ──
   const intelMap = new Map(CONTROL_INTELLIGENCE.map((c) => [c.controlId, c]));
   const sprsMap = new Map(sprsScoringData.map((c) => [c.id, c.value as number]));
@@ -102,9 +128,18 @@ export default async function PoamPage() {
     const daysOpen = Math.floor((now.getTime() - new Date(e.createdAt).getTime()) / 86_400_000);
     const scheduled = e.scheduledCompletionDate ? new Date(e.scheduledCompletionDate) : null;
     const isOverdue = e.status === "open" && scheduled !== null && scheduled < now;
-    const controlNowImplemented = DONE_STATUSES.includes(
+
+    // Evidence-driven "ready to close" — ALL lanes must be satisfied
+    const implDone = DONE_STATUSES.includes(
       e.implementationStatus as (typeof DONE_STATUSES)[number]
     );
+    const techOk = (e.technicalStatus ?? "not_started") === "satisfied";
+    const policyOk = !e.policyDocRequired || (e.policyStatus ?? "not_required") === "satisfied";
+    const registerRequired = intel?.registerRequired ?? false;
+    const registerOk = !registerRequired || (registerSatisfiedByControl.get(e.controlId ?? "") ?? false);
+
+    // Only flag as ready to close when implementation status AND live evidence all check out
+    const controlNowImplemented = implDone && techOk && policyOk && registerOk;
 
     return {
       id: e.id,
