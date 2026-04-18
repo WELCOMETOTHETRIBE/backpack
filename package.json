@@ -27,6 +27,7 @@
     "validate-os-evidence-manifest": "tsx src/scripts/validate-os-evidence-manifest.ts",
     "validate-satisfaction-sources": "tsx src/scripts/validate-satisfaction-sources.ts",
     "governance-inventory": "tsx src/scripts/governance-inventory.ts",
+    "generate:control-master-csv": "tsx src/scripts/generate-cmmc-control-master-csv.ts",
     "sync-matrix": "tsx src/scripts/sync-governance-matrix.ts",
     "normalize-collector-run": "tsx src/scripts/normalize-collector-run.ts"
   },
