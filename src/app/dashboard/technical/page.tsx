@@ -17,6 +17,7 @@ import {
 } from "@/lib/compliance/control-bins";
 import { Upload, RefreshCw, Server, CheckCircle2, Circle, AlertCircle } from "lucide-react";
 import RecalculateTechnicalButton from "./RecalculateTechnicalButton";
+import { getControlDisplayTitle } from "@/lib/controls/display-title";
 
 const ALL_HYBRID_IDS = [...new Set([...HYBRID_TECHNICAL_IDS, ...HYBRID_GOVERNANCE_IDS])];
 const ALL_IDS = [...new Set([...PURE_TECHNICAL_IDS, ...HYBRID_TECHNICAL_IDS, ...PURE_GOVERNANCE_IDS, ...HYBRID_GOVERNANCE_IDS])];
@@ -85,14 +86,20 @@ export default async function TechnicalDashboardPage() {
       .where(eq(governanceDocuments.organizationId, orgId)),
 
     db
-      .select({ controlId: controls.controlId, title: controls.title })
+      .select({
+        controlId: controls.controlId,
+        title: controls.title,
+        nistExactText: controls.nistExactText,
+      })
       .from(controls)
       .where(inArray(controls.controlId, ALL_HYBRID_IDS)),
   ]);
 
   // Build lookup maps
   const recordMap = new Map(records.map((r) => [r.controlId, r]));
-  const titleMap = new Map(ctrlTitles.map((c) => [c.controlId, c.title]));
+  const titleMap = new Map(
+    ctrlTitles.map((c) => [c.controlId, getControlDisplayTitle(c, c.controlId)])
+  );
   const docStatusMap = new Map(govDocs.map((d) => [d.docId, d.status]));
 
   // controlId → has at least one non-DRAFT doc
