@@ -10,6 +10,8 @@ import {
   getFallbackSummary,
 } from "@/data/cmmc/field-labels-and-summaries";
 import { resolveEffectiveBoundary } from "@/lib/evidence-engine/resolve-boundary";
+import { ensureEvidenceEngineRegistersForOrg } from "@/lib/evidence-engine/control-dashboard";
+import { getEvidenceMap } from "@/data/cmmc";
 import { BoundarySelector } from "../../BoundarySelector";
 import { AuditorToggle } from "./AuditorToggle";
 import { CreateEntryLink } from "./CreateEntryLink";
@@ -34,6 +36,11 @@ export default async function EvidenceEngineRegisterEntriesPage({ params, search
   const auditorOnly = auditor === "1";
   const userRole = (session?.user as { role?: string })?.role;
   const canCreate = userRole === "Admin" || userRole === "Compliance";
+
+  const knownRegister = getEvidenceMap().registers.some((r) => r.id === registerKey);
+  if (knownRegister) {
+    await ensureEvidenceEngineRegistersForOrg(orgId);
+  }
 
   const [register] = await db
     .select()

@@ -81,11 +81,14 @@ export function buildRegisterHealthReason(
 }
 
 /**
- * Ensure org has a register row for each Evidence Engine register (copy from template if missing).
+ * Ensure org has a register row for each Evidence Engine register. Seeds from a
+ * global template row (organizationId IS NULL) when present, otherwise falls
+ * back to the evidence map + register entry schema artifacts so an org always
+ * ends up with a row for every register id declared in the evidence map.
  */
 export async function ensureEvidenceEngineRegistersForOrg(orgId: string): Promise<void> {
   const evidenceMap = getEvidenceMap();
-  const registerIds = evidenceMap.registers.map((r) => r.id);
+  const registers = evidenceMap.registers;
 
   const templates = await db
     .select()
@@ -100,21 +103,21 @@ export async function ensureEvidenceEngineRegistersForOrg(orgId: string): Promis
   const existingKeys = new Set(orgRegisters.map((r) => r.registerKey));
   const templateByKey = new Map(templates.map((t) => [t.registerKey, t]));
 
-  for (const regId of registerIds) {
-    if (existingKeys.has(regId)) continue;
-    const template = templateByKey.get(regId);
-    if (!template) continue;
+  for (const reg of registers) {
+    if (existingKeys.has(reg.id)) continue;
+    const template = templateByKey.get(reg.id);
+    const schema = getRegisterSchemaByRegisterId(reg.id);
     await db.insert(governanceRegisters).values({
       organizationId: orgId,
       projectId: null,
-      registerKey: template.registerKey,
-      name: template.name,
-      description: template.description,
-      requiredColumns: template.requiredColumns,
-      retainForDays: template.retainForDays,
-      defaultCadenceDays: template.defaultCadenceDays,
+      registerKey: reg.id,
+      name: template?.name ?? reg.name,
+      description: template?.description ?? schema?.description ?? null,
+      requiredColumns: template?.requiredColumns ?? [],
+      retainForDays: template?.retainForDays ?? null,
+      defaultCadenceDays: template?.defaultCadenceDays ?? schema?.default_cadence_days ?? null,
     });
-    existingKeys.add(regId);
+    existingKeys.add(reg.id);
   }
 }
 
