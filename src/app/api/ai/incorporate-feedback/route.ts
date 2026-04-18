@@ -89,19 +89,24 @@ export async function POST() {
     message: 'Handing off to Claude Code routine…',
   })
 
-  // Fire the routine. Routines take freeform `text` (not structured JSON),
-  // so we stringify the context — the routine's prompt is responsible for
-  // parsing runId/orgId out of the text block.
+  // Fire the routine. Routines take freeform `text`, so we stringify the
+  // context. The routine uses the HTTPS shim (since cloud sandbox blocks
+  // direct TCP to Railway Postgres) — we pass the runId and the shim base
+  // URL; the routine gets orgId + feedback by calling GET /api/agent/run/:runId.
+  const shimBase = process.env.NEXTAUTH_URL ?? 'https://cmmc-production.up.railway.app'
   const contextText = [
     `# Incorporate Feedback — Run Context`,
     ``,
     `runId: ${run.id}`,
-    `orgId: ${orgId}`,
+    `apiBase: ${shimBase}`,
     `feedbackCount: ${pendingRows.length}`,
     ``,
-    `Scope every DB read and write (feedback, agent_runs, agent_run_events)`,
-    `to the orgId above, and write all progress events against the runId above`,
-    `starting at seq=2 (seq 0 and 1 are already written by the proxy).`,
+    `Use the HTTPS shim at apiBase (sandbox blocks direct Postgres TCP):`,
+    `  GET  ${shimBase}/api/agent/run/${run.id}              → { orgId, feedback[] }`,
+    `  POST ${shimBase}/api/agent/run/${run.id}/events       → append progress event`,
+    `  POST ${shimBase}/api/agent/run/${run.id}/complete     → mark done/error + resolutions`,
+    ``,
+    `Every call must send header: x-agent-secret: $AGENT_SHIM_SECRET (from cloud env).`,
   ].join('\n')
 
   try {
