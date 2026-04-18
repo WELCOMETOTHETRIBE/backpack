@@ -25,13 +25,39 @@ const PHASES = [
   { index: 9, label: "Complete", shortLabel: "Done" },
 ];
 
-export function VaultOnboardingWizard() {
+export function VaultOnboardingWizard({
+  allowBypass = false,
+}: {
+  allowBypass?: boolean;
+} = {}) {
   const [currentPhase, setCurrentPhase] = useState(0);
   const [completedPhases, setCompletedPhases] = useState<number[]>([]);
   const [phaseData, setPhaseData] = useState<Record<string, unknown>>({});
   const [loading, setLoading] = useState(true);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [bypassing, setBypassing] = useState(false);
+  const [bypassError, setBypassError] = useState<string | null>(null);
+
+  async function handleBypass() {
+    if (!confirm("Skip the Vault onboarding wizard and jump to the dashboard?\n\nThis is an admin-only shortcut for testing. Onboarding data will be marked complete without collecting any answers.")) {
+      return;
+    }
+    setBypassing(true);
+    setBypassError(null);
+    try {
+      const res = await fetch("/api/onboarding/bypass", { method: "POST" });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({ error: res.statusText }));
+        throw new Error(body.error ?? "Bypass failed");
+      }
+      window.location.href = "/dashboard";
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      setBypassError(msg);
+      setBypassing(false);
+    }
+  }
 
   // On mount: restore state from server
   useEffect(() => {
@@ -155,6 +181,17 @@ export function VaultOnboardingWizard() {
               ← Dashboard
             </a>
           )}
+          {allowBypass && !isEditMode && (
+            <button
+              type="button"
+              onClick={handleBypass}
+              disabled={bypassing}
+              className="text-xs font-mono font-bold text-[#F59E0B] hover:text-[#FBBF24] transition-colors border border-[#F59E0B]/40 hover:border-[#F59E0B] px-3 py-1.5 rounded disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider"
+              title="Admin shortcut: mark onboarding complete and go directly to the dashboard"
+            >
+              {bypassing ? "Bypassing…" : "⚡ Bypass"}
+            </button>
+          )}
           <div className="w-32 h-1 bg-[#1E2D3D]">
             <div
               className="h-1 bg-[#8B5CF6] transition-all duration-500"
@@ -166,6 +203,12 @@ export function VaultOnboardingWizard() {
           </span>
         </div>
       </div>
+
+      {bypassError && (
+        <div className="border-b border-[#EF4444]/50 bg-[#EF4444]/10 text-[#F87171] text-xs font-mono px-6 py-2">
+          Bypass failed: {bypassError}
+        </div>
+      )}
 
       <div className="flex">
         {/* Left phase nav — hidden on small screens */}
