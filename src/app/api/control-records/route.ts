@@ -62,14 +62,17 @@ export async function GET(req: Request) {
         .filter(Boolean) ?? null;
 
     if (!family && !controlIdsList?.length) {
+      // Auto-provision any missing seed rows so the SCTM always renders the full
+      // 110 NIST SP 800-171 controls, not just whichever rows happen to exist.
       const existing = await db
-        .select({ id: controlRecords.id })
+        .select({ controlId: controlRecords.controlId })
         .from(controlRecords)
-        .where(eq(controlRecords.organizationId, orgId))
-        .limit(1);
-      if (existing.length === 0) {
+        .where(eq(controlRecords.organizationId, orgId));
+      const existingSet = new Set(existing.map((r) => r.controlId));
+      const missing = ALL_CONTROL_IDS.filter((id) => !existingSet.has(id));
+      if (missing.length > 0) {
         await db.insert(controlRecords).values(
-          ALL_CONTROL_IDS.map((controlId) => ({ organizationId: orgId, controlId }))
+          missing.map((controlId) => ({ organizationId: orgId, controlId }))
         );
       }
     }
