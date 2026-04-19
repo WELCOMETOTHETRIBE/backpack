@@ -7,6 +7,7 @@ import {
   type VaultControl,
 } from "@/data/vault-control-map";
 import { calculateSprsScore } from "@/lib/sprs/sprs_calculator";
+import { PHASE6_DEFAULT_STATUS } from "../vault-defaults";
 
 type ControlStatus = "implemented" | "planned" | "not_applicable" | null;
 
@@ -57,7 +58,26 @@ export function Phase6_CustomerControls({ onComplete }: Phase6Props) {
   );
 
   const [activeFamily, setActiveFamily] = useState(familyKeys[0] ?? "");
-  const [states, setStates] = useState<Record<string, ControlState>>({});
+  // Pre-seed every customer control with its Vault default status
+  // (typically "implemented" for the MacTech Azure Gov deployment). The
+  // customer can override any individual control by clicking a different
+  // status button — the derived narrative auto-regenerates from the
+  // control's mactechProvides + customerRequired metadata, so a pre-seeded
+  // "implemented" gives the same narrative as clicking the button manually.
+  const [states, setStates] = useState<Record<string, ControlState>>(() => {
+    const seeded: Record<string, ControlState> = {};
+    const now = new Date().toISOString();
+    for (const ctrl of CONTROLS) {
+      const def = PHASE6_DEFAULT_STATUS[ctrl.controlId];
+      if (def === "implemented") {
+        seeded[ctrl.controlId] = { status: "implemented", attestedAt: now };
+      } else if (def === "planned") {
+        seeded[ctrl.controlId] = { status: "planned" };
+      }
+      // def === null or missing → leave unresolved so customer must adjudicate
+    }
+    return seeded;
+  });
   const [expandedControls, setExpandedControls] = useState<Set<string>>(new Set());
   const [poamModal, setPoamModal] = useState<string | null>(null);
   const [naModal, setNaModal] = useState<string | null>(null);

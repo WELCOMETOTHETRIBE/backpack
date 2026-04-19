@@ -1,27 +1,55 @@
 "use client";
 
 import { useState } from "react";
+import { getPhase1Defaults } from "../vault-defaults";
+
+interface Seed {
+  orgName: string;
+  cageCode: string;
+  ownerName: string;
+  ownerEmail: string;
+}
 
 interface Phase1Props {
   initialData?: Record<string, unknown>;
+  seed?: Seed;
   onComplete: (data: Record<string, unknown>) => void;
 }
 
-export function Phase1_OrgProfile({ initialData, onComplete }: Phase1Props) {
-  const [orgName, setOrgName] = useState((initialData?.orgName as string) ?? "");
+/**
+ * Resolve each field's starting value with this precedence:
+ *   1. Customer's previously-saved answer (initialData) — always wins
+ *   2. Signed-in org/user seed from the server (org name, owner name/email, CAGE)
+ *   3. MacTech Vault smart default (system name/description, MacTech ISSO checkbox)
+ *   4. Empty string (for fields we have no reasonable default for)
+ */
+function resolve(initial: unknown, seed: string | undefined, def: string | undefined): string {
+  if (typeof initial === "string" && initial.length > 0) return initial;
+  if (seed && seed.length > 0) return seed;
+  return def ?? "";
+}
+
+export function Phase1_OrgProfile({ initialData, seed, onComplete }: Phase1Props) {
+  const defaults = getPhase1Defaults(seed?.orgName);
+
+  const [orgName, setOrgName] = useState(resolve(initialData?.orgName, seed?.orgName, ""));
   const [address, setAddress] = useState((initialData?.address as string) ?? "");
-  const [cageCode, setCageCode] = useState((initialData?.cageCode as string) ?? "");
-  const [systemName, setSystemName] = useState((initialData?.systemName as string) ?? "");
-  const [systemDescription, setSystemDescription] = useState(
-    (initialData?.systemDescription as string) ?? ""
+  const [cageCode, setCageCode] = useState(resolve(initialData?.cageCode, seed?.cageCode, ""));
+  const [systemName, setSystemName] = useState(
+    resolve(initialData?.systemName, undefined, defaults.systemName)
   );
-  const [ownerName, setOwnerName] = useState((initialData?.ownerName as string) ?? "");
+  const [systemDescription, setSystemDescription] = useState(
+    resolve(initialData?.systemDescription, undefined, defaults.systemDescription)
+  );
+  const [ownerName, setOwnerName] = useState(resolve(initialData?.ownerName, seed?.ownerName, ""));
   const [ownerTitle, setOwnerTitle] = useState((initialData?.ownerTitle as string) ?? "");
-  const [ownerEmail, setOwnerEmail] = useState((initialData?.ownerEmail as string) ?? "");
+  const [ownerEmail, setOwnerEmail] = useState(resolve(initialData?.ownerEmail, seed?.ownerEmail, ""));
   const [issoName, setIssoName] = useState((initialData?.issoName as string) ?? "");
   const [issoEmail, setIssoEmail] = useState((initialData?.issoEmail as string) ?? "");
   const [mactechIsso, setMactechIsso] = useState(
-    (initialData?.mactechIsso as boolean) ?? false
+    typeof initialData?.mactechIsso === "boolean"
+      ? (initialData.mactechIsso as boolean)
+      : defaults.mactechIsso
   );
   const [aoName, setAoName] = useState((initialData?.aoName as string) ?? "");
   const [aoOrg, setAoOrg] = useState((initialData?.aoOrg as string) ?? "");

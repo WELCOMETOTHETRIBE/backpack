@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { getPhase2Defaults } from "../vault-defaults";
 
 interface Phase2Props {
   initialData?: Record<string, unknown>;
+  orgName?: string;
   onComplete: (data: Record<string, unknown>) => void;
 }
 
@@ -59,12 +61,21 @@ const CUI_CATEGORIES = [
   },
 ];
 
-export function Phase2_CuiCategories({ initialData, onComplete }: Phase2Props) {
+export function Phase2_CuiCategories({ initialData, orgName, onComplete }: Phase2Props) {
+  const defaults = getPhase2Defaults(orgName);
+
+  // Customer's previously-saved categories (if any) take precedence; otherwise
+  // seed the typical DIB contractor CUI mix as a starting point.
+  const savedCategories = initialData?.categories as string[] | undefined;
   const [selected, setSelected] = useState<string[]>(
-    (initialData?.categories as string[]) ?? []
+    Array.isArray(savedCategories) && savedCategories.length > 0
+      ? savedCategories
+      : defaults.categories
   );
+
+  const savedNarrative = initialData?.narrative as string | undefined;
   const [narrative, setNarrative] = useState(
-    (initialData?.narrative as string) ?? ""
+    savedNarrative && savedNarrative.length > 0 ? savedNarrative : defaults.narrative
   );
 
   function toggleCategory(id: string) {

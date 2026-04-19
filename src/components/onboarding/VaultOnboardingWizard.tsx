@@ -33,6 +33,12 @@ export function VaultOnboardingWizard({
   const [currentPhase, setCurrentPhase] = useState(0);
   const [completedPhases, setCompletedPhases] = useState<number[]>([]);
   const [phaseData, setPhaseData] = useState<Record<string, unknown>>({});
+  const [seed, setSeed] = useState<{
+    orgName: string;
+    cageCode: string;
+    ownerName: string;
+    ownerEmail: string;
+  }>({ orgName: "", cageCode: "", ownerName: "", ownerEmail: "" });
   const [loading, setLoading] = useState(true);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -68,6 +74,7 @@ export function VaultOnboardingWizard({
           const data = await res.json();
           if (data.completedPhases) setCompletedPhases(data.completedPhases);
           if (data.phaseData) setPhaseData(data.phaseData);
+          if (data.seed) setSeed(data.seed);
           // If wizard was already completed, allow reviewing (Edit setup)
           if (data.completedAt) {
             setIsEditMode(true);
@@ -282,12 +289,14 @@ export function VaultOnboardingWizard({
           {currentPhase === 1 && (
             <Phase1_OrgProfile
               initialData={phaseData["1"] as Record<string, unknown> | undefined}
+              seed={seed}
               onComplete={(data) => handlePhaseComplete(1, data)}
             />
           )}
           {currentPhase === 2 && (
             <Phase2_CuiCategories
               initialData={phaseData["2"] as Record<string, unknown> | undefined}
+              orgName={seed.orgName}
               onComplete={(data) => handlePhaseComplete(2, data)}
             />
           )}
