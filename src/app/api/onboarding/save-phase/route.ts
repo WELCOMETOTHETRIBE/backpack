@@ -8,6 +8,8 @@ import { eq } from "drizzle-orm";
 const requestSchema = z.object({
   phase: z.number().int().min(0).max(9),
   data: z.record(z.string(), z.unknown()),
+  // When true, also stamps completed_at — used when the final phase finishes.
+  complete: z.boolean().optional(),
 });
 
 export async function POST(req: Request) {
@@ -28,12 +30,14 @@ export async function POST(req: Request) {
         currentPhase: body.phase + 1,
         completedPhases: [body.phase],
         phaseData: { [body.phase]: body.data },
+        completedAt: body.complete ? new Date() : null,
       });
 
       return NextResponse.json({
         phase: body.phase + 1,
         completedPhases: [body.phase],
         phaseData: { [body.phase]: body.data },
+        completed: body.complete === true,
       });
     }
 
@@ -55,13 +59,17 @@ export async function POST(req: Request) {
 
     const newCurrentPhase = Math.max(existing.currentPhase, body.phase + 1);
 
+    const now = new Date();
     await db
       .update(onboardingWizardState)
       .set({
         currentPhase: newCurrentPhase,
         completedPhases: updatedCompletedPhases,
         phaseData: mergedPhaseData,
-        updatedAt: new Date(),
+        updatedAt: now,
+        // Only stamp completed_at once — preserve the original completion timestamp
+        // on re-submissions from edit mode.
+        ...(body.complete && !existing.completedAt ? { completedAt: now } : {}),
       })
       .where(eq(onboardingWizardState.organizationId, orgId));
 
@@ -69,6 +77,7 @@ export async function POST(req: Request) {
       phase: newCurrentPhase,
       completedPhases: updatedCompletedPhases,
       phaseData: mergedPhaseData,
+      completed: body.complete === true || !!existing.completedAt,
     });
   } catch (error) {
     if (error instanceof z.ZodError) {

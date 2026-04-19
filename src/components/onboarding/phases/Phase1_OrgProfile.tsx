@@ -5,7 +5,7 @@ import { getPhase1Defaults } from "../vault-defaults";
 
 interface Seed {
   orgName: string;
-  cageCode: string;
+  cageCode: string;  // collected in Phase 0; read-only display here if present
   ownerName: string;
   ownerEmail: string;
 }
@@ -34,7 +34,8 @@ export function Phase1_OrgProfile({ initialData, seed, onComplete }: Phase1Props
 
   const [orgName, setOrgName] = useState(resolve(initialData?.orgName, seed?.orgName, ""));
   const [address, setAddress] = useState((initialData?.address as string) ?? "");
-  const [cageCode, setCageCode] = useState(resolve(initialData?.cageCode, seed?.cageCode, ""));
+  // CAGE was already captured in Phase 0 (Trust Codex signatory block) and
+  // persisted to organizations.cage_code — no need to ask again here.
   const [systemName, setSystemName] = useState(
     resolve(initialData?.systemName, undefined, defaults.systemName)
   );
@@ -62,7 +63,6 @@ export function Phase1_OrgProfile({ initialData, seed, onComplete }: Phase1Props
     onComplete({
       orgName: orgName.trim(),
       address: address.trim(),
-      cageCode: cageCode.trim(),
       systemName: systemName.trim(),
       systemDescription: systemDescription.trim(),
       systemOwner: {
@@ -112,18 +112,16 @@ export function Phase1_OrgProfile({ initialData, seed, onComplete }: Phase1Props
               className="w-full bg-[#0D1117] border border-[#1E2D3D] text-white px-3 py-2 text-sm font-mono focus:outline-none focus:border-[#0EA5E9]"
             />
           </div>
-          <div>
-            <label className="block text-xs font-mono text-[#94A3B8] uppercase tracking-wider mb-1">
-              CAGE Code
-            </label>
-            <input
-              type="text"
-              value={cageCode}
-              onChange={(e) => setCageCode(e.target.value.toUpperCase())}
-              maxLength={10}
-              className="w-full bg-[#0D1117] border border-[#1E2D3D] text-white px-3 py-2 text-sm font-mono focus:outline-none focus:border-[#0EA5E9]"
-            />
-          </div>
+          {seed?.cageCode && (
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-mono text-[#6B7280] uppercase tracking-wider mb-1">
+                CAGE Code (from Trust Codex acceptance)
+              </label>
+              <div className="px-3 py-2 text-sm font-mono text-[#94A3B8] bg-[#0A0D12] border border-[#1E2D3D]/50">
+                {seed.cageCode}
+              </div>
+            </div>
+          )}
         </div>
       </section>
 

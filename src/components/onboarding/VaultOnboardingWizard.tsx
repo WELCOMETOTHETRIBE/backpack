@@ -8,10 +8,10 @@ import { Phase3_BoundaryConfirmation } from "./phases/Phase3_BoundaryConfirmatio
 import { Phase4_AzureInheritance } from "./phases/Phase4_AzureInheritance";
 import { Phase5_TrustCodexCoverage } from "./phases/Phase5_TrustCodexCoverage";
 import { Phase6_CustomerControls } from "./phases/Phase6_CustomerControls";
-import { Phase7_SprsReport } from "./phases/Phase7_SprsReport";
-import { Phase8_SspGeneration } from "./phases/Phase8_SspGeneration";
-import { Phase9_Complete } from "./phases/Phase9_Complete";
 
+// Onboarding is the boundary-definition + agreement step. SPRS reporting, SSP
+// generation, and other deliverables live in the dashboard as post-onboarding
+// work (training, IR tabletop, governance sign-off, evidence collection).
 const PHASES = [
   { index: 0, label: "Trust Codex", shortLabel: "Codex" },
   { index: 1, label: "Org Profile", shortLabel: "Profile" },
@@ -20,10 +20,9 @@ const PHASES = [
   { index: 4, label: "Azure Inheritance", shortLabel: "Azure" },
   { index: 5, label: "MacTech Coverage", shortLabel: "MacTech" },
   { index: 6, label: "Your Controls", shortLabel: "Controls" },
-  { index: 7, label: "SPRS Report", shortLabel: "SPRS" },
-  { index: 8, label: "SSP Generation", shortLabel: "SSP" },
-  { index: 9, label: "Complete", shortLabel: "Done" },
 ];
+
+const LAST_PHASE_INDEX = PHASES.length - 1; // 6
 
 export function VaultOnboardingWizard({
   allowBypass = false,
@@ -80,7 +79,7 @@ export function VaultOnboardingWizard({
             setIsEditMode(true);
             // Show Phase 1 (Org Profile) for review — all phases accessible via nav
             setCurrentPhase(1);
-            setCompletedPhases(Array.from({ length: 10 }, (_, i) => i));
+            setCompletedPhases(Array.from({ length: PHASES.length }, (_, i) => i));
           } else if (data.phase !== undefined) {
             setCurrentPhase(data.phase);
           }
@@ -94,22 +93,25 @@ export function VaultOnboardingWizard({
     loadState();
   }, []);
 
-  const savePhase = useCallback(async (phase: number, data: Record<string, unknown>) => {
-    setSaveError(null);
-    try {
-      const res = await fetch("/api/onboarding/save-phase", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phase, data }),
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        setSaveError(err.error ?? "Failed to save progress");
+  const savePhase = useCallback(
+    async (phase: number, data: Record<string, unknown>, complete = false) => {
+      setSaveError(null);
+      try {
+        const res = await fetch("/api/onboarding/save-phase", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phase, data, complete }),
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          setSaveError(err.error ?? "Failed to save progress");
+        }
+      } catch {
+        setSaveError("Network error — progress may not have been saved");
       }
-    } catch {
-      setSaveError("Network error — progress may not have been saved");
-    }
-  }, []);
+    },
+    []
+  );
 
   async function handlePhaseComplete(phase: number, data: Record<string, unknown>) {
     // Persist phase data locally
@@ -117,20 +119,13 @@ export function VaultOnboardingWizard({
     setPhaseData(newPhaseData);
     setCompletedPhases((prev) => [...new Set([...prev, phase])]);
 
-    // Save to server
-    await savePhase(phase, data);
+    const isLast = phase === LAST_PHASE_INDEX;
 
-    // Phase 9 completion: mark wizard done
-    if (phase === 9) {
-      try {
-        await fetch("/api/onboarding/save-phase", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phase: 9, data: { ...data, completed: true } }),
-        });
-      } catch {
-        // Non-fatal
-      }
+    // Save to server — set complete=true on the final phase so the server
+    // stamps onboarding_wizard_state.completed_at.
+    await savePhase(phase, data, isLast);
+
+    if (isLast) {
       window.location.href = "/dashboard";
       return;
     }
@@ -318,24 +313,6 @@ export function VaultOnboardingWizard({
           {currentPhase === 6 && (
             <Phase6_CustomerControls
               onComplete={(data) => handlePhaseComplete(6, data)}
-            />
-          )}
-          {currentPhase === 7 && (
-            <Phase7_SprsReport
-              phaseData={phaseData}
-              onComplete={(data) => handlePhaseComplete(7, data)}
-            />
-          )}
-          {currentPhase === 8 && (
-            <Phase8_SspGeneration
-              phaseData={phaseData}
-              onComplete={(data) => handlePhaseComplete(8, data)}
-            />
-          )}
-          {currentPhase === 9 && (
-            <Phase9_Complete
-              phaseData={phaseData}
-              onComplete={(data) => handlePhaseComplete(9, data)}
             />
           )}
 

@@ -28,10 +28,6 @@ export function Phase4_AzureInheritance({ onComplete }: Phase4Props) {
     });
   }
 
-  function acknowledgeAll() {
-    setAcknowledged(new Set(AZURE_INHERITED_CONTROLS.map((c) => c.controlId)));
-  }
-
   async function handleSubmit() {
     if (!allDone) return;
     setSubmitting(true);
@@ -95,15 +91,6 @@ export function Phase4_AzureInheritance({ onComplete }: Phase4Props) {
         <span className="text-xs font-mono text-[#94A3B8]">
           {done} / {total} acknowledged
         </span>
-        {!allDone && (
-          <button
-            type="button"
-            onClick={acknowledgeAll}
-            className="text-xs font-mono text-[#0EA5E9] hover:text-[#38BDF8] uppercase tracking-wide border border-[#0EA5E9]/30 px-2 py-1"
-          >
-            Acknowledge All
-          </button>
-        )}
       </div>
 
       {/* Control cards */}
