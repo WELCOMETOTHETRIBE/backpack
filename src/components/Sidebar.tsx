@@ -19,6 +19,7 @@ import {
   BarChart2,
   GraduationCap,
   MessageSquare,
+  Archive,
 } from "lucide-react";
 
 type NavItem = {
@@ -43,6 +44,7 @@ function buildNav(boundaryComplete?: boolean | null): NavGroup[] {
         { name: "Governance", href: "/dashboard/governance", icon: BookMarked },
         { name: "Technical", href: "/dashboard/technical", icon: BarChart2 },
         { name: "Registers", href: "/dashboard/registers", icon: BookCheck },
+        { name: "Artifacts", href: "/dashboard/artifacts", icon: Archive },
         { name: "POA&M", href: "/dashboard/poam", icon: FileText },
       ],
     },

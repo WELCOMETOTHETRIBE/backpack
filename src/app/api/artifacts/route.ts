@@ -1,13 +1,25 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { controlRecords, artifacts } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { controlRecords, artifacts, controls } from "@/db/schema";
+import { eq, and, sql, ilike, lte } from "drizzle-orm";
 import { requireOrg, requireRole } from "@/lib/auth";
 import { getStorageService } from "@/lib/storage";
 import { calculateControlStatus } from "@/lib/control-status";
+import { countLinksForArtifacts } from "@/lib/artifacts/artifact-links";
+import { createArtifactLink } from "@/lib/artifacts/artifact-links";
 
 /**
- * GET /api/artifacts?controlRecordId=... — list artifacts for a control record.
+ * GET /api/artifacts
+ *
+ * Query modes:
+ *   - ?controlRecordId=...        → list artifacts for a specific control (legacy)
+ *   - (no controlRecordId)        → library-wide list for the current org
+ *
+ * Optional filters (library mode): status, family, expiringBefore (YYYY-MM-DD),
+ * search (label ILIKE).
+ *
+ * Library response rows include the control's family and the per-link-type
+ * counts so the Artifacts page can render badge totals.
  */
 export async function GET(req: Request) {
   try {
@@ -15,19 +27,68 @@ export async function GET(req: Request) {
     await requireRole(["Admin", "Compliance", "Assessor"]);
     const { searchParams } = new URL(req.url);
     const controlRecordId = searchParams.get("controlRecordId");
-    if (!controlRecordId) {
-      return NextResponse.json({ error: "controlRecordId required" }, { status: 400 });
+
+    if (controlRecordId) {
+      const rows = await db
+        .select()
+        .from(artifacts)
+        .where(
+          and(
+            eq(artifacts.controlRecordId, controlRecordId),
+            eq(artifacts.organizationId, orgId)
+          )
+        );
+      return NextResponse.json(rows);
     }
-    const rows = await db
-      .select()
+
+    // Library-wide listing with optional filters.
+    const status = searchParams.get("status");
+    const family = searchParams.get("family");
+    const expiringBefore = searchParams.get("expiringBefore");
+    const search = searchParams.get("search");
+
+    const conditions = [eq(artifacts.organizationId, orgId)];
+    if (status) conditions.push(sql`${artifacts.status} = ${status}`);
+    if (expiringBefore && /^\d{4}-\d{2}-\d{2}$/.test(expiringBefore)) {
+      conditions.push(lte(artifacts.expectedDueDate, expiringBefore));
+    }
+    if (search) conditions.push(ilike(artifacts.artifactLabel, `%${search}%`));
+
+    let rows = await db
+      .select({
+        artifact: artifacts,
+        controlId: controls.controlId,
+        controlTitle: controls.title,
+        family: controls.controlFamilyId,
+      })
       .from(artifacts)
-      .where(
-        and(
-          eq(artifacts.controlRecordId, controlRecordId),
-          eq(artifacts.organizationId, orgId)
-        )
-      );
-    return NextResponse.json(rows);
+      .innerJoin(controlRecords, eq(artifacts.controlRecordId, controlRecords.id))
+      .innerJoin(controls, eq(controlRecords.controlId, controls.controlId))
+      .where(and(...conditions));
+
+    if (family) {
+      rows = rows.filter((r) => r.family === family);
+    }
+
+    const linkCounts = await countLinksForArtifacts(
+      orgId,
+      rows.map((r) => r.artifact.id)
+    );
+
+    const payload = rows.map((r) => ({
+      ...r.artifact,
+      controlId: r.controlId,
+      controlTitle: r.controlTitle,
+      family: r.family,
+      linkCounts: linkCounts.get(r.artifact.id) ?? {
+        control: 0,
+        register_entry: 0,
+        poam_entry: 0,
+        poam_milestone: 0,
+      },
+    }));
+
+    return NextResponse.json(payload);
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unauthorized";
     return NextResponse.json({ error: message }, { status: 401 });
@@ -129,9 +190,20 @@ export async function POST(req: Request) {
           version: version || null,
           approvalDate: approvalDate ?? null,
           uploadedBy: user.id,
+          status: "uploaded",
         })
         .returning();
-      if (row) inserted.push(row);
+      if (row) {
+        inserted.push(row);
+        // Also record a uniform "control" link for library fan-out queries.
+        await createArtifactLink({
+          orgId,
+          artifactId: row.id,
+          linkType: "control",
+          linkTargetId: controlRecordId,
+          userId: user.id,
+        });
+      }
       await calculateControlStatus(controlRecordId);
     }
 

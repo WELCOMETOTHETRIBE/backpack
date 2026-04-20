@@ -53,6 +53,19 @@ export const attestationTypeEnum = pgEnum("attestation_type", [
   "poam_closure",
   "document_approval",
 ]);
+export const artifactStatusEnum = pgEnum("artifact_status", [
+  "awaiting_upload",
+  "uploaded",
+  "approved",
+  "superseded",
+  "expired",
+]);
+export const artifactLinkTypeEnum = pgEnum("artifact_link_type", [
+  "control",
+  "register_entry",
+  "poam_entry",
+  "poam_milestone",
+]);
 export const documentTypeEnum = pgEnum("document_type", [
   "ssp",
   "policy",
@@ -229,8 +242,9 @@ export const artifacts = pgTable("artifacts", {
   organizationId: uuid("organization_id").references(() => organizations.id).notNull(),
   controlRecordId: uuid("control_record_id").references(() => controlRecords.id).notNull(),
   artifactLabel: varchar("artifact_label", { length: 255 }).notNull(),
-  fileName: varchar("file_name", { length: 255 }).notNull(),
-  fileUrl: text("file_url").notNull(),
+  /** Nullable to allow placeholder rows in "awaiting_upload" status before a file exists. */
+  fileName: varchar("file_name", { length: 255 }),
+  fileUrl: text("file_url"),
   /** Storage provider's key/id for getDownloadUrl and delete (e.g. S3 key, blob name). */
   storageKey: text("storage_key"),
   fileType: varchar("file_type", { length: 100 }),
@@ -239,9 +253,41 @@ export const artifacts = pgTable("artifacts", {
   approvalDate: date("approval_date"),
   uploadedBy: uuid("uploaded_by").references(() => users.id),
   vaultDocumentId: varchar("vault_document_id", { length: 255 }),
+  /** Lifecycle status. Placeholders start "awaiting_upload"; legacy rows default to "uploaded". */
+  status: artifactStatusEnum("status").notNull().default("uploaded"),
+  /** Expected closure shape from the client-required-artifacts catalog. */
+  expectedClosureType: varchar("expected_closure_type", { length: 32 }),
+  expectedEvidenceType: varchar("expected_evidence_type", { length: 32 }),
+  expectedCadence: varchar("expected_cadence", { length: 32 }),
+  expectedDueDate: date("expected_due_date"),
+  /** Stable catalog key (e.g. "AT.3.2.1.initial_annual_certs"); present only on catalog-seeded placeholders. */
+  milestoneKey: varchar("milestone_key", { length: 120 }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
+
+/**
+ * Polymorphic link from a single stored artifact to any number of things it
+ * satisfies: the primary control (already on artifacts.controlRecordId but
+ * mirrored here for uniform querying), other controls, governance register
+ * entries, POAM entries, and individual POAM milestones.
+ */
+export const artifactLinks = pgTable(
+  "artifact_links",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id").references(() => organizations.id).notNull(),
+    artifactId: uuid("artifact_id").references(() => artifacts.id, { onDelete: "cascade" }).notNull(),
+    linkType: artifactLinkTypeEnum("link_type").notNull(),
+    linkTargetId: uuid("link_target_id").notNull(),
+    createdBy: uuid("created_by").references(() => users.id),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    uniqueIndex("artifact_links_unique").on(t.artifactId, t.linkType, t.linkTargetId),
+    index("artifact_links_target_idx").on(t.linkType, t.linkTargetId),
+  ]
+);
 
 /** Non-upload governance artifact completion (REFERENCE, ATTESTATION, SYSTEM_POINTER). UPLOAD is stored in artifacts. */
 export const governanceArtifactCompletions = pgTable(

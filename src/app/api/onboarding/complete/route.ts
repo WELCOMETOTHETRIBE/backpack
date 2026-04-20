@@ -19,6 +19,7 @@ import { getInheritedControls } from "@/lib/compliance";
 import { computeAndPersistSprsScore } from "@/lib/sprs";
 import { REGISTER_DEFINITIONS } from "@/lib/governance/seed-data";
 import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
+import { generateClientRequiredPoams } from "@/lib/onboarding/generate-client-poams";
 
 const requestSchema = z.object({
   name: z.string().optional(),
@@ -269,6 +270,12 @@ export async function POST(req: Request) {
     // Recompute SPRS so dashboard shows score (including inherited controls)
     const sprsScore = await computeAndPersistSprsScore(orgId);
 
+    // Auto-generate open POA&Ms for every control with client-required
+    // artifacts (training certs, IR tabletop AAR, rosters, scans, etc.).
+    // MacTech delivers the technical + policy evidence; these POAMs give the
+    // client a concrete worklist of what they must still produce themselves.
+    const poamGeneration = await generateClientRequiredPoams(orgId);
+
     // Use only valid email addresses for future team-invite feature
     const _validTeamEmails = validEmails(body.teamMembers ?? []);
     // TODO: Send team member invitations via Resend using _validTeamEmails
@@ -278,10 +285,22 @@ export async function POST(req: Request) {
       action: "onboarding.complete",
       resourceType: "organization",
       resourceId: orgId,
-      details: { organizationType: body.organizationType, cmmcTargetLevel: body.cmmcTargetLevel },
+      details: {
+        organizationType: body.organizationType,
+        cmmcTargetLevel: body.cmmcTargetLevel,
+        poamsCreated: poamGeneration.created,
+        poamMilestonesCreated: poamGeneration.totalMilestones,
+        placeholderArtifactsCreated: poamGeneration.placeholdersCreated,
+      },
     });
 
-    return NextResponse.json({ success: true, sprsScore });
+    return NextResponse.json({
+      success: true,
+      sprsScore,
+      poamsCreated: poamGeneration.created,
+      poamMilestonesCreated: poamGeneration.totalMilestones,
+      placeholderArtifactsCreated: poamGeneration.placeholdersCreated,
+    });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "Invalid request", details: error.issues }, { status: 400 });
