@@ -19,20 +19,21 @@ import { MILESTONES_BY_KEY } from "@/data/cmmc/client-required-artifacts";
  *
  * Body: { artifactId?: string; attestationText?: string; systemPointerTarget?: string }
  *
- * Enforces closure shape based on the placeholder artifact's
- * expectedClosureType (mirrored from the client-required-artifacts catalog):
+ * Closure logic: ANY of the following evidence shapes satisfies the
+ * milestone. The catalog's `expectedClosureType` is a hint for the UI,
+ * not a gate:
  *
- *   upload             → artifactId REQUIRED, artifact must have a file
- *                        (status != 'awaiting_upload'); auto-links milestone.
- *   attestation        → artifactId with file OR non-empty attestationText
- *   register_pointer   → requires ≥1 finalized entry in the milestone's
- *                        registerKey register (artifactId optional, linked if
- *                        provided)
- *   system_pointer     → requires systemPointerTarget (free-text reference to
- *                        the in-app target, e.g. an SSP section id)
+ *   • artifactId pointing at an artifact with a file attached
+ *   • attestationText (non-empty)
+ *   • systemPointerTarget (non-empty)
+ *   • the milestone's register (via catalog registerKey) has ≥1 finalized entry
  *
- * On success sets milestone.completedAt. Does NOT close the parent POAM entry;
- * whole-entry closure still flows through /api/poam/entries/:id/closure.
+ * If at least one signal is present, the milestone closes and we record the
+ * artifact link (if any). If none are present we return 400 with a helpful
+ * message describing the accepted shapes and the register key when applicable.
+ *
+ * This route does NOT auto-close the parent POAM entry; whole-entry closure
+ * still flows through /api/poam/entries/:id/closure.
  */
 export async function POST(
   req: Request,
@@ -72,7 +73,7 @@ export async function POST(
     };
 
     // Locate the placeholder artifact for this milestone (seeded at onboarding).
-    const [placeholder] = await db
+    const [placeholderRow] = await db
       .select()
       .from(artifacts)
       .innerJoin(artifactLinks, eq(artifactLinks.artifactId, artifacts.id))
@@ -84,20 +85,15 @@ export async function POST(
         )
       )
       .limit(1);
+    const placeholder = placeholderRow?.artifacts ?? null;
 
-    const expectedClosureType =
-      placeholder?.artifacts.expectedClosureType ??
-      (placeholder?.artifacts.milestoneKey
-        ? MILESTONES_BY_KEY.get(placeholder.artifacts.milestoneKey)?.closureType
-        : undefined) ??
-      // Fallback to the catalog via the placeholder's milestoneKey, else treat
-      // as "upload" (strictest) if we truly have no metadata.
-      "upload";
+    const milestoneKey = placeholder?.milestoneKey ?? null;
+    const catalogMilestone = milestoneKey ? MILESTONES_BY_KEY.get(milestoneKey) : undefined;
+    const expectedClosureType = catalogMilestone?.closureType ?? placeholder?.expectedClosureType ?? null;
+    const registerKey = catalogMilestone?.registerKey ?? null;
 
-    // Resolve artifactId (if provided) and confirm ownership + file presence.
-    let chosenArtifact:
-      | (typeof artifacts.$inferSelect)
-      | null = null;
+    // ── Resolve artifact (if supplied) ────────────────────────────────────────
+    let chosenArtifact: typeof artifacts.$inferSelect | null = null;
     if (body.artifactId) {
       const [a] = await db
         .select()
@@ -115,115 +111,41 @@ export async function POST(
       chosenArtifact = a;
     }
 
-    // ---- Enforcement per closure type ----------------------------------------
-    switch (expectedClosureType) {
-      case "upload": {
-        if (!chosenArtifact) {
-          return NextResponse.json(
-            { error: "artifactId is required to close an 'upload' milestone" },
-            { status: 400 }
-          );
-        }
-        if (chosenArtifact.status === "awaiting_upload" || !chosenArtifact.fileUrl) {
-          return NextResponse.json(
-            { error: "The referenced artifact has no file uploaded yet" },
-            { status: 400 }
-          );
-        }
-        break;
-      }
-      case "attestation": {
-        const hasFile =
-          chosenArtifact &&
-          chosenArtifact.status !== "awaiting_upload" &&
-          chosenArtifact.fileUrl;
-        const hasText = Boolean(body.attestationText?.trim());
-        if (!hasFile && !hasText) {
-          return NextResponse.json(
-            { error: "Attestation milestones require an uploaded artifact or attestationText" },
-            { status: 400 }
-          );
-        }
-        break;
-      }
-      case "register_pointer": {
-        // Look up the milestone's expected registerKey from catalog.
-        const milestoneKey = placeholder?.artifacts.milestoneKey ?? null;
-        const catalogEntry = milestoneKey ? MILESTONES_BY_KEY.get(milestoneKey) : undefined;
-        const registerKey = catalogEntry?.registerKey;
-        if (!registerKey) {
-          return NextResponse.json(
-            { error: "register_pointer milestone is missing its registerKey" },
-            { status: 500 }
-          );
-        }
-        // Find the register for this org, count finalized entries.
-        const [register] = await db
-          .select({ id: governanceRegisters.id })
-          .from(governanceRegisters)
-          .where(
-            and(
-              eq(governanceRegisters.organizationId, orgId),
-              eq(governanceRegisters.registerKey, registerKey)
-            )
-          )
-          .limit(1);
-        if (!register) {
-          return NextResponse.json(
-            { error: `Register "${registerKey}" not configured for this organization` },
-            { status: 400 }
-          );
-        }
-        const orgBoundaries = await db
-          .select({ id: boundaries.id })
-          .from(boundaries)
-          .where(eq(boundaries.organizationId, orgId));
-        const boundaryIds = orgBoundaries.map((b) => b.id);
-        if (boundaryIds.length === 0) {
-          return NextResponse.json(
-            { error: "No boundary configured for this organization" },
-            { status: 400 }
-          );
-        }
-        const [row] = await db
-          .select({ cnt: sql<number>`count(*)::int` })
-          .from(governanceRegisterEntries)
-          .where(
-            and(
-              eq(governanceRegisterEntries.registerId, register.id),
-              inArray(governanceRegisterEntries.boundaryId, boundaryIds),
-              eq(governanceRegisterEntries.status, "final")
-            )
-          );
-        const finalCount = row?.cnt ?? 0;
-        if (finalCount < 1) {
-          return NextResponse.json(
-            {
-              error: `Register "${registerKey}" has no finalized entries yet`,
-            },
-            { status: 400 }
-          );
-        }
-        break;
-      }
-      case "system_pointer": {
-        if (!body.systemPointerTarget?.trim()) {
-          return NextResponse.json(
-            { error: "systemPointerTarget is required to close a 'system_pointer' milestone" },
-            { status: 400 }
-          );
-        }
-        break;
-      }
-      default: {
-        return NextResponse.json(
-          { error: `Unknown expectedClosureType: ${expectedClosureType}` },
-          { status: 500 }
+    // ── Gather evidence signals ───────────────────────────────────────────────
+    const hasFile = Boolean(
+      chosenArtifact &&
+        chosenArtifact.status !== "awaiting_upload" &&
+        chosenArtifact.fileUrl
+    );
+    const hasText = Boolean(body.attestationText?.trim());
+    const hasSystemPointer = Boolean(body.systemPointerTarget?.trim());
+    const hasRegister = registerKey
+      ? await registerHasFinalEntries(orgId, registerKey)
+      : false;
+
+    if (!hasFile && !hasText && !hasSystemPointer && !hasRegister) {
+      const accepted: string[] = [];
+      accepted.push("upload a file and pass artifactId");
+      accepted.push("submit attestationText");
+      if (registerKey) {
+        accepted.push(
+          `finalize at least one entry in the "${registerKey}" register (preferred)`
         );
       }
+      if (expectedClosureType === "system_pointer") {
+        accepted.push("pass systemPointerTarget");
+      }
+      return NextResponse.json(
+        {
+          error: "No evidence present. Accepted closure paths: " + accepted.join("; ") + ".",
+          expectedClosureType,
+          registerKey,
+        },
+        { status: 400 }
+      );
     }
 
-    // ---- Link artifact → milestone (if artifact provided & not yet linked) ---
+    // ── Link artifact → milestone (if artifact provided & not yet linked) ─────
     if (chosenArtifact) {
       await createArtifactLink({
         orgId,
@@ -234,7 +156,7 @@ export async function POST(
       });
     }
 
-    // ---- Mark milestone complete --------------------------------------------
+    // ── Mark milestone complete ──────────────────────────────────────────────
     const [updated] = await db
       .update(poamEntryMilestones)
       .set({ completedAt: new Date() })
@@ -243,11 +165,53 @@ export async function POST(
 
     return NextResponse.json({
       milestone: updated,
-      closureType: expectedClosureType,
-      artifactLinked: Boolean(chosenArtifact),
+      expectedClosureType,
+      closedBy: {
+        artifact: hasFile,
+        attestation: hasText,
+        systemPointer: hasSystemPointer,
+        register: hasRegister,
+      },
     });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Close failed";
     return NextResponse.json({ error: message }, { status: 400 });
   }
+}
+
+/** Does the given org have ≥1 finalized entry in the register with this key? */
+async function registerHasFinalEntries(
+  orgId: string,
+  registerKey: string
+): Promise<boolean> {
+  const [register] = await db
+    .select({ id: governanceRegisters.id })
+    .from(governanceRegisters)
+    .where(
+      and(
+        eq(governanceRegisters.organizationId, orgId),
+        eq(governanceRegisters.registerKey, registerKey)
+      )
+    )
+    .limit(1);
+  if (!register) return false;
+
+  const orgBoundaries = await db
+    .select({ id: boundaries.id })
+    .from(boundaries)
+    .where(eq(boundaries.organizationId, orgId));
+  const boundaryIds = orgBoundaries.map((b) => b.id);
+  if (boundaryIds.length === 0) return false;
+
+  const [row] = await db
+    .select({ cnt: sql<number>`count(*)::int` })
+    .from(governanceRegisterEntries)
+    .where(
+      and(
+        eq(governanceRegisterEntries.registerId, register.id),
+        inArray(governanceRegisterEntries.boundaryId, boundaryIds),
+        eq(governanceRegisterEntries.status, "final")
+      )
+    );
+  return (row?.cnt ?? 0) > 0;
 }

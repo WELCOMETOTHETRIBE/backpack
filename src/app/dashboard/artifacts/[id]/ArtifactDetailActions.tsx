@@ -6,9 +6,13 @@ import { useRouter } from "next/navigation";
 export function ArtifactDetailActions({
   artifactId,
   hasFile,
+  secondary,
 }: {
   artifactId: string;
   hasFile: boolean;
+  /** True when a register quick-add is also shown above; renders this panel
+   *  as the secondary ("Or upload a document instead") option. */
+  secondary?: boolean;
 }) {
   const router = useRouter();
   const [uploading, setUploading] = useState(false);
@@ -45,7 +49,7 @@ export function ArtifactDetailActions({
   return (
     <section className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
       <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--color-text-muted)]">
-        Actions
+        {secondary ? "Or upload a document instead" : "Actions"}
       </h2>
       <div className="mt-3 flex flex-wrap items-center gap-3">
         <label className="inline-flex cursor-pointer items-center rounded bg-sky-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-sky-700">

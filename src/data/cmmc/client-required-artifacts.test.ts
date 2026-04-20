@@ -5,6 +5,7 @@ import {
   POAM_ELIGIBLE_CONTROLS,
 } from "./client-required-artifacts";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
+import { REGISTER_KEYS, REGISTER_DEFINITIONS } from "@/lib/governance/seed-data";
 
 describe("client-required-artifacts catalog", () => {
   it("covers all 110 NIST 800-171 Rev 2 controls", () => {
@@ -76,6 +77,33 @@ describe("client-required-artifacts catalog", () => {
   it("CLIENT_ARTIFACTS_BY_CONTROL_ID round-trips", () => {
     for (const entry of CLIENT_REQUIRED_ARTIFACTS) {
       expect(CLIENT_ARTIFACTS_BY_CONTROL_ID.get(entry.controlId)).toBe(entry);
+    }
+  });
+
+  it("every register_pointer milestone's registerKey exists in REGISTER_DEFINITIONS", () => {
+    const definedKeys = new Set<string>(REGISTER_KEYS);
+    for (const entry of POAM_ELIGIBLE_CONTROLS) {
+      for (const m of entry.milestones) {
+        if (m.closureType === "register_pointer") {
+          expect(
+            definedKeys.has(m.registerKey ?? ""),
+            `${m.key} references unknown register "${m.registerKey}"`
+          ).toBe(true);
+        }
+      }
+    }
+  });
+
+  it("REGISTER_KEYS and REGISTER_DEFINITIONS are in sync", () => {
+    const defsKeys = new Set(REGISTER_DEFINITIONS.map((d) => d.registerKey));
+    for (const k of REGISTER_KEYS) {
+      expect(defsKeys.has(k), `REGISTER_KEYS entry "${k}" missing a definition`).toBe(true);
+    }
+    for (const d of REGISTER_DEFINITIONS) {
+      expect(
+        (REGISTER_KEYS as readonly string[]).includes(d.registerKey),
+        `REGISTER_DEFINITIONS entry "${d.registerKey}" missing from REGISTER_KEYS`
+      ).toBe(true);
     }
   });
 });

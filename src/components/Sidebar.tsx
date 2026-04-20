@@ -6,15 +6,12 @@ import {
   LayoutDashboard,
   Shield,
   FileText,
-  FolderOpen,
   Network,
   CheckCircle2,
   Activity,
   Settings,
   FileStack,
   BookMarked,
-  Server,
-  Cpu,
   BookCheck,
   BarChart2,
   GraduationCap,
@@ -34,7 +31,7 @@ type NavGroup = {
   items: NavItem[];
 };
 
-function buildNav(boundaryComplete?: boolean | null): NavGroup[] {
+function buildNav(_boundaryComplete?: boolean | null): NavGroup[] {
   return [
     {
       label: "Compliance",
@@ -48,19 +45,9 @@ function buildNav(boundaryComplete?: boolean | null): NavGroup[] {
         { name: "POA&M", href: "/dashboard/poam", icon: FileText },
       ],
     },
-    {
-      label: "Infrastructure",
-      items: [
-        {
-          name: "System Boundary",
-          href: "/dashboard/boundary",
-          icon: Server,
-          statusDot: boundaryComplete === true ? "green" : boundaryComplete === false ? "amber" : null,
-        },
-        { name: "OS Baselines", href: "/dashboard/os-baselines", icon: Cpu },
-        { name: "Upload Evidence", href: "/dashboard/technical/upload", icon: FolderOpen },
-      ],
-    },
+    // Infrastructure group removed: System Boundary, OS Baselines, and Upload
+    // Evidence are vendor-provided under MacTech Vault and no longer customer
+    // inputs. Underlying routes and schemas remain for internal use.
     {
       label: "Program",
       items: [

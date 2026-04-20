@@ -10,10 +10,13 @@ import {
   poamEntryMilestones,
   governanceRegisterEntries,
   governanceRegisters,
+  boundaries,
 } from "@/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import Link from "next/link";
 import { ArtifactDetailActions } from "./ArtifactDetailActions";
+import { RegisterQuickAdd, type RegisterColumn } from "./RegisterQuickAdd";
+import { MILESTONES_BY_KEY } from "@/data/cmmc/client-required-artifacts";
 
 export default async function ArtifactDetailPage({
   params,
@@ -105,6 +108,48 @@ export default async function ArtifactDetailPage({
   const a = artifact.artifact;
   const hasFile = Boolean(a.fileUrl);
 
+  // Register-backed milestones: resolve the register + boundary so we can
+  // render an inline quick-add form. Falls back to null when not applicable.
+  let registerQuickAdd: {
+    registerKey: string;
+    registerName: string;
+    boundaryId: string;
+    columns: RegisterColumn[];
+  } | null = null;
+
+  const catalogMilestone = a.milestoneKey ? MILESTONES_BY_KEY.get(a.milestoneKey) : undefined;
+  const preferredRegisterKey = catalogMilestone?.registerKey ?? null;
+
+  if (preferredRegisterKey) {
+    const [register] = await db
+      .select({
+        registerKey: governanceRegisters.registerKey,
+        name: governanceRegisters.name,
+        requiredColumns: governanceRegisters.requiredColumns,
+      })
+      .from(governanceRegisters)
+      .where(
+        and(
+          eq(governanceRegisters.organizationId, orgId),
+          eq(governanceRegisters.registerKey, preferredRegisterKey)
+        )
+      )
+      .limit(1);
+    const [boundary] = await db
+      .select({ id: boundaries.id })
+      .from(boundaries)
+      .where(eq(boundaries.organizationId, orgId))
+      .limit(1);
+    if (register && boundary) {
+      registerQuickAdd = {
+        registerKey: register.registerKey,
+        registerName: register.name,
+        boundaryId: boundary.id,
+        columns: (register.requiredColumns as RegisterColumn[] | null) ?? [],
+      };
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -159,7 +204,20 @@ export default async function ArtifactDetailPage({
         </section>
       </div>
 
-      <ArtifactDetailActions artifactId={a.id} hasFile={hasFile} />
+      {registerQuickAdd && (
+        <RegisterQuickAdd
+          registerKey={registerQuickAdd.registerKey}
+          registerName={registerQuickAdd.registerName}
+          boundaryId={registerQuickAdd.boundaryId}
+          columns={registerQuickAdd.columns}
+        />
+      )}
+
+      <ArtifactDetailActions
+        artifactId={a.id}
+        hasFile={hasFile}
+        secondary={Boolean(registerQuickAdd)}
+      />
 
       <section className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--color-text-muted)]">

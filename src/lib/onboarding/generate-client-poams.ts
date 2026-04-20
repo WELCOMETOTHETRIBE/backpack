@@ -12,12 +12,14 @@ import {
   type ControlClientArtifacts,
 } from "@/data/cmmc/client-required-artifacts";
 import { createPlaceholderArtifact } from "@/lib/artifacts/placeholder";
+import { refreshPlaceholderMetadata } from "@/lib/artifacts/backfill";
 
 export type GenerateClientPoamsResult = {
   created: number;
   skipped: number;
   totalMilestones: number;
   placeholdersCreated: number;
+  placeholdersRefreshed: number;
 };
 
 const CLOSURE_LABEL: Record<ClientArtifactMilestone["closureType"], string> = {
@@ -165,5 +167,15 @@ export async function generateClientRequiredPoams(
     created++;
   }
 
-  return { created, skipped, totalMilestones, placeholdersCreated };
+  // Align pre-existing placeholders with the current catalog. Safe to run
+  // even when no new placeholders were created — idempotent metadata sync.
+  const refresh = await refreshPlaceholderMetadata(orgId);
+
+  return {
+    created,
+    skipped,
+    totalMilestones,
+    placeholdersCreated,
+    placeholdersRefreshed: refresh.updated,
+  };
 }

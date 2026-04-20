@@ -121,12 +121,14 @@ export async function POST(req: Request) {
       .limit(1);
 
     if (!existingBoundary) {
-      const orgName = body.name?.trim() || "Organization";
+      // MacTech Vault is the only supported enclave. Every org gets exactly
+      // one boundary, created silently — no user input needed.
       await db.insert(boundaries).values({
         organizationId: orgId,
-        name: `${orgName} CUI Enclave`,
-        description: "Primary CUI processing boundary created during onboarding.",
-        scopeComponents: selectedTechnologies.length > 0 ? selectedTechnologies : null,
+        name: "MacTech CUI Vault",
+        description:
+          "Primary CUI processing boundary. Runs on MacTech's Azure Government / FedRAMP High enclave; managed by MacTech.",
+        scopeComponents: ["mactech_vault_azure_gov"],
         boundaryType: "cui_enclave",
       });
     }

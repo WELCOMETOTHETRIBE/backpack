@@ -203,9 +203,15 @@ export const CLIENT_REQUIRED_ARTIFACTS: ControlClientArtifacts[] = [
     milestones: [
       M(
         "AC.3.1.5.privileged_user_list",
-        "Upload privileged user list with written justification per account",
-        "For every privileged account (local admin, domain admin, security admin, DB admin, etc.) provide the user, business justification, and approving official.",
-        { evidenceType: "roster", cadence: "quarterly", dueOffsetDays: 30 }
+        "Maintain the Privileged User Register",
+        "For every privileged account (local admin, domain admin, security admin, DB admin, etc.) add an entry with the user, business justification, and approving official. Finalize the entry to satisfy the control.",
+        {
+          closureType: "register_pointer",
+          evidenceType: "roster",
+          cadence: "quarterly",
+          dueOffsetDays: 30,
+          registerKey: "privileged_user_list",
+        }
       ),
       M(
         "AC.3.1.5.privileged_review",
@@ -273,9 +279,15 @@ export const CLIENT_REQUIRED_ARTIFACTS: ControlClientArtifacts[] = [
     milestones: [
       M(
         "AC.3.1.12.remote_access_auth",
-        "Upload remote access authorization list (per user, with approver)",
-        "Every user permitted to remote into CUI systems must have a signed authorization on file with approver and date.",
-        { evidenceType: "roster", cadence: "annual", dueOffsetDays: 45 }
+        "Maintain the Remote Access Authorization Register",
+        "Every user permitted to remote into CUI systems must have an entry with access type, approver, approval date, and expiration. Finalize each entry.",
+        {
+          closureType: "register_pointer",
+          evidenceType: "roster",
+          cadence: "annual",
+          dueOffsetDays: 45,
+          registerKey: "remote_access_authorization",
+        }
       ),
     ],
   },
@@ -315,9 +327,15 @@ export const CLIENT_REQUIRED_ARTIFACTS: ControlClientArtifacts[] = [
     milestones: [
       M(
         "AC.3.1.15.privileged_remote_auth",
-        "Upload remote privileged-command authorization list",
-        "Per-user authorization to execute privileged commands remotely, with approver, scope, and expiration.",
-        { evidenceType: "roster", cadence: "annual", dueOffsetDays: 60 }
+        "Maintain the Remote Access Authorization Register for privileged commands",
+        "Per-user authorization to execute privileged commands remotely, with approver, access type (privileged), approval date, and expiration. Finalize each entry.",
+        {
+          closureType: "register_pointer",
+          evidenceType: "roster",
+          cadence: "annual",
+          dueOffsetDays: 60,
+          registerKey: "remote_access_authorization",
+        }
       ),
     ],
   },
@@ -329,9 +347,15 @@ export const CLIENT_REQUIRED_ARTIFACTS: ControlClientArtifacts[] = [
     milestones: [
       M(
         "AC.3.1.16.wireless_ssid_auth",
-        "Upload wireless device / SSID authorization list (or signed 'no wireless in scope' attestation)",
-        "If wireless is in scope, list every approved SSID and its purpose. If not, upload a signed attestation that no wireless network is used for CUI.",
-        { evidenceType: "roster", cadence: "annual", dueOffsetDays: 45 }
+        "Maintain the Wireless SSID Register (or leave empty if no wireless in scope)",
+        "If wireless is in scope, add every approved SSID with purpose, authentication method, and approver. If wireless is not in scope, leaving the register empty is acceptable evidence that no wireless is authorized.",
+        {
+          closureType: "register_pointer",
+          evidenceType: "roster",
+          cadence: "annual",
+          dueOffsetDays: 45,
+          registerKey: "wireless_ssid_authorization",
+        }
       ),
     ],
   },
@@ -357,9 +381,15 @@ export const CLIENT_REQUIRED_ARTIFACTS: ControlClientArtifacts[] = [
     milestones: [
       M(
         "AC.3.1.18.mobile_auth_list",
-        "Upload mobile device authorization list",
-        "Every mobile device (phone, tablet) authorized to touch CUI must appear on this list with user, device model, OS, MDM enrollment date.",
-        { evidenceType: "roster", cadence: "quarterly", dueOffsetDays: 45 }
+        "Maintain the Mobile Device Register",
+        "Every mobile device (phone, tablet) authorized to touch CUI must have an entry with user, device model, OS version, MDM enrollment date, and approver. Finalize each entry.",
+        {
+          closureType: "register_pointer",
+          evidenceType: "roster",
+          cadence: "quarterly",
+          dueOffsetDays: 45,
+          registerKey: "mobile_device_authorization",
+        }
       ),
     ],
   },
@@ -385,9 +415,15 @@ export const CLIENT_REQUIRED_ARTIFACTS: ControlClientArtifacts[] = [
     milestones: [
       M(
         "AC.3.1.20.external_connections",
-        "Upload external system connection authorizations and ISAs",
-        "Every authorized external connection (vendor, partner, customer) must have a signed ISA/MOU on file.",
-        { evidenceType: "attestation_letter", cadence: "annual", dueOffsetDays: 75 }
+        "Maintain the External System Connections / ISA Register",
+        "Every authorized external connection (vendor, partner, customer) must have an entry with partner org, system name, ISA signed date, ISA expiration, and approver. Finalize each entry.",
+        {
+          closureType: "register_pointer",
+          evidenceType: "roster",
+          cadence: "annual",
+          dueOffsetDays: 75,
+          registerKey: "external_system_connections",
+        }
       ),
     ],
   },
@@ -399,9 +435,15 @@ export const CLIENT_REQUIRED_ARTIFACTS: ControlClientArtifacts[] = [
     milestones: [
       M(
         "AC.3.1.21.portable_storage_auth",
-        "Upload portable storage authorization list (or 'no portable storage' attestation)",
-        "List of users authorized to use portable storage with CUI and the devices assigned, or signed 'prohibited' attestation.",
-        { evidenceType: "roster", cadence: "annual", dueOffsetDays: 60 }
+        "Maintain the Portable Storage Register (or leave empty if prohibited)",
+        "Add every user authorized to use portable storage with CUI, their media type, device serial, and approver. Leaving the register empty is valid evidence that portable storage is prohibited.",
+        {
+          closureType: "register_pointer",
+          evidenceType: "roster",
+          cadence: "annual",
+          dueOffsetDays: 60,
+          registerKey: "portable_storage_authorization",
+        }
       ),
     ],
   },
@@ -665,9 +707,15 @@ export const CLIENT_REQUIRED_ARTIFACTS: ControlClientArtifacts[] = [
     milestones: [
       M(
         "IA.3.5.3.mfa_roster",
-        "Upload MFA enrollment roster (every user, every account)",
-        "IdP export listing each user and MFA factor registered. Privileged accounts must show phishing-resistant factor.",
-        { evidenceType: "roster", cadence: "quarterly", dueOffsetDays: 30 }
+        "Maintain the MFA Enrollment Register",
+        "Add an entry per user/account with the MFA factor and enrollment date. Privileged accounts must show phishing_resistant = true. Finalize each entry.",
+        {
+          closureType: "register_pointer",
+          evidenceType: "roster",
+          cadence: "quarterly",
+          dueOffsetDays: 30,
+          registerKey: "mfa_enrollment_roster",
+        }
       ),
     ],
   },
@@ -680,9 +728,15 @@ export const CLIENT_REQUIRED_ARTIFACTS: ControlClientArtifacts[] = [
     milestones: [
       M(
         "IA.3.5.5.service_account_inventory",
-        "Upload service/system account inventory with owner assignments",
-        "Every service account with owner, purpose, rotation schedule, and last rotation date.",
-        { evidenceType: "roster", cadence: "quarterly", dueOffsetDays: 60 }
+        "Maintain the Service Account Register",
+        "Every service/system account with owner, purpose, rotation cadence (days), and last-rotated date. Finalize each entry.",
+        {
+          closureType: "register_pointer",
+          evidenceType: "roster",
+          cadence: "quarterly",
+          dueOffsetDays: 60,
+          registerKey: "service_account_inventory",
+        }
       ),
     ],
   },
@@ -926,9 +980,15 @@ export const CLIENT_REQUIRED_ARTIFACTS: ControlClientArtifacts[] = [
     milestones: [
       M(
         "MP.3.8.7.removable_media_auth",
-        "Upload removable media authorization list (users + media types)",
-        "Explicit allow-list of users and media types. If removable media is prohibited, upload signed attestation instead.",
-        { evidenceType: "roster", cadence: "annual", dueOffsetDays: 45 }
+        "Maintain the Portable Storage Register (or leave empty if prohibited)",
+        "Every user authorized to use removable media with CUI needs an entry. Leaving the register empty is valid evidence that removable media is prohibited.",
+        {
+          closureType: "register_pointer",
+          evidenceType: "roster",
+          cadence: "annual",
+          dueOffsetDays: 45,
+          registerKey: "portable_storage_authorization",
+        }
       ),
     ],
   },
