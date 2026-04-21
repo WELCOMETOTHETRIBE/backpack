@@ -14,8 +14,8 @@ import { controlRecords, governanceRegisters, governanceRegisterEntries, boundar
 import { eq, and, sql } from "drizzle-orm";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
-import { getCertificationJourney } from "@/lib/certification-journey";
-import { CertificationJourneyWidget } from "../DashboardSetupWidget";
+import { buildReadinessChecklist } from "@/lib/readiness/checklist";
+import { ReadinessChecklist } from "./ReadinessChecklist";
 
 const cardClass = "rounded-xl border border-slate-200 bg-white p-6 shadow-sm";
 
@@ -51,7 +51,7 @@ export default async function ReadinessPage() {
   if (!orgId) redirect("/auth/signin");
 
   const sprsScore = await getSprsScore(orgId);
-  const journey = await getCertificationJourney(orgId);
+  const checklist = await buildReadinessChecklist(orgId);
 
   const records = await db
     .select({
@@ -132,11 +132,9 @@ export default async function ReadinessPage() {
         </p>
       </div>
 
-      {journey.onboardingStarted && (
-        <div className="mb-6">
-          <CertificationJourneyWidget stages={journey.stages} />
-        </div>
-      )}
+      <div className="mb-6">
+        <ReadinessChecklist data={checklist} />
+      </div>
 
       {/* SPRS scoring: progress bar + score + range + priority distribution */}
       <div className={`mb-6 ${cardClass}`}>

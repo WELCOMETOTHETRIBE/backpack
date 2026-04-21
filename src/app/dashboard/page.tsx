@@ -26,15 +26,11 @@ import { eq, and, desc, lt, sql } from "drizzle-orm";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { sprsScoringData, SPRS_MAX } from "@/lib/sprs";
 import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
+import { boundaries, governanceDocuments } from "@/db/schema";
 import {
-  boundaries,
-  governanceDocuments,
-  governanceRegisters,
-  governanceRegisterEntries,
-  artifacts,
-  governanceArtifactCompletions,
-} from "@/db/schema";
-import { inArray } from "drizzle-orm";
+  computeAdjudicationContext,
+  isControlAdjudicated,
+} from "@/lib/adjudication-helpers";
 import {
   Shield,
   FileStack,
@@ -173,123 +169,16 @@ export default async function DashboardPage() {
     .from(controlRecords)
     .where(eq(controlRecords.organizationId, orgId));
 
-  // ── Operational evidence signals (per control) ────────────────────────────
-  // A control counts as adjudicated (C3PAO "MET") only when its status is
-  // terminal AND — for `implemented`/`assessed` specifically — at least one
-  // form of operational evidence exists. Three evidence channels:
-  //
-  //   1. Register entries    — ≥1 finalized entry in the register the control
-  //                            maps to via CONTROL_INTELLIGENCE.registerSchemaId
-  //   2. Uploaded artifact   — an artifacts row with a file attached
-  //   3. Attestation record  — a governance_artifact_completions row of type
-  //                            ATTESTATION, REFERENCE, or SYSTEM_POINTER
-  //
-  // `inherited` and `not_applicable` dispositions count automatically — the
-  // vendor SRM / the N/A justification IS the evidence.
+  // Operational evidence signals (per control) + CMMC-rigorous adjudication
+  // logic live in src/lib/adjudication-helpers.ts — shared with the readiness
+  // checklist.
+  const adjCtx = await computeAdjudicationContext(
+    orgId,
+    records.map((r) => r.id)
+  );
 
-  const intelMap = new Map(CONTROL_INTELLIGENCE.map((c) => [c.controlId, c]));
-  const controlRecordIds = records.map((r) => r.id);
-
-  // 1. Register final-entry counts by registerKey (current org, any boundary)
-  const orgBoundariesForEvidence = await db
-    .select({ id: boundaries.id })
-    .from(boundaries)
-    .where(eq(boundaries.organizationId, orgId));
-  const evidenceBoundaryIds = orgBoundariesForEvidence.map((b) => b.id);
-
-  const registerFinalCounts = new Map<string, number>();
-  if (evidenceBoundaryIds.length > 0) {
-    const rows = await db
-      .select({
-        registerKey: governanceRegisters.registerKey,
-        cnt: sql<number>`count(${governanceRegisterEntries.id})::int`,
-      })
-      .from(governanceRegisters)
-      .leftJoin(
-        governanceRegisterEntries,
-        and(
-          eq(governanceRegisterEntries.registerId, governanceRegisters.id),
-          eq(governanceRegisterEntries.status, "final"),
-          inArray(governanceRegisterEntries.boundaryId, evidenceBoundaryIds)
-        )
-      )
-      .where(eq(governanceRegisters.organizationId, orgId))
-      .groupBy(governanceRegisters.registerKey);
-    for (const r of rows) registerFinalCounts.set(r.registerKey, Number(r.cnt) || 0);
-  }
-
-  // 2. Artifact-backed controls (have a file attached)
-  const artifactBackedRecordIds = new Set<string>();
-  if (controlRecordIds.length > 0) {
-    const rows = await db
-      .select({ controlRecordId: artifacts.controlRecordId })
-      .from(artifacts)
-      .where(
-        and(
-          eq(artifacts.organizationId, orgId),
-          inArray(artifacts.controlRecordId, controlRecordIds),
-          sql`${artifacts.fileUrl} IS NOT NULL`,
-          sql`${artifacts.status} NOT IN ('awaiting_upload','expired','superseded')`
-        )
-      );
-    for (const r of rows) artifactBackedRecordIds.add(r.controlRecordId);
-  }
-
-  // 3. Attestation-backed controls (reference / attestation / system pointer)
-  const attestationBackedRecordIds = new Set<string>();
-  if (controlRecordIds.length > 0) {
-    const rows = await db
-      .select({ controlRecordId: governanceArtifactCompletions.controlRecordId })
-      .from(governanceArtifactCompletions)
-      .where(
-        and(
-          eq(governanceArtifactCompletions.organizationId, orgId),
-          inArray(governanceArtifactCompletions.controlRecordId, controlRecordIds)
-        )
-      );
-    for (const r of rows) attestationBackedRecordIds.add(r.controlRecordId);
-  }
-
-  function hasOperationalEvidence(r: (typeof records)[0]): boolean {
-    // Register lane
-    const intel = intelMap.get(r.controlId);
-    if (intel?.registerSchemaId) {
-      if ((registerFinalCounts.get(intel.registerSchemaId) ?? 0) > 0) return true;
-    }
-    // Artifact lane
-    if (artifactBackedRecordIds.has(r.id)) return true;
-    // Attestation lane
-    if (attestationBackedRecordIds.has(r.id)) return true;
-    return false;
-  }
-
-  /**
-   * A control counts as adjudicated if:
-   *   • status is `inherited`   — vendor SRM is the evidence (automatic)
-   *   • status is `not_applicable` — N/A justification is the evidence (automatic)
-   *   • status is `implemented` or `assessed` AND operational evidence exists
-   *     in at least one of the three lanes above.
-   *
-   * Hybrid controls (policyDocRequired=true) additionally need both technical
-   * and policy lanes satisfied — we keep that tighter check.
-   *
-   * A pure policy-doc upload is not sufficient on its own: a C3PAO needs
-   * examinable operational evidence, not just documented intent.
-   */
   function isFullyAdjudicated(r: (typeof records)[0]): boolean {
-    if (r.implementationStatus === "inherited") return true;
-    if (r.implementationStatus === "not_applicable") return true;
-    if (r.implementationStatus === "implemented" || r.implementationStatus === "assessed") {
-      if (r.policyDocRequired) {
-        return (
-          r.technicalStatus === "satisfied" &&
-          r.policyStatus === "satisfied" &&
-          hasOperationalEvidence(r)
-        );
-      }
-      return hasOperationalEvidence(r);
-    }
-    return false;
+    return isControlAdjudicated(r, adjCtx);
   }
 
   const adjudicatedCount = records.filter(isFullyAdjudicated).length;
