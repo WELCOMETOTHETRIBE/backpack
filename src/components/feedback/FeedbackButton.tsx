@@ -22,19 +22,23 @@ export default function FeedbackButton({
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedElement, setSelectedElement] = useState<ElementPinpointData | null>(null)
 
-  // Keyboard shortcut: Shift+F
+  // Keyboard shortcut: Shift+F activates the "Pinpoint an element" selector
+  // directly. Pressing it again while selecting cancels; ignored while the
+  // feedback modal is open.
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.shiftKey && e.key === 'F' && !e.ctrlKey && !e.metaKey && !e.altKey) {
         const tag = (e.target as HTMLElement).tagName
         if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
         e.preventDefault()
+        if (isModalOpen) return
         if (isSelectionMode) {
           setIsSelectionMode(false)
-        } else if (isModalOpen) {
-          // do nothing
+          setSelectedElement(null)
         } else {
-          setMenuOpen((prev) => !prev)
+          setMenuOpen(false)
+          setSelectedElement(null)
+          setIsSelectionMode(true)
         }
       }
     }
@@ -97,7 +101,7 @@ export default function FeedbackButton({
           onClick={() => setMenuOpen((prev) => !prev)}
           className={`${fabBase} bg-indigo-600 ring-indigo-700/30 hover:bg-indigo-700 text-white ${className ?? ''}`}
           aria-label="Feedback"
-          title="Submit feedback (Shift+F)"
+          title="Submit feedback (Shift+F to pinpoint an element)"
         >
           <MessageSquare className="h-5 w-5" />
         </button>
@@ -134,7 +138,7 @@ export default function FeedbackButton({
               <span>Pinpoint an element</span>
             </button>
             <div className="px-4 pb-2.5 pt-1">
-              <p className="text-[10px] text-neutral-400">Shift+F to toggle</p>
+              <p className="text-[10px] text-neutral-400">Shift+F to pinpoint</p>
             </div>
           </div>
         </>
