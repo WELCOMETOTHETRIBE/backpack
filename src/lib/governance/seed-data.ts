@@ -143,6 +143,9 @@ export const REGISTER_KEYS = [
   "remote_access_authorization",
   "portable_storage_authorization",
   "external_system_connections",
+  // Finding/remediation registers (referenced by CONTROL_INTELLIGENCE):
+  "vuln_remediation",
+  "assessment_findings",
 ] as const;
 
 export type RegisterColumn = { key: string; label: string; type: string };
@@ -175,4 +178,9 @@ export const REGISTER_DEFINITIONS: { registerKey: string; name: string; descript
   { registerKey: "remote_access_authorization", name: "Remote Access Authorization Register", description: "Per-user remote access authorizations with expiration (AC 3.1.12, 3.1.13, 3.1.14, 3.1.15).", requiredColumns: [{ key: "user", label: "User", type: "string" }, { key: "access_type", label: "Access Type", type: "string" }, { key: "approver", label: "Approver", type: "string" }, { key: "approved_date", label: "Approved Date", type: "date" }, { key: "expires_date", label: "Expires Date", type: "date" }], retainForDays: 365 * 3 },
   { registerKey: "portable_storage_authorization", name: "Portable Storage Register", description: "Users authorized to use portable storage with CUI; empty register = prohibited (AC 3.1.21, MP 3.8.7, 3.8.8).", requiredColumns: [{ key: "user", label: "User", type: "string" }, { key: "media_type", label: "Media Type", type: "string" }, { key: "device_serial", label: "Device Serial", type: "string" }, { key: "approved_by", label: "Approved By", type: "string" }, { key: "approved_date", label: "Approved Date", type: "date" }], retainForDays: 365 * 3 },
   { registerKey: "external_system_connections", name: "External System Connections / ISA Register", description: "Authorized external connections with ISA/MOU dates (AC 3.1.20, CA 3.12.5).", requiredColumns: [{ key: "partner_org", label: "Partner Organization", type: "string" }, { key: "system_name", label: "System Name", type: "string" }, { key: "isa_signed_date", label: "ISA Signed Date", type: "date" }, { key: "isa_expires_date", label: "ISA Expires Date", type: "date" }, { key: "approved_by", label: "Approved By", type: "string" }], retainForDays: 365 * 5 },
+  // ── Finding / remediation registers ──────────────────────────────────────
+  // Paired to controls that require ongoing remediation tracking or recorded
+  // assessment findings rather than a simple roster.
+  { registerKey: "vuln_remediation", name: "Vulnerability Remediation Register", description: "Tracks vulnerabilities and remediation status with SLAs (CM 3.4.4 security impact analysis, SI 3.14.1 flaw remediation, RA 3.11.3 scan findings).", requiredColumns: [{ key: "finding", label: "Finding", type: "string" }, { key: "source", label: "Source", type: "string" }, { key: "severity", label: "Severity", type: "string" }, { key: "identified_date", label: "Identified Date", type: "date" }, { key: "target_date", label: "Target Resolution Date", type: "date" }, { key: "remediation", label: "Remediation", type: "string" }, { key: "resolved_date", label: "Resolved Date", type: "date" }], retainForDays: 365 * 3 },
+  { registerKey: "assessment_findings", name: "Assessment Findings Register", description: "Records self-assessment and assessor findings per control (CA 3.12.1).", requiredColumns: [{ key: "control_id", label: "Control ID", type: "string" }, { key: "finding", label: "Finding", type: "string" }, { key: "status", label: "Status", type: "string" }, { key: "assessment_date", label: "Assessment Date", type: "date" }, { key: "assessor", label: "Assessor", type: "string" }, { key: "remediation", label: "Remediation", type: "string" }], retainForDays: 365 * 3 },
 ];

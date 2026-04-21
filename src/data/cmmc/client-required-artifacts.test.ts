@@ -4,6 +4,7 @@ import {
   CLIENT_ARTIFACTS_BY_CONTROL_ID,
   POAM_ELIGIBLE_CONTROLS,
 } from "./client-required-artifacts";
+import { CONTROL_INTELLIGENCE } from "./control-intelligence";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { REGISTER_KEYS, REGISTER_DEFINITIONS } from "@/lib/governance/seed-data";
 
@@ -92,6 +93,21 @@ describe("client-required-artifacts catalog", () => {
         }
       }
     }
+  });
+
+  it("every CONTROL_INTELLIGENCE.registerSchemaId resolves to an actual register key", () => {
+    const defined = new Set<string>(REGISTER_KEYS);
+    const unresolved: string[] = [];
+    for (const intel of CONTROL_INTELLIGENCE) {
+      if (!intel.registerSchemaId) continue;
+      if (!defined.has(intel.registerSchemaId)) {
+        unresolved.push(`${intel.controlId} → "${intel.registerSchemaId}"`);
+      }
+    }
+    expect(
+      unresolved,
+      `Control-intelligence references registers that don't exist in REGISTER_KEYS:\n  ${unresolved.join("\n  ")}`
+    ).toEqual([]);
   });
 
   it("REGISTER_KEYS and REGISTER_DEFINITIONS are in sync", () => {
