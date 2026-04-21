@@ -23,6 +23,7 @@
     "db:apply-governance": "tsx src/scripts/apply-governance-migration.ts",
     "parse-controls": "tsx src/scripts/parse-controls-from-guide.ts",
     "seed-controls-from-json": "tsx src/scripts/seed-controls-from-parsed-json.ts",
+    "reset-org": "tsx src/scripts/reset-org-to-onboarding.ts",
     "fix-control-titles": "tsx src/scripts/fix-control-titles.ts",
     "validate-os-evidence-manifest": "tsx src/scripts/validate-os-evidence-manifest.ts",
     "validate-satisfaction-sources": "tsx src/scripts/validate-satisfaction-sources.ts",
