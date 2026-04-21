@@ -55,12 +55,25 @@ ALTER TABLE "feedback"
   ADD COLUMN IF NOT EXISTS "resolution_files"       JSONB;
 ```
 
-## Step 5 — Commit and report
+## Step 5 — Commit and push to main
 
-Commit all changes with a message referencing the feedback ID(s). Summarize what was done for each feedback item.
+Commit all changes with a message referencing the feedback ID(s), then push directly to `origin/main`:
+
+```
+git add -A
+git commit -m "<message referencing feedback IDs>"
+git push origin main
+```
+
+Do **not** create a branch. Do **not** open a pull request. Every feedback-incorporation run lands directly on `main` so Railway picks it up on the next deploy.
+
+If `git push origin main` is rejected because remote `main` has moved ahead, do `git pull --rebase origin main`, resolve any conflicts, then retry the push. Never use `--force`.
+
+Summarize what was done for each feedback item in the final response.
 
 ## Rules
-- Do not push to remote unless explicitly asked.
+- **Always push directly to `origin/main`** — never create branches or PRs for feedback runs.
+- Never use `git push --force` or `--force-with-lease` against `main`.
 - If a feedback item requires a large architectural change or is unclear, present options and ask before implementing.
-- Always type-check before considering an item complete.
+- Always type-check (`npx tsc --noEmit`) before committing.
 - One commit per feedback item, or a single commit if items are closely related.

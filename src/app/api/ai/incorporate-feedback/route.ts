@@ -107,6 +107,12 @@ export async function POST() {
     `  POST ${shimBase}/api/agent/run/${run.id}/complete     → mark done/error + resolutions`,
     ``,
     `Every call must send header: x-agent-secret: $AGENT_SHIM_SECRET (from cloud env).`,
+    ``,
+    `## Git workflow — IMPORTANT`,
+    `Always commit and push DIRECTLY to origin/main. Never create a branch.`,
+    `Never open a pull request. Never use --force or --force-with-lease.`,
+    `If push is rejected, run "git pull --rebase origin main", resolve conflicts,`,
+    `then retry the push. Railway redeploys automatically when main moves.`,
   ].join('\n')
 
   try {

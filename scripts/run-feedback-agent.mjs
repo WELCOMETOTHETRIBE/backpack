@@ -20,7 +20,8 @@ const GITHUB_TOKEN = process.env.GITHUB_TOKEN
 const DATABASE_URL = process.env.DATABASE_URL || process.env.DATABASE_PUBLIC_URL
 const ORG_ID = process.env.ORG_ID // optional — fetches all orgs if not set
 const GITHUB_REPO = process.env.GITHUB_REPO || 'WELCOMETOTHETRIBE/CMMC'
-const GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'main'
+// Always commit feedback runs directly to main. Never branch, never PR.
+const GITHUB_BRANCH = 'main'
 
 if (!ANTHROPIC_API_KEY) { console.error('ANTHROPIC_API_KEY is required'); process.exit(1) }
 if (!GITHUB_TOKEN)       { console.error('GITHUB_TOKEN is required'); process.exit(1) }
