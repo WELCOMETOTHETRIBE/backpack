@@ -170,21 +170,52 @@ export default function FeedbackModal({
             {elementData && (
               <div className="flex items-start gap-3 rounded-xl bg-indigo-50 border border-indigo-200 px-3 py-2.5">
                 <Target className="mt-0.5 h-4 w-4 shrink-0 text-indigo-500" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-indigo-800 mb-0.5">Pinned element</p>
-                  <div className="text-xs text-indigo-700 space-y-0.5">
+                <div className="flex-1 min-w-0 space-y-1">
+                  <p className="text-xs font-semibold text-indigo-800">Pinned element</p>
+
+                  {/* Page + breadcrumb */}
+                  {(elementData.pagePath || elementData.pageTitle) && (
+                    <p className="text-[11px] text-indigo-700">
+                      <span className="font-medium">Page:</span>{' '}
+                      {elementData.pageTitle ? (
+                        <span>
+                          <span className="font-mono">{elementData.pagePath}</span>
+                          <span className="text-indigo-500"> — {elementData.pageTitle}</span>
+                        </span>
+                      ) : (
+                        <span className="font-mono">{elementData.pagePath}</span>
+                      )}
+                    </p>
+                  )}
+                  {elementData.sectionTrail && elementData.sectionTrail.length > 0 && (
+                    <p className="text-[11px] text-indigo-700">
+                      <span className="font-medium">Section:</span>{' '}
+                      {elementData.sectionTrail.join(' › ')}
+                    </p>
+                  )}
+
+                  {/* Element tag + accessible name + own text */}
+                  <div className="text-[11px] text-indigo-700">
+                    <span className="font-medium">Element:</span>{' '}
                     {elementData.elementType && (
-                      <span className="mr-2 font-mono">&lt;{elementData.elementType}&gt;</span>
-                    )}
-                    {elementData.elementText && (
-                      <span className="text-indigo-600">
-                        "{elementData.elementText.length > 40
-                          ? elementData.elementText.substring(0, 40) + '…'
-                          : elementData.elementText}"
+                      <span className="mr-1 font-mono">
+                        &lt;{elementData.elementType}
+                        {elementData.role ? ` role="${elementData.role}"` : ''}
+                        {elementData.ariaLabel ? ` aria-label="${elementData.ariaLabel}"` : ''}
+                        &gt;
                       </span>
                     )}
-                    <p className="font-mono text-indigo-500 break-all text-[10px] mt-0.5">{elementData.selector}</p>
+                    {elementData.ownText && (
+                      <span className="text-indigo-600">
+                        "{elementData.ownText.length > 80
+                          ? elementData.ownText.substring(0, 80) + '…'
+                          : elementData.ownText}"
+                      </span>
+                    )}
                   </div>
+
+                  {/* Raw selector — mechanical debug aid */}
+                  <p className="font-mono text-indigo-500 break-all text-[10px]">{elementData.selector}</p>
                 </div>
                 <button
                   onClick={() => setElementData(null)}
