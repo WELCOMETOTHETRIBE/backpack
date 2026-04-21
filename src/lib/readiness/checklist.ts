@@ -5,12 +5,14 @@ import {
   trustCodexAcceptances,
   controlAdjudications,
   governanceDocuments,
+  governanceRegisters,
+  governanceRegisterEntries,
   artifacts,
   governanceArtifactCompletions,
 } from "@/db/schema";
-import { and, eq, isNotNull } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { GOVERNANCE_DOCUMENT_MATRIX } from "@/lib/governance/governance-document-matrix";
-import { getComplianceRegisterHealth, REGISTER_DISPLAY_NAMES } from "@/lib/registers/compliance-health";
+import { REGISTER_DISPLAY_NAMES } from "@/lib/registers/compliance-health";
 import { MILESTONES_BY_KEY } from "@/data/cmmc/client-required-artifacts";
 import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
 import { computeAdjudicationRollup } from "@/lib/adjudication-helpers";
@@ -198,14 +200,49 @@ async function buildGovernanceSection(orgId: string): Promise<ReadinessSection> 
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Section: Compliance Registers
+//
+// One task per register the org actually has in governance_registers — not
+// filtered through the static register_entry_schemas.v1.json catalog (which
+// only knows about ~9 legacy schemas). Iterating the live DB rows ensures
+// every register added via REGISTER_DEFINITIONS shows up.
 // ─────────────────────────────────────────────────────────────────────────────
 async function buildRegistersSection(
   orgId: string,
   registerFinalCounts: Map<string, number>
 ): Promise<ReadinessSection> {
-  const health = await getComplianceRegisterHealth(orgId);
+  // Pull every org-scoped register
+  const orgRegisters = await db
+    .select({
+      id: governanceRegisters.id,
+      registerKey: governanceRegisters.registerKey,
+      name: governanceRegisters.name,
+      controlIds: governanceRegisters.controlIds,
+    })
+    .from(governanceRegisters)
+    .where(eq(governanceRegisters.organizationId, orgId));
 
-  // Reverse index: registerKey → control IDs satisfied
+  // Any-entry counts (draft + final) per register — used to tell
+  // "in_progress" (has drafts) from "not_started".
+  const anyCounts = new Map<string, number>();
+  if (orgRegisters.length > 0) {
+    const rows = await db
+      .select({
+        registerId: governanceRegisterEntries.registerId,
+        cnt: sql<number>`count(*)::int`,
+      })
+      .from(governanceRegisterEntries)
+      .where(
+        inArray(
+          governanceRegisterEntries.registerId,
+          orgRegisters.map((r) => r.id)
+        )
+      )
+      .groupBy(governanceRegisterEntries.registerId);
+    for (const r of rows) anyCounts.set(r.registerId, Number(r.cnt) || 0);
+  }
+
+  // Reverse index: registerKey → control IDs (fallback when controlIds column
+  // is empty on a row — stays correct against current CONTROL_INTELLIGENCE).
   const registerToControls = new Map<string, string[]>();
   for (const intel of CONTROL_INTELLIGENCE) {
     if (!intel.registerSchemaId || !intel.registerRequired) continue;
@@ -214,26 +251,35 @@ async function buildRegistersSection(
     registerToControls.set(intel.registerSchemaId, arr);
   }
 
-  const tasks: ReadinessTask[] = health.map((reg) => {
+  const tasks: ReadinessTask[] = orgRegisters.map((reg) => {
     const finalCount = registerFinalCounts.get(reg.registerKey) ?? 0;
+    const anyCount = anyCounts.get(reg.id) ?? 0;
     const hasFinal = finalCount > 0;
-    const hasAny = reg.entryCount > 0;
-    const status: TaskStatus = hasFinal ? "done" : hasAny ? "in_progress" : "not_started";
+    const status: TaskStatus = hasFinal ? "done" : anyCount > 0 ? "in_progress" : "not_started";
+    const displayName = REGISTER_DISPLAY_NAMES[reg.registerKey] ?? reg.name ?? reg.registerKey;
+    // Prefer the controlIds we rebuilt into governance_registers during the
+    // backfill; fall back to the live CONTROL_INTELLIGENCE reverse index.
+    const controlIds = (reg.controlIds as string[] | null) ?? registerToControls.get(reg.registerKey) ?? [];
     return {
       id: `reg.${reg.registerKey}`,
-      label: `Populate ${reg.displayName}`,
+      label: `Populate ${displayName}`,
       description: hasFinal
         ? `${finalCount} finalized entr${finalCount === 1 ? "y" : "ies"}`
-        : hasAny
-        ? `${reg.entryCount} draft entr${reg.entryCount === 1 ? "y" : "ies"} — finalize to satisfy the control`
-        : REGISTER_DISPLAY_NAMES[reg.registerKey]
-        ? `No entries yet — add the first record to activate this register`
-        : undefined,
+        : anyCount > 0
+        ? `${anyCount} draft entr${anyCount === 1 ? "y" : "ies"} — finalize to satisfy the control${controlIds.length === 1 ? "" : "s"}`
+        : `No entries yet — add the first record to activate this register`,
       status,
-      href: reg.href,
-      satisfiesControls: registerToControls.get(reg.registerKey) ?? [],
+      href: `/dashboard/evidence-engine/registers/${reg.registerKey}`,
+      satisfiesControls: controlIds,
     };
   });
+
+  // Sort: registers that satisfy more controls first, then alphabetical.
+  tasks.sort(
+    (a, b) =>
+      b.satisfiesControls.length - a.satisfiesControls.length ||
+      a.label.localeCompare(b.label)
+  );
 
   return {
     key: "registers",
