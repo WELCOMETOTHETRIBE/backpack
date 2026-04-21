@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { governanceDocuments, governanceDocumentControlLinks } from "@/db/schema";
+import { governanceDocuments } from "@/db/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { requireOrg, requireRole } from "@/lib/auth";
 import { logGovernanceAudit } from "@/lib/governance/audit";
@@ -71,10 +71,9 @@ export async function POST(req: Request) {
     const statusRaw = typeof body.status === "string" ? body.status.toUpperCase() : "DRAFT";
     const approvalDateInput = typeof body.approvalDate === "string" ? body.approvalDate : null;
     const nextReviewInput = typeof body.nextReviewDate === "string" ? body.nextReviewDate : null;
-    const controlIds: string[] = Array.isArray(body.controlIds)
-      ? body.controlIds.filter((c: unknown): c is string => typeof c === "string" && c.trim().length > 0)
-      : [];
-
+    // controlIds from the manual add form are not persisted here — the
+    // governance_document_control_links table requires a manifest run. Manual
+    // control mapping is handled by a separate API surface.
     if (!docId?.trim() || !title?.trim() || !typeRaw) {
       return NextResponse.json({ error: "docId, title, and type are required" }, { status: 400 });
     }
@@ -134,26 +133,6 @@ export async function POST(req: Request) {
         nextReviewDate: effectiveNextReview,
       })
       .returning();
-
-    if (doc && controlIds.length > 0) {
-      for (const controlId of controlIds) {
-        await db
-          .insert(governanceDocumentControlLinks)
-          .values({
-            organizationId: orgId,
-            docCode: doc.docId,
-            controlId,
-            satisfactionType: "primary",
-          })
-          .onConflictDoNothing({
-            target: [
-              governanceDocumentControlLinks.organizationId,
-              governanceDocumentControlLinks.docCode,
-              governanceDocumentControlLinks.controlId,
-            ],
-          });
-      }
-    }
 
     await logGovernanceAudit(orgId, user.id ?? null, "governance_document_created", "governance_document", doc?.id ?? null, { docId, title });
 
