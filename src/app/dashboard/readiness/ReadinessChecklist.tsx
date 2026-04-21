@@ -78,6 +78,15 @@ function RollupCard({ rollup }: { rollup: ReadinessChecklistData["rollup"] }) {
           </div>
         ))}
       </div>
+
+      {rollup.readyExceptRegister > 0 && (
+        <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs text-amber-900">
+          <span className="font-semibold">{rollup.readyExceptRegister} control{rollup.readyExceptRegister === 1 ? " is" : "s are"} ready except for a register.</span>{" "}
+          Your OS Collector evidence covers them — the assessor still needs to
+          examine the corresponding register(s). Populate them below to flip
+          these to <em>implemented</em>.
+        </div>
+      )}
     </div>
   );
 }
@@ -100,12 +109,13 @@ function TopActions({ tasks }: { tasks: ReadinessTask[] }) {
           >
             <div>
               <div className="text-sm font-medium text-slate-900">{t.label}</div>
-              {t.satisfiesControls.length > 0 && (
-                <div className="text-xs text-slate-500 mt-0.5">
-                  Satisfies {t.satisfiesControls.length} control
-                  {t.satisfiesControls.length === 1 ? "" : "s"}
-                </div>
-              )}
+              <div className="text-xs text-slate-500 mt-0.5">
+                {(t.unblocksReady ?? 0) > 0
+                  ? `Flips ${t.unblocksReady} ready control${t.unblocksReady === 1 ? "" : "s"} to implemented`
+                  : t.satisfiesControls.length > 0
+                  ? `Satisfies ${t.satisfiesControls.length} control${t.satisfiesControls.length === 1 ? "" : "s"}`
+                  : ""}
+              </div>
             </div>
             <ArrowRight className="h-4 w-4 text-amber-600 group-hover:translate-x-0.5 transition" />
           </Link>
@@ -176,6 +186,7 @@ function TaskIcon({ status }: { status: TaskStatus }) {
 
 function TaskRow({ task }: { task: ReadinessTask }) {
   const isDone = task.status === "done";
+  const hasUnblocks = !isDone && (task.unblocksReady ?? 0) > 0;
   return (
     <li className="flex items-center gap-3 px-5 py-3 hover:bg-slate-50/70 transition">
       <TaskIcon status={task.status} />
@@ -187,7 +198,15 @@ function TaskRow({ task }: { task: ReadinessTask }) {
           <div className="text-xs text-slate-500 mt-0.5 truncate">{task.description}</div>
         )}
       </div>
-      {task.satisfiesControls.length > 0 && (
+      {hasUnblocks && (
+        <span
+          title={task.unblocksReadyIds?.join(", ") ?? ""}
+          className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900 tabular-nums"
+        >
+          unblocks {task.unblocksReady}
+        </span>
+      )}
+      {task.satisfiesControls.length > 0 && !hasUnblocks && (
         <span className="text-xs text-slate-400 tabular-nums">
           {task.satisfiesControls.length} ctrl
           {task.satisfiesControls.length === 1 ? "" : "s"}

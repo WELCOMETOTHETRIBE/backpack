@@ -41,19 +41,48 @@ export async function buildReadinessChecklist(
   // registerFinalCounts that the Registers section consumes.
   const rollup = await computeAdjudicationRollup(orgId);
 
+  // Index "ready-except-register" controls: in_progress + tech satisfied +
+  // (non-hybrid or policy satisfied) + has a registerSchemaId that isn't
+  // populated yet. Each such control becomes a tally on exactly one register
+  // via its CONTROL_INTELLIGENCE.registerSchemaId.
+  const readyByRegister = new Map<string, string[]>();
+  for (const r of rollup.records) {
+    if (r.implementationStatus !== "in_progress") continue;
+    if (r.technicalStatus !== "satisfied") continue;
+    if (r.policyDocRequired && r.policyStatus !== "satisfied") continue;
+    const intel = rollup.ctx.intelMap.get(r.controlId);
+    if (!intel?.registerSchemaId) continue;
+    // Skip if the register is already satisfied — that's not a blocker.
+    if ((rollup.ctx.registerFinalCounts.get(intel.registerSchemaId) ?? 0) > 0) continue;
+    const arr = readyByRegister.get(intel.registerSchemaId) ?? [];
+    arr.push(r.controlId);
+    readyByRegister.set(intel.registerSchemaId, arr);
+  }
+  const readyExceptRegister = [...readyByRegister.values()].reduce(
+    (s, a) => s + a.length,
+    0
+  );
+
   const sections: ReadinessSection[] = await Promise.all([
     buildSetupSection(orgId),
     buildGovernanceSection(orgId),
-    buildRegistersSection(orgId, rollup.ctx.registerFinalCounts),
+    buildRegistersSection(orgId, rollup.ctx.registerFinalCounts, readyByRegister),
     buildArtifactsSection(orgId),
     buildAttestationsSection(orgId),
   ]);
 
-  // Top 3 leverage moves: not_started tasks sorted by satisfiesControls length.
+  // Top 3 leverage moves: prefer tasks that unlock ready controls; fall back
+  // to satisfiesControls length. This promotes register-pointer tasks that
+  // would immediately flip controls to implemented.
   const allTasks = sections.flatMap((s) => s.tasks);
   const topActions = allTasks
     .filter((t) => t.status === "not_started")
-    .sort((a, b) => b.satisfiesControls.length - a.satisfiesControls.length)
+    .sort((a, b) => {
+      const au = a.unblocksReady ?? 0;
+      const bu = b.unblocksReady ?? 0;
+      if (au !== bu) return bu - au;
+      return b.satisfiesControls.length - a.satisfiesControls.length;
+    })
     .slice(0, 3);
 
   return {
@@ -64,6 +93,7 @@ export async function buildReadinessChecklist(
       implementedEvidenced: rollup.implementedEvidenced,
       outstanding: rollup.outstanding,
       total: rollup.total,
+      readyExceptRegister,
     },
     topActions,
   };
@@ -208,7 +238,8 @@ async function buildGovernanceSection(orgId: string): Promise<ReadinessSection> 
 // ─────────────────────────────────────────────────────────────────────────────
 async function buildRegistersSection(
   orgId: string,
-  registerFinalCounts: Map<string, number>
+  registerFinalCounts: Map<string, number>,
+  readyByRegister: Map<string, string[]>
 ): Promise<ReadinessSection> {
   // Pull every org-scoped register
   const orgRegisters = await db
@@ -257,26 +288,35 @@ async function buildRegistersSection(
     const hasFinal = finalCount > 0;
     const status: TaskStatus = hasFinal ? "done" : anyCount > 0 ? "in_progress" : "not_started";
     const displayName = REGISTER_DISPLAY_NAMES[reg.registerKey] ?? reg.name ?? reg.registerKey;
-    // Prefer the controlIds we rebuilt into governance_registers during the
-    // backfill; fall back to the live CONTROL_INTELLIGENCE reverse index.
     const controlIds = (reg.controlIds as string[] | null) ?? registerToControls.get(reg.registerKey) ?? [];
+    const readyIds = readyByRegister.get(reg.registerKey) ?? [];
+    const unblocks = readyIds.length;
+    const baseDescription = hasFinal
+      ? `${finalCount} finalized entr${finalCount === 1 ? "y" : "ies"}`
+      : anyCount > 0
+      ? `${anyCount} draft entr${anyCount === 1 ? "y" : "ies"} — finalize to satisfy the control${controlIds.length === 1 ? "" : "s"}`
+      : `No entries yet — add the first record to activate this register`;
+    const description =
+      !hasFinal && unblocks > 0
+        ? `${baseDescription} · unblocks ${unblocks} ready control${unblocks === 1 ? "" : "s"} (${readyIds.join(", ")})`
+        : baseDescription;
     return {
       id: `reg.${reg.registerKey}`,
       label: `Populate ${displayName}`,
-      description: hasFinal
-        ? `${finalCount} finalized entr${finalCount === 1 ? "y" : "ies"}`
-        : anyCount > 0
-        ? `${anyCount} draft entr${anyCount === 1 ? "y" : "ies"} — finalize to satisfy the control${controlIds.length === 1 ? "" : "s"}`
-        : `No entries yet — add the first record to activate this register`,
+      description,
       status,
       href: `/dashboard/evidence-engine/registers/${reg.registerKey}`,
       satisfiesControls: controlIds,
+      unblocksReady: unblocks || undefined,
+      unblocksReadyIds: readyIds.length > 0 ? readyIds : undefined,
     };
   });
 
-  // Sort: registers that satisfy more controls first, then alphabetical.
+  // Sort: tasks that unblock the most ready controls first (highest leverage),
+  // then by total controls satisfied, then alphabetical.
   tasks.sort(
     (a, b) =>
+      (b.unblocksReady ?? 0) - (a.unblocksReady ?? 0) ||
       b.satisfiesControls.length - a.satisfiesControls.length ||
       a.label.localeCompare(b.label)
   );

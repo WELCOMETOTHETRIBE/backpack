@@ -18,6 +18,14 @@ export type ReadinessTask = {
   satisfiesControls: string[];
   /** Progress indicator for aggregable tasks (e.g. "3/24 users in training register"). */
   progress?: { current: number; total: number };
+  /**
+   * Number of controls that are technically ready (in_progress + technical
+   * evidence present) and would flip to implemented if THIS task were
+   * completed. Used for "populate this register to unlock 5 controls" UX.
+   */
+  unblocksReady?: number;
+  /** Control IDs in the unblocksReady set (for tooltip / drill-in). */
+  unblocksReadyIds?: string[];
 };
 
 export type ReadinessSectionKey =
@@ -42,6 +50,12 @@ export type ReadinessRollup = {
   implementedEvidenced: number;
   outstanding: number;
   total: number; // always 110
+  /**
+   * Of the outstanding, how many are "ready except for a register" — i.e.
+   * in_progress with technical evidence present. Populating one register can
+   * often flip several at once; this is the most actionable sub-metric.
+   */
+  readyExceptRegister: number;
 };
 
 export type ReadinessChecklist = {
