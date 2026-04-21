@@ -994,50 +994,6 @@ export function SCTMControlDetail({
               </section>
             )}
 
-            {record.satisfiedByHybrid && hybridLabels && (
-              <section className="rounded-xl border border-teal-200 bg-teal-50/30 p-4">
-                <h3 className="text-[10px] font-bold uppercase tracking-wider text-teal-700 mb-2 flex items-center gap-1.5">
-                  <ListChecks className="h-3 w-3" />
-                  Hybrid satisfaction criteria
-                </h3>
-                <p className="text-xs text-teal-700 mb-3">Mark each criterion when satisfied.</p>
-                <div className="space-y-3">
-                  <label className="flex items-start gap-3 cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      checked={technicalSatisfied}
-                      onChange={handleTechnicalToggle}
-                      disabled={savingHybrid || isAssessor}
-                      className="h-4 w-4 mt-0.5 rounded border-teal-300 text-teal-600 focus:ring-teal-500"
-                    />
-                    <div>
-                      <span className="text-sm font-medium text-teal-900 group-hover:text-teal-800">{hybridLabels.technical}</span>
-                      {technicalSatisfied && <span className="ml-2 text-xs text-teal-600">Satisfied</span>}
-                      {enclaveEntry && enclaveEntry.evidence_files?.length > 0 && (
-                        <p className="mt-0.5 text-xs text-teal-700"><span className="font-medium">Evidence files:</span> {enclaveEntry.evidence_files.join(", ")}</p>
-                      )}
-                    </div>
-                  </label>
-                  <label className="flex items-start gap-3 cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      checked={governanceSatisfied}
-                      onChange={handleGovernanceToggle}
-                      disabled={savingHybrid || isAssessor}
-                      className="h-4 w-4 mt-0.5 rounded border-teal-300 text-teal-600 focus:ring-teal-500"
-                    />
-                    <div>
-                      <span className="text-sm font-medium text-teal-900 group-hover:text-teal-800">{hybridLabels.governance}</span>
-                      {governanceSatisfied && <span className="ml-2 text-xs text-teal-600">Satisfied</span>}
-                      {hybridArtifacts.governance.length > 0 && (
-                        <p className="mt-0.5 text-xs text-teal-700"><span className="font-medium">Required:</span> {hybridArtifacts.governance.join("; ")}</p>
-                      )}
-                    </div>
-                  </label>
-                </div>
-              </section>
-            )}
-
             {!sctmOptimized?.onboarding_tips && !sctmOptimized?.nist_guidance && !assessmentGuideSections.length && !nist?.nistDiscussionGuidance && (sctmOptimized?.objectives?.length ?? 0) === 0 && (
               <p className="text-sm text-[var(--color-gray-400)] italic py-6 text-center">No assessment guide material available for this control.</p>
             )}

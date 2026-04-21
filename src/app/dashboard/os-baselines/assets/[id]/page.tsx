@@ -185,7 +185,7 @@ export default async function AssetDetailPage({
               Evidence you upload for this system (in Technical onboarding) is used to fully adjudicate technical controls for this boundary.
             </p>
             <Link
-              href={`/dashboard/technical/upload?assetId=${asset.id}`}
+              href={`/dashboard/documents?assetId=${asset.id}`}
               className="mt-2 inline-flex items-center gap-2 text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
             >
               <Upload className="h-4 w-4" />

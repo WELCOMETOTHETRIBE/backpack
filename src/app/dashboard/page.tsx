@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/db";
 import ExportButton from "@/components/ExportButton";
 import FlowDownBanner from "@/components/FlowDownBanner";
-import { DashboardSetupWidget } from "./DashboardSetupWidget";
+import { DashboardSetupWidget, VaultSetupCTA } from "./DashboardSetupWidget";
 import {
   controlRecords,
   poamItems,
@@ -21,6 +21,7 @@ import {
   onboardingWizardState,
 } from "@/db/schema";
 import { getComplianceRegisterHealth, aggregateRegisterHealth } from "@/lib/registers/compliance-health";
+import { reconcileMacTechVaultInheritance } from "@/lib/boundary/reconcile-vault-inheritance";
 import { eq, and, desc, lt, sql } from "drizzle-orm";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { sprsScoringData, SPRS_MAX } from "@/lib/sprs";
@@ -144,6 +145,11 @@ export default async function DashboardPage() {
   const user = session?.user as { role?: string; organizationId?: string } | undefined;
   const orgId = user?.organizationId;
   if (!orgId) redirect("/auth/signin");
+
+  // Reconcile MacTech CUI Vault inheritance (Azure physical-protection
+  // controls 3.10.1–3.10.5). Safe no-op when already reconciled; corrects
+  // orgs that onboarded before the boundary captured cloud metadata.
+  await reconcileMacTechVaultInheritance(orgId);
 
   // ── Control records ──
   const records = await db
@@ -505,157 +511,8 @@ export default async function DashboardPage() {
   return (
     <div className="min-h-0">
       <div className="mx-auto max-w-5xl space-y-6">
-        <DashboardSetupWidget
-          onboardingStarted={onboardingStarted}
-          stages={[
-            {
-              key: "onboarding",
-              title: "Onboard",
-              subtitle: "Complete Vault setup and profile your organization",
-              items: [
-                {
-                  label: "Complete MacTech Vault wizard",
-                  description: "Trust Codex, CUI categories, Azure inheritance, and MacTech control coverage",
-                  done: vaultWizardCompleted,
-                  href: "/welcome",
-                },
-                {
-                  label: "Define your CUI boundary",
-                  description: "Scope your Windows Server 2025 enclave in Azure Gov and register OS assets",
-                  done: hasBoundary,
-                  href: "/dashboard/boundary",
-                },
-              ],
-            },
-            {
-              key: "foundation",
-              title: "Foundation",
-              subtitle: "Install governance artifacts and activate your evidence engine",
-              items: [
-                {
-                  label: "Upload governance documents",
-                  description: "Policies, SOPs, and plans with signed acknowledgements",
-                  done: hasGovDocs,
-                  href: "/dashboard/governance",
-                  hint: !hasGovDocs ? "Start with Access Control Policy, AT Policy, and Incident Response Plan" : undefined,
-                },
-                {
-                  label: "Activate compliance registers",
-                  description: "Populate access, training, incident, and change-management registers",
-                  done: hasAnyRegisterEntries,
-                  href: "/dashboard/evidence-engine/registers",
-                  hint: !hasAnyRegisterEntries ? "Start the Training Completion register — AT.2.056 evidence depends on it" : undefined,
-                },
-                {
-                  label: "Complete boundary scoping",
-                  description: "Mark your CUI boundary scoping as finalized for SSP generation",
-                  done: boundaryComplete,
-                  href: "/dashboard/boundary",
-                },
-              ],
-            },
-            {
-              key: "adjudication",
-              title: "Adjudicate",
-              subtitle: "Review, evidence, and implement all 110 NIST SP 800-171 controls",
-              items: [
-                {
-                  label: "Adjudicate all 110 controls",
-                  description: `${adjudicatedCount} / ${TOTAL_CONTROLS} controls fully evidenced (OS + governance + registers)`,
-                  done: adjudicatedCount === TOTAL_CONTROLS,
-                  href: "/dashboard/controls",
-                  hint: adjudicatedCount < TOTAL_CONTROLS ? `${TOTAL_CONTROLS - adjudicatedCount} controls still need evidence or adjudication` : undefined,
-                },
-                {
-                  label: "Author SSP sections",
-                  description: `${authoredSections} / 3 minimum sections authored — system description, boundary, control narratives`,
-                  done: authoredSections >= 3,
-                  href: "/dashboard/ssp",
-                },
-                {
-                  label: "Generate POA&Ms for gaps",
-                  description: newModelOpenCount > 0
-                    ? `${newModelOpenCount} open POA&M${newModelOpenCount !== 1 ? "s" : ""} — ${poamMissingMilestones} missing milestones`
-                    : "Create plans of action for every unimplemented control",
-                  done: (adjudicatedCount === TOTAL_CONTROLS) || (newModelOpenCount > 0 && poamMissingMilestones === 0),
-                  href: "/dashboard/poam",
-                  hint: poamMissingMilestones > 0 ? `Add milestones to ${poamMissingMilestones} POA&M${poamMissingMilestones !== 1 ? "s" : ""} — assessors require them` : undefined,
-                },
-              ],
-            },
-            {
-              key: "defensible",
-              title: "Defensible",
-              subtitle: "Prove evidence is current and registers are actively maintained",
-              items: [
-                {
-                  label: "Registers all current",
-                  description: registerCounts.overdue > 0
-                    ? `${registerCounts.overdue} register${registerCounts.overdue !== 1 ? "s" : ""} overdue — must be refreshed for audit defensibility`
-                    : "All compliance registers are within their cadence windows",
-                  done: registersAllCurrent,
-                  href: "/dashboard/registers",
-                  hint: registerCounts.overdue > 0 ? "Overdue registers are auditor red flags — add entries now" : undefined,
-                },
-                {
-                  label: "Training register current",
-                  description: "Annual awareness training completions logged for every role",
-                  done: trainingCurrent,
-                  href: "/dashboard/evidence-engine/registers/training_completion",
-                },
-                {
-                  label: "No evidence expiring within 30 days",
-                  description: totalExpiring > 0
-                    ? `${totalExpiring} evidence item${totalExpiring !== 1 ? "s" : ""} expiring soon — refresh before assessment`
-                    : "All evidence items are within their validity window",
-                  done: noExpiredEvidence,
-                  href: "/dashboard/evidence",
-                },
-                {
-                  label: "SPRS score ≥ 88",
-                  description: `Current SPRS score: ${sprsScore} / 110 — C3PAO target is 88+ for Level 2`,
-                  done: sprsScore >= 88,
-                  href: "/dashboard/sprs",
-                  hint: sprsScore < 88 ? `${88 - sprsScore} points to go — prioritize high-weight control gaps` : undefined,
-                },
-              ],
-            },
-            {
-              key: "certifiable",
-              title: "Certifiable",
-              subtitle: "Final review and export your C3PAO assessment package",
-              items: [
-                {
-                  label: "C3PAO readiness ≥ 90",
-                  description: `Internal readiness score: ${readinessScore} / 100`,
-                  done: readinessScore >= 90,
-                  href: "/dashboard/readiness",
-                  hint: readinessScore < 90 ? `${90 - readinessScore} points to go — review the checklist for unearned items` : undefined,
-                },
-                {
-                  label: "All controls implemented or inherited",
-                  description: `${statusBins.implemented + statusBins.inherited + statusBins.notApplicable} / ${TOTAL_CONTROLS} fully satisfied — no "not started" or "in progress" controls`,
-                  done: statusBins.outstanding === 0,
-                  href: "/dashboard/controls",
-                  hint: statusBins.outstanding > 0 ? `${statusBins.outstanding} control${statusBins.outstanding !== 1 ? "s" : ""} still in draft status — finalize before export` : undefined,
-                },
-                {
-                  label: "SSP fully authored",
-                  description: `${authoredSections} SSP section${authoredSections !== 1 ? "s" : ""} authored — export your assessment-ready SSP when complete`,
-                  done: authoredSections >= 10,
-                  href: "/dashboard/ssp",
-                },
-                {
-                  label: "Export assessment package",
-                  description: "Generate the C3PAO bundle: SSP, POA&M, SPRS report, and evidence index",
-                  done: false, // User-driven final step — never auto-complete
-                  href: "/dashboard/ssp",
-                  hint: "This is the final deliverable you hand to your C3PAO assessor",
-                },
-              ],
-            },
-          ]}
-        />
+        <DashboardSetupWidget onboardingStarted={onboardingStarted} />
+        {!onboardingStarted && <VaultSetupCTA />}
 
         {primeCount > 0 && <FlowDownBanner primeCount={primeCount} />}
 

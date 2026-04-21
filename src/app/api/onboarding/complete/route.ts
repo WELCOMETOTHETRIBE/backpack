@@ -16,6 +16,8 @@ import { eq, and, sql } from "drizzle-orm";
 import { writeAuditLog } from "@/lib/audit";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { getInheritedControls } from "@/lib/compliance";
+import { syncOrgAzureInheritedControls } from "@/lib/compliance/azure-inherited-controls";
+import { syncInheritedControls } from "@/lib/boundary/sync-inherited-controls";
 import { computeAndPersistSprsScore } from "@/lib/sprs";
 import { REGISTER_DEFINITIONS } from "@/lib/governance/seed-data";
 import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
@@ -43,7 +45,7 @@ function validEmails(emails: string[]): string[] {
 export async function POST(req: Request) {
   try {
     const orgId = await requireOrg();
-    await requireRole(["Admin"]);
+    const actor = await requireRole(["Admin"]);
 
     const body = await requestSchema.parseAsync(await req.json());
 
@@ -122,7 +124,10 @@ export async function POST(req: Request) {
 
     if (!existingBoundary) {
       // MacTech Vault is the only supported enclave. Every org gets exactly
-      // one boundary, created silently — no user input needed.
+      // one boundary, created silently — no user input needed. It runs on
+      // Azure Government, so we record cloudProvider/azureEnvironment up
+      // front — that's what enables the 3.10.x physical-protection inheritance
+      // sync immediately below.
       await db.insert(boundaries).values({
         organizationId: orgId,
         name: "MacTech CUI Vault",
@@ -130,7 +135,30 @@ export async function POST(req: Request) {
           "Primary CUI processing boundary. Runs on MacTech's Azure Government / FedRAMP High enclave; managed by MacTech.",
         scopeComponents: ["mactech_vault_azure_gov"],
         boundaryType: "cui_enclave",
+        cloudProvider: "azure",
+        azureEnvironment: "gov",
       });
+    } else {
+      // Backfill cloudProvider/azureEnvironment if they're missing so the
+      // Azure sync below can correctly mark 3.10.1–3.10.5 inherited.
+      await db
+        .update(boundaries)
+        .set({ cloudProvider: "azure", azureEnvironment: "gov", updatedAt: new Date() })
+        .where(
+          and(
+            eq(boundaries.organizationId, orgId),
+            eq(boundaries.id, existingBoundary.id),
+            sql`(${boundaries.cloudProvider} IS NULL OR ${boundaries.azureEnvironment} IS NULL)`
+          )
+        );
+    }
+
+    // Sync Azure / FedRAMP inherited controls (3.10.1–3.10.5 physical protection)
+    // and any external-service-provider inherited controls captured on the org
+    // profile. Both are safe no-ops when there's nothing to inherit.
+    await syncOrgAzureInheritedControls(db, orgId);
+    if (actor.id) {
+      await syncInheritedControls(orgId, actor.id);
     }
 
     // ── Seed governance registers eagerly ────────────────────────────────────

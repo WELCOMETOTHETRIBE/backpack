@@ -10,11 +10,11 @@ import {
   Clock,
   AlertCircle,
   Package,
-  ChevronRight,
   Calendar,
   PlusCircle,
   X,
 } from "lucide-react";
+import { ManifestBundleUploadModal } from "./ManifestBundleUploadModal";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -74,6 +74,17 @@ const STATUS_META: Record<string, { label: string; cls: string }> = {
   DRAFT: { label: "Draft", cls: "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400" },
 };
 
+function todayIso(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function addYearIso(dateIso: string): string {
+  const d = new Date(dateIso);
+  if (Number.isNaN(d.getTime())) return todayIso();
+  d.setFullYear(d.getFullYear() + 1);
+  return d.toISOString().slice(0, 10);
+}
+
 const EMPTY_FORM = {
   docId: "",
   title: "",
@@ -81,7 +92,9 @@ const EMPTY_FORM = {
   version: "1.0",
   status: "DRAFT",
   controlIds: [] as string[],
-  nextReviewDate: new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString().slice(0, 10),
+  signedDate: todayIso(),
+  nextReviewDate: addYearIso(todayIso()),
+  nextReviewEdited: false,
 };
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -96,6 +109,19 @@ function isExpiringSoon(date: string | null): boolean {
 function isOverdue(date: string | null): boolean {
   if (!date) return false;
   return new Date(date) < new Date();
+}
+
+/**
+ * Derive a Next Review date: explicit value wins; otherwise default to one year
+ * after the approval (signed) date. Returns null when neither is known.
+ */
+function effectiveNextReview(doc: Pick<GovDoc, "nextReviewDate" | "approvalDate">): string | null {
+  if (doc.nextReviewDate) return doc.nextReviewDate;
+  if (!doc.approvalDate) return null;
+  const signed = new Date(doc.approvalDate);
+  if (Number.isNaN(signed.getTime())) return null;
+  signed.setFullYear(signed.getFullYear() + 1);
+  return signed.toISOString().slice(0, 10);
 }
 
 function StatusBadge({ status }: { status: string }) {
@@ -153,6 +179,7 @@ function AddDocumentForm({
           type: form.type,
           version: form.version,
           status: form.status,
+          approvalDate: form.signedDate || null,
           nextReviewDate: form.nextReviewDate || null,
           controlIds: form.controlIds,
         }),
@@ -229,8 +256,34 @@ function AddDocumentForm({
         </div>
 
         <div>
+          <label className={labelClass}>Signed / approval date</label>
+          <input
+            type="date"
+            value={form.signedDate}
+            onChange={(e) => {
+              const next = e.target.value;
+              setForm((prev) => ({
+                ...prev,
+                signedDate: next,
+                nextReviewDate: prev.nextReviewEdited
+                  ? prev.nextReviewDate
+                  : next
+                  ? addYearIso(next)
+                  : prev.nextReviewDate,
+              }));
+            }}
+            className={inputClass}
+          />
+          <p className="mt-1 text-xs text-gray-400">Next review auto-fills to one year after the signed date.</p>
+        </div>
+        <div>
           <label className={labelClass}>Next review date</label>
-          <input type="date" value={form.nextReviewDate} onChange={(e) => setForm({ ...form, nextReviewDate: e.target.value })} className={inputClass} />
+          <input
+            type="date"
+            value={form.nextReviewDate}
+            onChange={(e) => setForm({ ...form, nextReviewDate: e.target.value, nextReviewEdited: true })}
+            className={inputClass}
+          />
         </div>
 
         <div>
@@ -300,6 +353,7 @@ function AddDocumentForm({
 export default function DocumentsClient({ initialDocs, docLinks, runs, allGovControlIds }: Props) {
   const [docs, setDocs] = useState<GovDoc[]>(initialDocs);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
   const router = useRouter();
 
   const handleDocAdded = (doc: GovDoc) => {
@@ -347,8 +401,8 @@ export default function DocumentsClient({ initialDocs, docLinks, runs, allGovCon
   const approvedCount = docs.filter((d) => d.status === "APPROVED").length;
   const submittedCount = docs.filter((d) => d.status === "SUBMITTED").length;
   const draftCount = docs.filter((d) => d.status === "DRAFT").length;
-  const reviewOverdue = docs.filter((d) => isOverdue(d.nextReviewDate));
-  const reviewSoon = docs.filter((d) => !isOverdue(d.nextReviewDate) && isExpiringSoon(d.nextReviewDate));
+  const reviewOverdue = docs.filter((d) => isOverdue(effectiveNextReview(d)));
+  const reviewSoon = docs.filter((d) => !isOverdue(effectiveNextReview(d)) && isExpiringSoon(effectiveNextReview(d)));
 
   const card = "rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm";
 
@@ -372,13 +426,14 @@ export default function DocumentsClient({ initialDocs, docLinks, runs, allGovCon
               <PlusCircle className="h-4 w-4" />
               Add manually
             </button>
-            <Link
-              href="/dashboard/technical/upload"
+            <button
+              type="button"
+              onClick={() => setShowUploadModal(true)}
               className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--color-primary-hover)]"
             >
               <Upload className="h-4 w-4" />
               Upload manifest bundle
-            </Link>
+            </button>
           </div>
         </div>
 
@@ -409,13 +464,14 @@ export default function DocumentsClient({ initialDocs, docLinks, runs, allGovCon
                 <PlusCircle className="h-4 w-4" />
                 Add document manually
               </button>
-              <Link
-                href="/dashboard/technical/upload"
+              <button
+                type="button"
+                onClick={() => setShowUploadModal(true)}
                 className="inline-flex items-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--color-primary-hover)]"
               >
                 <Upload className="h-4 w-4" />
                 Upload manifest bundle
-              </Link>
+              </button>
             </div>
             <p className="mt-4 text-xs text-[var(--color-gray-400)]">
               MacTech CUI Vault customers: use the manifest bundle upload for automatic document registration and control mapping.
@@ -453,13 +509,14 @@ export default function DocumentsClient({ initialDocs, docLinks, runs, allGovCon
                       Documents registered automatically from MacTech governance bundle uploads.
                     </p>
                   </div>
-                  <Link
-                    href="/dashboard/technical/upload"
+                  <button
+                    type="button"
+                    onClick={() => setShowUploadModal(true)}
                     className="inline-flex items-center gap-1 text-xs font-medium text-[var(--color-blue-accent)] hover:underline"
                   >
                     <Upload className="h-3.5 w-3.5" />
                     Re-ingest bundle
-                  </Link>
+                  </button>
                 </div>
                 <div className="mt-3 space-y-2">
                   {runs.map((run) => (
@@ -502,7 +559,7 @@ export default function DocumentsClient({ initialDocs, docLinks, runs, allGovCon
                       <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
                       <span className="font-mono text-xs font-semibold text-red-700 dark:text-red-400">{doc.docId}</span>
                       <span className="text-xs text-red-700 dark:text-red-400">{doc.title}</span>
-                      <span className="ml-auto text-xs text-red-600">Review overdue — {doc.nextReviewDate}</span>
+                      <span className="ml-auto text-xs text-red-600">Review overdue — {effectiveNextReview(doc)}</span>
                     </div>
                   ))}
                   {reviewSoon.map((doc) => (
@@ -513,7 +570,7 @@ export default function DocumentsClient({ initialDocs, docLinks, runs, allGovCon
                       <Calendar className="h-4 w-4 shrink-0 text-amber-500" />
                       <span className="font-mono text-xs font-semibold text-amber-700 dark:text-amber-400">{doc.docId}</span>
                       <span className="text-xs text-amber-700 dark:text-amber-400">{doc.title}</span>
-                      <span className="ml-auto text-xs text-amber-600">Review due — {doc.nextReviewDate}</span>
+                      <span className="ml-auto text-xs text-amber-600">Review due — {effectiveNextReview(doc)}</span>
                     </div>
                   ))}
                 </div>
@@ -545,8 +602,9 @@ export default function DocumentsClient({ initialDocs, docLinks, runs, allGovCon
                   <tbody className="divide-y divide-[var(--color-border)]">
                     {docs.map((doc) => {
                       const controls = [...(docControlMap.get(doc.docId) ?? [])];
-                      const overdue = isOverdue(doc.nextReviewDate);
-                      const soon = isExpiringSoon(doc.nextReviewDate);
+                      const nextReview = effectiveNextReview(doc);
+                      const overdue = isOverdue(nextReview);
+                      const soon = isExpiringSoon(nextReview);
                       return (
                         <tr key={doc.id} className={doc.status === "DRAFT" ? "opacity-60" : ""}>
                           <td className="py-3 px-4">
@@ -574,7 +632,7 @@ export default function DocumentsClient({ initialDocs, docLinks, runs, allGovCon
                                 {controls.slice(0, 4).map((id) => (
                                   <Link
                                     key={id}
-                                    href={`/dashboard/governance/controls/${id}`}
+                                    href={`/dashboard/controls?control=${id}`}
                                     className="rounded bg-[var(--color-gray-100)] px-1.5 py-0.5 font-mono text-xs text-[var(--color-gray-600)] hover:bg-[var(--color-gray-200)] dark:bg-gray-800 dark:text-gray-400"
                                   >
                                     {id}
@@ -587,7 +645,7 @@ export default function DocumentsClient({ initialDocs, docLinks, runs, allGovCon
                             )}
                           </td>
                           <td className="py-3 px-4">
-                            {doc.nextReviewDate ? (
+                            {nextReview ? (
                               <span
                                 className={`text-xs ${
                                   overdue
@@ -596,9 +654,10 @@ export default function DocumentsClient({ initialDocs, docLinks, runs, allGovCon
                                     ? "font-semibold text-amber-600"
                                     : "text-[var(--color-gray-400)]"
                                 }`}
+                                title={!doc.nextReviewDate ? "Auto-calculated: 1 year from approval date" : undefined}
                               >
                                 {overdue && <AlertCircle className="mr-1 inline h-3 w-3" />}
-                                {doc.nextReviewDate}
+                                {nextReview}
                               </span>
                             ) : (
                               <span className="text-xs text-[var(--color-gray-300)]">—</span>
@@ -629,7 +688,7 @@ export default function DocumentsClient({ initialDocs, docLinks, runs, allGovCon
                   {gapControls.map((id) => (
                     <Link
                       key={id}
-                      href={`/dashboard/governance/controls/${id}`}
+                      href={`/dashboard/controls?control=${id}`}
                       className="rounded bg-amber-50 px-2 py-1 font-mono text-xs font-medium text-amber-700 hover:bg-amber-100 dark:bg-amber-900/20 dark:text-amber-400"
                     >
                       {id}
@@ -644,20 +703,14 @@ export default function DocumentsClient({ initialDocs, docLinks, runs, allGovCon
                     <PlusCircle className="h-3.5 w-3.5" />
                     Add document manually
                   </button>
-                  <Link
-                    href="/dashboard/technical/upload"
+                  <button
+                    type="button"
+                    onClick={() => setShowUploadModal(true)}
                     className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)] border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-800 hover:bg-amber-100 dark:border-amber-700/40 dark:bg-amber-950/20 dark:text-amber-300"
                   >
                     <Upload className="h-3.5 w-3.5" />
                     Re-ingest governance bundle
-                  </Link>
-                  <Link
-                    href="/dashboard/governance"
-                    className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--color-blue-accent)] hover:underline"
-                  >
-                    View Governance Coverage
-                    <ChevronRight className="h-3.5 w-3.5" />
-                  </Link>
+                  </button>
                 </div>
               </section>
             )}
@@ -665,6 +718,7 @@ export default function DocumentsClient({ initialDocs, docLinks, runs, allGovCon
         )}
 
       </div>
+      {showUploadModal && <ManifestBundleUploadModal onClose={() => setShowUploadModal(false)} />}
     </div>
   );
 }

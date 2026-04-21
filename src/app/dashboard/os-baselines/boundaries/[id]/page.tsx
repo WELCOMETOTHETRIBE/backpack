@@ -116,7 +116,7 @@ export default async function BoundaryDetailPage({
               Evidence from the listed system drives full technical control adjudication here.
             </p>
             <Link
-              href={`/dashboard/technical/upload?assetId=${assets[0].id}`}
+              href={`/dashboard/documents?assetId=${assets[0].id}`}
               className="mt-2 inline-flex items-center gap-2 text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
             >
               <Upload className="h-4 w-4" />

@@ -6,7 +6,7 @@ import {
   governanceDocuments,
   controlRecords,
 } from "@/db/schema";
-import { eq, and, inArray, desc } from "drizzle-orm";
+import { eq, and, inArray, desc, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { PURE_GOVERNANCE_IDS } from "@/lib/compliance/control-bins";
 
@@ -256,6 +256,16 @@ export async function POST(req: Request) {
       const docStatus = (["APPROVED","SUBMITTED","DRAFT"].includes(doc.status) ? doc.status : "DRAFT") as
         "APPROVED" | "SUBMITTED" | "DRAFT";
 
+      const now = new Date();
+      const nowIso = now.toISOString().slice(0, 10);
+      const oneYearOut = new Date(now);
+      oneYearOut.setFullYear(oneYearOut.getFullYear() + 1);
+      const oneYearOutIso = oneYearOut.toISOString().slice(0, 10);
+      const approvedDates =
+        docStatus === "APPROVED"
+          ? { approvalDate: nowIso, nextReviewDate: oneYearOutIso }
+          : {};
+
       // Upsert: update on conflict with the unique index (org_id, doc_id)
       await db
         .insert(governanceDocuments)
@@ -265,7 +275,8 @@ export async function POST(req: Request) {
           title: doc.title,
           type: toDocType(doc.kind),
           status: docStatus,
-          updatedAt: new Date(),
+          updatedAt: now,
+          ...approvedDates,
         })
         .onConflictDoUpdate({
           target: [governanceDocuments.organizationId, governanceDocuments.docId],
@@ -273,7 +284,15 @@ export async function POST(req: Request) {
             title: doc.title,
             type: toDocType(doc.kind),
             status: docStatus,
-            updatedAt: new Date(),
+            updatedAt: now,
+            // Only auto-fill dates when promoting to APPROVED; don't overwrite
+            // an existing signature/review date on re-ingest.
+            ...(docStatus === "APPROVED"
+              ? {
+                  approvalDate: sql`COALESCE(${governanceDocuments.approvalDate}, ${nowIso})`,
+                  nextReviewDate: sql`COALESCE(${governanceDocuments.nextReviewDate}, ${oneYearOutIso})`,
+                }
+              : {}),
           },
         });
 

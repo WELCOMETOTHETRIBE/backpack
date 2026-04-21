@@ -131,8 +131,8 @@ export default async function EvidenceEngineDashboardPage({ searchParams }: Page
           <a href="/dashboard/registers" className="font-semibold underline hover:no-underline">
             use Registers
           </a>. To upload OS evidence or governance bundles,{" "}
-          <a href="/dashboard/technical/upload" className="font-semibold underline hover:no-underline">
-            use Upload Evidence
+          <a href="/dashboard/documents" className="font-semibold underline hover:no-underline">
+            use Documents
           </a>.
         </p>
       </div>

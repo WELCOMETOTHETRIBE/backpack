@@ -14,6 +14,8 @@ import { controlRecords, governanceRegisters, governanceRegisterEntries, boundar
 import { eq, and, sql } from "drizzle-orm";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
+import { getCertificationJourney } from "@/lib/certification-journey";
+import { CertificationJourneyWidget } from "../DashboardSetupWidget";
 
 const cardClass = "rounded-xl border border-slate-200 bg-white p-6 shadow-sm";
 
@@ -49,6 +51,7 @@ export default async function ReadinessPage() {
   if (!orgId) redirect("/auth/signin");
 
   const sprsScore = await getSprsScore(orgId);
+  const journey = await getCertificationJourney(orgId);
 
   const records = await db
     .select({
@@ -128,6 +131,12 @@ export default async function ReadinessPage() {
           Prepare for C3PAO assessment with mock assessments and readiness tools.
         </p>
       </div>
+
+      {journey.onboardingStarted && (
+        <div className="mb-6">
+          <CertificationJourneyWidget stages={journey.stages} />
+        </div>
+      )}
 
       {/* SPRS scoring: progress bar + score + range + priority distribution */}
       <div className={`mb-6 ${cardClass}`}>

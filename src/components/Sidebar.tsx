@@ -11,9 +11,7 @@ import {
   Activity,
   Settings,
   FileStack,
-  BookMarked,
   BookCheck,
-  BarChart2,
   GraduationCap,
   MessageSquare,
   Archive,
@@ -38,8 +36,6 @@ function buildNav(_boundaryComplete?: boolean | null): NavGroup[] {
       items: [
         { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
         { name: "SCTM", href: "/dashboard/controls", icon: Shield },
-        { name: "Governance", href: "/dashboard/governance", icon: BookMarked },
-        { name: "Technical", href: "/dashboard/technical", icon: BarChart2 },
         { name: "Registers", href: "/dashboard/registers", icon: BookCheck },
         { name: "Artifacts", href: "/dashboard/artifacts", icon: Archive },
         { name: "POA&M", href: "/dashboard/poam", icon: FileText },
