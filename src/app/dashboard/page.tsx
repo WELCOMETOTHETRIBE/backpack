@@ -26,7 +26,7 @@ import { eq, and, desc, lt, sql } from "drizzle-orm";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { sprsScoringData, SPRS_MAX } from "@/lib/sprs";
 import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
-import { governanceRegisters, governanceRegisterEntries, boundaries, governanceDocuments } from "@/db/schema";
+import { boundaries, governanceDocuments } from "@/db/schema";
 import {
   Shield,
   FileStack,
@@ -164,53 +164,24 @@ export default async function DashboardPage() {
     .from(controlRecords)
     .where(eq(controlRecords.organizationId, orgId));
 
-  // ── Register satisfaction map (per control) ──
-  const intelMap = new Map(CONTROL_INTELLIGENCE.map((c) => [c.controlId, c]));
-  const orgRegisters = await db
-    .select({ id: governanceRegisters.id, registerKey: governanceRegisters.registerKey })
-    .from(governanceRegisters)
-    .where(eq(governanceRegisters.organizationId, orgId));
-  const orgBoundaries = await db
-    .select({ id: boundaries.id })
-    .from(boundaries)
-    .where(eq(boundaries.organizationId, orgId));
-  const boundaryIds = orgBoundaries.map((b) => b.id);
-
-  const registerFinalCounts = new Map<string, number>();
-  if (boundaryIds.length > 0) {
-    for (const reg of orgRegisters) {
-      const [row] = await db
-        .select({ cnt: sql<number>`count(*)::int` })
-        .from(governanceRegisterEntries)
-        .where(
-          and(
-            eq(governanceRegisterEntries.registerId, reg.id),
-            eq(governanceRegisterEntries.status, "final"),
-            sql`${governanceRegisterEntries.boundaryId} IN (${sql.join(
-              boundaryIds.map((id) => sql`${id}`),
-              sql`, `
-            )})`
-          )
-        );
-      registerFinalCounts.set(reg.registerKey, row?.cnt ?? 0);
-    }
-  }
-
-  const registerSatisfiedMap = new Map<string, boolean>();
-  for (const [controlId, intel] of intelMap) {
-    if (!intel.registerRequired || !intel.registerSchemaId) {
-      registerSatisfiedMap.set(controlId, true);
-      continue;
-    }
-    registerSatisfiedMap.set(controlId, (registerFinalCounts.get(intel.registerSchemaId) ?? 0) > 0);
-  }
+  // Register population is surfaced by the Compliance Registers card below —
+  // it is no longer a gate for the "Controls Adjudicated" count. Terminal
+  // implementation_status alone marks a control as adjudicated.
 
   function isFullyAdjudicated(r: (typeof records)[0]): boolean {
-    const registerOk = registerSatisfiedMap.get(r.controlId) !== false;
-    if (r.policyDocRequired) {
-      return r.technicalStatus === "satisfied" && r.policyStatus === "satisfied" && registerOk;
+    // A control is considered adjudicated once it reaches a terminal status
+    // (implemented / inherited / not_applicable / assessed). Register
+    // population is surfaced separately by the Compliance Registers card and
+    // by per-milestone POAM closure, so we do NOT gate the adjudication count
+    // on finalized register entries here. Same OR-over-AND pattern we use
+    // everywhere else.
+    if (ADJUDICATED_STATUSES.includes(r.implementationStatus as (typeof ADJUDICATED_STATUSES)[number])) {
+      return true;
     }
-    return ADJUDICATED_STATUSES.includes(r.implementationStatus as (typeof ADJUDICATED_STATUSES)[number]) && registerOk;
+    if (r.policyDocRequired) {
+      return r.technicalStatus === "satisfied" && r.policyStatus === "satisfied";
+    }
+    return false;
   }
 
   const adjudicatedCount = records.filter(isFullyAdjudicated).length;
