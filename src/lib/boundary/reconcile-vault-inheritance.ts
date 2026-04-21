@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { boundaries } from "@/db/schema";
+import { boundaries, organizations } from "@/db/schema";
 import { and, eq, sql } from "drizzle-orm";
 import { syncOrgAzureInheritedControls } from "@/lib/compliance/azure-inherited-controls";
 
@@ -29,4 +29,31 @@ export async function reconcileMacTechVaultInheritance(orgId: string): Promise<v
   // corrects drift regardless of whether the boundary row itself changed.
   await syncOrgAzureInheritedControls(db, orgId);
   void updated;
+
+  // MacTech Vault is the boundary. If the CUI enclave boundary exists but
+  // boundaryScopingCompletedAt is still null (legacy onboarding runs), mark
+  // it complete now — there is no separate "complete scoping" step in a
+  // Vault-only world.
+  const [enclave] = await db
+    .select({ id: boundaries.id })
+    .from(boundaries)
+    .where(
+      and(
+        eq(boundaries.organizationId, orgId),
+        eq(boundaries.boundaryType, "cui_enclave")
+      )
+    )
+    .limit(1);
+
+  if (enclave) {
+    await db
+      .update(organizations)
+      .set({ boundaryScopingCompletedAt: new Date() })
+      .where(
+        and(
+          eq(organizations.id, orgId),
+          sql`${organizations.boundaryScopingCompletedAt} IS NULL`
+        )
+      );
+  }
 }

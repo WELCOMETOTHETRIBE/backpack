@@ -7,6 +7,7 @@ import SettingsForm from "./SettingsForm";
 import InviteTeamSection from "./InviteTeamSection";
 import ScopingPresetsCard from "./ScopingPresetsCard";
 import AdminUserManagement from "./AdminUserManagement";
+import SystemIdentificationForm from "./SystemIdentificationForm";
 import { ALL_PRESETS } from "@/lib/compliance/scoping-presets";
 
 export default async function SettingsPage() {
@@ -47,6 +48,24 @@ export default async function SettingsPage() {
             userRole={user.role}
           />
         </div>
+
+        {(user.role === "Admin" || user.role === "Compliance") && (
+          <div id="system-identification" className={cardClass}>
+            <SystemIdentificationForm
+              initial={{
+                systemName: org?.systemName ?? null,
+                systemOwnerName: org?.systemOwnerName ?? null,
+                systemOwnerEmail: org?.systemOwnerEmail ?? null,
+                issoName: org?.issoName ?? null,
+                issoEmail: org?.issoEmail ?? null,
+                authorizationBoundaryStatement: org?.authorizationBoundaryStatement ?? null,
+                boundaryScopingCompletedAt: org?.boundaryScopingCompletedAt
+                  ? new Date(org.boundaryScopingCompletedAt).toISOString()
+                  : null,
+              }}
+            />
+          </div>
+        )}
 
         {(user.role === "Admin" || user.role === "Compliance") && (
           <div className={cardClass}>

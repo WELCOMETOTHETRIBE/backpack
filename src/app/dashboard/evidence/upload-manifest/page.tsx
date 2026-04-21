@@ -18,7 +18,7 @@ export default async function UploadManifestPage() {
 
   return (
     <div className="min-h-0">
-      <div className="mx-auto max-w-2xl">
+      <div className="mx-auto max-w-3xl">
         <UploadManifestClient boundaries={orgBoundaries} />
       </div>
     </div>
