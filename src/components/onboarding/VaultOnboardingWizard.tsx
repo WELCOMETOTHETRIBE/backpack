@@ -6,8 +6,9 @@ import { Phase1_OrgProfile } from "./phases/Phase1_OrgProfile";
 import { Phase2_CuiCategories } from "./phases/Phase2_CuiCategories";
 import { Phase3_BoundaryConfirmation } from "./phases/Phase3_BoundaryConfirmation";
 import { Phase4_AzureInheritance } from "./phases/Phase4_AzureInheritance";
-import { Phase5_TrustCodexCoverage } from "./phases/Phase5_TrustCodexCoverage";
-import { Phase6_CustomerControls } from "./phases/Phase6_CustomerControls";
+// Phase5 (MacTech Coverage) and Phase6 (Your Controls) intentionally removed
+// from onboarding. Per-control adjudication now lives in the Codex
+// (/dashboard/controls) so onboarding stays a thin signup-and-acknowledge flow.
 
 // Onboarding is the boundary-definition + agreement step. SPRS reporting, SSP
 // generation, and other deliverables live in the dashboard as post-onboarding
@@ -18,11 +19,38 @@ const PHASES = [
   { index: 2, label: "CUI Categories", shortLabel: "CUI" },
   { index: 3, label: "Boundary", shortLabel: "Boundary" },
   { index: 4, label: "Azure Inheritance", shortLabel: "Azure" },
-  { index: 5, label: "MacTech Coverage", shortLabel: "MacTech" },
-  { index: 6, label: "Your Controls", shortLabel: "Controls" },
 ];
 
-const LAST_PHASE_INDEX = PHASES.length - 1; // 6
+const LAST_PHASE_INDEX = PHASES.length - 1; // 4
+
+/**
+ * Map the wizard's accumulated phaseData into the body shape expected by
+ * POST /api/onboarding/complete. All fields on the endpoint are optional, so
+ * we pass through what we have and let the server fill in the rest.
+ */
+function mapPhaseDataToCompleteBody(
+  phaseData: Record<string, unknown>
+): Record<string, unknown> {
+  const get = <T,>(p: number, k: string): T | undefined => {
+    const phase = phaseData[String(p)] as Record<string, unknown> | undefined;
+    return phase?.[k] as T | undefined;
+  };
+  const phase0 = (phaseData["0"] ?? {}) as Record<string, unknown>;
+  const phase1 = (phaseData["1"] ?? {}) as Record<string, unknown>;
+  const owner = (phase1.systemOwner ?? {}) as Record<string, unknown>;
+
+  return {
+    name: phase1.orgName,
+    cageCode: phase0.cageCode,
+    primaryAddress: phase1.address,
+    primaryContactName: owner.name,
+    primaryContactEmail: owner.email,
+    cmmcTargetLevel: "L2",
+    cuiBoundary: phase1.systemDescription ?? get(2, "narrative"),
+    systemScope: phase1.systemDescription,
+    selectedTechnologies: get<string[]>(3, "scopeComponents"),
+  };
+}
 
 export function VaultOnboardingWizard({
   allowBypass = false,
@@ -81,7 +109,9 @@ export function VaultOnboardingWizard({
             setCurrentPhase(1);
             setCompletedPhases(Array.from({ length: PHASES.length }, (_, i) => i));
           } else if (data.phase !== undefined) {
-            setCurrentPhase(data.phase);
+            // Clamp to current phase range — older sessions may have a phase
+            // index pointing at since-removed wizard steps (5/6).
+            setCurrentPhase(Math.min(data.phase, LAST_PHASE_INDEX));
           }
         }
       } catch {
@@ -126,6 +156,29 @@ export function VaultOnboardingWizard({
     await savePhase(phase, data, isLast);
 
     if (isLast) {
+      // Trigger the full onboarding-complete pipeline: seeds the MacTech
+      // Vault boundary, the 24 governance registers, the 110 control records,
+      // auto-generates client-required POAMs, and creates placeholder
+      // artifacts. Without this call the dashboard would be empty.
+      try {
+        const completeBody = mapPhaseDataToCompleteBody(newPhaseData);
+        const res = await fetch("/api/onboarding/complete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(completeBody),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          setSaveError(
+            err.error ??
+              "Onboarding completed but post-setup seeding failed. Please contact support."
+          );
+          return;
+        }
+      } catch {
+        setSaveError("Network error during final setup. Please try again.");
+        return;
+      }
       window.location.href = "/dashboard";
       return;
     }
@@ -133,16 +186,8 @@ export function VaultOnboardingWizard({
     setCurrentPhase(phase + 1);
   }
 
-  // Phase 6 requires Phases 0–5 to be complete
   function canAccessPhase(phase: number): boolean {
     if (phase === 0) return true;
-    if (phase === 6) {
-      // Must complete phases 0–5 in order
-      for (let i = 0; i < 6; i++) {
-        if (!completedPhases.includes(i)) return false;
-      }
-      return true;
-    }
     return completedPhases.includes(phase - 1) || phase <= currentPhase;
   }
 
@@ -303,16 +348,6 @@ export function VaultOnboardingWizard({
           {currentPhase === 4 && (
             <Phase4_AzureInheritance
               onComplete={(data) => handlePhaseComplete(4, data)}
-            />
-          )}
-          {currentPhase === 5 && (
-            <Phase5_TrustCodexCoverage
-              onComplete={(data) => handlePhaseComplete(5, data)}
-            />
-          )}
-          {currentPhase === 6 && (
-            <Phase6_CustomerControls
-              onComplete={(data) => handlePhaseComplete(6, data)}
             />
           )}
 
