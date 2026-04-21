@@ -19,11 +19,17 @@ import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
  *   • implementation_status is `inherited`      — vendor SRM is the evidence
  *   • implementation_status is `not_applicable` — justification is the evidence
  *   • implementation_status is `implemented`/`assessed` AND at least one form
- *     of operational evidence exists:
- *       - ≥1 finalized entry in the register mapped via
- *         CONTROL_INTELLIGENCE.registerSchemaId
- *       - an artifact row with a file attached (status ∈ uploaded/approved)
- *       - a governance_artifact_completions row (REFERENCE/ATTESTATION/SYSTEM_POINTER)
+ *     of operational evidence exists across four lanes:
+ *       1. Technical lane — control_records.technical_status = "satisfied"
+ *          (populated by the OS Collector manifest ingest into
+ *          control_evidence_links; surfaces as a persisted boolean on the
+ *          control record so we don't requery).
+ *       2. Register lane  — ≥1 finalized entry in the register mapped via
+ *          CONTROL_INTELLIGENCE.registerSchemaId.
+ *       3. Artifact lane  — an artifact row with a file attached
+ *          (status ∈ uploaded/approved).
+ *       4. Attestation lane — a governance_artifact_completions row
+ *          (REFERENCE / ATTESTATION / SYSTEM_POINTER).
  *
  * Hybrid controls (policyDocRequired=true) additionally require both technical
  * AND policy lanes satisfied.
@@ -133,6 +139,9 @@ export function hasOperationalEvidence(
   r: ControlRecordRow,
   ctx: AdjudicationContext
 ): boolean {
+  // Technical lane — OS Collector / manifest ingest flips this to "satisfied"
+  // when a valid run covers the control.
+  if (r.technicalStatus === "satisfied") return true;
   // Register lane
   const intel = ctx.intelMap.get(r.controlId);
   if (intel?.registerSchemaId) {
