@@ -15,6 +15,7 @@ import {
   GraduationCap,
   MessageSquare,
   Archive,
+  Upload,
 } from "lucide-react";
 
 type NavItem = {
@@ -38,12 +39,14 @@ function buildNav(_boundaryComplete?: boolean | null): NavGroup[] {
         { name: "SCTM", href: "/dashboard/controls", icon: Shield },
         { name: "Registers", href: "/dashboard/registers", icon: BookCheck },
         { name: "Artifacts", href: "/dashboard/artifacts", icon: Archive },
+        { name: "Upload Evidence", href: "/dashboard/evidence/upload-manifest", icon: Upload },
         { name: "POA&M", href: "/dashboard/poam", icon: FileText },
       ],
     },
-    // Infrastructure group removed: System Boundary, OS Baselines, and Upload
-    // Evidence are vendor-provided under MacTech Vault and no longer customer
-    // inputs. Underlying routes and schemas remain for internal use.
+    // System Boundary and OS Baselines remain vendor-managed under MacTech
+    // Vault; they stay hidden from the sidebar. Upload Evidence is the
+    // customer-facing entry for OS Collector + Cloud evidence manifests and
+    // lives in the Compliance group above.
     {
       label: "Program",
       items: [
