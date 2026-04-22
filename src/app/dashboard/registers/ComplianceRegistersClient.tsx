@@ -16,6 +16,7 @@ import {
   LayoutGrid,
   LayoutList,
   FolderOpen,
+  MinusCircle,
 } from "lucide-react";
 import type { ComplianceRegisterHealth, RegisterHealthStatus } from "@/app/api/registers/compliance-health/route";
 
@@ -97,7 +98,24 @@ const REGISTER_DISPLAY: Record<string, { name: string; description: string; cate
 
 // ── Status visuals ──────────────────────────────────────────────────────────
 
-function statusConfig(status: RegisterHealthStatus, eventDriven: boolean = false, entryCount: number = 0) {
+function statusConfig(
+  status: RegisterHealthStatus,
+  eventDriven: boolean = false,
+  entryCount: number = 0,
+  notApplicable: boolean = false
+) {
+  // N/A cascade wins over everything else: if every mapped control is
+  // inherited or not_applicable, the register has no active obligation.
+  if (notApplicable) {
+    return {
+      label: "N/A",
+      dot: "bg-slate-400",
+      badge: "bg-slate-100 border-slate-200 text-slate-700",
+      icon: MinusCircle,
+      iconColor: "text-slate-400",
+      ring: "border-slate-200",
+    };
+  }
   switch (status) {
     case "current":
       // Event-driven registers with zero entries are "current" because
@@ -190,7 +208,7 @@ function formatNextDue(
 function RegisterListItem({ reg }: { reg: ComplianceRegisterHealth }) {
   const display = REGISTER_DISPLAY[reg.registerKey];
   const name = display?.name ?? reg.displayName;
-  const cfg = statusConfig(reg.status, reg.eventDriven, reg.entryCount);
+  const cfg = statusConfig(reg.status, reg.eventDriven, reg.entryCount, reg.notApplicable);
   const StatusIcon = cfg.icon;
 
   return (
@@ -216,7 +234,7 @@ function RegisterListItem({ reg }: { reg: ComplianceRegisterHealth }) {
             reg.status === "due_soon" ? "text-amber-600" :
             "text-gray-700"
           }`}>
-            {formatNextDue(reg.nextDueAt, reg.status, reg.eventDriven, reg.entryCount)}
+            {reg.notApplicable ? "—" : formatNextDue(reg.nextDueAt, reg.status, reg.eventDriven, reg.entryCount)}
           </p>
         </div>
         <span className={`shrink-0 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${cfg.badge}`}>
@@ -235,7 +253,7 @@ function RegisterCard({ reg }: { reg: ComplianceRegisterHealth }) {
   const display = REGISTER_DISPLAY[reg.registerKey];
   const name = display?.name ?? reg.displayName;
   const desc = display?.description ?? reg.description;
-  const cfg = statusConfig(reg.status, reg.eventDriven, reg.entryCount);
+  const cfg = statusConfig(reg.status, reg.eventDriven, reg.entryCount, reg.notApplicable);
   const StatusIcon = cfg.icon;
 
   return (
@@ -273,7 +291,7 @@ function RegisterCard({ reg }: { reg: ComplianceRegisterHealth }) {
             reg.status === "due_soon" ? "text-amber-600" :
             "text-gray-700"
           }`}>
-            {formatNextDue(reg.nextDueAt, reg.status, reg.eventDriven, reg.entryCount)}
+            {reg.notApplicable ? "—" : formatNextDue(reg.nextDueAt, reg.status, reg.eventDriven, reg.entryCount)}
           </p>
         </div>
         <div>
@@ -718,6 +736,10 @@ export function ComplianceRegistersClient({ userRole }: { userRole: string }) {
                   <span className="flex items-center gap-1">
                     <span className="h-2 w-2 rounded-full bg-sky-400" />
                     <strong>Ready — no events</strong> — event-driven register that correctly stays empty until a triggering event (e.g., incident, termination, maintenance) occurs; counts as satisfied
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="h-2 w-2 rounded-full bg-slate-400" />
+                    <strong>N/A</strong> — every control that would require this register is inherited or not applicable for your org
                   </span>
                   <span className="flex items-center gap-1">
                     <span className="h-2 w-2 rounded-full bg-gray-400" />

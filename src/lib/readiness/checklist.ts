@@ -75,12 +75,20 @@ export async function buildReadinessChecklist(
     0
   );
 
+  // Build a control status map for N/A cascading: registers/artifacts/
+  // attestations anchored only to inherited or not_applicable controls
+  // have no active obligation and are displayed as N/A instead of
+  // outstanding.
+  const controlStatusById = new Map(
+    rollup.records.map((r) => [r.controlId, r.implementationStatus])
+  );
+
   const sections: ReadinessSection[] = await Promise.all([
     buildSetupSection(orgId),
     buildGovernanceSection(orgId),
-    buildRegistersSection(orgId, rollup.ctx.registerFinalCounts, readyByRegister),
-    buildArtifactsSection(orgId),
-    buildAttestationsSection(orgId),
+    buildRegistersSection(orgId, rollup.ctx.registerFinalCounts, readyByRegister, controlStatusById),
+    buildArtifactsSection(orgId, controlStatusById),
+    buildAttestationsSection(orgId, controlStatusById),
   ]);
 
   // Top 3 leverage moves: prefer tasks that unlock ready controls; fall back
@@ -272,10 +280,13 @@ async function buildGovernanceSection(orgId: string): Promise<ReadinessSection> 
 // only knows about ~9 legacy schemas). Iterating the live DB rows ensures
 // every register added via REGISTER_DEFINITIONS shows up.
 // ─────────────────────────────────────────────────────────────────────────────
+const NON_APPLICABLE_STATUSES = new Set(["inherited", "not_applicable"]);
+
 async function buildRegistersSection(
   orgId: string,
   registerFinalCounts: Map<string, number>,
-  readyByRegister: Map<string, string[]>
+  readyByRegister: Map<string, string[]>,
+  controlStatusById: Map<string, string>
 ): Promise<ReadinessSection> {
   // Pull every org-scoped register
   const orgRegisters = await db
@@ -332,16 +343,28 @@ async function buildRegistersSection(
     // the correct steady state until a triggering event occurs, so it
     // should not appear as outstanding work.
     const eventDrivenReady = eventDriven && !hasFinal && anyCount === 0;
-    const status: TaskStatus = hasFinal || eventDrivenReady
-      ? "done"
-      : anyCount > 0 ? "in_progress" : "not_started";
     const displayName = REGISTER_DISPLAY_NAMES[schemaId] ?? REGISTER_DISPLAY_NAMES[reg.registerKey] ?? reg.name ?? reg.registerKey;
     const controlIds = (reg.controlIds as string[] | null) ?? registerToControls.get(schemaId) ?? registerToControls.get(reg.registerKey) ?? [];
+    // N/A cascade: when every control mapped to this register is inherited
+    // or not_applicable for this org, the register has no active
+    // obligation. Keep the row visible (for traceability) but mark N/A
+    // so it doesn't read as outstanding work.
+    const allControlsKnown = controlIds.length > 0 && controlIds.every((cid) => controlStatusById.has(cid));
+    const registerNotApplicable =
+      allControlsKnown &&
+      controlIds.every((cid) => NON_APPLICABLE_STATUSES.has(controlStatusById.get(cid)!));
+    const status: TaskStatus = registerNotApplicable
+      ? "not_applicable"
+      : hasFinal || eventDrivenReady
+      ? "done"
+      : anyCount > 0 ? "in_progress" : "not_started";
     // Check unblocks against both vocabularies in case readyByRegister was
     // keyed by schema id while we hold the seed key.
     const readyIds = readyByRegister.get(schemaId) ?? readyByRegister.get(reg.registerKey) ?? [];
     const unblocks = readyIds.length;
-    const baseDescription = hasFinal
+    const baseDescription = registerNotApplicable
+      ? `N/A — every control that would require this register is inherited or not applicable for your org`
+      : hasFinal
       ? `${finalCount} finalized entr${finalCount === 1 ? "y" : "ies"}`
       : eventDrivenReady
       ? `Event-driven — no events to log yet; counts as satisfied until a triggering event occurs`
@@ -349,10 +372,12 @@ async function buildRegistersSection(
       ? `${anyCount} draft entr${anyCount === 1 ? "y" : "ies"} — finalize to satisfy the control${controlIds.length === 1 ? "" : "s"}`
       : `No entries yet — add the first record to activate this register`;
     const description =
-      !hasFinal && !eventDrivenReady && unblocks > 0
+      !hasFinal && !eventDrivenReady && !registerNotApplicable && unblocks > 0
         ? `${baseDescription} · unblocks ${unblocks} ready control${unblocks === 1 ? "" : "s"} (${readyIds.join(", ")})`
         : baseDescription;
-    const label = eventDrivenReady
+    const label = registerNotApplicable
+      ? `${displayName} — N/A`
+      : eventDrivenReady
       ? `${displayName} — ready`
       : `Populate ${displayName}`;
     return {
@@ -362,8 +387,8 @@ async function buildRegistersSection(
       status,
       href: `/dashboard/evidence-engine/registers/${reg.registerKey}`,
       satisfiesControls: controlIds,
-      unblocksReady: unblocks || undefined,
-      unblocksReadyIds: readyIds.length > 0 ? readyIds : undefined,
+      unblocksReady: registerNotApplicable ? undefined : unblocks || undefined,
+      unblocksReadyIds: !registerNotApplicable && readyIds.length > 0 ? readyIds : undefined,
     };
   });
 
@@ -381,7 +406,9 @@ async function buildRegistersSection(
     title: "Compliance Registers",
     subtitle: "Operational records that prove each policy is being followed in practice",
     tasks,
-    doneCount: tasks.filter((t) => t.status === "done").length,
+    // N/A counts toward "done" for aggregate progress — both are
+    // "not outstanding" from the user's perspective.
+    doneCount: tasks.filter((t) => t.status === "done" || t.status === "not_applicable").length,
     totalCount: tasks.length,
   };
 }
@@ -389,7 +416,10 @@ async function buildRegistersSection(
 // ─────────────────────────────────────────────────────────────────────────────
 // Section: Required Artifacts
 // ─────────────────────────────────────────────────────────────────────────────
-async function buildArtifactsSection(orgId: string): Promise<ReadinessSection> {
+async function buildArtifactsSection(
+  orgId: string,
+  controlStatusById: Map<string, string>
+): Promise<ReadinessSection> {
   const placeholders = await db
     .select({
       id: artifacts.id,
@@ -416,11 +446,23 @@ async function buildArtifactsSection(orgId: string): Promise<ReadinessSection> {
     const hasFile =
       Boolean(p.fileUrl) &&
       (p.status === "uploaded" || p.status === "approved");
+    // N/A cascade: if this artifact's backing control is inherited or
+    // not_applicable for this org, the artifact has no active obligation.
+    const controlStatus = controlId ? controlStatusById.get(controlId) : undefined;
+    const controlNotApplicable = !!controlStatus && NON_APPLICABLE_STATUSES.has(controlStatus);
+    const status: TaskStatus = controlNotApplicable
+      ? "not_applicable"
+      : hasFile
+      ? "done"
+      : "not_started";
+    const description = controlNotApplicable
+      ? `N/A — control ${controlId} is ${controlStatus === "inherited" ? "inherited" : "not applicable"} for your org`
+      : catalog.description;
     tasks.push({
       id: `art.${p.milestoneKey}`,
       label: catalog.title,
-      description: catalog.description,
-      status: hasFile ? "done" : "not_started",
+      description,
+      status,
       href: `/dashboard/artifacts/${p.id}`,
       satisfiesControls: controlId ? [controlId] : [],
     });
@@ -432,7 +474,7 @@ async function buildArtifactsSection(orgId: string): Promise<ReadinessSection> {
     title: "Required Artifacts",
     subtitle: "One-off documents assessors will examine (AARs, reports, certs, diagrams)",
     tasks,
-    doneCount: tasks.filter((t) => t.status === "done").length,
+    doneCount: tasks.filter((t) => t.status === "done" || t.status === "not_applicable").length,
     totalCount: tasks.length,
   };
 }
@@ -440,7 +482,10 @@ async function buildArtifactsSection(orgId: string): Promise<ReadinessSection> {
 // ─────────────────────────────────────────────────────────────────────────────
 // Section: Attestations
 // ─────────────────────────────────────────────────────────────────────────────
-async function buildAttestationsSection(orgId: string): Promise<ReadinessSection> {
+async function buildAttestationsSection(
+  orgId: string,
+  controlStatusById: Map<string, string>
+): Promise<ReadinessSection> {
   const placeholders = await db
     .select({
       id: artifacts.id,
@@ -477,11 +522,23 @@ async function buildAttestationsSection(orgId: string): Promise<ReadinessSection
       (p.status === "uploaded" || p.status === "approved");
     const hasAttestation = attestedRecordIds.has(p.controlRecordId);
     const done = hasFile || hasAttestation;
+    // N/A cascade: if the backing control is inherited or not_applicable
+    // there's nothing to attest for this org.
+    const controlStatus = controlId ? controlStatusById.get(controlId) : undefined;
+    const controlNotApplicable = !!controlStatus && NON_APPLICABLE_STATUSES.has(controlStatus);
+    const status: TaskStatus = controlNotApplicable
+      ? "not_applicable"
+      : done
+      ? "done"
+      : "not_started";
+    const description = controlNotApplicable
+      ? `N/A — control ${controlId} is ${controlStatus === "inherited" ? "inherited" : "not applicable"} for your org`
+      : catalog.description;
     tasks.push({
       id: `att.${p.milestoneKey}`,
       label: catalog.title,
-      description: catalog.description,
-      status: done ? "done" : "not_started",
+      description,
+      status,
       href: `/dashboard/artifacts/${p.id}`,
       satisfiesControls: controlId ? [controlId] : [],
     });
@@ -493,7 +550,7 @@ async function buildAttestationsSection(orgId: string): Promise<ReadinessSection
     title: "Attestations",
     subtitle: "Signed statements an assessor will interview against",
     tasks,
-    doneCount: tasks.filter((t) => t.status === "done").length,
+    doneCount: tasks.filter((t) => t.status === "done" || t.status === "not_applicable").length,
     totalCount: tasks.length,
   };
 }

@@ -4,7 +4,7 @@
  * src/app/dashboard/readiness/ReadinessChecklist.tsx for rendering.
  */
 
-export type TaskStatus = "done" | "in_progress" | "not_started";
+export type TaskStatus = "done" | "in_progress" | "not_started" | "not_applicable";
 
 export type ReadinessTask = {
   /** Stable identifier, e.g. "gov.access_control_policy" or "reg.training_completion". */

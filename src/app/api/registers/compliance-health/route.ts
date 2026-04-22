@@ -8,7 +8,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
-import { governanceRegisters, governanceRegisterEntries } from "@/db/schema";
+import { governanceRegisters, governanceRegisterEntries, controlRecords } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { getRegisterSchemas } from "@/data/cmmc/register-schemas";
 import { CONTROL_INTELLIGENCE, cadenceToDays } from "@/data/cmmc/control-intelligence";
@@ -36,6 +36,14 @@ export type ComplianceRegisterHealth = {
    * gap.
    */
   eventDriven: boolean;
+  /**
+   * True when every control mapped to this register has
+   * implementationStatus ∈ { "inherited", "not_applicable" } for this org —
+   * so the register itself has no active obligation. Surface as "N/A" in
+   * the UI rather than as outstanding work; keep the row visible for
+   * traceability.
+   */
+  notApplicable: boolean;
   entryCount: number;
   daysOverdue: number | null;
   daysUntilDue: number | null;
@@ -84,6 +92,21 @@ export async function GET() {
     .from(governanceRegisters)
     .where(eq(governanceRegisters.organizationId, orgId));
   const orgRegisterMap = new Map(orgRegisters.map((r) => [r.registerKey, r]));
+
+  // Control statuses for N/A cascading — a register whose every mapped
+  // control is inherited or not_applicable has no active obligation for
+  // this org, so we surface it as N/A instead of outstanding.
+  const orgControlRecords = await db
+    .select({
+      controlId: controlRecords.controlId,
+      implementationStatus: controlRecords.implementationStatus,
+    })
+    .from(controlRecords)
+    .where(eq(controlRecords.organizationId, orgId));
+  const controlStatusById = new Map(
+    orgControlRecords.map((r) => [r.controlId, r.implementationStatus])
+  );
+  const NON_APPLICABLE = new Set(["inherited", "not_applicable"]);
 
   const results: ComplianceRegisterHealth[] = [];
 
@@ -140,15 +163,31 @@ export async function GET() {
     const cadenceRule = getCadenceRuleByRegisterId(schema.register_id);
     const eventDriven = cadenceRule?.cadence_days === 0;
 
+    // N/A cascade: if every control mapped to this register is inherited or
+    // not_applicable for this org, the register itself has no active
+    // obligation. Only applies when there IS at least one mapped control —
+    // registers with no control-intelligence mapping (e.g., audit_config,
+    // facility_access) are still tracked independently.
+    const notApplicable =
+      controlIds.length > 0 &&
+      controlIds.every((cid) => {
+        const s = controlStatusById.get(cid);
+        return s !== undefined && NON_APPLICABLE.has(s);
+      });
+
     // Event-driven registers with zero entries (while provisioned) are the
     // correct steady state — no incidents, no terminations, no events to
     // log. Promote them from "never_used" to "current" so summary counts,
     // filter chips, and banners all treat them as satisfied. The
     // eventDriven flag keeps a distinctive "Ready — no events" label
-    // available in the UI.
+    // available in the UI. N/A registers are likewise treated as
+    // satisfied (current) — nothing is outstanding.
     const provisioned = !!orgRegister;
     const effectiveStatus: RegisterHealthStatus =
-      eventDriven && provisioned && entryCount === 0 ? "current" : computed.status;
+      notApplicable ||
+      (eventDriven && provisioned && entryCount === 0)
+        ? "current"
+        : computed.status;
 
     results.push({
       registerId: orgRegister?.id ?? "",
@@ -162,6 +201,7 @@ export async function GET() {
       nextDueAt: computed.nextDueAt?.toISOString() ?? null,
       status: effectiveStatus,
       eventDriven,
+      notApplicable,
       entryCount,
       daysOverdue: computed.daysOverdue ?? null,
       daysUntilDue: computed.daysUntilDue ?? null,

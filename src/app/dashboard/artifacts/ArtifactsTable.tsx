@@ -28,6 +28,14 @@ export type ArtifactRow = {
   /** When this artifact is a register pointer whose register is satisfied. */
   coveredByRegister?: string | null;
   coverageReason?: "populated" | "event_driven_empty" | null;
+  /**
+   * True when this artifact's backing control is inherited or
+   * not_applicable for the org. The row stays visible for traceability
+   * but reads as N/A and is excluded from outstanding counts.
+   */
+  controlNotApplicable?: boolean;
+  /** Raw implementationStatus of the backing control (for the N/A tooltip). */
+  controlImplementationStatus?: string | null;
 };
 
 const FAMILIES = [
@@ -114,15 +122,34 @@ function LinkBadges({
   );
 }
 
-function ArtifactTableRow({ r }: { r: ArtifactRow }) {
+function NotApplicablePill({ reason }: { reason?: string | null }) {
+  const label = reason === "inherited" ? "N/A · inherited" : "N/A";
   return (
-    <tr className="border-b border-[var(--color-border)] last:border-none hover:bg-[var(--color-surface-muted)]">
+    <span
+      className="inline-flex rounded border border-slate-200 bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600"
+      title="Backing control is inherited or not applicable for this org"
+    >
+      {label}
+    </span>
+  );
+}
+
+function ArtifactTableRow({ r }: { r: ArtifactRow }) {
+  const dimmed = r.controlNotApplicable ? "opacity-70 italic" : "";
+  return (
+    <tr className={`border-b border-[var(--color-border)] last:border-none hover:bg-[var(--color-surface-muted)] ${dimmed}`}>
       <td className="px-3 py-2 font-medium">{r.label}</td>
       <td className="px-3 py-2 text-[var(--color-text-muted)]">{r.controlId}</td>
       <td className="px-3 py-2 text-xs text-[var(--color-text-muted)]">{r.expectedClosureType ?? "—"}</td>
       <td className="px-3 py-2 text-xs text-[var(--color-text-muted)]">{r.expectedCadence ?? "—"}</td>
-      <td className="px-3 py-2 text-xs text-[var(--color-text-muted)]">{r.expectedDueDate ?? "—"}</td>
-      <td className="px-3 py-2"><StatusPill status={r.status} /></td>
+      <td className="px-3 py-2 text-xs text-[var(--color-text-muted)]">
+        {r.controlNotApplicable ? "—" : (r.expectedDueDate ?? "—")}
+      </td>
+      <td className="px-3 py-2">
+        {r.controlNotApplicable
+          ? <NotApplicablePill reason={r.controlImplementationStatus} />
+          : <StatusPill status={r.status} />}
+      </td>
       <td className="px-3 py-2"><LinkBadges counts={r.linkCounts} /></td>
       <td className="px-3 py-2 text-xs text-[var(--color-text-muted)]">
         {r.fileName ? `${r.fileName} · ${formatSize(r.fileSize)}` : "—"}
@@ -171,8 +198,11 @@ function FamilySection({
   defaultExpanded: boolean;
 }) {
   const [expanded, setExpanded] = useState(defaultExpanded);
-  const awaiting = rows.filter((r) => r.status === "awaiting_upload").length;
-  const approved = rows.filter((r) => r.status === "approved").length;
+  // N/A rows don't count toward awaiting/approved — no active obligation.
+  const active = rows.filter((r) => !r.controlNotApplicable);
+  const awaiting = active.filter((r) => r.status === "awaiting_upload").length;
+  const approved = active.filter((r) => r.status === "approved").length;
+  const naCount = rows.length - active.length;
   const title = FAMILY_LABELS[family] ?? family;
 
   return (
@@ -206,6 +236,11 @@ function FamilySection({
           {approved > 0 && (
             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 border border-emerald-200 px-2 py-0.5 font-semibold text-emerald-800">
               {approved} approved
+            </span>
+          )}
+          {naCount > 0 && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 border border-slate-200 px-2 py-0.5 font-semibold text-slate-600">
+              {naCount} N/A
             </span>
           )}
         </div>

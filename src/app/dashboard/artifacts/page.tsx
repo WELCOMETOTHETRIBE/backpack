@@ -28,6 +28,7 @@ export default async function ArtifactsPage() {
       controlId: controls.controlId,
       controlTitle: controls.title,
       family: controlFamilies.code,
+      implementationStatus: controlRecords.implementationStatus,
     })
     .from(artifacts)
     .innerJoin(controlRecords, eq(artifacts.controlRecordId, controlRecords.id))
@@ -35,6 +36,8 @@ export default async function ArtifactsPage() {
     .innerJoin(controlFamilies, eq(controls.controlFamilyId, controlFamilies.id))
     .where(eq(artifacts.organizationId, orgId))
     .orderBy(desc(artifacts.expectedDueDate));
+
+  const NON_APPLICABLE = new Set(["inherited", "not_applicable"]);
 
   const linkCounts = await countLinksForArtifacts(
     orgId,
@@ -104,6 +107,11 @@ export default async function ArtifactsPage() {
 
   const tableRows: ArtifactRow[] = rows.map((r) => {
     const coverage = registerPointerCoverage(r.artifact.milestoneKey);
+    // N/A cascade: when the artifact's backing control is inherited or
+    // not_applicable for this org, the artifact has no active obligation.
+    // Keep the row visible (traceability) but mark N/A and exclude from
+    // outstanding counts.
+    const controlNotApplicable = NON_APPLICABLE.has(r.implementationStatus);
     return {
       id: r.artifact.id,
       label: r.artifact.artifactLabel,
@@ -127,18 +135,26 @@ export default async function ArtifactsPage() {
       },
       coveredByRegister: coverage?.coveredBy ?? null,
       coverageReason: coverage?.reason ?? null,
+      controlNotApplicable,
+      controlImplementationStatus: r.implementationStatus,
     };
   });
 
   const visibleRows = tableRows.filter((r) => !r.coveredByRegister);
   const coveredCount = tableRows.length - visibleRows.length;
 
+  // Counters only include rows with active obligation — both
+  // register-covered rows and N/A rows are excluded from the
+  // "awaiting / uploaded / approved" summary so the numbers reflect
+  // actual work, not historical bookkeeping.
+  const countable = visibleRows.filter((r) => !r.controlNotApplicable);
   const counts = {
-    total: visibleRows.length,
-    awaiting: visibleRows.filter((r) => r.status === "awaiting_upload").length,
-    uploaded: visibleRows.filter((r) => r.status === "uploaded").length,
-    approved: visibleRows.filter((r) => r.status === "approved").length,
+    total: countable.length,
+    awaiting: countable.filter((r) => r.status === "awaiting_upload").length,
+    uploaded: countable.filter((r) => r.status === "uploaded").length,
+    approved: countable.filter((r) => r.status === "approved").length,
   };
+  const notApplicableCount = visibleRows.length - countable.length;
 
   return (
     <div className="space-y-6">
@@ -165,6 +181,12 @@ export default async function ArtifactsPage() {
             Registers tab
           </a>
           . Those controls are satisfied through register entries (or by an event-driven register that correctly stays empty until a triggering event).
+        </p>
+      )}
+
+      {notApplicableCount > 0 && (
+        <p className="text-xs text-[var(--color-text-muted)]">
+          {notApplicableCount} artifact{notApplicableCount === 1 ? "" : "s"} marked <strong>N/A</strong> — the backing control is inherited or not applicable for your organization. Rows remain visible for traceability but are excluded from the active counts above.
         </p>
       )}
 
