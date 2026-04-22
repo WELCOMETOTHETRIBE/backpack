@@ -11,6 +11,7 @@ import { isHybridControl } from "@/lib/compliance/control-bins";
 import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
 import { governanceRegisters, governanceRegisterEntries, boundaries } from "@/db/schema";
 import { sql } from "drizzle-orm";
+import { isRegisterLaneSatisfied } from "@/lib/registers/compliance-health";
 
 const CONTROL_FAMILY_PREFIX: Record<string, string> = {
   AC: "3.1",
@@ -251,15 +252,22 @@ export async function GET(req: Request) {
       }
     }
 
-    // Build controlId → registerSatisfied map
+    // Build controlId → registerSatisfied map.
+    const orgProvisionedRegisterKeys = new Set(orgRegisters.map((r) => r.registerKey));
     const registerSatisfiedMap = new Map<string, boolean>();
     for (const [controlId, intel] of intelMap) {
       if (!intel.registerRequired || !intel.registerSchemaId) {
         registerSatisfiedMap.set(controlId, true); // no register needed
         continue;
       }
-      const count = registerFinalCounts.get(intel.registerSchemaId) ?? 0;
-      registerSatisfiedMap.set(controlId, count > 0);
+      registerSatisfiedMap.set(
+        controlId,
+        isRegisterLaneSatisfied({
+          registerSchemaId: intel.registerSchemaId,
+          finalEntryCount: registerFinalCounts.get(intel.registerSchemaId) ?? 0,
+          orgProvisioned: orgProvisionedRegisterKeys.has(intel.registerSchemaId),
+        })
+      );
     }
 
     const enriched = withArtifactCount.map((r) => {

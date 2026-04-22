@@ -14,6 +14,7 @@ import { controlRecords, governanceRegisters, governanceRegisterEntries, boundar
 import { eq, and, sql } from "drizzle-orm";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
+import { isRegisterLaneSatisfied } from "@/lib/registers/compliance-health";
 import { buildReadinessChecklist } from "@/lib/readiness/checklist";
 import { ReadinessChecklist } from "./ReadinessChecklist";
 
@@ -96,13 +97,21 @@ export default async function ReadinessPage() {
     }
   }
 
+  const orgProvisionedRegisterKeys = new Set(orgRegisters.map((r) => r.registerKey));
   const registerSatisfiedMap = new Map<string, boolean>();
   for (const [controlId, intel] of intelMap) {
     if (!intel.registerRequired || !intel.registerSchemaId) {
       registerSatisfiedMap.set(controlId, true);
       continue;
     }
-    registerSatisfiedMap.set(controlId, (registerFinalCounts.get(intel.registerSchemaId) ?? 0) > 0);
+    registerSatisfiedMap.set(
+      controlId,
+      isRegisterLaneSatisfied({
+        registerSchemaId: intel.registerSchemaId,
+        finalEntryCount: registerFinalCounts.get(intel.registerSchemaId) ?? 0,
+        orgProvisioned: orgProvisionedRegisterKeys.has(intel.registerSchemaId),
+      })
+    );
   }
 
   const implemented = records.filter((r) => {

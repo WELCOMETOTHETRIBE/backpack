@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { CheckCircle2, Circle, MinusCircle, ChevronDown, ChevronRight, ArrowRight } from "lucide-react";
+import { useMemo, useState } from "react";
+import { CheckCircle2, Circle, MinusCircle, ChevronDown, ChevronRight, ArrowRight, EyeOff, Eye } from "lucide-react";
 import type {
   ReadinessChecklist as ReadinessChecklistData,
   ReadinessSection,
@@ -11,14 +11,72 @@ import type {
 } from "@/lib/readiness/types";
 
 export function ReadinessChecklist({ data }: { data: ReadinessChecklistData }) {
+  const [outstandingOnly, setOutstandingOnly] = useState(true);
+
+  const visibleSections = useMemo(() => {
+    if (!outstandingOnly) return data.sections;
+    // Hide sections that are fully complete, and hide completed tasks within
+    // surviving sections so the reader only sees what still needs attention.
+    return data.sections
+      .filter((s) => s.totalCount === 0 || s.doneCount < s.totalCount)
+      .map((s) => ({
+        ...s,
+        tasks: s.tasks.filter((t) => t.status !== "done"),
+      }));
+  }, [data.sections, outstandingOnly]);
+
+  const hiddenSectionCount = data.sections.length - visibleSections.length;
+  const hiddenTaskCount = data.sections.reduce(
+    (sum, s) => sum + s.tasks.filter((t) => t.status === "done").length,
+    0
+  ) - visibleSections.reduce(
+    (sum, s) => sum + s.tasks.filter((t) => t.status === "done").length,
+    0
+  );
+
   return (
     <div className="flex flex-col gap-6">
       <RollupCard rollup={data.rollup} />
       {data.topActions.length > 0 && <TopActions tasks={data.topActions} />}
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="text-sm font-semibold text-slate-800">Readiness tasks by section</h3>
+        <button
+          type="button"
+          onClick={() => setOutstandingOnly((v) => !v)}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition"
+          title={outstandingOnly ? `Show ${hiddenSectionCount} completed section${hiddenSectionCount === 1 ? "" : "s"} and ${hiddenTaskCount} completed task${hiddenTaskCount === 1 ? "" : "s"}` : "Hide completed"}
+        >
+          {outstandingOnly ? (
+            <>
+              <Eye className="h-3.5 w-3.5" />
+              Show all{hiddenSectionCount + hiddenTaskCount > 0 ? ` (+${hiddenSectionCount + hiddenTaskCount})` : ""}
+            </>
+          ) : (
+            <>
+              <EyeOff className="h-3.5 w-3.5" />
+              Outstanding only
+            </>
+          )}
+        </button>
+      </div>
       <div className="flex flex-col gap-4">
-        {data.sections.map((s) => (
-          <SectionCard key={s.key} section={s} />
-        ))}
+        {visibleSections.length === 0 ? (
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-6 text-center">
+            <CheckCircle2 className="mx-auto h-6 w-6 text-emerald-600 mb-2" />
+            <p className="text-sm font-semibold text-emerald-900">Every readiness task is complete.</p>
+            <button
+              type="button"
+              onClick={() => setOutstandingOnly(false)}
+              className="mt-2 text-xs font-medium text-emerald-700 hover:underline"
+            >
+              Show completed sections
+            </button>
+          </div>
+        ) : (
+          visibleSections.map((s) => (
+            <SectionCard key={s.key} section={s} outstandingOnly={outstandingOnly} />
+          ))
+        )}
       </div>
     </div>
   );
@@ -125,9 +183,11 @@ function TopActions({ tasks }: { tasks: ReadinessTask[] }) {
   );
 }
 
-function SectionCard({ section }: { section: ReadinessSection }) {
+function SectionCard({ section, outstandingOnly }: { section: ReadinessSection; outstandingOnly?: boolean }) {
   const complete = section.totalCount > 0 && section.doneCount === section.totalCount;
-  const [expanded, setExpanded] = useState(!complete);
+  // When the user asked to see only outstanding work, keep surviving sections
+  // open by default so the remaining tasks are immediately scannable.
+  const [expanded, setExpanded] = useState(outstandingOnly ? true : !complete);
   const pct = section.totalCount ? Math.round((section.doneCount / section.totalCount) * 100) : 0;
 
   return (

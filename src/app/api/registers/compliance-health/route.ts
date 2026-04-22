@@ -13,6 +13,7 @@ import { eq, desc } from "drizzle-orm";
 import { getRegisterSchemas } from "@/data/cmmc/register-schemas";
 import { CONTROL_INTELLIGENCE, cadenceToDays } from "@/data/cmmc/control-intelligence";
 import { REGISTER_DISPLAY_NAMES, type RegisterHealthStatus } from "@/lib/registers/compliance-health";
+import { getCadenceRuleByRegisterId } from "@/data/cmmc/register-cadence-rules";
 
 export type { RegisterHealthStatus };
 
@@ -27,6 +28,13 @@ export type ComplianceRegisterHealth = {
   lastEntryAt: string | null;
   nextDueAt: string | null;
   status: RegisterHealthStatus;
+  /**
+   * True when the register is event-driven (cadence_days = 0). Event-driven
+   * registers legitimately have no entries when the triggering event has not
+   * occurred — so empty-and-provisioned is the correct steady state, not a
+   * gap.
+   */
+  eventDriven: boolean;
   entryCount: number;
   daysOverdue: number | null;
   daysUntilDue: number | null;
@@ -79,8 +87,13 @@ export async function GET() {
   const results: ComplianceRegisterHealth[] = [];
 
   for (const schema of schemas) {
+    // Show every register schema — even ones without an explicit
+    // CONTROL_INTELLIGENCE mapping (e.g., audit_config, facility_access,
+    // media_access, role_assignment_matrix, baseline_config,
+    // technical_compliance_run). These are still CMMC-required records
+    // an examiner will request; filtering them out hid them from the
+    // dashboard and made the count look short.
     const controlIds = intelligenceByRegister.get(schema.register_id) ?? [];
-    if (controlIds.length === 0) continue;
 
     const orgRegister = orgRegisterMap.get(schema.register_id);
     const cadenceDays = orgRegister?.defaultCadenceDays ?? schema.default_cadence_days ?? null;
@@ -116,6 +129,9 @@ export async function GET() {
       : effectiveCadence <= 90 ? "Quarterly"
       : "Annual";
 
+    const cadenceRule = getCadenceRuleByRegisterId(schema.register_id);
+    const eventDriven = cadenceRule?.cadence_days === 0;
+
     results.push({
       registerId: orgRegister?.id ?? "",
       registerKey: schema.register_id,
@@ -127,6 +143,7 @@ export async function GET() {
       lastEntryAt: lastEntryAt?.toISOString() ?? null,
       nextDueAt: nextDueAt?.toISOString() ?? null,
       status,
+      eventDriven,
       entryCount,
       daysOverdue: daysOverdue ?? null,
       daysUntilDue: daysUntilDue ?? null,

@@ -184,25 +184,49 @@ async function buildSetupSection(orgId: string): Promise<ReadinessSection> {
 // ─────────────────────────────────────────────────────────────────────────────
 // Section: Governance Library
 // ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Extract the MACTech doc code (e.g. "MAC-POL-210") from a matrix row's
+ * mactechDocument path basename. The basename format is
+ * "<MAC-XXX-NNN>_<slug>.md", so we grab the leading token before the
+ * underscore.
+ */
+function docCodeFromMatrixPath(path: string | undefined): string | null {
+  if (!path) return null;
+  const basename = path.split("/").pop() ?? path;
+  const match = basename.match(/^(MAC-[A-Z]{2,4}-\d{3,4})/);
+  return match ? match[1] : null;
+}
+
 async function buildGovernanceSection(orgId: string): Promise<ReadinessSection> {
   const required = GOVERNANCE_DOCUMENT_MATRIX.filter(
     (d) => d.govPure || d.govHybrid || d.techHybrid
   );
 
   const docs = await db
-    .select({ title: governanceDocuments.title })
+    .select({ docId: governanceDocuments.docId, title: governanceDocuments.title })
     .from(governanceDocuments)
     .where(eq(governanceDocuments.organizationId, orgId));
 
   const normalizedTitles = new Set(docs.map((d) => normalizeTitle(d.title ?? "")));
+  const uploadedDocIds = new Set(docs.map((d) => (d.docId ?? "").trim()).filter(Boolean));
 
   const tasks: ReadinessTask[] = required.map((row) => {
     const norm = normalizeTitle(row.document);
-    // Accept a doc if its normalized title matches, or if any uploaded title
-    // CONTAINS the matrix label (handles "Access Control Policy v2.1" style uploads).
-    const matched =
+    // Authoritative match: the manifest ingest writes `governanceDocuments.docId`
+    // as the MACTech doc code (e.g. MAC-POL-210). The matrix encodes the same
+    // code in the mactechDocument path basename. Matching on docId catches the
+    // 20 docs whose uploaded title doesn't exactly align with the matrix label
+    // (e.g. "Access Control Policy v2.1" vs matrix "Access Control Policy").
+    const matrixDocCode = docCodeFromMatrixPath(row.mactechDocument);
+    const matchedByDocId = !!matrixDocCode && uploadedDocIds.has(matrixDocCode);
+
+    // Fallback: fuzzy normalized-title match (exact, prefix, or contains).
+    const matchedByTitle =
       normalizedTitles.has(norm) ||
       [...normalizedTitles].some((t) => t.includes(norm) || norm.includes(t));
+
+    const matched = matchedByDocId || matchedByTitle;
     return {
       id: `gov.${norm.replace(/\s+/g, "_")}`,
       label: row.document,

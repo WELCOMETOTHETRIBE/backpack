@@ -10,6 +10,7 @@ import { governanceRegisters, governanceRegisterEntries } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { getRegisterSchemas } from "@/data/cmmc/register-schemas";
 import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
+import { getCadenceRuleByRegisterId } from "@/data/cmmc/register-cadence-rules";
 
 export type RegisterHealthStatus = "current" | "due_soon" | "overdue" | "never_used";
 
@@ -143,6 +144,34 @@ export async function getComplianceRegisterHealth(orgId: string): Promise<Regist
   results.sort((a, b) => ORDER[a.status] - ORDER[b.status] || a.displayName.localeCompare(b.displayName));
 
   return results;
+}
+
+/**
+ * Decide whether the register lane is satisfied for a given register.
+ *
+ * Event-driven registers (cadence_days = 0 — incident_log, termination,
+ * maintenance_log, change_log, visitor_log, media_destruction,
+ * personnel_screening, technical_compliance_run) legitimately have no entries
+ * when the triggering event has not occurred (fresh vault: no incidents, no
+ * terminations, no maintenance). Treating these as MISSING blocked the
+ * register lane on the associated controls even when zero-entry is the
+ * correct steady state. For event-driven registers we count the lane as
+ * satisfied as soon as the register is provisioned for the org (i.e., the
+ * org has acknowledged the register and is ready to log events).
+ *
+ * Scheduled registers (weekly / monthly / quarterly / annual cadence — e.g.
+ * training_completion, audit_log_review, policy_review) still require a
+ * final entry to satisfy the lane.
+ */
+export function isRegisterLaneSatisfied(args: {
+  registerSchemaId: string;
+  finalEntryCount: number;
+  orgProvisioned: boolean;
+}): boolean {
+  if (args.finalEntryCount > 0) return true;
+  const cadence = getCadenceRuleByRegisterId(args.registerSchemaId);
+  const isEventDriven = cadence?.cadence_days === 0;
+  return isEventDriven && args.orgProvisioned;
 }
 
 /** Aggregate counts by status */

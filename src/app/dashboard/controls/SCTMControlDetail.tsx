@@ -34,6 +34,7 @@ import type { SctmOptimizedControl } from "@/lib/sctm-optimized-types";
 import { getHybridCriteriaLabels } from "@/lib/compliance/satisfaction-sources";
 import { getEnclaveEntry } from "@/lib/compliance/os-evidence-manifest";
 import { getPlatformHelpForControl } from "@/lib/compliance/platform-helps";
+import { REGISTER_DISPLAY_NAMES } from "@/lib/registers/compliance-health";
 import type { ArtifactSpec } from "@/lib/artifact-guide";
 import {
   getControlIntelligence,
@@ -733,7 +734,7 @@ export function SCTMControlDetail({
                   className="mt-3 inline-flex items-center gap-1 text-xs text-indigo-700 hover:underline"
                 >
                   <ClipboardList className="h-3 w-3" />
-                  Required register: {intel.registerKey}
+                  Required register: {REGISTER_DISPLAY_NAMES[intel.registerSchemaId] ?? intel.registerKey}
                   <ExternalLink className="h-2.5 w-2.5 opacity-60" />
                 </Link>
               )}
@@ -779,17 +780,35 @@ export function SCTMControlDetail({
                     Policy: {policyStatus === "satisfied" ? "SATISFIED" : policyStatus === "not_required" ? "N/A" : "MISSING"}
                   </span>
                 )}
-                {record.registerRequired && (
-                  <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium border ${
-                    record.registerSatisfied ? "bg-emerald-50 border-emerald-200 text-emerald-700" :
-                    "bg-amber-50 border-amber-200 text-amber-700"
-                  }`}>
-                    <span className={`h-1.5 w-1.5 rounded-full ${
-                      record.registerSatisfied ? "bg-emerald-500" : "bg-amber-500"
-                    }`} />
-                    Register: {record.registerSatisfied ? "SATISFIED" : "MISSING"}
-                  </span>
-                )}
+                {record.registerRequired && (() => {
+                  const registerLabel =
+                    (record.registerSchemaId && REGISTER_DISPLAY_NAMES[record.registerSchemaId]) ||
+                    record.registerKey ||
+                    record.registerSchemaId ||
+                    null;
+                  const missingText = registerLabel ? `${registerLabel} — MISSING` : "MISSING";
+                  const satisfiedText = registerLabel ? `${registerLabel} — SATISFIED` : "SATISFIED";
+                  const badge = (
+                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium border ${
+                      record.registerSatisfied ? "bg-emerald-50 border-emerald-200 text-emerald-700" :
+                      "bg-amber-50 border-amber-200 text-amber-700"
+                    }`}>
+                      <span className={`h-1.5 w-1.5 rounded-full ${
+                        record.registerSatisfied ? "bg-emerald-500" : "bg-amber-500"
+                      }`} />
+                      Register: {record.registerSatisfied ? satisfiedText : missingText}
+                    </span>
+                  );
+                  return record.registerSchemaId ? (
+                    <Link
+                      href={`/dashboard/evidence-engine/registers/${record.registerSchemaId}`}
+                      className="hover:opacity-80 transition-opacity"
+                      title={record.registerSatisfied ? "View register" : "Populate this register"}
+                    >
+                      {badge}
+                    </Link>
+                  ) : badge;
+                })()}
               </div>
             </section>
           )}

@@ -97,7 +97,7 @@ const REGISTER_DISPLAY: Record<string, { name: string; description: string; cate
 
 // ── Status visuals ──────────────────────────────────────────────────────────
 
-function statusConfig(status: RegisterHealthStatus) {
+function statusConfig(status: RegisterHealthStatus, eventDriven: boolean = false) {
   switch (status) {
     case "current":
       return {
@@ -127,14 +127,26 @@ function statusConfig(status: RegisterHealthStatus) {
         ring: "border-red-300",
       };
     case "never_used":
-      return {
-        label: "Never Used",
-        dot: "bg-gray-400",
-        badge: "bg-gray-50 border-gray-200 text-gray-600",
-        icon: Circle,
-        iconColor: "text-gray-400",
-        ring: "border-gray-200",
-      };
+      // Event-driven registers (incidents, terminations, maintenance, etc.)
+      // legitimately stay empty until the triggering event occurs. Presenting
+      // them as "Never Used" next to overdue items wrongly implies a gap.
+      return eventDriven
+        ? {
+            label: "Ready — no events",
+            dot: "bg-sky-400",
+            badge: "bg-sky-50 border-sky-200 text-sky-800",
+            icon: CheckCircle2,
+            iconColor: "text-sky-500",
+            ring: "border-sky-200",
+          }
+        : {
+            label: "Never Used",
+            dot: "bg-gray-400",
+            badge: "bg-gray-50 border-gray-200 text-gray-600",
+            icon: Circle,
+            iconColor: "text-gray-400",
+            ring: "border-gray-200",
+          };
   }
 }
 
@@ -150,9 +162,11 @@ function formatRelativeDate(iso: string | null): string {
   return `${Math.floor(days / 365)}y ago`;
 }
 
-function formatNextDue(iso: string | null, status: RegisterHealthStatus): string {
+function formatNextDue(iso: string | null, status: RegisterHealthStatus, eventDriven: boolean = false): string {
   if (!iso) {
-    if (status === "never_used") return "Add first entry";
+    if (status === "never_used") {
+      return eventDriven ? "When an event occurs" : "Add first entry";
+    }
     return "Event-driven";
   }
   const d = new Date(iso);
@@ -170,7 +184,7 @@ function formatNextDue(iso: string | null, status: RegisterHealthStatus): string
 function RegisterListItem({ reg }: { reg: ComplianceRegisterHealth }) {
   const display = REGISTER_DISPLAY[reg.registerKey];
   const name = display?.name ?? reg.displayName;
-  const cfg = statusConfig(reg.status);
+  const cfg = statusConfig(reg.status, reg.eventDriven);
   const StatusIcon = cfg.icon;
 
   return (
@@ -196,7 +210,7 @@ function RegisterListItem({ reg }: { reg: ComplianceRegisterHealth }) {
             reg.status === "due_soon" ? "text-amber-600" :
             "text-gray-700"
           }`}>
-            {formatNextDue(reg.nextDueAt, reg.status)}
+            {formatNextDue(reg.nextDueAt, reg.status, reg.eventDriven)}
           </p>
         </div>
         <span className={`shrink-0 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${cfg.badge}`}>
@@ -215,7 +229,7 @@ function RegisterCard({ reg }: { reg: ComplianceRegisterHealth }) {
   const display = REGISTER_DISPLAY[reg.registerKey];
   const name = display?.name ?? reg.displayName;
   const desc = display?.description ?? reg.description;
-  const cfg = statusConfig(reg.status);
+  const cfg = statusConfig(reg.status, reg.eventDriven);
   const StatusIcon = cfg.icon;
 
   return (
@@ -253,7 +267,7 @@ function RegisterCard({ reg }: { reg: ComplianceRegisterHealth }) {
             reg.status === "due_soon" ? "text-amber-600" :
             "text-gray-700"
           }`}>
-            {formatNextDue(reg.nextDueAt, reg.status)}
+            {formatNextDue(reg.nextDueAt, reg.status, reg.eventDriven)}
           </p>
         </div>
         <div>
@@ -697,7 +711,11 @@ export function ComplianceRegistersClient({ userRole }: { userRole: string }) {
                   </span>
                   <span className="flex items-center gap-1">
                     <span className="h-2 w-2 rounded-full bg-gray-400" />
-                    <strong>Never Used</strong> — no entries on record
+                    <strong>Never Used</strong> — scheduled register with no entries
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="h-2 w-2 rounded-full bg-sky-400" />
+                    <strong>Ready — no events</strong> — event-driven register that correctly stays empty until a triggering event (e.g., incident, termination) occurs
                   </span>
                 </div>
               </div>
