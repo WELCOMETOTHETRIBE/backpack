@@ -187,7 +187,9 @@ export const CMMC_ARTIFACT_SPECS: ControlArtifactSpec[] = [
   { controlId: "3.5.9", satisfactionType: "Hybrid", artifacts: (PARTIAL_DOCS_TO_CLOSE["3.5.9"] ?? []).map((a) => ({ label: a.label, handling: a.type as ArtifactHandling })) },
   { controlId: "3.5.10", satisfactionType: "Governance-Centric", artifacts: [{ label: "Procedures for establishing, changing, and revoking authenticators", handling: "UPLOAD" }] },
   { controlId: "3.5.11", satisfactionType: "Hybrid", artifacts: (PARTIAL_DOCS_TO_CLOSE["3.5.11"] ?? []).map((a) => ({ label: a.label, handling: a.type as ArtifactHandling })) },
-  // IR
+  // IR — 3.6.3 additionally gated on the tabletop AAR milestone via
+  // EXECUTION_EVIDENCE_REQUIRED_MILESTONES in lib/control-status.ts; policy
+  // docs alone are necessary but not sufficient for "we tested our IR".
   { controlId: "3.6.1", satisfactionType: "Governance-Centric", artifacts: [
     { label: "Incident Response Policy", handling: "UPLOAD" }, { label: "Incident Response Plan", handling: "REFERENCE" }, { label: "Procedures for Incident Handling", handling: "REFERENCE" },
   ]},

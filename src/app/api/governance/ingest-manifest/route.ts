@@ -9,6 +9,7 @@ import {
 import { eq, and, inArray, desc, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { PURE_GOVERNANCE_IDS } from "@/lib/compliance/control-bins";
+import { EXECUTION_EVIDENCE_REQUIRED } from "@/lib/control-status";
 
 // ─── Supported schemas ────────────────────────────────────────────────────────
 const SCHEMA_V1 = "mactech-governance-manifest.v1";       // QMS CLI output (51 docs)
@@ -397,6 +398,13 @@ export async function POST(req: Request) {
         if (PROTECTED_STATUSES.includes(r.implementationStatus)) continue;
         // Already implemented — nothing to do
         if (r.implementationStatus === "implemented") continue;
+
+        // Execution-evidence controls (e.g., 3.6.3 IR testing) are NEVER
+        // auto-promoted by manifest ingest — the procedure doc isn't
+        // evidence the procedure was executed. calculateControlStatus
+        // decides their status based on the presence of the specific
+        // execution artifact (e.g., tabletop AAR).
+        if (EXECUTION_EVIDENCE_REQUIRED.has(r.controlId)) continue;
 
         if (PURE_GOV_SET.has(r.controlId)) {
           // Pure governance: docs alone close the control

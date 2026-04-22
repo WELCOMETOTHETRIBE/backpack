@@ -799,11 +799,18 @@ export const CONTROL_INTELLIGENCE: ControlIntelligence[] = [
     disposition: "partial",
     evidenceLanes: ["lane_3_governance"],
     cadenceType: "annual",
-    registerRequired: true,
-    registerKey: "IR Testing Register",
-    registerSchemaId: "incident_log",
+    // 3.6.3 is about *testing* the IR capability (annual tabletop + AAR).
+    // The incident_log register is for actual incidents — semantically the
+    // wrong evidence vehicle. The AAR upload artifact
+    // (IR.3.6.3.tabletop_aar in client-required-artifacts) is the gate.
+    // Keep registerRequired=false so an empty incident_log register (which
+    // may legitimately be empty on a fresh vault) does not satisfy the
+    // "we tested our IR" requirement.
+    registerRequired: false,
+    registerKey: null,
+    registerSchemaId: null,
     policyDocRequired: true,
-    c3paoExaminerNote: "Examiner will ask for the most recent tabletop exercise documentation. Will review the scenario, who participated, what issues were identified, and what was fixed.",
+    c3paoExaminerNote: "Examiner will ask for the most recent tabletop exercise documentation. Will review the scenario, who participated, what issues were identified, and what was fixed. Policy / procedure docs alone will NOT satisfy — an AAR (after-action report) from within the last 12 months is required.",
     conmonTrigger: "Tabletop exercise not conducted in 12 months",
     naRationale: null,
   },
