@@ -316,6 +316,16 @@ function RegisterCard({ reg }: { reg: ComplianceRegisterHealth }) {
         </div>
       )}
 
+      {/* Event-driven empty registers get a one-line nudge toward the
+          "No events this period" attestation — the C3PAO-defensible artifact
+          for a legitimately empty register. */}
+      {reg.eventDriven && reg.entryCount === 0 && !reg.notApplicable && (
+        <div className="mt-3 rounded-md border border-sky-100 bg-sky-50/60 px-2.5 py-1.5 text-[11px] text-sky-800 flex items-center gap-1.5">
+          <span className="font-semibold">Tip:</span>
+          attest &quot;no events this period&quot; on the register page to strengthen the audit trail.
+        </div>
+      )}
+
       {/* Arrow */}
       <div className="flex items-center justify-end mt-3">
         <span className="text-[11px] font-medium text-gray-400 group-hover:text-blue-600 transition-colors flex items-center gap-1">
