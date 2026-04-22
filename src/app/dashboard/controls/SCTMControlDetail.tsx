@@ -34,7 +34,7 @@ import type { SctmOptimizedControl } from "@/lib/sctm-optimized-types";
 import { getHybridCriteriaLabels } from "@/lib/compliance/satisfaction-sources";
 import { getEnclaveEntry } from "@/lib/compliance/os-evidence-manifest";
 import { getPlatformHelpForControl } from "@/lib/compliance/platform-helps";
-import { REGISTER_DISPLAY_NAMES } from "@/lib/registers/compliance-health";
+import { REGISTER_DISPLAY_NAMES } from "@/lib/registers/display-names";
 import type { ArtifactSpec } from "@/lib/artifact-guide";
 import {
   getControlIntelligence,
