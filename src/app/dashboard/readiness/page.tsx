@@ -21,6 +21,7 @@ import {
 } from "@/lib/registers/compliance-health";
 import { buildReadinessChecklist } from "@/lib/readiness/checklist";
 import { ReadinessChecklist } from "./ReadinessChecklist";
+import { RecalculateControlsButton } from "./RecalculateControlsButton";
 
 const cardClass = "rounded-xl border border-slate-200 bg-white p-6 shadow-sm";
 
@@ -138,11 +139,14 @@ export default async function ReadinessPage() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-[#0F172A]">Readiness & Audit</h1>
-        <p className="mt-2 text-gray-600">
-          Prepare for C3PAO assessment with mock assessments and readiness tools.
-        </p>
+      <div className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-[#0F172A]">Readiness & Audit</h1>
+          <p className="mt-2 text-gray-600">
+            Prepare for C3PAO assessment with mock assessments and readiness tools.
+          </p>
+        </div>
+        <RecalculateControlsButton />
       </div>
 
       <div className="mb-6">

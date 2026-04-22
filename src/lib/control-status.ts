@@ -38,6 +38,8 @@ import {
   PURE_GOVERNANCE_IDS,
 } from "./compliance/control-bins";
 import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
+import { getCadenceRuleByRegisterId } from "@/data/cmmc/register-cadence-rules";
+import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
 
 export interface GovernanceCompletionRow {
   artifactLabel: string;
@@ -91,9 +93,30 @@ async function getLayerForControl(
 const intelByControlId = new Map(CONTROL_INTELLIGENCE.map((c) => [c.controlId, c]));
 
 /**
- * Check if a control's required registers are satisfied.
- * A register is satisfied when at least one finalized entry exists.
+ * Check if a control's required register lane is satisfied.
+ *
+ * Satisfied when either:
+ *   a) ≥1 finalized entry exists in the register, OR
+ *   b) the register is event-driven (cadence_days = 0) AND provisioned for
+ *      the org. Event-driven registers (incident_log, termination,
+ *      maintenance_log, change_log, visitor_log, media_destruction,
+ *      personnel_screening) legitimately stay empty until the triggering
+ *      event occurs — a fresh vault with no incidents is the correct
+ *      steady state.
+ *
+ * Two vocabularies refer to the same register (see
+ * register-key-aliases.ts): the schema id held by
+ * CONTROL_INTELLIGENCE.registerSchemaId ("termination") and the seed-data
+ * registerKey written to governance_registers rows ("terminations"). We
+ * try every alias so the register lookup actually finds the row.
+ *
+ * `technical_compliance_run` is deliberately NOT whitelisted — it is a
+ * meta-log of OS Collector runs; "empty" means the collector has never
+ * run, which is a gap, not a satisfied state. (It is also not referenced
+ * by any control in CONTROL_INTELLIGENCE today, so this is defensive.)
  */
+const EVENT_DRIVEN_EXCLUDED_FROM_EMPTY_PASS = new Set<string>(["technical_compliance_run"]);
+
 async function isRegisterSatisfied(
   organizationId: string,
   controlId: string
@@ -101,24 +124,35 @@ async function isRegisterSatisfied(
   const intel = intelByControlId.get(controlId);
   if (!intel?.registerRequired || !intel.registerSchemaId) return true; // no register needed
 
-  // Find the register for this org with matching register key
+  const candidates = resolveRegisterKeyCandidates(intel.registerSchemaId);
+
+  // Find the register for this org matching any alias vocabulary.
   const [register] = await db
     .select({ id: governanceRegisters.id })
     .from(governanceRegisters)
     .where(
       and(
         eq(governanceRegisters.organizationId, organizationId),
-        eq(governanceRegisters.registerKey, intel.registerSchemaId)
+        sql`${governanceRegisters.registerKey} IN (${sql.join(
+          candidates.map((k) => sql`${k}`),
+          sql`, `
+        )})`
       )
     )
     .limit(1);
 
-  if (!register) return false; // register not even set up
+  if (!register) return false; // register not provisioned
 
-  // Check the register's controlIds to confirm this control is mapped
-  // (We trust the intel data; the register existing is the check)
+  // Event-driven registers: provisioned with zero entries is the correct
+  // steady state — no events means nothing to log. Auto-satisfy.
+  const cadence = getCadenceRuleByRegisterId(intel.registerSchemaId);
+  const isEventDriven = cadence?.cadence_days === 0;
+  if (isEventDriven && !EVENT_DRIVEN_EXCLUDED_FROM_EMPTY_PASS.has(intel.registerSchemaId)) {
+    return true;
+  }
 
-  // Get org boundaries
+  // Scheduled register: require at least one finalized entry within the
+  // org's boundaries.
   const orgBoundaries = await db
     .select({ id: boundaries.id })
     .from(boundaries)
@@ -126,7 +160,6 @@ async function isRegisterSatisfied(
 
   if (orgBoundaries.length === 0) return false;
 
-  // Check for at least one finalized entry
   const [row] = await db
     .select({ cnt: sql<number>`count(*)::int` })
     .from(governanceRegisterEntries)

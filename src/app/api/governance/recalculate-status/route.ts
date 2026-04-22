@@ -4,15 +4,20 @@ import { controlRecords } from "@/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { HYBRID_GOVERNANCE_IDS, PURE_GOVERNANCE_IDS } from "@/lib/compliance/control-bins";
+import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
 import { calculateControlStatus } from "@/lib/control-status";
 
 /**
  * POST /api/governance/recalculate-status
  *
- * Recalculates implementationStatus + technicalStatus for all pure and hybrid
- * governance control records. Controls with no technical evidence requirements
- * will auto-satisfy their technical lane. Returns counts of recalculated and
- * newly-promoted records.
+ * Recalculates implementationStatus + technicalStatus for every control
+ * record whose state can change as a downstream effect of a governance,
+ * register, or evidence update. In scope:
+ *   • all pure-governance controls
+ *   • all hybrid (governance + technical) controls
+ *   • all register-gated controls (anything with CONTROL_INTELLIGENCE.registerRequired)
+ *
+ * Returns counts of recalculated and newly-promoted records.
  */
 export async function POST() {
   try {
@@ -24,12 +29,17 @@ export async function POST() {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const allGovIds = [...PURE_GOVERNANCE_IDS, ...HYBRID_GOVERNANCE_IDS];
+    const registerGatedIds = CONTROL_INTELLIGENCE
+      .filter((c) => c.registerRequired)
+      .map((c) => c.controlId);
+    const scopedIds = Array.from(
+      new Set([...PURE_GOVERNANCE_IDS, ...HYBRID_GOVERNANCE_IDS, ...registerGatedIds])
+    );
 
     const records = await db
       .select({ id: controlRecords.id, controlId: controlRecords.controlId, implementationStatus: controlRecords.implementationStatus })
       .from(controlRecords)
-      .where(and(eq(controlRecords.organizationId, orgId), inArray(controlRecords.controlId, allGovIds)));
+      .where(and(eq(controlRecords.organizationId, orgId), inArray(controlRecords.controlId, scopedIds)));
 
     let recalculated = 0;
     let promoted = 0;
