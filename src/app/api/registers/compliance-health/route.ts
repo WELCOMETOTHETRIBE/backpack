@@ -14,6 +14,7 @@ import { getRegisterSchemas } from "@/data/cmmc/register-schemas";
 import { CONTROL_INTELLIGENCE, cadenceToDays } from "@/data/cmmc/control-intelligence";
 import { REGISTER_DISPLAY_NAMES, type RegisterHealthStatus } from "@/lib/registers/compliance-health";
 import { getCadenceRuleByRegisterId } from "@/data/cmmc/register-cadence-rules";
+import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
 
 export type { RegisterHealthStatus };
 
@@ -95,7 +96,15 @@ export async function GET() {
     // dashboard and made the count look short.
     const controlIds = intelligenceByRegister.get(schema.register_id) ?? [];
 
-    const orgRegister = orgRegisterMap.get(schema.register_id);
+    // Seed-data registerKeys don't always match schema register_ids (e.g.
+    // schema "termination" ↔ seed "terminations"). Try every alias so the
+    // org register row actually gets found.
+    const candidates = resolveRegisterKeyCandidates(schema.register_id);
+    let orgRegister: (typeof orgRegisters)[number] | undefined;
+    for (const k of candidates) {
+      const hit = orgRegisterMap.get(k);
+      if (hit) { orgRegister = hit; break; }
+    }
     const cadenceDays = orgRegister?.defaultCadenceDays ?? schema.default_cadence_days ?? null;
     const effectiveCadence = !cadenceDays || cadenceDays === 0 ? null : cadenceDays;
 
@@ -118,8 +127,7 @@ export async function GET() {
       entryCount = all.length;
     }
 
-    const { status, daysOverdue, daysUntilDue, nextDueAt } = computeStatus(lastEntryAt, effectiveCadence);
-
+    const computed = computeStatus(lastEntryAt, effectiveCadence);
     const displayName = REGISTER_DISPLAY_NAMES[schema.register_id] ?? schema.register_id;
     const description = schema.description ?? "";
 
@@ -132,6 +140,16 @@ export async function GET() {
     const cadenceRule = getCadenceRuleByRegisterId(schema.register_id);
     const eventDriven = cadenceRule?.cadence_days === 0;
 
+    // Event-driven registers with zero entries (while provisioned) are the
+    // correct steady state — no incidents, no terminations, no events to
+    // log. Promote them from "never_used" to "current" so summary counts,
+    // filter chips, and banners all treat them as satisfied. The
+    // eventDriven flag keeps a distinctive "Ready — no events" label
+    // available in the UI.
+    const provisioned = !!orgRegister;
+    const effectiveStatus: RegisterHealthStatus =
+      eventDriven && provisioned && entryCount === 0 ? "current" : computed.status;
+
     results.push({
       registerId: orgRegister?.id ?? "",
       registerKey: schema.register_id,
@@ -141,12 +159,12 @@ export async function GET() {
       cadenceLabel: cadenceLabelStr,
       controlIds,
       lastEntryAt: lastEntryAt?.toISOString() ?? null,
-      nextDueAt: nextDueAt?.toISOString() ?? null,
-      status,
+      nextDueAt: computed.nextDueAt?.toISOString() ?? null,
+      status: effectiveStatus,
       eventDriven,
       entryCount,
-      daysOverdue: daysOverdue ?? null,
-      daysUntilDue: daysUntilDue ?? null,
+      daysOverdue: computed.daysOverdue ?? null,
+      daysUntilDue: computed.daysUntilDue ?? null,
       href: `/dashboard/evidence-engine/registers/${schema.register_id}`,
     });
   }

@@ -11,7 +11,11 @@ import { isHybridControl } from "@/lib/compliance/control-bins";
 import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
 import { governanceRegisters, governanceRegisterEntries, boundaries } from "@/db/schema";
 import { sql } from "drizzle-orm";
-import { isRegisterLaneSatisfied } from "@/lib/registers/compliance-health";
+import {
+  isRegisterLaneSatisfied,
+  finalCountForSchemaId,
+  isProvisionedForSchemaId,
+} from "@/lib/registers/compliance-health";
 
 const CONTROL_FAMILY_PREFIX: Record<string, string> = {
   AC: "3.1",
@@ -252,7 +256,10 @@ export async function GET(req: Request) {
       }
     }
 
-    // Build controlId → registerSatisfied map.
+    // Build controlId → registerSatisfied map. Register schema ids
+    // (CONTROL_INTELLIGENCE.registerSchemaId) don't always match the
+    // seed-data registerKey that's on governance_registers rows, so go
+    // through the alias-aware helpers.
     const orgProvisionedRegisterKeys = new Set(orgRegisters.map((r) => r.registerKey));
     const registerSatisfiedMap = new Map<string, boolean>();
     for (const [controlId, intel] of intelMap) {
@@ -264,8 +271,8 @@ export async function GET(req: Request) {
         controlId,
         isRegisterLaneSatisfied({
           registerSchemaId: intel.registerSchemaId,
-          finalEntryCount: registerFinalCounts.get(intel.registerSchemaId) ?? 0,
-          orgProvisioned: orgProvisionedRegisterKeys.has(intel.registerSchemaId),
+          finalEntryCount: finalCountForSchemaId(registerFinalCounts, intel.registerSchemaId),
+          orgProvisioned: isProvisionedForSchemaId(orgProvisionedRegisterKeys, intel.registerSchemaId),
         })
       );
     }

@@ -18,7 +18,13 @@ import { and, eq, lt, sql } from "drizzle-orm";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { sprsScoringData, SPRS_MAX } from "@/lib/sprs";
 import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
-import { getComplianceRegisterHealth, aggregateRegisterHealth, isRegisterLaneSatisfied } from "@/lib/registers/compliance-health";
+import {
+  getComplianceRegisterHealth,
+  aggregateRegisterHealth,
+  isRegisterLaneSatisfied,
+  finalCountForSchemaId,
+  isProvisionedForSchemaId,
+} from "@/lib/registers/compliance-health";
 import type { ChecklistStage } from "@/app/dashboard/DashboardSetupWidget";
 
 const TOTAL_CONTROLS = ALL_CONTROL_IDS.length;
@@ -84,8 +90,8 @@ export async function getCertificationJourney(orgId: string): Promise<Certificat
       controlId,
       isRegisterLaneSatisfied({
         registerSchemaId: intel.registerSchemaId,
-        finalEntryCount: registerFinalCounts.get(intel.registerSchemaId) ?? 0,
-        orgProvisioned: orgProvisionedRegisterKeys.has(intel.registerSchemaId),
+        finalEntryCount: finalCountForSchemaId(registerFinalCounts, intel.registerSchemaId),
+        orgProvisioned: isProvisionedForSchemaId(orgProvisionedRegisterKeys, intel.registerSchemaId),
       })
     );
   }

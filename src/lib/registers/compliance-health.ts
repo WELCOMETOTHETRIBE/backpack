@@ -11,6 +11,7 @@ import { eq, desc } from "drizzle-orm";
 import { getRegisterSchemas } from "@/data/cmmc/register-schemas";
 import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
 import { getCadenceRuleByRegisterId } from "@/data/cmmc/register-cadence-rules";
+import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
 import { REGISTER_DISPLAY_NAMES } from "./display-names";
 
 export { REGISTER_DISPLAY_NAMES };
@@ -147,6 +148,30 @@ export function isRegisterLaneSatisfied(args: {
   const cadence = getCadenceRuleByRegisterId(args.registerSchemaId);
   const isEventDriven = cadence?.cadence_days === 0;
   return isEventDriven && args.orgProvisioned;
+}
+
+/**
+ * Alias-aware helpers: schema ids (from CONTROL_INTELLIGENCE) and seed-data
+ * registerKeys (on governance_registers rows) diverge for 14 of 24
+ * registers. When callers have a schema id and need to query org-side maps
+ * keyed by seed-data registerKey, these helpers try both vocabularies.
+ */
+export function finalCountForSchemaId(
+  finalCountsByRegisterKey: Map<string, number>,
+  schemaId: string
+): number {
+  for (const k of resolveRegisterKeyCandidates(schemaId)) {
+    const n = finalCountsByRegisterKey.get(k);
+    if (n && n > 0) return n;
+  }
+  return 0;
+}
+
+export function isProvisionedForSchemaId(
+  provisionedKeys: Set<string>,
+  schemaId: string
+): boolean {
+  return resolveRegisterKeyCandidates(schemaId).some((k) => provisionedKeys.has(k));
 }
 
 /** Aggregate counts by status */

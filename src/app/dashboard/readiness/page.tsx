@@ -14,7 +14,11 @@ import { controlRecords, governanceRegisters, governanceRegisterEntries, boundar
 import { eq, and, sql } from "drizzle-orm";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
-import { isRegisterLaneSatisfied } from "@/lib/registers/compliance-health";
+import {
+  isRegisterLaneSatisfied,
+  finalCountForSchemaId,
+  isProvisionedForSchemaId,
+} from "@/lib/registers/compliance-health";
 import { buildReadinessChecklist } from "@/lib/readiness/checklist";
 import { ReadinessChecklist } from "./ReadinessChecklist";
 
@@ -108,8 +112,8 @@ export default async function ReadinessPage() {
       controlId,
       isRegisterLaneSatisfied({
         registerSchemaId: intel.registerSchemaId,
-        finalEntryCount: registerFinalCounts.get(intel.registerSchemaId) ?? 0,
-        orgProvisioned: orgProvisionedRegisterKeys.has(intel.registerSchemaId),
+        finalEntryCount: finalCountForSchemaId(registerFinalCounts, intel.registerSchemaId),
+        orgProvisioned: isProvisionedForSchemaId(orgProvisionedRegisterKeys, intel.registerSchemaId),
       })
     );
   }

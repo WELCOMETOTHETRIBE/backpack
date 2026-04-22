@@ -16,6 +16,8 @@ import { REGISTER_DISPLAY_NAMES } from "@/lib/registers/compliance-health";
 import { MILESTONES_BY_KEY } from "@/data/cmmc/client-required-artifacts";
 import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
 import { computeAdjudicationRollup } from "@/lib/adjudication-helpers";
+import { getCadenceRuleByRegisterId } from "@/data/cmmc/register-cadence-rules";
+import { schemaIdForRegisterKey } from "@/data/cmmc/register-key-aliases";
 import type {
   ReadinessChecklist,
   ReadinessSection,
@@ -45,6 +47,13 @@ export async function buildReadinessChecklist(
   // (non-hybrid or policy satisfied) + has a registerSchemaId that isn't
   // populated yet. Each such control becomes a tally on exactly one register
   // via its CONTROL_INTELLIGENCE.registerSchemaId.
+  //
+  // Event-driven registers (cadence_days=0 — incident_log, termination,
+  // maintenance_log, change_log, visitor_log, media_destruction,
+  // personnel_screening, technical_compliance_run) do NOT count as blockers:
+  // a fresh vault with no incidents / no terminations is the correct steady
+  // state, so those controls are already considered satisfied upstream and
+  // should not show up in the rollup banner.
   const readyByRegister = new Map<string, string[]>();
   for (const r of rollup.records) {
     if (r.implementationStatus !== "in_progress") continue;
@@ -54,6 +63,9 @@ export async function buildReadinessChecklist(
     if (!intel?.registerSchemaId) continue;
     // Skip if the register is already satisfied — that's not a blocker.
     if ((rollup.ctx.registerFinalCounts.get(intel.registerSchemaId) ?? 0) > 0) continue;
+    // Skip event-driven registers: empty is the correct steady state.
+    const cadence = getCadenceRuleByRegisterId(intel.registerSchemaId);
+    if (cadence?.cadence_days === 0) continue;
     const arr = readyByRegister.get(intel.registerSchemaId) ?? [];
     arr.push(r.controlId);
     readyByRegister.set(intel.registerSchemaId, arr);
@@ -310,23 +322,42 @@ async function buildRegistersSection(
     const finalCount = registerFinalCounts.get(reg.registerKey) ?? 0;
     const anyCount = anyCounts.get(reg.id) ?? 0;
     const hasFinal = finalCount > 0;
-    const status: TaskStatus = hasFinal ? "done" : anyCount > 0 ? "in_progress" : "not_started";
-    const displayName = REGISTER_DISPLAY_NAMES[reg.registerKey] ?? reg.name ?? reg.registerKey;
-    const controlIds = (reg.controlIds as string[] | null) ?? registerToControls.get(reg.registerKey) ?? [];
-    const readyIds = readyByRegister.get(reg.registerKey) ?? [];
+    // Resolve the canonical schema id for cadence lookup — seed-data
+    // registerKeys (e.g. "terminations") diverge from schema ids
+    // (e.g. "termination").
+    const schemaId = schemaIdForRegisterKey(reg.registerKey);
+    const cadence = getCadenceRuleByRegisterId(schemaId);
+    const eventDriven = cadence?.cadence_days === 0;
+    // Event-driven registers with zero entries count as done — empty is
+    // the correct steady state until a triggering event occurs, so it
+    // should not appear as outstanding work.
+    const eventDrivenReady = eventDriven && !hasFinal && anyCount === 0;
+    const status: TaskStatus = hasFinal || eventDrivenReady
+      ? "done"
+      : anyCount > 0 ? "in_progress" : "not_started";
+    const displayName = REGISTER_DISPLAY_NAMES[schemaId] ?? REGISTER_DISPLAY_NAMES[reg.registerKey] ?? reg.name ?? reg.registerKey;
+    const controlIds = (reg.controlIds as string[] | null) ?? registerToControls.get(schemaId) ?? registerToControls.get(reg.registerKey) ?? [];
+    // Check unblocks against both vocabularies in case readyByRegister was
+    // keyed by schema id while we hold the seed key.
+    const readyIds = readyByRegister.get(schemaId) ?? readyByRegister.get(reg.registerKey) ?? [];
     const unblocks = readyIds.length;
     const baseDescription = hasFinal
       ? `${finalCount} finalized entr${finalCount === 1 ? "y" : "ies"}`
+      : eventDrivenReady
+      ? `Event-driven — no events to log yet; counts as satisfied until a triggering event occurs`
       : anyCount > 0
       ? `${anyCount} draft entr${anyCount === 1 ? "y" : "ies"} — finalize to satisfy the control${controlIds.length === 1 ? "" : "s"}`
       : `No entries yet — add the first record to activate this register`;
     const description =
-      !hasFinal && unblocks > 0
+      !hasFinal && !eventDrivenReady && unblocks > 0
         ? `${baseDescription} · unblocks ${unblocks} ready control${unblocks === 1 ? "" : "s"} (${readyIds.join(", ")})`
         : baseDescription;
+    const label = eventDrivenReady
+      ? `${displayName} — ready`
+      : `Populate ${displayName}`;
     return {
       id: `reg.${reg.registerKey}`,
-      label: `Populate ${displayName}`,
+      label,
       description,
       status,
       href: `/dashboard/evidence-engine/registers/${reg.registerKey}`,

@@ -25,6 +25,9 @@ export type ArtifactRow = {
     poam_entry: number;
     poam_milestone: number;
   };
+  /** When this artifact is a register pointer whose register is satisfied. */
+  coveredByRegister?: string | null;
+  coverageReason?: "populated" | "event_driven_empty" | null;
 };
 
 const FAMILIES = [

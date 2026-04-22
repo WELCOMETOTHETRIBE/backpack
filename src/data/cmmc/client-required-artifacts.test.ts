@@ -7,6 +7,7 @@ import {
 import { CONTROL_INTELLIGENCE } from "./control-intelligence";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { REGISTER_KEYS, REGISTER_DEFINITIONS } from "@/lib/governance/seed-data";
+import { resolveRegisterKeyCandidates } from "./register-key-aliases";
 
 describe("client-required-artifacts catalog", () => {
   it("covers all 110 NIST 800-171 Rev 2 controls", () => {
@@ -95,18 +96,25 @@ describe("client-required-artifacts catalog", () => {
     }
   });
 
-  it("every CONTROL_INTELLIGENCE.registerSchemaId resolves to an actual register key", () => {
+  it("every CONTROL_INTELLIGENCE.registerSchemaId resolves (directly or via alias) to an actual register key", () => {
+    // CONTROL_INTELLIGENCE references schema ids (singular, terse —
+    // e.g. "termination", "media_destruction"). REGISTER_KEYS holds the
+    // seed-data vocabulary (plural — e.g. "terminations",
+    // "media_destruction_log"). The two aren't identical but the alias
+    // resolver in register-key-aliases.ts bridges them. This test requires
+    // that every schema id maps to at least one key defined in the seed.
     const defined = new Set<string>(REGISTER_KEYS);
     const unresolved: string[] = [];
     for (const intel of CONTROL_INTELLIGENCE) {
       if (!intel.registerSchemaId) continue;
-      if (!defined.has(intel.registerSchemaId)) {
+      const candidates = resolveRegisterKeyCandidates(intel.registerSchemaId);
+      if (!candidates.some((k) => defined.has(k))) {
         unresolved.push(`${intel.controlId} → "${intel.registerSchemaId}"`);
       }
     }
     expect(
       unresolved,
-      `Control-intelligence references registers that don't exist in REGISTER_KEYS:\n  ${unresolved.join("\n  ")}`
+      `Control-intelligence references registers that don't resolve to REGISTER_KEYS (even through the alias map):\n  ${unresolved.join("\n  ")}`
     ).toEqual([]);
   });
 
