@@ -667,10 +667,19 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
                             </>
                           )}
                           {r.registerRequired && (
-                            <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium ${
-                              r.registerSatisfied ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"
-                            }`}>
-                              {r.registerSatisfied ? "REG" : "REG ⚠"}
+                            <span
+                              title={
+                                r.registerSatisfied
+                                  ? "Register requirement satisfied"
+                                  : "Register requirement missing"
+                              }
+                              className={`inline-flex items-center whitespace-nowrap shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${
+                                r.registerSatisfied
+                                  ? "bg-emerald-100 text-emerald-800"
+                                  : "bg-amber-100 text-amber-800"
+                              }`}
+                            >
+                              {r.registerSatisfied ? "Reg ✓" : "Reg Missing"}
                             </span>
                           )}
                         </div>
