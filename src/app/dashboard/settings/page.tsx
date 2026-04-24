@@ -68,14 +68,14 @@ export default async function SettingsPage() {
         )}
 
         {(user.role === "Admin" || user.role === "Compliance") && (
-          <div className={cardClass}>
+          <div id="invite-team" className={cardClass}>
             <h2 className="mb-4 text-sm font-semibold text-slate-800">Invite team</h2>
             <InviteTeamSection />
           </div>
         )}
 
         {user.role === "Admin" && (
-          <div className={cardClass}>
+          <div id="user-management" className={cardClass}>
             <div className="mb-4">
               <h2 className="text-sm font-semibold text-slate-800">User Management</h2>
               <p className="mt-1 text-xs text-slate-500">
