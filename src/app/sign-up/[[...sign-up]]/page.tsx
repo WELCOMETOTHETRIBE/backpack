@@ -21,20 +21,20 @@ const clerkAppearance = {
     headerTitle: "hidden",
     headerSubtitle: "hidden",
     socialButtonsBlockButton:
-      "h-11 rounded-md border border-slate-300 bg-white hover:bg-slate-50 text-slate-900 font-medium normal-case text-sm",
-    socialButtonsBlockButtonText: "text-slate-900 font-medium",
+      "h-12 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 hover:border-[#3B82F6]/40 text-slate-900 font-medium normal-case text-sm transition-colors",
+    socialButtonsBlockButtonText: "text-slate-900 font-medium text-sm",
     socialButtonsBlockButtonArrow: "hidden",
     socialButtonsProviderIcon: "h-5 w-5",
-    dividerRow: "my-4",
+    dividerRow: "my-5",
     dividerLine: "bg-slate-200",
-    dividerText: "text-slate-400 text-xs uppercase tracking-wide",
-    formFieldLabel: "text-slate-700 font-medium text-sm",
+    dividerText: "text-slate-500 text-[11px] uppercase tracking-[0.18em] font-medium px-3",
+    formFieldLabel: "text-slate-700 font-medium text-sm mb-1.5",
     formFieldInput:
-      "h-11 rounded-md border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/20",
+      "h-12 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/20 transition-colors",
     formButtonPrimary:
-      "h-11 rounded-md bg-[#0F172A] hover:bg-[#1e293b] text-white font-semibold normal-case text-sm shadow-none",
+      "h-12 rounded-lg bg-[#0F172A] hover:bg-[#1e293b] active:bg-[#020617] text-white font-semibold normal-case text-sm shadow-sm transition-colors",
     footerActionText: "text-slate-600 text-sm",
-    footerActionLink: "text-[#3B82F6] hover:text-[#2563eb] font-medium",
+    footerActionLink: "text-[#2563eb] hover:text-[#1d4ed8] font-semibold",
     footer: "hidden",
   },
 } as const
@@ -108,11 +108,14 @@ export default function Page() {
               Compliance Control Plane
             </h1>
           </div>
-          <div className="mb-6">
-            <h1 className="text-2xl font-semibold tracking-tight text-[#0F172A]">
-              Create your Compliance Control Plane account
+          <div className="mb-7">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#2563eb] mb-2">
+              Create account
+            </p>
+            <h1 className="text-3xl font-bold tracking-tight text-[#0F172A]">
+              Compliance Control Plane
             </h1>
-            <p className="mt-1 text-sm text-slate-600">
+            <p className="mt-2 text-sm text-slate-600 leading-relaxed">
               Continue with Google or use your email below.
             </p>
           </div>
