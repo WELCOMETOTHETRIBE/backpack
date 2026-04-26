@@ -7,6 +7,7 @@ import SettingsForm from "./SettingsForm";
 import InviteTeamSection from "./InviteTeamSection";
 import ScopingPresetsCard from "./ScopingPresetsCard";
 import AdminUserManagement from "./AdminUserManagement";
+import SystemIdentificationForm from "./SystemIdentificationForm";
 import { ALL_PRESETS } from "@/lib/compliance/scoping-presets";
 
 export default async function SettingsPage() {
@@ -49,14 +50,32 @@ export default async function SettingsPage() {
         </div>
 
         {(user.role === "Admin" || user.role === "Compliance") && (
-          <div className={cardClass}>
+          <div id="system-identification" className={cardClass}>
+            <SystemIdentificationForm
+              initial={{
+                systemName: org?.systemName ?? null,
+                systemOwnerName: org?.systemOwnerName ?? null,
+                systemOwnerEmail: org?.systemOwnerEmail ?? null,
+                issoName: org?.issoName ?? null,
+                issoEmail: org?.issoEmail ?? null,
+                authorizationBoundaryStatement: org?.authorizationBoundaryStatement ?? null,
+                boundaryScopingCompletedAt: org?.boundaryScopingCompletedAt
+                  ? new Date(org.boundaryScopingCompletedAt).toISOString()
+                  : null,
+              }}
+            />
+          </div>
+        )}
+
+        {(user.role === "Admin" || user.role === "Compliance") && (
+          <div id="invite-team" className={cardClass}>
             <h2 className="mb-4 text-sm font-semibold text-slate-800">Invite team</h2>
             <InviteTeamSection />
           </div>
         )}
 
         {user.role === "Admin" && (
-          <div className={cardClass}>
+          <div id="user-management" className={cardClass}>
             <div className="mb-4">
               <h2 className="text-sm font-semibold text-slate-800">User Management</h2>
               <p className="mt-1 text-xs text-slate-500">

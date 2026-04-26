@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { ChevronDown, ChevronRight, FolderOpen } from "lucide-react";
 
 export type ArtifactRow = {
   id: string;
@@ -24,12 +25,40 @@ export type ArtifactRow = {
     poam_entry: number;
     poam_milestone: number;
   };
+  /** When this artifact is a register pointer whose register is satisfied. */
+  coveredByRegister?: string | null;
+  coverageReason?: "populated" | "event_driven_empty" | null;
+  /**
+   * True when this artifact's backing control is inherited or
+   * not_applicable for the org. The row stays visible for traceability
+   * but reads as N/A and is excluded from outstanding counts.
+   */
+  controlNotApplicable?: boolean;
+  /** Raw implementationStatus of the backing control (for the N/A tooltip). */
+  controlImplementationStatus?: string | null;
 };
 
 const FAMILIES = [
   "AC", "AT", "AU", "CM", "IA", "IR", "MA", "MP",
   "PS", "PE", "RA", "CA", "SC", "SI",
 ];
+
+const FAMILY_LABELS: Record<string, string> = {
+  AC: "Access Control",
+  AT: "Awareness & Training",
+  AU: "Audit & Accountability",
+  CM: "Configuration Management",
+  IA: "Identification & Authentication",
+  IR: "Incident Response",
+  MA: "Maintenance",
+  MP: "Media Protection",
+  PS: "Personnel Security",
+  PE: "Physical Protection",
+  RA: "Risk Assessment",
+  CA: "Security Assessment",
+  SC: "System & Communications Protection",
+  SI: "System & Information Integrity",
+};
 
 const STATUSES = [
   { value: "", label: "All statuses" },
@@ -93,10 +122,143 @@ function LinkBadges({
   );
 }
 
+function NotApplicablePill({ reason }: { reason?: string | null }) {
+  const label = reason === "inherited" ? "N/A · inherited" : "N/A";
+  return (
+    <span
+      className="inline-flex rounded border border-slate-200 bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600"
+      title="Backing control is inherited or not applicable for this org"
+    >
+      {label}
+    </span>
+  );
+}
+
+function ArtifactTableRow({ r }: { r: ArtifactRow }) {
+  const dimmed = r.controlNotApplicable ? "opacity-70 italic" : "";
+  return (
+    <tr className={`border-b border-[var(--color-border)] last:border-none hover:bg-[var(--color-surface-muted)] ${dimmed}`}>
+      <td className="px-3 py-2 font-medium">{r.label}</td>
+      <td className="px-3 py-2 text-[var(--color-text-muted)]">{r.controlId}</td>
+      <td className="px-3 py-2 text-xs text-[var(--color-text-muted)]">{r.expectedClosureType ?? "—"}</td>
+      <td className="px-3 py-2 text-xs text-[var(--color-text-muted)]">{r.expectedCadence ?? "—"}</td>
+      <td className="px-3 py-2 text-xs text-[var(--color-text-muted)]">
+        {r.controlNotApplicable ? "—" : (r.expectedDueDate ?? "—")}
+      </td>
+      <td className="px-3 py-2">
+        {r.controlNotApplicable
+          ? <NotApplicablePill reason={r.controlImplementationStatus} />
+          : <StatusPill status={r.status} />}
+      </td>
+      <td className="px-3 py-2"><LinkBadges counts={r.linkCounts} /></td>
+      <td className="px-3 py-2 text-xs text-[var(--color-text-muted)]">
+        {r.fileName ? `${r.fileName} · ${formatSize(r.fileSize)}` : "—"}
+      </td>
+      <td className="px-3 py-2 text-right">
+        <Link href={`/dashboard/artifacts/${r.id}`} className="text-sm font-medium text-sky-600 hover:underline">
+          View
+        </Link>
+      </td>
+    </tr>
+  );
+}
+
+function FamilyTable({ rows }: { rows: ArtifactRow[] }) {
+  return (
+    <div className="overflow-x-auto rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)]">
+      <table className="min-w-full text-sm">
+        <thead className="border-b border-[var(--color-border)] bg-[var(--color-surface-muted)] text-left text-xs uppercase tracking-wide text-[var(--color-text-muted)]">
+          <tr>
+            <th className="px-3 py-2">Label</th>
+            <th className="px-3 py-2">Control</th>
+            <th className="px-3 py-2">Closure</th>
+            <th className="px-3 py-2">Cadence</th>
+            <th className="px-3 py-2">Due</th>
+            <th className="px-3 py-2">Status</th>
+            <th className="px-3 py-2">Links</th>
+            <th className="px-3 py-2">File</th>
+            <th className="px-3 py-2"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => <ArtifactTableRow key={r.id} r={r} />)}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function FamilySection({
+  family,
+  rows,
+  defaultExpanded,
+}: {
+  family: string;
+  rows: ArtifactRow[];
+  defaultExpanded: boolean;
+}) {
+  const [expanded, setExpanded] = useState(defaultExpanded);
+  // N/A rows don't count toward awaiting/approved — no active obligation.
+  const active = rows.filter((r) => !r.controlNotApplicable);
+  const awaiting = active.filter((r) => r.status === "awaiting_upload").length;
+  const approved = active.filter((r) => r.status === "approved").length;
+  const naCount = rows.length - active.length;
+  const title = FAMILY_LABELS[family] ?? family;
+
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-slate-50 transition"
+      >
+        {expanded ? (
+          <ChevronDown className="h-4 w-4 text-slate-400 shrink-0" />
+        ) : (
+          <ChevronRight className="h-4 w-4 text-slate-400 shrink-0" />
+        )}
+        <FolderOpen className="h-5 w-5 shrink-0 text-indigo-600" />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="rounded bg-indigo-100 px-1.5 py-0.5 font-mono text-[11px] font-semibold text-indigo-700">
+              {family}
+            </span>
+            <h3 className="text-sm font-semibold text-slate-900 truncate">{title}</h3>
+            <span className="text-xs text-slate-500">({rows.length})</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0 text-xs">
+          {awaiting > 0 && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 border border-amber-200 px-2 py-0.5 font-semibold text-amber-800">
+              {awaiting} awaiting
+            </span>
+          )}
+          {approved > 0 && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 border border-emerald-200 px-2 py-0.5 font-semibold text-emerald-800">
+              {approved} approved
+            </span>
+          )}
+          {naCount > 0 && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 border border-slate-200 px-2 py-0.5 font-semibold text-slate-600">
+              {naCount} N/A
+            </span>
+          )}
+        </div>
+      </button>
+      {expanded && (
+        <div className="border-t border-slate-100 p-3">
+          <FamilyTable rows={rows} />
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function ArtifactsTable({ rows }: { rows: ArtifactRow[] }) {
   const [status, setStatus] = useState("");
   const [family, setFamily] = useState("");
   const [search, setSearch] = useState("");
+  const [grouped, setGrouped] = useState(true);
 
   const filtered = useMemo(
     () =>
@@ -117,6 +279,26 @@ export function ArtifactsTable({ rows }: { rows: ArtifactRow[] }) {
       }),
     [rows, status, family, search]
   );
+
+  const byFamily = useMemo(() => {
+    const groups = new Map<string, ArtifactRow[]>();
+    for (const r of filtered) {
+      const key = r.family || "—";
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(r);
+    }
+    for (const arr of groups.values()) {
+      arr.sort((a, b) => a.controlId.localeCompare(b.controlId) || a.label.localeCompare(b.label));
+    }
+    return FAMILIES
+      .filter((f) => groups.has(f))
+      .map((f) => ({ family: f, rows: groups.get(f)! }))
+      .concat(
+        [...groups.keys()]
+          .filter((k) => !FAMILIES.includes(k))
+          .map((k) => ({ family: k, rows: groups.get(k)! }))
+      );
+  }, [filtered]);
 
   return (
     <div className="space-y-3">
@@ -146,83 +328,48 @@ export function ArtifactsTable({ rows }: { rows: ArtifactRow[] }) {
           <option value="">All families</option>
           {FAMILIES.map((f) => (
             <option key={f} value={f}>
-              {f}
+              {f} — {FAMILY_LABELS[f] ?? f}
             </option>
           ))}
         </select>
+        <div className="flex items-center gap-0.5 rounded border border-[var(--color-border)] bg-[var(--color-surface)] p-0.5 text-xs">
+          <button
+            type="button"
+            onClick={() => setGrouped(true)}
+            className={`rounded px-2 py-1.5 transition-colors ${grouped ? "bg-indigo-600 text-white" : "text-slate-600 hover:bg-slate-100"}`}
+          >
+            By family
+          </button>
+          <button
+            type="button"
+            onClick={() => setGrouped(false)}
+            className={`rounded px-2 py-1.5 transition-colors ${!grouped ? "bg-indigo-600 text-white" : "text-slate-600 hover:bg-slate-100"}`}
+          >
+            Flat list
+          </button>
+        </div>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)]">
-        <table className="min-w-full text-sm">
-          <thead className="border-b border-[var(--color-border)] bg-[var(--color-surface-muted)] text-left text-xs uppercase tracking-wide text-[var(--color-text-muted)]">
-            <tr>
-              <th className="px-3 py-2">Label</th>
-              <th className="px-3 py-2">Control</th>
-              <th className="px-3 py-2">Family</th>
-              <th className="px-3 py-2">Closure</th>
-              <th className="px-3 py-2">Cadence</th>
-              <th className="px-3 py-2">Due</th>
-              <th className="px-3 py-2">Status</th>
-              <th className="px-3 py-2">Links</th>
-              <th className="px-3 py-2">File</th>
-              <th className="px-3 py-2"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={10}
-                  className="px-3 py-8 text-center text-[var(--color-text-muted)]"
-                >
-                  {rows.length === 0
-                    ? "No artifacts yet. Placeholders appear here when onboarding completes."
-                    : "No artifacts match these filters."}
-                </td>
-              </tr>
-            ) : (
-              filtered.map((r) => (
-                <tr
-                  key={r.id}
-                  className="border-b border-[var(--color-border)] last:border-none hover:bg-[var(--color-surface-muted)]"
-                >
-                  <td className="px-3 py-2 font-medium">{r.label}</td>
-                  <td className="px-3 py-2 text-[var(--color-text-muted)]">
-                    {r.controlId}
-                  </td>
-                  <td className="px-3 py-2">{r.family}</td>
-                  <td className="px-3 py-2 text-xs text-[var(--color-text-muted)]">
-                    {r.expectedClosureType ?? "—"}
-                  </td>
-                  <td className="px-3 py-2 text-xs text-[var(--color-text-muted)]">
-                    {r.expectedCadence ?? "—"}
-                  </td>
-                  <td className="px-3 py-2 text-xs text-[var(--color-text-muted)]">
-                    {r.expectedDueDate ?? "—"}
-                  </td>
-                  <td className="px-3 py-2">
-                    <StatusPill status={r.status} />
-                  </td>
-                  <td className="px-3 py-2">
-                    <LinkBadges counts={r.linkCounts} />
-                  </td>
-                  <td className="px-3 py-2 text-xs text-[var(--color-text-muted)]">
-                    {r.fileName ? `${r.fileName} · ${formatSize(r.fileSize)}` : "—"}
-                  </td>
-                  <td className="px-3 py-2 text-right">
-                    <Link
-                      href={`/dashboard/artifacts/${r.id}`}
-                      className="text-sm font-medium text-sky-600 hover:underline"
-                    >
-                      View
-                    </Link>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      {filtered.length === 0 ? (
+        <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] px-8 py-12 text-center text-[var(--color-text-muted)]">
+          {rows.length === 0
+            ? "No artifacts yet. Placeholders appear here when onboarding completes."
+            : "No artifacts match these filters."}
+        </div>
+      ) : grouped ? (
+        <div className="space-y-3">
+          {byFamily.map(({ family: f, rows: fRows }) => (
+            <FamilySection
+              key={f}
+              family={f}
+              rows={fRows}
+              defaultExpanded={byFamily.length <= 3 || fRows.some((r) => r.status === "awaiting_upload")}
+            />
+          ))}
+        </div>
+      ) : (
+        <FamilyTable rows={filtered} />
+      )}
 
       <div className="text-xs text-[var(--color-text-muted)]">
         Showing {filtered.length} of {rows.length} artifact

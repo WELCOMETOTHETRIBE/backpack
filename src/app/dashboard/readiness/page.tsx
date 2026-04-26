@@ -14,8 +14,14 @@ import { controlRecords, governanceRegisters, governanceRegisterEntries, boundar
 import { eq, and, sql } from "drizzle-orm";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
+import {
+  isRegisterLaneSatisfied,
+  finalCountForSchemaId,
+  isProvisionedForSchemaId,
+} from "@/lib/registers/compliance-health";
 import { buildReadinessChecklist } from "@/lib/readiness/checklist";
 import { ReadinessChecklist } from "./ReadinessChecklist";
+import { RecalculateControlsButton } from "./RecalculateControlsButton";
 
 const cardClass = "rounded-xl border border-slate-200 bg-white p-6 shadow-sm";
 
@@ -96,13 +102,21 @@ export default async function ReadinessPage() {
     }
   }
 
+  const orgProvisionedRegisterKeys = new Set(orgRegisters.map((r) => r.registerKey));
   const registerSatisfiedMap = new Map<string, boolean>();
   for (const [controlId, intel] of intelMap) {
     if (!intel.registerRequired || !intel.registerSchemaId) {
       registerSatisfiedMap.set(controlId, true);
       continue;
     }
-    registerSatisfiedMap.set(controlId, (registerFinalCounts.get(intel.registerSchemaId) ?? 0) > 0);
+    registerSatisfiedMap.set(
+      controlId,
+      isRegisterLaneSatisfied({
+        registerSchemaId: intel.registerSchemaId,
+        finalEntryCount: finalCountForSchemaId(registerFinalCounts, intel.registerSchemaId),
+        orgProvisioned: isProvisionedForSchemaId(orgProvisionedRegisterKeys, intel.registerSchemaId),
+      })
+    );
   }
 
   const implemented = records.filter((r) => {
@@ -125,11 +139,14 @@ export default async function ReadinessPage() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-[#0F172A]">Readiness & Audit</h1>
-        <p className="mt-2 text-gray-600">
-          Prepare for C3PAO assessment with mock assessments and readiness tools.
-        </p>
+      <div className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-[#0F172A]">Readiness & Audit</h1>
+          <p className="mt-2 text-gray-600">
+            Prepare for C3PAO assessment with mock assessments and readiness tools.
+          </p>
+        </div>
+        <RecalculateControlsButton />
       </div>
 
       <div className="mb-6">

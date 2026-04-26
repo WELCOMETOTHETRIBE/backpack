@@ -18,7 +18,13 @@ import { and, eq, lt, sql } from "drizzle-orm";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { sprsScoringData, SPRS_MAX } from "@/lib/sprs";
 import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
-import { getComplianceRegisterHealth, aggregateRegisterHealth } from "@/lib/registers/compliance-health";
+import {
+  getComplianceRegisterHealth,
+  aggregateRegisterHealth,
+  isRegisterLaneSatisfied,
+  finalCountForSchemaId,
+  isProvisionedForSchemaId,
+} from "@/lib/registers/compliance-health";
 import type { ChecklistStage } from "@/app/dashboard/DashboardSetupWidget";
 
 const TOTAL_CONTROLS = ALL_CONTROL_IDS.length;
@@ -73,13 +79,21 @@ export async function getCertificationJourney(orgId: string): Promise<Certificat
     }
   }
 
+  const orgProvisionedRegisterKeys = new Set(orgRegisters.map((r) => r.registerKey));
   const registerSatisfiedMap = new Map<string, boolean>();
   for (const [controlId, intel] of intelMap) {
     if (!intel.registerRequired || !intel.registerSchemaId) {
       registerSatisfiedMap.set(controlId, true);
       continue;
     }
-    registerSatisfiedMap.set(controlId, (registerFinalCounts.get(intel.registerSchemaId) ?? 0) > 0);
+    registerSatisfiedMap.set(
+      controlId,
+      isRegisterLaneSatisfied({
+        registerSchemaId: intel.registerSchemaId,
+        finalEntryCount: finalCountForSchemaId(registerFinalCounts, intel.registerSchemaId),
+        orgProvisioned: isProvisionedForSchemaId(orgProvisionedRegisterKeys, intel.registerSchemaId),
+      })
+    );
   }
 
   function isFullyAdjudicated(r: (typeof records)[number]): boolean {

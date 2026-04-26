@@ -1,10 +1,177 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 
 interface Boundary {
   id: string;
   name: string;
+}
+
+interface IngestHistoryRow {
+  run_id: string;
+  computer_name: string | null;
+  collected_at: string | null;
+  ingested_at: string;
+  expires_at: string | null;
+  links_total: number;
+  files_ok: number;
+  collection_errors: number;
+  controls_linked: number;
+  freshness: "current" | "stale" | "expired" | "unknown";
+}
+
+function formatRelativeDate(iso: string): string {
+  const d = new Date(iso);
+  const diff = Date.now() - d.getTime();
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  if (days <= 0) return d.toLocaleString();
+  if (days === 1) return "yesterday";
+  if (days < 30) return `${days}d ago`;
+  return d.toLocaleDateString();
+}
+
+function IngestHistory({
+  history,
+  loading,
+  onRefresh,
+}: {
+  history: IngestHistoryRow[];
+  loading: boolean;
+  onRefresh: () => void;
+}) {
+  const [open, setOpen] = useState<string | null>(null);
+
+  return (
+    <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-semibold text-gray-900">Evidence upload history</h2>
+          <p className="mt-0.5 text-xs text-gray-500">
+            Past manifest ingests for this org. Expand a run to see file/error details.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onRefresh}
+          disabled={loading}
+          className="rounded-full border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+        >
+          {loading ? "Loading…" : "Refresh"}
+        </button>
+      </div>
+
+      {loading && history.length === 0 ? (
+        <div className="mt-4 space-y-2">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="h-12 animate-pulse rounded-xl bg-gray-100" />
+          ))}
+        </div>
+      ) : history.length === 0 ? (
+        <p className="mt-4 rounded-xl border border-dashed border-gray-200 bg-gray-50 p-4 text-center text-xs text-gray-500">
+          No ingests yet. Upload a manifest above to get started.
+        </p>
+      ) : (
+        <ul className="mt-4 space-y-2">
+          {history.map((row) => {
+            const badge = historyStatusBadge(row);
+            const isOpen = open === row.run_id;
+            return (
+              <li
+                key={row.run_id}
+                className="rounded-2xl border border-gray-200 bg-white"
+              >
+                <button
+                  type="button"
+                  onClick={() => setOpen(isOpen ? null : row.run_id)}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 rounded-2xl"
+                >
+                  <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${badge.cls}`}>
+                    <span className={`h-1.5 w-1.5 rounded-full ${badge.dot}`} />
+                    {badge.label}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-900 truncate">
+                      {row.computer_name ?? "Unknown host"}
+                      <span className="ml-2 font-mono text-[11px] text-gray-400">
+                        {row.run_id.slice(0, 8)}…
+                      </span>
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {row.collected_at
+                        ? `Collected ${formatRelativeDate(row.collected_at)}`
+                        : `Ingested ${formatRelativeDate(row.ingested_at)}`}
+                      {" · "}
+                      {row.controls_linked} control{row.controls_linked === 1 ? "" : "s"} · {row.links_total} file{row.links_total === 1 ? "" : "s"}
+                      {row.collection_errors > 0 && (
+                        <span className="ml-1 text-amber-700">({row.collection_errors} error{row.collection_errors === 1 ? "" : "s"})</span>
+                      )}
+                    </p>
+                  </div>
+                  <span className="shrink-0 text-xs text-gray-400">
+                    {isOpen ? "Hide" : "Details"}
+                  </span>
+                </button>
+                {isOpen && (
+                  <dl className="border-t border-gray-100 bg-gray-50 px-4 py-3 text-xs grid grid-cols-2 gap-x-4 gap-y-1.5 rounded-b-2xl">
+                    <div className="flex justify-between col-span-2">
+                      <dt className="text-gray-500">Run ID</dt>
+                      <dd className="font-mono text-gray-700 break-all text-right">{row.run_id}</dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="text-gray-500">Ingested</dt>
+                      <dd className="font-medium text-gray-800">{new Date(row.ingested_at).toLocaleString()}</dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="text-gray-500">Collected</dt>
+                      <dd className="font-medium text-gray-800">
+                        {row.collected_at ? new Date(row.collected_at).toLocaleString() : "—"}
+                      </dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="text-gray-500">Files ok</dt>
+                      <dd className="font-semibold text-emerald-700">{row.files_ok}</dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="text-gray-500">Collection errors</dt>
+                      <dd className={`font-semibold ${row.collection_errors > 0 ? "text-red-600" : "text-gray-700"}`}>
+                        {row.collection_errors}
+                      </dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="text-gray-500">Expires</dt>
+                      <dd className="font-medium text-gray-800">
+                        {row.expires_at ? new Date(row.expires_at).toLocaleDateString() : "—"}
+                      </dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="text-gray-500">Freshness</dt>
+                      <dd className="font-medium text-gray-800 capitalize">{row.freshness}</dd>
+                    </div>
+                  </dl>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+function historyStatusBadge(row: IngestHistoryRow) {
+  if (row.collection_errors > 0 && row.files_ok === 0) {
+    return { label: "Errors", cls: "bg-red-100 text-red-700 border-red-200", dot: "bg-red-500" };
+  }
+  if (row.collection_errors > 0) {
+    return { label: "Partial", cls: "bg-amber-100 text-amber-800 border-amber-200", dot: "bg-amber-500" };
+  }
+  if (row.freshness === "expired") {
+    return { label: "Expired", cls: "bg-gray-100 text-gray-600 border-gray-200", dot: "bg-gray-400" };
+  }
+  if (row.freshness === "stale") {
+    return { label: "Stale", cls: "bg-amber-50 text-amber-700 border-amber-200", dot: "bg-amber-400" };
+  }
+  return { label: "Pass", cls: "bg-emerald-100 text-emerald-700 border-emerald-200", dot: "bg-emerald-500" };
 }
 
 interface ManifestPreview {
@@ -86,7 +253,22 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<IngestResult | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [history, setHistory] = useState<IngestHistoryRow[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const loadHistory = useCallback(async () => {
+    setHistoryLoading(true);
+    try {
+      const res = await fetch("/api/evidence/v2/ingest/history", { cache: "no-store" });
+      if (res.ok) setHistory((await res.json()) as IngestHistoryRow[]);
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { void loadHistory(); }, [loadHistory]);
+  useEffect(() => { if (result) void loadHistory(); }, [result, loadHistory]);
 
   const processFile = useCallback((file: File) => {
     setParseError(null);
@@ -227,29 +409,29 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
             { label: "Controls skipped", value: result.skipped_controls },
             { label: "Collection errors", value: result.collection_errors },
           ].map(({ label, value }) => (
-            <div key={label} className="rounded-lg border bg-card p-3 text-center">
+            <div key={label} className="rounded-lg border bg-white p-3 text-center">
               <p className="text-2xl font-bold tabular-nums">{value}</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">{label}</p>
+              <p className="mt-0.5 text-xs text-gray-500">{label}</p>
             </div>
           ))}
         </div>
 
-        <div className="rounded-lg border bg-card p-4 text-sm space-y-1.5">
+        <div className="rounded-lg border bg-white p-4 text-sm space-y-1.5">
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Collected</span>
+            <span className="text-gray-500">Collected</span>
             <span className="font-medium">{parseFreshnessDate(result.collected_at)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Evidence age</span>
+            <span className="text-gray-500">Evidence age</span>
             <span className="font-medium">{result.age_days} days</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Expires</span>
+            <span className="text-gray-500">Expires</span>
             <span className="font-medium">{parseFreshnessDate(result.expires_at)}</span>
           </div>
           {result.bundle_validation && (
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Bundle validation</span>
+              <span className="text-gray-500">Bundle validation</span>
               <span className="font-medium">
                 {result.bundle_validation.files_ok}/{result.bundle_validation.files_total} files OK
               </span>
@@ -273,17 +455,19 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
         <div className="flex gap-3 pt-2">
           <button
             onClick={reset}
-            className="rounded-lg border px-4 py-2 text-sm font-medium hover:bg-muted transition-colors"
+            className="rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
           >
             Upload another manifest
           </button>
           <a
             href="/dashboard/os-baselines"
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+            className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
           >
             View CUI Enclave
           </a>
         </div>
+
+        <IngestHistory history={history} loading={historyLoading} onRefresh={loadHistory} />
       </div>
     );
   }
@@ -293,9 +477,9 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
     <div className="space-y-6 py-4">
       <div>
         <h1 className="text-xl font-semibold">Upload Evidence Manifest</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Upload the <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">meta/manifest.json</code> produced by{" "}
-          <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">Collect-Cui-Evidence-v2.ps1</code>. Evidence files stay on your
+        <p className="mt-1 text-sm text-gray-500">
+          Upload the <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-xs">meta/manifest.json</code> produced by{" "}
+          <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-xs">Collect-Cui-Evidence-v2.ps1</code>. Evidence files stay on your
           VM — only the manifest (file paths + SHA-256 hashes) is transmitted.
         </p>
       </div>
@@ -310,7 +494,7 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
             id="boundary-select"
             value={selectedBoundaryId}
             onChange={(e) => setSelectedBoundaryId(e.target.value)}
-            className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            className="w-full rounded-lg border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             {boundaries.map((b) => (
               <option key={b.id} value={b.id}>
@@ -338,20 +522,20 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
           className={
-            "flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed px-6 py-12 text-center transition-colors " +
+            "flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed px-6 py-12 text-center transition-colors " +
             (dragging
-              ? "border-primary bg-primary/5"
-              : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/30")
+              ? "border-indigo-500 bg-indigo-50"
+              : "border-gray-300 hover:border-indigo-400 hover:bg-gray-50")
           }
         >
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-            <svg className="h-6 w-6 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
+            <svg className="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
             </svg>
           </div>
           <div>
-            <p className="font-medium">Drop manifest.json here</p>
-            <p className="mt-0.5 text-sm text-muted-foreground">or click to browse — JSON only, max 5 MB</p>
+            <p className="font-medium text-gray-900">Drop manifest.json here</p>
+            <p className="mt-0.5 text-sm text-gray-500">or click to browse — JSON only, max 5 MB</p>
           </div>
           <input
             ref={fileInputRef}
@@ -374,7 +558,7 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
       {/* Preview */}
       {preview && (
         <div className="space-y-4">
-          <div className="rounded-xl border bg-card p-5 space-y-3">
+          <div className="rounded-xl border bg-white p-5 space-y-3">
             <div className="flex items-center justify-between">
               <p className="font-semibold">Manifest preview</p>
               <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
@@ -383,19 +567,19 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
             </div>
             <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
               <div>
-                <span className="text-muted-foreground">Computer</span>
+                <span className="text-gray-500">Computer</span>
                 <p className="font-medium mt-0.5">{preview.computer_name}</p>
               </div>
               <div>
-                <span className="text-muted-foreground">Run ID</span>
+                <span className="text-gray-500">Run ID</span>
                 <p className="font-medium font-mono text-xs mt-0.5 break-all">{preview.run_id}</p>
               </div>
               <div>
-                <span className="text-muted-foreground">Collected at</span>
+                <span className="text-gray-500">Collected at</span>
                 <p className="font-medium mt-0.5">{parseFreshnessDate(preview.collected_at)}</p>
               </div>
               <div>
-                <span className="text-muted-foreground">Files</span>
+                <span className="text-gray-500">Files</span>
                 <p className="font-medium mt-0.5">
                   {preview.file_count} total
                   {preview.collection_errors > 0 && (
@@ -441,14 +625,14 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
             <button
               onClick={reset}
               disabled={submitting}
-              className="rounded-lg border px-4 py-2 text-sm font-medium hover:bg-muted transition-colors disabled:opacity-50"
+              className="rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               onClick={handleSubmit}
               disabled={submitting || !selectedBoundaryId || boundaries.length === 0}
-              className="flex-1 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 inline-flex items-center justify-center rounded-full bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitting ? (
                 <span className="flex items-center justify-center gap-2">
@@ -470,35 +654,37 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
       {!preview && (
         <details className="rounded-lg border p-4">
           <summary className="cursor-pointer text-sm font-medium">How to get manifest.json from your CUI Vault VM</summary>
-          <ol className="mt-3 space-y-2 text-sm text-muted-foreground list-decimal list-inside">
+          <ol className="mt-3 space-y-2 text-sm text-gray-500 list-decimal list-inside">
             <li>
               RDP or SSH into your Windows Server VM as a local administrator.
             </li>
             <li>
               Open PowerShell 5.1 as administrator and run:{" "}
-              <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
+              <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-xs">
                 .\Collect-Cui-Evidence-v2.ps1
               </code>
             </li>
             <li>
               When complete, the script prints the bundle path (e.g.{" "}
-              <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
+              <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-xs">
                 C:\CUI-Evidence\&lt;run-id&gt;\
               </code>
               ).
             </li>
             <li>
               Navigate to the bundle folder, open the{" "}
-              <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">meta\</code> subfolder, and copy{" "}
-              <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">manifest.json</code> to your workstation.
+              <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-xs">meta\</code> subfolder, and copy{" "}
+              <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-xs">manifest.json</code> to your workstation.
             </li>
             <li>Drop the file here to ingest it.</li>
           </ol>
-          <p className="mt-3 text-xs text-muted-foreground">
+          <p className="mt-3 text-xs text-gray-500">
             The manifest contains only file paths and SHA-256 hashes — no CUI content leaves the VM.
           </p>
         </details>
       )}
+
+      <IngestHistory history={history} loading={historyLoading} onRefresh={loadHistory} />
     </div>
   );
 }

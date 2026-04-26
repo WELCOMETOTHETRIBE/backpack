@@ -22,6 +22,13 @@ export async function GET() {
         primaryContactEmail: organizations.primaryContactEmail,
         organizationType: organizations.organizationType,
         cmmcTargetLevel: organizations.cmmcTargetLevel,
+        systemName: organizations.systemName,
+        systemOwnerName: organizations.systemOwnerName,
+        systemOwnerEmail: organizations.systemOwnerEmail,
+        issoName: organizations.issoName,
+        issoEmail: organizations.issoEmail,
+        authorizationBoundaryStatement: organizations.authorizationBoundaryStatement,
+        boundaryScopingCompletedAt: organizations.boundaryScopingCompletedAt,
       })
       .from(organizations)
       .where(eq(organizations.id, orgId))
@@ -43,7 +50,22 @@ const profileSchema = {
   primaryAddress: (v: unknown) => (typeof v === "string" ? v : undefined),
   primaryContactName: (v: unknown) => (typeof v === "string" ? v.slice(0, 255) : undefined),
   primaryContactEmail: (v: unknown) => (typeof v === "string" ? v.slice(0, 255) : undefined),
+  systemName: (v: unknown) => (typeof v === "string" ? v.slice(0, 255) : undefined),
+  systemOwnerName: (v: unknown) => (typeof v === "string" ? v.slice(0, 255) : undefined),
+  systemOwnerEmail: (v: unknown) => (typeof v === "string" ? v.slice(0, 255) : undefined),
+  issoName: (v: unknown) => (typeof v === "string" ? v.slice(0, 255) : undefined),
+  issoEmail: (v: unknown) => (typeof v === "string" ? v.slice(0, 255) : undefined),
+  authorizationBoundaryStatement: (v: unknown) => (typeof v === "string" ? v : undefined),
 };
+
+const SYSTEM_IDENTITY_FIELDS = [
+  "systemName",
+  "systemOwnerName",
+  "systemOwnerEmail",
+  "issoName",
+  "issoEmail",
+  "authorizationBoundaryStatement",
+] as const;
 
 /**
  * PATCH /api/organizations
@@ -56,7 +78,7 @@ export async function PATCH(req: Request) {
     await requireRole(["Admin", "Compliance", "Assessor"]);
 
     const body = await req.json().catch(() => ({}));
-    const updates: Record<string, string | null> = {};
+    const updates: Record<string, string | Date | null> = {};
     if (Object.prototype.hasOwnProperty.call(body, "name")) {
       const v = profileSchema.name(body.name);
       if (v !== undefined) updates.name = v;
@@ -73,6 +95,13 @@ export async function PATCH(req: Request) {
     if (Object.prototype.hasOwnProperty.call(body, "primaryContactEmail")) {
       updates.primaryContactEmail =
         profileSchema.primaryContactEmail(body.primaryContactEmail) ?? null;
+    }
+    for (const field of SYSTEM_IDENTITY_FIELDS) {
+      if (!Object.prototype.hasOwnProperty.call(body, field)) continue;
+      const parser = profileSchema[field];
+      const parsed = parser(body[field]);
+      const trimmed = typeof parsed === "string" ? parsed.trim() : parsed;
+      updates[field] = trimmed && trimmed.length > 0 ? trimmed : null;
     }
 
     if (Object.keys(updates).length === 0) {

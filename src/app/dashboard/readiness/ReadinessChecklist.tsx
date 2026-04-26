@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { CheckCircle2, Circle, MinusCircle, ChevronDown, ChevronRight, ArrowRight } from "lucide-react";
+import { useMemo, useState } from "react";
+import { CheckCircle2, Circle, MinusCircle, ChevronDown, ChevronRight, ArrowRight, EyeOff, Eye } from "lucide-react";
 import type {
   ReadinessChecklist as ReadinessChecklistData,
   ReadinessSection,
@@ -11,14 +11,72 @@ import type {
 } from "@/lib/readiness/types";
 
 export function ReadinessChecklist({ data }: { data: ReadinessChecklistData }) {
+  const [outstandingOnly, setOutstandingOnly] = useState(true);
+
+  const visibleSections = useMemo(() => {
+    if (!outstandingOnly) return data.sections;
+    // "Outstanding" = neither done nor N/A. Hide sections that are fully
+    // resolved (done + N/A = total) and hide completed/N/A tasks within
+    // surviving sections so the reader only sees what still needs
+    // attention.
+    return data.sections
+      .filter((s) => s.totalCount === 0 || s.doneCount < s.totalCount)
+      .map((s) => ({
+        ...s,
+        tasks: s.tasks.filter((t) => t.status !== "done" && t.status !== "not_applicable"),
+      }));
+  }, [data.sections, outstandingOnly]);
+
+  const countResolved = (section: typeof data.sections[number]) =>
+    section.tasks.filter((t) => t.status === "done" || t.status === "not_applicable").length;
+  const hiddenSectionCount = data.sections.length - visibleSections.length;
+  const hiddenTaskCount =
+    data.sections.reduce((sum, s) => sum + countResolved(s), 0) -
+    visibleSections.reduce((sum, s) => sum + countResolved(s), 0);
+
   return (
     <div className="flex flex-col gap-6">
       <RollupCard rollup={data.rollup} />
       {data.topActions.length > 0 && <TopActions tasks={data.topActions} />}
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="text-sm font-semibold text-slate-800">Readiness tasks by section</h3>
+        <button
+          type="button"
+          onClick={() => setOutstandingOnly((v) => !v)}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition"
+          title={outstandingOnly ? `Show ${hiddenSectionCount} completed section${hiddenSectionCount === 1 ? "" : "s"} and ${hiddenTaskCount} completed task${hiddenTaskCount === 1 ? "" : "s"}` : "Hide completed"}
+        >
+          {outstandingOnly ? (
+            <>
+              <Eye className="h-3.5 w-3.5" />
+              Show all{hiddenSectionCount + hiddenTaskCount > 0 ? ` (+${hiddenSectionCount + hiddenTaskCount})` : ""}
+            </>
+          ) : (
+            <>
+              <EyeOff className="h-3.5 w-3.5" />
+              Outstanding only
+            </>
+          )}
+        </button>
+      </div>
       <div className="flex flex-col gap-4">
-        {data.sections.map((s) => (
-          <SectionCard key={s.key} section={s} />
-        ))}
+        {visibleSections.length === 0 ? (
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-6 text-center">
+            <CheckCircle2 className="mx-auto h-6 w-6 text-emerald-600 mb-2" />
+            <p className="text-sm font-semibold text-emerald-900">Every readiness task is complete.</p>
+            <button
+              type="button"
+              onClick={() => setOutstandingOnly(false)}
+              className="mt-2 text-xs font-medium text-emerald-700 hover:underline"
+            >
+              Show completed sections
+            </button>
+          </div>
+        ) : (
+          visibleSections.map((s) => (
+            <SectionCard key={s.key} section={s} outstandingOnly={outstandingOnly} />
+          ))
+        )}
       </div>
     </div>
   );
@@ -125,9 +183,11 @@ function TopActions({ tasks }: { tasks: ReadinessTask[] }) {
   );
 }
 
-function SectionCard({ section }: { section: ReadinessSection }) {
+function SectionCard({ section, outstandingOnly }: { section: ReadinessSection; outstandingOnly?: boolean }) {
   const complete = section.totalCount > 0 && section.doneCount === section.totalCount;
-  const [expanded, setExpanded] = useState(!complete);
+  // When the user asked to see only outstanding work, keep surviving sections
+  // open by default so the remaining tasks are immediately scannable.
+  const [expanded, setExpanded] = useState(outstandingOnly ? true : !complete);
   const pct = section.totalCount ? Math.round((section.doneCount / section.totalCount) * 100) : 0;
 
   return (
@@ -180,24 +240,39 @@ function SectionCard({ section }: { section: ReadinessSection }) {
 
 function TaskIcon({ status }: { status: TaskStatus }) {
   if (status === "done") return <CheckCircle2 className="h-4 w-4 text-emerald-600" />;
+  if (status === "not_applicable") return <MinusCircle className="h-4 w-4 text-slate-400" />;
   if (status === "in_progress") return <MinusCircle className="h-4 w-4 text-amber-500" />;
   return <Circle className="h-4 w-4 text-slate-300" />;
 }
 
 function TaskRow({ task }: { task: ReadinessTask }) {
   const isDone = task.status === "done";
-  const hasUnblocks = !isDone && (task.unblocksReady ?? 0) > 0;
+  const isNotApplicable = task.status === "not_applicable";
+  // Tasks that are N/A or done shouldn't carry "Go" affordances or
+  // unblocks badges — nothing to do on them.
+  const inactive = isDone || isNotApplicable;
+  const hasUnblocks = !inactive && (task.unblocksReady ?? 0) > 0;
+  const labelClass = isDone
+    ? "text-slate-500 line-through"
+    : isNotApplicable
+    ? "text-slate-500 italic"
+    : "text-slate-900 font-medium";
   return (
     <li className="flex items-center gap-3 px-5 py-3 hover:bg-slate-50/70 transition">
       <TaskIcon status={task.status} />
       <div className="flex-1 min-w-0">
-        <div className={`text-sm ${isDone ? "text-slate-500 line-through" : "text-slate-900 font-medium"}`}>
+        <div className={`text-sm ${labelClass}`}>
           {task.label}
         </div>
         {task.description && (
           <div className="text-xs text-slate-500 mt-0.5 truncate">{task.description}</div>
         )}
       </div>
+      {isNotApplicable && (
+        <span className="inline-flex items-center rounded-full bg-slate-100 border border-slate-200 px-2 py-0.5 text-[10px] font-semibold text-slate-600 uppercase tracking-wide">
+          N/A
+        </span>
+      )}
       {hasUnblocks && (
         <span
           title={task.unblocksReadyIds?.join(", ") ?? ""}
@@ -206,13 +281,13 @@ function TaskRow({ task }: { task: ReadinessTask }) {
           unblocks {task.unblocksReady}
         </span>
       )}
-      {task.satisfiesControls.length > 0 && !hasUnblocks && (
+      {task.satisfiesControls.length > 0 && !hasUnblocks && !isNotApplicable && (
         <span className="text-xs text-slate-400 tabular-nums">
           {task.satisfiesControls.length} ctrl
           {task.satisfiesControls.length === 1 ? "" : "s"}
         </span>
       )}
-      {!isDone && (
+      {!inactive && (
         <Link
           href={task.href}
           className="inline-flex items-center gap-1 text-xs font-medium text-sky-600 hover:text-sky-700"

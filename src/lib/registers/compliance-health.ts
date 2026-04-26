@@ -10,6 +10,11 @@ import { governanceRegisters, governanceRegisterEntries } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { getRegisterSchemas } from "@/data/cmmc/register-schemas";
 import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
+import { getCadenceRuleByRegisterId } from "@/data/cmmc/register-cadence-rules";
+import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
+import { REGISTER_DISPLAY_NAMES } from "./display-names";
+
+export { REGISTER_DISPLAY_NAMES };
 
 export type RegisterHealthStatus = "current" | "due_soon" | "overdue" | "never_used";
 
@@ -21,34 +26,6 @@ export type RegisterHealthSummary = {
   daysUntilDue: number | null;
   entryCount: number;
   href: string;
-};
-
-/** Human-friendly display names for register schema IDs */
-export const REGISTER_DISPLAY_NAMES: Record<string, string> = {
-  access_authorization:    "User Access Register",
-  role_assignment_matrix:  "Role Assignment Matrix",
-  sod_matrix:              "Separation of Duties Matrix",
-  authenticator_mgmt:      "MFA Enrollment Register",
-  training_completion:     "Security Training Register",
-  personnel_screening:     "Personnel Screening Register",
-  termination:             "Termination Action Register",
-  audit_log_review:        "Audit Log Review Register",
-  audit_config:            "Key Management Register",
-  control_monitoring:      "ConMon Activity Log",
-  incident_log:            "Incident Response Register",
-  maintenance_log:         "Maintenance Log",
-  media_access:            "Media Accountability Register",
-  media_destruction:       "Media Sanitization Register",
-  visitor_log:             "Visitor Log",
-  facility_access:         "Facility Access Log",
-  baseline_config:         "Authorized Software Register",
-  change_log:              "Change Control Register",
-  risk_register:           "Risk Register",
-  assessment_findings:     "Security Assessment Register",
-  poam:                    "POA&M Register",
-  vuln_remediation:        "Vulnerability Remediation Register",
-  policy_review:           "SSP & Policy Review Register",
-  technical_compliance_run: "Technical Compliance Log",
 };
 
 function computeHealthStatus(
@@ -143,6 +120,58 @@ export async function getComplianceRegisterHealth(orgId: string): Promise<Regist
   results.sort((a, b) => ORDER[a.status] - ORDER[b.status] || a.displayName.localeCompare(b.displayName));
 
   return results;
+}
+
+/**
+ * Decide whether the register lane is satisfied for a given register.
+ *
+ * Event-driven registers (cadence_days = 0 — incident_log, termination,
+ * maintenance_log, change_log, visitor_log, media_destruction,
+ * personnel_screening, technical_compliance_run) legitimately have no entries
+ * when the triggering event has not occurred (fresh vault: no incidents, no
+ * terminations, no maintenance). Treating these as MISSING blocked the
+ * register lane on the associated controls even when zero-entry is the
+ * correct steady state. For event-driven registers we count the lane as
+ * satisfied as soon as the register is provisioned for the org (i.e., the
+ * org has acknowledged the register and is ready to log events).
+ *
+ * Scheduled registers (weekly / monthly / quarterly / annual cadence — e.g.
+ * training_completion, audit_log_review, policy_review) still require a
+ * final entry to satisfy the lane.
+ */
+export function isRegisterLaneSatisfied(args: {
+  registerSchemaId: string;
+  finalEntryCount: number;
+  orgProvisioned: boolean;
+}): boolean {
+  if (args.finalEntryCount > 0) return true;
+  const cadence = getCadenceRuleByRegisterId(args.registerSchemaId);
+  const isEventDriven = cadence?.cadence_days === 0;
+  return isEventDriven && args.orgProvisioned;
+}
+
+/**
+ * Alias-aware helpers: schema ids (from CONTROL_INTELLIGENCE) and seed-data
+ * registerKeys (on governance_registers rows) diverge for 14 of 24
+ * registers. When callers have a schema id and need to query org-side maps
+ * keyed by seed-data registerKey, these helpers try both vocabularies.
+ */
+export function finalCountForSchemaId(
+  finalCountsByRegisterKey: Map<string, number>,
+  schemaId: string
+): number {
+  for (const k of resolveRegisterKeyCandidates(schemaId)) {
+    const n = finalCountsByRegisterKey.get(k);
+    if (n && n > 0) return n;
+  }
+  return 0;
+}
+
+export function isProvisionedForSchemaId(
+  provisionedKeys: Set<string>,
+  schemaId: string
+): boolean {
+  return resolveRegisterKeyCandidates(schemaId).some((k) => provisionedKeys.has(k));
 }
 
 /** Aggregate counts by status */

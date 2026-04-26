@@ -38,6 +38,33 @@ import {
   PURE_GOVERNANCE_IDS,
 } from "./compliance/control-bins";
 import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
+import { getCadenceRuleByRegisterId } from "@/data/cmmc/register-cadence-rules";
+import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
+
+/**
+ * Controls where policy / procedure documents are NECESSARY but NOT SUFFICIENT
+ * to demonstrate implementation — a C3PAO assessor will ask for the execution
+ * artifact by name during the Examine method.
+ *
+ * Each entry names the `client-required-artifacts` milestone key that must
+ * have a real file uploaded (status uploaded/approved, fileUrl non-null) for
+ * the control to be considered implemented. The milestone placeholder alone
+ * (status "awaiting_upload") is not sufficient.
+ *
+ *   3.6.3 — "Test the organizational incident response capability." Procedure
+ *           docs don't prove testing was performed. The AAR from within the
+ *           last 12 months is what the assessor examines.
+ *
+ * Add new controls here sparingly and only when NIST SP 800-171A's assessment
+ * objectives clearly require an execution artifact beyond policy.
+ */
+export const EXECUTION_EVIDENCE_REQUIRED_MILESTONES: Record<string, string> = {
+  "3.6.3": "IR.3.6.3.tabletop_aar",
+};
+
+export const EXECUTION_EVIDENCE_REQUIRED = new Set<string>(
+  Object.keys(EXECUTION_EVIDENCE_REQUIRED_MILESTONES)
+);
 
 export interface GovernanceCompletionRow {
   artifactLabel: string;
@@ -91,9 +118,30 @@ async function getLayerForControl(
 const intelByControlId = new Map(CONTROL_INTELLIGENCE.map((c) => [c.controlId, c]));
 
 /**
- * Check if a control's required registers are satisfied.
- * A register is satisfied when at least one finalized entry exists.
+ * Check if a control's required register lane is satisfied.
+ *
+ * Satisfied when either:
+ *   a) ≥1 finalized entry exists in the register, OR
+ *   b) the register is event-driven (cadence_days = 0) AND provisioned for
+ *      the org. Event-driven registers (incident_log, termination,
+ *      maintenance_log, change_log, visitor_log, media_destruction,
+ *      personnel_screening) legitimately stay empty until the triggering
+ *      event occurs — a fresh vault with no incidents is the correct
+ *      steady state.
+ *
+ * Two vocabularies refer to the same register (see
+ * register-key-aliases.ts): the schema id held by
+ * CONTROL_INTELLIGENCE.registerSchemaId ("termination") and the seed-data
+ * registerKey written to governance_registers rows ("terminations"). We
+ * try every alias so the register lookup actually finds the row.
+ *
+ * `technical_compliance_run` is deliberately NOT whitelisted — it is a
+ * meta-log of OS Collector runs; "empty" means the collector has never
+ * run, which is a gap, not a satisfied state. (It is also not referenced
+ * by any control in CONTROL_INTELLIGENCE today, so this is defensive.)
  */
+const EVENT_DRIVEN_EXCLUDED_FROM_EMPTY_PASS = new Set<string>(["technical_compliance_run"]);
+
 async function isRegisterSatisfied(
   organizationId: string,
   controlId: string
@@ -101,24 +149,35 @@ async function isRegisterSatisfied(
   const intel = intelByControlId.get(controlId);
   if (!intel?.registerRequired || !intel.registerSchemaId) return true; // no register needed
 
-  // Find the register for this org with matching register key
+  const candidates = resolveRegisterKeyCandidates(intel.registerSchemaId);
+
+  // Find the register for this org matching any alias vocabulary.
   const [register] = await db
     .select({ id: governanceRegisters.id })
     .from(governanceRegisters)
     .where(
       and(
         eq(governanceRegisters.organizationId, organizationId),
-        eq(governanceRegisters.registerKey, intel.registerSchemaId)
+        sql`${governanceRegisters.registerKey} IN (${sql.join(
+          candidates.map((k) => sql`${k}`),
+          sql`, `
+        )})`
       )
     )
     .limit(1);
 
-  if (!register) return false; // register not even set up
+  if (!register) return false; // register not provisioned
 
-  // Check the register's controlIds to confirm this control is mapped
-  // (We trust the intel data; the register existing is the check)
+  // Event-driven registers: provisioned with zero entries is the correct
+  // steady state — no events means nothing to log. Auto-satisfy.
+  const cadence = getCadenceRuleByRegisterId(intel.registerSchemaId);
+  const isEventDriven = cadence?.cadence_days === 0;
+  if (isEventDriven && !EVENT_DRIVEN_EXCLUDED_FROM_EMPTY_PASS.has(intel.registerSchemaId)) {
+    return true;
+  }
 
-  // Get org boundaries
+  // Scheduled register: require at least one finalized entry within the
+  // org's boundaries.
   const orgBoundaries = await db
     .select({ id: boundaries.id })
     .from(boundaries)
@@ -126,7 +185,6 @@ async function isRegisterSatisfied(
 
   if (orgBoundaries.length === 0) return false;
 
-  // Check for at least one finalized entry
   const [row] = await db
     .select({ cnt: sql<number>`count(*)::int` })
     .from(governanceRegisterEntries)
@@ -180,10 +238,26 @@ export async function calculateControlStatus(controlRecordId: string): Promise<I
   const hasNarrative = Boolean(record.governanceNarrative?.trim());
 
   const existingArtifacts = await db
-    .select({ artifactLabel: artifacts.artifactLabel })
+    .select({
+      artifactLabel: artifacts.artifactLabel,
+      milestoneKey: artifacts.milestoneKey,
+      fileUrl: artifacts.fileUrl,
+      status: artifacts.status,
+    })
     .from(artifacts)
     .where(eq(artifacts.controlRecordId, controlRecordId));
   const uploadedLabels = new Set(existingArtifacts.map((a) => a.artifactLabel));
+
+  // For execution-evidence controls we need to know whether a specific
+  // milestone artifact is actually uploaded (file present + active status),
+  // not just whether a placeholder row exists.
+  const hasFileForMilestone = (milestoneKey: string): boolean =>
+    existingArtifacts.some(
+      (a) =>
+        a.milestoneKey === milestoneKey &&
+        Boolean(a.fileUrl) &&
+        (a.status === "uploaded" || a.status === "approved")
+    );
 
   const completions = await db
     .select({
@@ -298,8 +372,21 @@ export async function calculateControlStatus(controlRecordId: string): Promise<I
   }
   // Governance is complete if: artifacts satisfy specs OR approved governance docs are mapped.
   // Narrative is satisfied if: user wrote one OR governance docs provide the written evidence.
-  const effectiveGovernanceComplete = governanceComplete || hasApprovedGovDocs;
-  const effectiveGovernanceDone = effectiveGovernanceComplete && (hasNarrative || hasApprovedGovDocs);
+  //
+  // EXCEPTION — "execution evidence" controls (see EXECUTION_EVIDENCE_REQUIRED).
+  // Policy / procedure docs are NECESSARY but NOT SUFFICIENT for these (e.g.,
+  // 3.6.3 needs an IR tabletop AAR; the Testing Procedure alone is not evidence
+  // that the testing was performed). A C3PAO's Examine method will ask for the
+  // execution artifact by name. For these controls we disable the
+  // "hasApprovedGovDocs" fallback so the governance lane only passes when the
+  // expected UPLOAD artifact has actually been uploaded.
+  const isExecutionEvidenceControl = EXECUTION_EVIDENCE_REQUIRED.has(controlId);
+  const effectiveGovernanceComplete = isExecutionEvidenceControl
+    ? governanceComplete
+    : governanceComplete || hasApprovedGovDocs;
+  const effectiveGovernanceDone = isExecutionEvidenceControl
+    ? effectiveGovernanceComplete && (hasNarrative || hasApprovedGovDocs)
+    : effectiveGovernanceComplete && (hasNarrative || hasApprovedGovDocs);
 
   // ── Register lane ──
   // Controls flagged as registerRequired in the control intelligence layer must have
@@ -321,6 +408,15 @@ export async function calculateControlStatus(controlRecordId: string): Promise<I
     : implStatus === "implemented" || implStatus === "assessed" ? "satisfied"
     : "not_started";
 
+  // Execution-evidence controls require a specific artifact file (not just
+  // a placeholder row). For 3.6.3 this is the tabletop AAR — no AAR, no
+  // implementation, regardless of what policy docs are mapped.
+  const executionEvidenceSatisfied = (() => {
+    const milestoneKey = EXECUTION_EVIDENCE_REQUIRED_MILESTONES[controlId];
+    if (!milestoneKey) return true;
+    return hasFileForMilestone(milestoneKey);
+  })();
+
   // Determine which lanes this control actually requires based on its bin:
   // - Pure Technical (48): only needs technical evidence
   // - Pure Governance (17): only needs governance docs/artifacts
@@ -336,6 +432,9 @@ export async function calculateControlStatus(controlRecordId: string): Promise<I
   } else {
     allComplete = effectiveGovernanceDone && technicalComplete && registerComplete;
   }
+  // Execution evidence gate applies on top of the lane checks — if the
+  // specific artifact isn't uploaded, the control cannot be implemented.
+  allComplete = allComplete && executionEvidenceSatisfied;
   const hasSomeProgress =
     existingArtifacts.length > 0 ||
     hasNarrative ||

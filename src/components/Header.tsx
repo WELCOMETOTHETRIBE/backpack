@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useClerk } from "@clerk/nextjs";
-import { ChevronDown, Settings, LogOut, ClipboardCheck, ChevronRight } from "lucide-react";
+import { ChevronDown, Settings, LogOut, ClipboardCheck, ChevronRight, Users, Inbox } from "lucide-react";
 
 const ROUTE_LABELS: Record<string, { section: string; title: string }> = {
   "/dashboard": { section: "", title: "Overview" },
@@ -140,6 +140,38 @@ export default function Header({ user }: { user: SessionUser | undefined }) {
                   Switch to Assessor View
                 </Link>
               )}
+
+              {(user?.role === "Admin" || user?.role === "Compliance") && (
+                <>
+                  <div className="mt-1 border-t border-[var(--color-border)] pt-1">
+                    <p className="px-4 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">
+                      Admin
+                    </p>
+                  </div>
+                  {user?.role === "Admin" && (
+                    <Link
+                      href="/dashboard/settings#user-management"
+                      className="flex items-center gap-2.5 px-4 py-2 text-sm text-[var(--color-gray-700)] hover:bg-[var(--color-gray-50)]"
+                      role="menuitem"
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      <Users className="h-4 w-4 text-[var(--color-gray-500)]" />
+                      Manage team
+                    </Link>
+                  )}
+                  <Link
+                    href="/dashboard/feedback"
+                    className="flex items-center gap-2.5 px-4 py-2 text-sm text-[var(--color-gray-700)] hover:bg-[var(--color-gray-50)]"
+                    role="menuitem"
+                    onClick={() => setDropdownOpen(false)}
+                  >
+                    <Inbox className="h-4 w-4 text-[var(--color-gray-500)]" />
+                    Feedback inbox
+                  </Link>
+                  <div className="my-1 border-t border-[var(--color-border)]" />
+                </>
+              )}
+
               <Link
                 href="/dashboard/settings"
                 className="flex items-center gap-2.5 px-4 py-2 text-sm text-[var(--color-gray-700)] hover:bg-[var(--color-gray-50)]"

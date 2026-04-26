@@ -14,6 +14,8 @@ import {
 import { eq, and, inArray, asc, sql } from "drizzle-orm";
 import { PoamTracker, type PoamEntry } from "./PoamTracker";
 import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
+import { isRegisterLaneSatisfied } from "@/lib/registers/compliance-health";
+import { schemaIdForRegisterKey } from "@/data/cmmc/register-key-aliases";
 import { sprsScoringData } from "@/lib/sprs";
 
 const DONE_STATUSES = ["implemented", "assessed", "inherited", "not_applicable"] as const;
@@ -102,7 +104,16 @@ export default async function PoamPage() {
             eq(governanceRegisterEntries.status, "final")
           )
         );
-      const hasFinal = (row?.cnt ?? 0) > 0;
+      const finalCount = row?.cnt ?? 0;
+      // Event-driven registers are satisfied-by-default while provisioned;
+      // see isRegisterLaneSatisfied for rationale. Resolve the org's
+      // seed-data registerKey (e.g. "terminations") to its canonical
+      // schema id (e.g. "termination") so cadence lookup finds the rule.
+      const hasFinal = isRegisterLaneSatisfied({
+        registerSchemaId: schemaIdForRegisterKey(reg.registerKey),
+        finalEntryCount: finalCount,
+        orgProvisioned: true,
+      });
 
       for (const cid of cids) {
         // Track register names for display

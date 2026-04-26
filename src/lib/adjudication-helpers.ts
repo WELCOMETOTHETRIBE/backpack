@@ -9,6 +9,8 @@ import {
 } from "@/db/schema";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
+import { getCadenceRuleByRegisterId } from "@/data/cmmc/register-cadence-rules";
+import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
 
 /**
  * CMMC-rigorous per-control adjudication helpers. Single source of truth for
@@ -46,6 +48,8 @@ export type ControlRecordRow = {
 
 export type AdjudicationContext = {
   registerFinalCounts: Map<string, number>;
+  /** Set of seed-data registerKeys the org has a governance_registers row for. */
+  provisionedRegisterKeys: Set<string>;
   artifactBackedRecordIds: Set<string>;
   attestationBackedRecordIds: Set<string>;
   intelMap: Map<
@@ -67,6 +71,7 @@ export async function computeAdjudicationContext(
   const boundaryIds = orgBoundaries.map((b) => b.id);
 
   const registerFinalCounts = new Map<string, number>();
+  const provisionedRegisterKeys = new Set<string>();
   if (boundaryIds.length > 0) {
     const rows = await db
       .select({
@@ -84,7 +89,18 @@ export async function computeAdjudicationContext(
       )
       .where(eq(governanceRegisters.organizationId, orgId))
       .groupBy(governanceRegisters.registerKey);
-    for (const r of rows) registerFinalCounts.set(r.registerKey, Number(r.cnt) || 0);
+    for (const r of rows) {
+      registerFinalCounts.set(r.registerKey, Number(r.cnt) || 0);
+      provisionedRegisterKeys.add(r.registerKey);
+    }
+  } else {
+    // Still capture provisioned keys even without boundaries so event-driven
+    // lane-satisfaction works (e.g. during initial setup).
+    const rows = await db
+      .select({ registerKey: governanceRegisters.registerKey })
+      .from(governanceRegisters)
+      .where(eq(governanceRegisters.organizationId, orgId));
+    for (const r of rows) provisionedRegisterKeys.add(r.registerKey);
   }
 
   // Artifact-backed control records (file attached, active status)
@@ -128,6 +144,7 @@ export async function computeAdjudicationContext(
 
   return {
     registerFinalCounts,
+    provisionedRegisterKeys,
     artifactBackedRecordIds,
     attestationBackedRecordIds,
     intelMap,
@@ -142,10 +159,21 @@ export function hasOperationalEvidence(
   // Technical lane — OS Collector / manifest ingest flips this to "satisfied"
   // when a valid run covers the control.
   if (r.technicalStatus === "satisfied") return true;
-  // Register lane
+  // Register lane — try every alias (schema id vs seed-data registerKey) so
+  // we find counts on whichever vocabulary the DB row used. For event-driven
+  // registers (cadence_days=0), zero entries while provisioned is the correct
+  // steady state and counts as lane evidence.
   const intel = ctx.intelMap.get(r.controlId);
   if (intel?.registerSchemaId) {
-    if ((ctx.registerFinalCounts.get(intel.registerSchemaId) ?? 0) > 0) return true;
+    const candidates = resolveRegisterKeyCandidates(intel.registerSchemaId);
+    for (const k of candidates) {
+      if ((ctx.registerFinalCounts.get(k) ?? 0) > 0) return true;
+    }
+    const cadence = getCadenceRuleByRegisterId(intel.registerSchemaId);
+    if (cadence?.cadence_days === 0) {
+      const provisioned = candidates.some((k) => ctx.provisionedRegisterKeys.has(k));
+      if (provisioned) return true;
+    }
   }
   // Artifact lane
   if (ctx.artifactBackedRecordIds.has(r.id)) return true;

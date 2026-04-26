@@ -12,9 +12,14 @@ import {
 import { resolveEffectiveBoundary } from "@/lib/evidence-engine/resolve-boundary";
 import { ensureEvidenceEngineRegistersForOrg } from "@/lib/evidence-engine/control-dashboard";
 import { getEvidenceMap } from "@/data/cmmc";
+import { getCadenceRuleByRegisterId } from "@/data/cmmc/register-cadence-rules";
+import { schemaIdForRegisterKey } from "@/data/cmmc/register-key-aliases";
 import { BoundarySelector } from "../../BoundarySelector";
 import { AuditorToggle } from "./AuditorToggle";
 import { CreateEntryLink } from "./CreateEntryLink";
+import { AttestNoEventsButton } from "./AttestNoEventsButton";
+
+const ATTESTATION_EXCLUDED = new Set<string>(["technical_compliance_run"]);
 
 type PageProps = { params: Promise<{ registerId: string }>; searchParams: Promise<{ boundary?: string; auditor?: string }> };
 
@@ -152,6 +157,22 @@ export default async function EvidenceEngineRegisterEntriesPage({ params, search
           <div className="mt-3 flex flex-wrap items-center gap-4">
             <AuditorToggle registerKey={registerKey} auditorOnly={auditorOnly} />
             {canCreate && <CreateEntryLink registerKey={registerKey} boundaryId={effectiveBoundaryId} />}
+            {canCreate && (() => {
+              // Offer the "no events this period" attestation only on
+              // event-driven registers (cadence_days=0), excluding the
+              // OS-collector meta-log where empty means a real gap.
+              const schemaId = schemaIdForRegisterKey(registerKey);
+              if (ATTESTATION_EXCLUDED.has(schemaId)) return null;
+              const cadence = getCadenceRuleByRegisterId(schemaId);
+              if (!cadence || cadence.cadence_days !== 0) return null;
+              return (
+                <AttestNoEventsButton
+                  registerKey={registerKey}
+                  registerName={register.name}
+                  boundaryId={effectiveBoundaryId}
+                />
+              );
+            })()}
             <a
               href={`/api/governance/registers/${encodeURIComponent(registerKey)}/export`}
               className="text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
@@ -178,12 +199,22 @@ export default async function EvidenceEngineRegisterEntriesPage({ params, search
               </tr>
             </thead>
             <tbody>
-              {entriesWithSummary.map((e) => (
+              {entriesWithSummary.map((e) => {
+                const isAttestation = e.entryType === "no_events_attestation";
+                return (
                 <tr key={e.id} className="border-b border-[var(--color-border-muted)]">
                   <td className="py-2 text-[var(--color-gray-800)] max-w-md truncate" title={e.summary}>
                     {e.summary}
                   </td>
-                  <td className="py-2 text-[var(--color-gray-600)]">{e.entryType ?? "—"}</td>
+                  <td className="py-2 text-[var(--color-gray-600)]">
+                    {isAttestation ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 border border-sky-200 px-2 py-0.5 text-[11px] font-medium text-sky-800">
+                        No-events attestation
+                      </span>
+                    ) : (
+                      e.entryType ?? "—"
+                    )}
+                  </td>
                   <td className="py-2">
                     <span
                       className={
@@ -212,7 +243,8 @@ export default async function EvidenceEngineRegisterEntriesPage({ params, search
                     </Link>
                   </td>
                 </tr>
-              ))}
+              );
+              })}
             </tbody>
           </table>
         </div>
