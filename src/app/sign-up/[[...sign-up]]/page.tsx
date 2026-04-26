@@ -16,19 +16,24 @@ const clerkAppearance = {
   elements: {
     rootBox: "w-full",
     card: "shadow-none border-0 bg-transparent p-0 w-full",
-    headerTitle: "text-2xl font-semibold tracking-tight text-[#0F172A]",
-    headerSubtitle: "text-sm text-slate-600",
+    header: "hidden",
+    headerTitle: "hidden",
+    headerSubtitle: "hidden",
+    socialButtonsBlockButton:
+      "h-11 rounded-md border border-slate-300 bg-white hover:bg-slate-50 text-slate-900 font-medium normal-case text-sm",
+    socialButtonsBlockButtonText: "text-slate-900 font-medium",
+    socialButtonsBlockButtonArrow: "hidden",
+    socialButtonsProviderIcon: "h-5 w-5",
+    dividerRow: "my-4",
+    dividerLine: "bg-slate-200",
+    dividerText: "text-slate-400 text-xs uppercase tracking-wide",
     formFieldLabel: "text-slate-700 font-medium text-sm",
     formFieldInput:
-      "h-11 rounded-md border-slate-300 bg-white text-slate-900 shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/20",
+      "h-11 rounded-md border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/20",
     formButtonPrimary:
-      "h-11 rounded-md bg-[#0F172A] hover:bg-[#1e293b] text-white font-medium shadow-sm normal-case text-sm",
-    socialButtonsBlockButton:
-      "h-11 rounded-md border-slate-300 hover:bg-slate-50",
+      "h-11 rounded-md bg-[#0F172A] hover:bg-[#1e293b] text-white font-semibold normal-case text-sm shadow-none",
     footerActionText: "text-slate-600 text-sm",
     footerActionLink: "text-[#3B82F6] hover:text-[#2563eb] font-medium",
-    dividerLine: "bg-slate-200",
-    dividerText: "text-slate-500 text-xs",
     footer: "hidden",
   },
 } as const
@@ -101,6 +106,14 @@ export default function Page() {
             <h1 className="text-2xl font-bold tracking-tight text-white">
               Compliance Control Plane
             </h1>
+          </div>
+          <div className="mb-6">
+            <h1 className="text-2xl font-semibold tracking-tight text-[#0F172A]">
+              Create your Compliance Control Plane account
+            </h1>
+            <p className="mt-1 text-sm text-slate-600">
+              Continue with Google or use your email below.
+            </p>
           </div>
           <SignUp appearance={clerkAppearance} signInUrl="/sign-in" />
         </div>
