@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { useClerk } from "@clerk/nextjs";
 import { ChevronDown, Settings, LogOut, ClipboardCheck, ChevronRight } from "lucide-react";
 
 const ROUTE_LABELS: Record<string, { section: string; title: string }> = {
@@ -49,6 +49,7 @@ const ROLE_BADGE: Record<string, { label: string; class: string }> = {
 
 export default function Header({ user }: { user: SessionUser | undefined }) {
   const pathname = usePathname();
+  const { signOut } = useClerk();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -153,7 +154,7 @@ export default function Header({ user }: { user: SessionUser | undefined }) {
                   type="button"
                   onClick={() => {
                     setDropdownOpen(false);
-                    signOut({ callbackUrl: "/" });
+                    signOut({ redirectUrl: "/" });
                   }}
                   className="flex w-full items-center gap-2.5 px-4 py-2 text-left text-sm text-[var(--color-gray-700)] hover:bg-[var(--color-gray-50)]"
                   role="menuitem"

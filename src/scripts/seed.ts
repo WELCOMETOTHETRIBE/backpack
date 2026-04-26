@@ -12,7 +12,6 @@ import {
   users,
 } from "../db/schema";
 import { eq } from "drizzle-orm";
-import bcrypt from "bcryptjs";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -130,20 +129,19 @@ async function seed() {
   }
 
   const defaultEmail = process.env.SEED_USER_EMAIL ?? "admin@example.com";
-  const defaultPassword = process.env.SEED_USER_PASSWORD ?? "changeme";
   const [existingUser] = await db.select().from(users).where(eq(users.email, defaultEmail));
   if (existingUser) {
     console.log("User already exists:", defaultEmail);
   } else {
-    const hash = await bcrypt.hash(defaultPassword, 10);
+    // No password — Clerk owns identity. The row gets its clerk_user_id on
+    // first SSO login by email.
     await db.insert(users).values({
       organizationId: orgId,
       email: defaultEmail,
-      passwordHash: hash,
       name: "Admin",
       role: "Admin",
     });
-    console.log("Created user:", defaultEmail);
+    console.log("Created user (no password — sign in via Clerk SSO):", defaultEmail);
   }
 
   const allControls = await db.select().from(controls);
