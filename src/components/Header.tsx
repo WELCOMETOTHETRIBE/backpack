@@ -186,7 +186,7 @@ export default function Header({ user }: { user: SessionUser | undefined }) {
                   type="button"
                   onClick={() => {
                     setDropdownOpen(false);
-                    signOut({ redirectUrl: "/" });
+                    signOut({ redirectUrl: "/sign-in" });
                   }}
                   className="flex w-full items-center gap-2.5 px-4 py-2 text-left text-sm text-[var(--color-gray-700)] hover:bg-[var(--color-gray-50)]"
                   role="menuitem"
