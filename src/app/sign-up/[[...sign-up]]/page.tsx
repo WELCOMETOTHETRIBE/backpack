@@ -100,7 +100,7 @@ export default function Page() {
           </div>
 
           <p className="text-xs text-slate-500">
-            mactechsolutionsllc.com · SDVOSB pending
+            mactechsolutionsllc.com · Veteran-owned · SDVOSB-certified
           </p>
         </div>
       </div>
