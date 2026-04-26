@@ -75,3 +75,13 @@ input:-webkit-autofill:active {
 [class*="cl-internal-"] a[href*="clerk.com"] {
   display: none !important;
 }
+/* Newer @clerk/nextjs renders an inner .cl-card with its own border on
+   top of our cardBox styling, creating a visible double-border. Force
+   the inner card to be transparent so cardBox owns the visual frame. */
+.cl-card,
+.cl-main {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
