@@ -363,6 +363,8 @@ export const organizations = pgTable("organizations", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(),
+  /** Clerk Organization id (org_…) — links this row to the SSO tenant. */
+  clerkOrgId: text("clerk_org_id").unique(),
   /** SPRS score (110 to negative). Recomputed on every control status change. */
   sprsScore: integer("sprs_score"),
   /** From onboarding: prime, sub, both */
@@ -620,6 +622,9 @@ export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   organizationId: uuid("organization_id").references(() => organizations.id).notNull(),
   email: text("email").notNull().unique(),
+  /** Clerk user id (user_…). Nullable so legacy rows can be adopted on first SSO login by email. */
+  clerkUserId: text("clerk_user_id").unique(),
+  /** Legacy bcrypt hash from the NextAuth era. Preserved nullable; no new writes after Clerk cutover. */
   passwordHash: text("password_hash"),
   name: text("name"),
   role: userRoleEnum("role").notNull().default("Compliance"),

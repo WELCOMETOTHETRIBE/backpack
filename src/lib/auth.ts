@@ -1,61 +1,8 @@
-import NextAuth from "next-auth";
-import Credentials from "next-auth/providers/credentials";
-import { db } from "@/db";
-import { users } from "@/db/schema";
+import { auth as clerkAuth, currentUser } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
-import bcrypt from "bcryptjs";
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
-  trustHost: true, // required for Railway, Vercel, and other reverse proxies
-  providers: [
-    Credentials({
-      name: "credentials",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
-        const [user] = await db
-          .select()
-          .from(users)
-          .where(eq(users.email, String(credentials.email)));
-        if (!user?.passwordHash) return null;
-        const ok = await bcrypt.compare(String(credentials.password), user.passwordHash);
-        if (!ok) return null;
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          organizationId: user.organizationId,
-          role: user.role,
-        };
-      },
-    }),
-  ],
-  callbacks: {
-    jwt({ token, user }) {
-      if (user) {
-        token.organizationId = user.organizationId;
-        token.role = user.role;
-        token.sub = user.id;
-      }
-      return token;
-    },
-    session({ session, token }) {
-      if (session.user) {
-        (session.user as { id?: string }).id = token.sub ?? undefined;
-        (session.user as { organizationId?: string }).organizationId = token.organizationId as string;
-        (session.user as { role?: string }).role = token.role as string;
-      }
-      return session;
-    },
-  },
-  pages: {
-    signIn: "/auth/signin",
-  },
-  session: { strategy: "jwt" },
-});
+import { db } from "@/db";
+import { organizations, users } from "@/db/schema";
 
 export type SessionUser = {
   id?: string;
@@ -65,10 +12,96 @@ export type SessionUser = {
   role?: string;
 };
 
+type AuthResult = {
+  user: SessionUser | null;
+};
+
+async function resolveSessionUser(): Promise<SessionUser | null> {
+  const { userId, orgId } = await clerkAuth();
+  if (!userId) return null;
+
+  let userRow = (
+    await db.select().from(users).where(eq(users.clerkUserId, userId)).limit(1)
+  )[0];
+
+  let clerkEmail: string | null = null;
+  let clerkName: string | null = null;
+
+  // Adopt an existing pre-Clerk row by email so legacy NextAuth users keep
+  // their FK references on first SSO login.
+  if (!userRow) {
+    const cu = await currentUser();
+    clerkEmail = cu?.primaryEmailAddress?.emailAddress ?? null;
+    clerkName =
+      [cu?.firstName, cu?.lastName].filter(Boolean).join(" ").trim() || null;
+
+    if (clerkEmail) {
+      const byEmail = (
+        await db.select().from(users).where(eq(users.email, clerkEmail)).limit(1)
+      )[0];
+      if (byEmail) {
+        await db
+          .update(users)
+          .set({ clerkUserId: userId, updatedAt: new Date() })
+          .where(eq(users.id, byEmail.id));
+        userRow = { ...byEmail, clerkUserId: userId };
+      }
+    }
+  }
+
+  // JIT-create only when the Clerk org is pre-mapped via clerk_org_id, so we
+  // never silently provision a tenant from an unknown Clerk org.
+  if (!userRow) {
+    if (!orgId) return null;
+    const org = (
+      await db
+        .select()
+        .from(organizations)
+        .where(eq(organizations.clerkOrgId, orgId))
+        .limit(1)
+    )[0];
+    if (!org) return null;
+
+    if (!clerkEmail) {
+      const cu = await currentUser();
+      clerkEmail = cu?.primaryEmailAddress?.emailAddress ?? null;
+      clerkName =
+        [cu?.firstName, cu?.lastName].filter(Boolean).join(" ").trim() || null;
+    }
+    if (!clerkEmail) return null;
+
+    const inserted = (
+      await db
+        .insert(users)
+        .values({
+          organizationId: org.id,
+          email: clerkEmail,
+          clerkUserId: userId,
+          name: clerkName,
+        })
+        .returning()
+    )[0];
+    userRow = inserted;
+  }
+
+  return {
+    id: userRow.id,
+    email: userRow.email,
+    name: userRow.name,
+    organizationId: userRow.organizationId,
+    role: userRow.role,
+  };
+}
+
+export async function auth(): Promise<AuthResult | null> {
+  const user = await resolveSessionUser();
+  if (!user) return null;
+  return { user };
+}
+
 export async function getTenantIdFromSession(): Promise<string | null> {
   const session = await auth();
-  const user = session?.user as SessionUser | undefined;
-  return user?.organizationId ?? null;
+  return session?.user?.organizationId ?? null;
 }
 
 export async function requireOrg(): Promise<string> {
@@ -79,7 +112,7 @@ export async function requireOrg(): Promise<string> {
 
 export async function requireRole(allowed: string[]): Promise<SessionUser> {
   const session = await auth();
-  const user = session?.user as SessionUser | undefined;
+  const user = session?.user;
   if (!user?.id) throw new Error("Unauthorized");
   if (allowed.length && !allowed.includes(user.role ?? "")) throw new Error("Forbidden");
   return user;
