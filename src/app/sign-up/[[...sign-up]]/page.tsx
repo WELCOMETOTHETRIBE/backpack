@@ -1,40 +1,43 @@
 import { SignUp } from "@clerk/nextjs"
 import { Shield, FileCheck, Lock } from "lucide-react"
 
+const ACCENT = "#3B82F6"
+const ACCENT_HOVER = "#2563eb"
+const ACCENT_ACTIVE = "#1d4ed8"
+const FOOTER_LINK_HOVER = "#60a5fa"
+
 const clerkAppearance = {
   variables: {
-    colorPrimary: "#0F172A",
+    colorPrimary: ACCENT,
     colorTextOnPrimaryBackground: "#ffffff",
-    colorBackground: "#ffffff",
-    colorText: "#0f172a",
-    colorTextSecondary: "#475569",
-    colorInputBackground: "#ffffff",
-    colorInputText: "#0f172a",
+    colorBackground: "#121212",
+    colorText: "#f3f4f6",
+    colorTextSecondary: "#9ca3af",
+    colorInputBackground: "#0A0A0A",
+    colorInputText: "#f3f4f6",
+    colorNeutral: "#ffffff",
     fontFamily: "Inter, system-ui, -apple-system, sans-serif",
     borderRadius: "0.5rem",
   },
   elements: {
     rootBox: "w-full",
-    cardBox: "w-full shadow-none border-0 bg-transparent p-0",
+    cardBox: "w-full bg-[#141414] border border-[#2A2A2A] rounded-xl shadow-lg shadow-black/40 p-7",
     card: "shadow-none border-0 bg-transparent p-0 w-full",
     header: "hidden",
     headerTitle: "hidden",
     headerSubtitle: "hidden",
-    socialButtonsBlockButton:
-      "h-12 rounded-lg border border-slate-400 bg-white hover:bg-slate-50 hover:border-[#3B82F6] text-slate-900 font-medium normal-case text-sm transition-colors",
-    socialButtonsBlockButtonText: "text-slate-900 font-medium text-sm",
+    socialButtonsBlockButton: `h-12 rounded-lg border border-[#3A3A3A] bg-[#0A0A0A] hover:bg-[#141414] hover:border-[${ACCENT}] text-gray-100 font-medium normal-case text-sm transition-colors`,
+    socialButtonsBlockButtonText: "text-gray-100 font-medium text-sm",
     socialButtonsBlockButtonArrow: "hidden",
     socialButtonsProviderIcon: "h-5 w-5",
     dividerRow: "my-5",
-    dividerLine: "bg-slate-200",
-    dividerText: "text-slate-500 text-[11px] uppercase tracking-[0.18em] font-medium px-3",
-    formFieldLabel: "text-slate-700 font-medium text-sm mb-1.5",
-    formFieldInput:
-      "h-12 rounded-lg border border-slate-400 bg-white text-slate-900 placeholder:text-slate-400 hover:border-slate-500 focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/20 transition-colors",
-    formButtonPrimary:
-      "h-12 rounded-lg bg-[#0F172A] hover:bg-[#1e293b] active:bg-[#020617] text-white font-semibold normal-case text-sm shadow-sm transition-colors",
-    footerActionText: "text-slate-600 text-sm",
-    footerActionLink: "text-[#2563eb] hover:text-[#1d4ed8] font-semibold",
+    dividerLine: "bg-[#2A2A2A]",
+    dividerText: "text-gray-500 text-[11px] uppercase tracking-[0.18em] font-medium px-3",
+    formFieldLabel: "text-gray-300 font-medium text-sm mb-1.5",
+    formFieldInput: `h-12 rounded-lg border border-[#3A3A3A] bg-[#0A0A0A] text-gray-100 placeholder:text-gray-500 hover:border-[#4A4A4A] focus:border-[${ACCENT}] focus:ring-2 focus:ring-[${ACCENT}]/30 transition-colors`,
+    formButtonPrimary: `h-12 rounded-lg bg-[${ACCENT}] hover:bg-[${ACCENT_HOVER}] active:bg-[${ACCENT_ACTIVE}] text-white font-semibold normal-case text-sm shadow-sm transition-colors`,
+    footerActionText: "text-gray-400 text-sm",
+    footerActionLink: `text-[${ACCENT}] hover:text-[${FOOTER_LINK_HOVER}] font-semibold`,
     footer: "hidden",
   },
 } as const
@@ -59,9 +62,11 @@ const trustCues = [
 
 export default function Page() {
   return (
-    <div className="min-h-screen flex">
-      <div className="hidden lg:flex lg:w-1/2 bg-[#0F172A] relative overflow-hidden">
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.025)_1px,transparent_1px)] bg-[size:48px_48px]" />
+    <div className="min-h-screen flex bg-[#0A0A0A] text-gray-100">
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[#04060a] via-[#0a1018] to-[#0a1422] relative overflow-hidden border-r border-[#1a2436]">
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,.09)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,.09)_1px,transparent_1px)] bg-[size:48px_48px]" />
+        <div className="absolute -top-32 -left-32 w-[420px] h-[420px] rounded-full bg-[#3B82F6]/15 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-40 -right-32 w-[480px] h-[480px] rounded-full bg-[#3B82F6]/10 blur-3xl pointer-events-none" />
         <div className="relative z-10 flex flex-col justify-between px-12 xl:px-16 py-16 w-full">
           <div>
             <img
@@ -77,7 +82,7 @@ export default function Page() {
               <br />
               built for the boundary.
             </h1>
-            <p className="mt-4 text-lg text-slate-400 leading-relaxed max-w-md">
+            <p className="mt-4 text-lg text-gray-400 leading-relaxed max-w-md">
               The CMMC Level 2 operating system for defense contractors handling Controlled Unclassified Information.
             </p>
           </div>
@@ -87,42 +92,42 @@ export default function Page() {
               const Icon = cue.icon
               return (
                 <div key={cue.title} className="flex gap-4">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
-                    <Icon className="w-5 h-5 text-slate-300" aria-hidden />
+                  <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-[#3B82F6]/15 border border-[#3B82F6]/30 flex items-center justify-center">
+                    <Icon className="w-5 h-5 text-[#60a5fa]" aria-hidden />
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-white">{cue.title}</p>
-                    <p className="text-sm text-slate-400 mt-0.5 leading-relaxed">{cue.body}</p>
+                    <p className="text-sm text-gray-400 mt-0.5 leading-relaxed">{cue.body}</p>
                   </div>
                 </div>
               )
             })}
           </div>
 
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-gray-500">
             mactechsolutionsllc.com · Veteran-owned · SDVOSB-certified
           </p>
         </div>
       </div>
 
-      <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-white">
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8">
         <div className="w-full max-w-md">
-          <div className="lg:hidden mb-8 -mx-4 sm:-mx-6 -mt-2 px-4 sm:px-6 pt-6 pb-8 rounded-b-xl bg-[#0F172A]">
+          <div className="lg:hidden mb-8 -mx-4 sm:-mx-6 -mt-2 px-4 sm:px-6 pt-6 pb-8 rounded-b-xl bg-gradient-to-br from-[#04060a] to-[#0a1422] border-b border-[#2A2A2A]">
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#3B82F6] mb-2">
-              MacTech Solutions
+              MacTech Solutions · Compliance Control Plane
             </p>
             <h1 className="text-2xl font-bold tracking-tight text-white">
-              Compliance Control Plane
+              CMMC Level 2, built for the boundary.
             </h1>
           </div>
           <div className="mb-7">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#2563eb] mb-2">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#3B82F6] mb-2">
               Create account
             </p>
-            <h1 className="text-3xl font-bold tracking-tight text-[#0F172A]">
+            <h1 className="text-3xl font-bold tracking-tight text-white">
               Compliance Control Plane
             </h1>
-            <p className="mt-2 text-sm text-slate-600 leading-relaxed">
+            <p className="mt-2 text-sm text-gray-400 leading-relaxed">
               Continue with Google or use your email below.
             </p>
           </div>
