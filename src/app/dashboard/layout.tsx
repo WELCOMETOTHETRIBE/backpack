@@ -8,6 +8,7 @@ import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import { DashboardProviders } from "@/components/DashboardProviders";
 import FeedbackWidget from "@/components/feedback/FeedbackWidget";
+import { MacTechFooter } from "@/components/MacTechFooter";
 
 export default async function DashboardLayout({
   children,
@@ -42,6 +43,7 @@ export default async function DashboardLayout({
         <div className="flex min-w-0 flex-1 flex-col">
           <Header user={session.user} />
           <main className="flex-1 overflow-y-auto p-8">{children}</main>
+          <MacTechFooter />
         </div>
       </div>
       <FeedbackWidget />
