@@ -54,3 +54,20 @@ textarea:focus-visible {
   outline: var(--focus-ring);
   outline-offset: 2px;
 }
+
+/* ─── Clerk SignIn / SignUp polish ──────────────────────────────────────── */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: #0f172a !important;
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+  caret-color: #0f172a !important;
+  transition: background-color 9999s ease-in-out 0s !important;
+}
+.cl-internal-b3fm6y,
+.cl-poweredBy,
+.cl-badge,
+[data-localization-key="badge__poweredBy"] {
+  display: none !important;
+}
