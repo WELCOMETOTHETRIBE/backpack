@@ -15,7 +15,7 @@ const clerkAppearance = {
   },
   elements: {
     rootBox: "w-full",
-    cardBox: "shadow-none border-0 bg-transparent w-full",
+    cardBox: "w-full bg-white border border-slate-200 rounded-xl shadow-sm p-7",
     card: "shadow-none border-0 bg-transparent p-0 w-full",
     header: "hidden",
     headerTitle: "hidden",
