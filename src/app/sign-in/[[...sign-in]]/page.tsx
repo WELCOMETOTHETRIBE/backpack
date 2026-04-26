@@ -1,5 +1,6 @@
 import { SignIn } from "@clerk/nextjs"
 import { Shield, FileCheck, Lock } from "lucide-react"
+import { MacTechFooter } from "@/components/MacTechFooter"
 
 const ACCENT = "#3B82F6"
 const ACCENT_HOVER = "#2563eb"
@@ -66,7 +67,8 @@ const trustCues = [
 
 export default function Page() {
   return (
-    <div className="min-h-screen flex bg-[#0A0A0A] text-gray-100">
+    <div className="min-h-screen flex flex-col bg-[#0A0A0A] text-gray-100">
+      <div className="flex-1 flex">
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[#020414] via-[#050a24] to-[#0a1238] relative overflow-hidden border-r border-[#162048]">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,.09)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,.09)_1px,transparent_1px)] bg-[size:48px_48px]" />
         <div className="absolute -top-32 -left-32 w-[420px] h-[420px] rounded-full bg-[#3B82F6]/15 blur-3xl pointer-events-none" />
@@ -138,6 +140,8 @@ export default function Page() {
           <SignIn appearance={clerkAppearance} signUpUrl="/sign-up" />
         </div>
       </div>
+      </div>
+      <MacTechFooter />
     </div>
   )
 }
