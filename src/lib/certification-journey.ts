@@ -207,7 +207,8 @@ export async function getCertificationJourney(orgId: string): Promise<Certificat
       (r) =>
         r.implementationStatus === "implemented" ||
         r.implementationStatus === "assessed" ||
-        r.implementationStatus === "inherited"
+        r.implementationStatus === "inherited" ||
+        r.implementationStatus === "not_applicable"
     ).map((r) => r.controlId)
   );
   let sprsScore = SPRS_MAX;

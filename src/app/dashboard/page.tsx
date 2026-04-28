@@ -218,14 +218,14 @@ export default async function DashboardPage() {
   });
 
   // ── SPRS score computation ──
+  // SPRS credits "implemented" | "assessed" | "inherited" | "not_applicable"
+  // (the latter when properly tailored out via CMMC Scoping Guidance).
+  const isSprsCredited = (s: string | null | undefined) =>
+    s === "implemented" || s === "assessed" || s === "inherited" || s === "not_applicable";
+
   const recordMap = new Map(records.map((r) => [r.controlId, r]));
   const implementedIds = new Set(
-    records.filter(
-      (r) =>
-        r.implementationStatus === "implemented" ||
-        r.implementationStatus === "assessed" ||
-        r.implementationStatus === "inherited"
-    ).map((r) => r.controlId)
+    records.filter((r) => isSprsCredited(r.implementationStatus)).map((r) => r.controlId)
   );
 
   const record31311 = recordMap.get("3.13.11");
@@ -666,11 +666,9 @@ export default async function DashboardPage() {
                   {sprsGaps.length} control{sprsGaps.length !== 1 ? "s" : ""} not yet implemented (deducting points)
                 </summary>
                 <p className="mt-1 text-[10px] text-[var(--color-gray-500)]">
-                  SPRS only credits controls marked <strong>implemented</strong>, <strong>assessed</strong>,
-                  or <strong>inherited</strong>. Outstanding controls and those marked
-                  <strong> not applicable</strong> still deduct points until justified
-                  via tailoring. That&rsquo;s why this number can exceed
-                  &ldquo;{outstandingCount} outstanding&rdquo; on the adjudication card.
+                  SPRS credits controls marked <strong>implemented</strong>, <strong>assessed</strong>,
+                  <strong> inherited</strong>, or <strong>not applicable</strong> (tailored out via CMMC Scoping Guidance).
+                  Only controls without one of those statuses deduct points.
                 </p>
 
                 <div className="mt-2 max-h-52 overflow-y-auto space-y-1 pr-1">

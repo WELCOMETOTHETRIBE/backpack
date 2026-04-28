@@ -23,21 +23,23 @@ export async function computeAndPersistSprsScore(
     .from(controlRecords)
     .where(eq(controlRecords.organizationId, organizationId));
 
+  // SPRS-credited statuses per DoD Assessment Methodology + CMMC Scoping
+  // Guidance: "implemented", "assessed", and "inherited" are met; "not_applicable"
+  // controls properly tailored out via scoping are also treated as met (no
+  // deduction). Anything else (not_started, in_progress, etc.) deducts.
+  const isSprsCredited = (s: string | null | undefined) =>
+    s === "implemented" || s === "assessed" || s === "inherited" || s === "not_applicable";
+
   const implementations: ControlImplementation[] = records.map((r) => ({
     controlId: r.controlId,
-    isImplemented:
-      r.implementationStatus === "implemented" ||
-      r.implementationStatus === "assessed" ||
-      r.implementationStatus === "inherited",
+    isImplemented: isSprsCredited(r.implementationStatus),
   }));
 
   const record31311 = records.find((r) => r.controlId === "3.13.11");
   const controlDeductionOverrides: Record<string, number> = {};
   if (
     record31311 &&
-    record31311.implementationStatus !== "implemented" &&
-    record31311.implementationStatus !== "assessed" &&
-    record31311.implementationStatus !== "inherited" &&
+    !isSprsCredited(record31311.implementationStatus) &&
     record31311.sprs31311Condition === "non_fips"
   ) {
     controlDeductionOverrides["3.13.11"] = 3;
@@ -89,21 +91,17 @@ export async function getSprsBreakdown(
     .from(controlRecords)
     .where(eq(controlRecords.organizationId, organizationId));
 
+  const isSprsCredited = (s: string | null | undefined) =>
+    s === "implemented" || s === "assessed" || s === "inherited" || s === "not_applicable";
+
   const implementedIds = new Set(
-    records.filter(
-      (r) =>
-        r.implementationStatus === "implemented" ||
-        r.implementationStatus === "assessed" ||
-        r.implementationStatus === "inherited"
-    ).map((r) => r.controlId)
+    records.filter((r) => isSprsCredited(r.implementationStatus)).map((r) => r.controlId)
   );
 
   const record31311 = records.find((r) => r.controlId === "3.13.11");
   const deduction31311 =
     record31311 &&
-    record31311.implementationStatus !== "implemented" &&
-    record31311.implementationStatus !== "assessed" &&
-    record31311.implementationStatus !== "inherited" &&
+    !isSprsCredited(record31311.implementationStatus) &&
     record31311.sprs31311Condition === "non_fips"
       ? 3
       : 5;
