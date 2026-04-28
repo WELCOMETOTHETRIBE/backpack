@@ -18,6 +18,7 @@
     "db:studio": "drizzle-kit studio",
     "seed": "tsx src/scripts/seed.ts",
     "seed-evidence-engine": "tsx src/scripts/seed-evidence-engine.ts",
+    "seed-ir-scenarios": "tsx src/scripts/seed-ir-scenarios.ts",
     "seed-control-responsibilities": "tsx src/scripts/seed-control-responsibilities.ts",
     "apply-evidence-engine-migration": "tsx src/scripts/apply-evidence-engine-migration.ts",
     "db:apply-governance": "tsx src/scripts/apply-governance-migration.ts",

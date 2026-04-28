@@ -408,6 +408,12 @@ export const organizations = pgTable("organizations", {
   boundaryNarrative: text("boundary_narrative"),
   /** Set when the scoping wizard is completed. */
   boundaryScopingCompletedAt: timestamp("boundary_scoping_completed_at", { withTimezone: true }),
+  /**
+   * Default IR Tabletop records retention in years (anchored to two CMMC L2
+   * assessment cycles + FAR 4.703 norms; see schema.ir-tabletop.ts header).
+   * Per-exercise override lives on ir_exercises.retention_until.
+   */
+  defaultIrRetentionYears: integer("default_ir_retention_years").notNull().default(6),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
@@ -1725,3 +1731,24 @@ export {
   evidenceControlTechnicalStatus,
   evidenceFindings,
 } from "../../drizzle/schema.evidence";
+
+// ============== IR Tabletop & AAR Evidence Kit ==============
+export {
+  irExerciseStatusEnum,
+  irExerciseMethodologyEnum,
+  irParticipantRoleEnum,
+  irInjectResponseStatusEnum,
+  irAarFinalResultEnum,
+  irFindingSeverityEnum,
+  irCorrectiveActionStatusEnum,
+  irScenarios,
+  irExercises,
+  irExerciseControls,
+  irExerciseParticipants,
+  irInjectResponses,
+  irAars,
+  irFindings,
+  irCorrectiveActions,
+  irExerciseBundles,
+} from "./schema.ir-tabletop";
+export type { IrScenarioInject } from "./schema.ir-tabletop";
