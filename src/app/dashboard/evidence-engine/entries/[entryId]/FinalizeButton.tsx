@@ -3,7 +3,15 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export function FinalizeButton({ entryId, registerKey }: { entryId: string; registerKey: string }) {
+export function FinalizeButton({
+  entryId,
+  registerKey,
+  boundaryId,
+}: {
+  entryId: string;
+  registerKey: string;
+  boundaryId: string;
+}) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -14,7 +22,7 @@ export function FinalizeButton({ entryId, registerKey }: { entryId: string; regi
       const res = await fetch(`/api/evidence-engine/entries/${entryId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "final" }),
+        body: JSON.stringify({ status: "final", boundary_id: boundaryId }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));

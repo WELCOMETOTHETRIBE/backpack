@@ -113,7 +113,13 @@ export default async function EvidenceEngineEntryDetailPage({ params }: PageProp
       <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold text-[var(--color-navy-primary)]">Fields</h3>
-          {isDraft && canFinalize && <FinalizeButton entryId={entryId} registerKey={registerKey} />}
+          {isDraft && canFinalize && (
+            <FinalizeButton
+              entryId={entryId}
+              registerKey={registerKey}
+              boundaryId={entry.boundaryId}
+            />
+          )}
         </div>
         <dl className="mt-4 space-y-3">
           {keys.map((key) => (

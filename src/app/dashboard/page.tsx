@@ -663,8 +663,15 @@ export default async function DashboardPage() {
               <details className="mt-3 group">
                 <summary className="flex cursor-pointer list-none items-center gap-1.5 text-xs font-medium text-[var(--color-blue-accent)] hover:underline">
                   <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
-                  {sprsGaps.length} control{sprsGaps.length !== 1 ? "s" : ""} impacting score
+                  {sprsGaps.length} control{sprsGaps.length !== 1 ? "s" : ""} not yet implemented (deducting points)
                 </summary>
+                <p className="mt-1 text-[10px] text-[var(--color-gray-500)]">
+                  SPRS only credits controls marked <strong>implemented</strong>, <strong>assessed</strong>,
+                  or <strong>inherited</strong>. Outstanding controls and those marked
+                  <strong> not applicable</strong> still deduct points until justified
+                  via tailoring. That&rsquo;s why this number can exceed
+                  &ldquo;{outstandingCount} outstanding&rdquo; on the adjudication card.
+                </p>
 
                 <div className="mt-2 max-h-52 overflow-y-auto space-y-1 pr-1">
                   {sprsGapFamilies.map((fam) => (
