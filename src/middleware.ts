@@ -9,6 +9,11 @@ const isPublicRoute = createRouteMatcher([
   // bearer-token check against CAPTUREOS_API_TOKEN; doesn't need a
   // Clerk session.
   "/api/sprs(.*)",
+  // Server-to-server training-completion ingestion (from MacTech
+  // Training and other LMSs). Does its own bearer-token check against
+  // TRAINING_API_TOKEN; doesn't need a Clerk session for the
+  // completing user.
+  "/api/training/completion(.*)",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
