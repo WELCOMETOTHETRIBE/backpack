@@ -87,6 +87,7 @@ export async function POST(req: Request) {
         deliveryMethod: deliveryMethod?.trim() || null,
         completedAt,
         expiresAt: expiresAt || null,
+        userRole: userRole?.trim() || null,
         evidenceUrl: evidenceUrl?.trim() || null,
         notes: notes?.trim() || null,
       })

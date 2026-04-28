@@ -186,16 +186,35 @@ export async function POST(req: Request) {
         .select({
           id: trainingRecords.id,
           notes: trainingRecords.notes,
+          userRole: trainingRecords.userRole,
+          expiresAt: trainingRecords.expiresAt,
         })
         .from(trainingRecords)
         .where(eq(trainingRecords.organizationId, org.id))
     ).find((r) => (r.notes ?? "").includes(externalMarker));
     if (existing) {
+      // Refresh fields the original push couldn't fill (early bridge
+      // versions sent expires_at: null and didn't send user_role at
+      // all). Only writes columns that are still null on the existing
+      // row, so a hand-edit isn't clobbered by a re-push.
+      const refresh: Partial<{
+        userRole: string;
+        expiresAt: string;
+      }> = {};
+      if (!existing.userRole && userRole) refresh.userRole = userRole;
+      if (!existing.expiresAt && expiresAt) refresh.expiresAt = expiresAt;
+      if (Object.keys(refresh).length > 0) {
+        await db
+          .update(trainingRecords)
+          .set(refresh)
+          .where(eq(trainingRecords.id, existing.id));
+      }
       return NextResponse.json(
         {
           trainingRecordId: existing.id,
           registerEntryId: null,
           deduped: true,
+          refreshed: Object.keys(refresh),
         },
         { status: 200 }
       );
@@ -224,6 +243,7 @@ export async function POST(req: Request) {
       deliveryMethod,
       completedAt,
       expiresAt,
+      userRole,
       evidenceUrl,
       notes,
     })

@@ -1630,6 +1630,8 @@ export const trainingRecords = pgTable(
     deliveryMethod: varchar("delivery_method", { length: 80 }),
     completedAt: date("completed_at").notNull(),
     expiresAt: date("expires_at"),
+    /** Audience the training applies to: "All Users" | "Privileged User" | etc. */
+    userRole: varchar("user_role", { length: 80 }),
     /** Link to completion certificate or screenshot */
     evidenceUrl: text("evidence_url"),
     notes: text("notes"),

@@ -25,6 +25,7 @@
     "seed-controls-from-json": "tsx src/scripts/seed-controls-from-parsed-json.ts",
     "reset-org": "tsx src/scripts/reset-org-to-onboarding.ts",
     "backfill-registers": "tsx src/scripts/backfill-registers.ts",
+    "backfill-training-role-expiry": "tsx src/scripts/backfill-training-role-expiry.ts",
     "fix-control-titles": "tsx src/scripts/fix-control-titles.ts",
     "validate-os-evidence-manifest": "tsx src/scripts/validate-os-evidence-manifest.ts",
     "validate-satisfaction-sources": "tsx src/scripts/validate-satisfaction-sources.ts",
