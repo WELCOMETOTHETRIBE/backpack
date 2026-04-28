@@ -93,7 +93,15 @@ export async function POST() {
   // context. The routine uses the HTTPS shim (since cloud sandbox blocks
   // direct TCP to Railway Postgres) — we pass the runId and the shim base
   // URL; the routine gets orgId + feedback by calling GET /api/agent/run/:runId.
-  const shimBase = process.env.NEXTAUTH_URL ?? 'https://cmmc-production.up.railway.app'
+  //
+  // AGENT_SHIM_BASE_URL takes precedence over NEXTAUTH_URL so we can point
+  // the routine at whichever hostname is on its sandbox allowed_hosts list
+  // (e.g. cmmc-production.up.railway.app) without breaking Clerk's session
+  // cookies, which are pinned to the public hostname via NEXTAUTH_URL.
+  const shimBase =
+    process.env.AGENT_SHIM_BASE_URL ??
+    process.env.NEXTAUTH_URL ??
+    'https://cmmc-production.up.railway.app'
   const contextText = [
     `# Incorporate Feedback — Run Context`,
     ``,

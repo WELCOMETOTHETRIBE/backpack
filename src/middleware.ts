@@ -14,6 +14,11 @@ const isPublicRoute = createRouteMatcher([
   // TRAINING_API_TOKEN; doesn't need a Clerk session for the
   // completing user.
   "/api/training/completion(.*)",
+  // Agent shim — used by the incorporate-feedback Claude Code routine
+  // to read feedback / append events / mark complete from a sandboxed
+  // environment that has no Clerk session. Each route validates
+  // x-agent-secret against AGENT_SHIM_SECRET on its own.
+  "/api/agent/run(.*)",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
