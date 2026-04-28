@@ -1,11 +1,12 @@
 import { db } from "@/db";
 import { controlRecords, organizations } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, max as sqlMax } from "drizzle-orm";
 import {
   calculateSprsScore,
   sprsScoringData,
   type ControlImplementation,
 } from "./sprs/index";
+import { notifyCaptureOsOfSprsChange } from "./captureos-bridge";
 
 /**
  * Computes SPRS score from controlRecords, persists to organizations.sprsScore, and returns the score.
@@ -57,7 +58,45 @@ export async function computeAndPersistSprsScore(
     .set({ sprsScore: score })
     .where(eq(organizations.id, organizationId));
 
+  // Fire-and-forget push to CaptureOS so its eligibility chips refresh
+  // without waiting for the daily 0610 ET pull. Non-fatal: if CaptureOS
+  // is down, the safety-net beat will reconcile within 24h.
+  void pushSprsToCaptureOs(organizationId, score);
+
   return score;
+}
+
+async function pushSprsToCaptureOs(
+  organizationId: string,
+  score: number,
+): Promise<void> {
+  try {
+    const [org] = await db
+      .select({
+        clerkOrgId: organizations.clerkOrgId,
+      })
+      .from(organizations)
+      .where(eq(organizations.id, organizationId))
+      .limit(1);
+
+    if (!org?.clerkOrgId) return; // not a Clerk-tenant; nothing to notify
+
+    const [latestAssessment] = await db
+      .select({ latest: sqlMax(controlRecords.assessmentDate) })
+      .from(controlRecords)
+      .where(eq(controlRecords.organizationId, organizationId));
+
+    await notifyCaptureOsOfSprsChange({
+      clerkOrgId: org.clerkOrgId,
+      score,
+      max: 110,
+      assessmentDate: latestAssessment?.latest ?? null,
+      reason: "sprs_recomputed",
+    });
+  } catch (err) {
+    // Swallow — notify path is non-fatal by design.
+    console.warn("[captureos-bridge] sprs notify failed:", err);
+  }
 }
 
 /**
