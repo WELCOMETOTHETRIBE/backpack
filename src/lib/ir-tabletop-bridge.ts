@@ -346,6 +346,29 @@ export const AddFindingsRequestSchema = z.object({
 });
 export type AddFindingsRequest = z.infer<typeof AddFindingsRequestSchema>;
 
+export const UpdateFindingRequestSchema = z.object({
+  controlId: ControlIdSchema.optional(),
+  severity: SeveritySchema.optional(),
+  title: z.string().min(1).optional(),
+  description: z.string().min(1).optional(),
+});
+export type UpdateFindingRequest = z.infer<typeof UpdateFindingRequestSchema>;
+
+export const UpdateCorrectiveActionRequestSchema = z.object({
+  weakness: z.string().min(1).optional(),
+  controlReference: ControlIdSchema.optional(),
+  resourcesRequired: z.string().nullable().optional(),
+  scheduledCompletionDate: IsoDateSchema.nullable().optional(),
+  status: z
+    .enum(["open", "in_progress", "blocked", "completed", "deferred"])
+    .optional(),
+  ownerName: z.string().nullable().optional(),
+  notes: z.string().nullable().optional(),
+});
+export type UpdateCorrectiveActionRequest = z.infer<
+  typeof UpdateCorrectiveActionRequestSchema
+>;
+
 export const ApproveAarRequestSchema = z.object({
   /** Required: the approver user must differ from the drafter (enforced server-side + via DB CHECK). */
   approverUserId: z.string().uuid(),

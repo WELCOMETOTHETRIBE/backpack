@@ -11,6 +11,7 @@ const NAV_LINKS = [
   { label: "Governance", href: "/assessor/governance" },
   { label: "SSP", href: "/assessor/ssp" },
   { label: "Registers", href: "/assessor/registers" },
+  { label: "IR Tabletop", href: "/assessor/ir-tabletop" },
 ];
 
 export function AssessorNav() {
