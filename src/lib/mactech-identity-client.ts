@@ -174,7 +174,10 @@ export function findActiveAccessForApp(
 
   for (const org of result.orgs) {
     if (org.memberStatus !== "active") continue;
-    if (org.orgStatus !== "active") continue;
+    // Onboarding orgs are legitimate — they've been created in the central
+    // hub but the wizard isn't fully complete. Customer users should still
+    // be able to sign in. Suspended/archived orgs are intentionally blocked.
+    if (org.orgStatus !== "active" && org.orgStatus !== "onboarding") continue;
     const entitlement = org.enabledApps.find((e) => e.appKey === appKey);
     if (!entitlement) continue;
     if (entitlement.status !== "active" && entitlement.status !== "trialing") continue;
