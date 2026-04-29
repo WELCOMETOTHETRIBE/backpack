@@ -19,6 +19,7 @@ import {
   logIrAuditEvent,
   UploadBundleManifestSchema,
 } from "@/lib/ir-tabletop-bridge"
+import { getIrTabletopStorage } from "@/lib/ir-tabletop-storage"
 
 /**
  * Capture a full state snapshot for the exercise at archive time.
@@ -212,6 +213,34 @@ export async function POST(
     // grade record of "what was tested" — frozen forever from this point.
     const stateSnapshot = await snapshotExerciseState(id)
 
+    // Phase 8 byte archival: if the caller included the ZIP bytes, store them
+    // via the configured driver before opening the DB transaction. The
+    // returned storage key gets persisted on the bundle row. Failure here
+    // aborts the archive so we never have a manifest pointing at missing bytes.
+    let resolvedStoragePrefix = body.storagePrefix ?? null
+    let bytesArchived = false
+    let storageDriver: string | null = null
+    if (body.bundleZipBase64) {
+      const zipBytes = Buffer.from(body.bundleZipBase64, "base64")
+      if (zipBytes.length === 0) {
+        return NextResponse.json(
+          { error: "bundleZipBase64 decoded to zero bytes" },
+          { status: 400 }
+        )
+      }
+      const storage = getIrTabletopStorage()
+      const result = await storage.putBundle({
+        organizationId: auth.organizationId,
+        exerciseId: id,
+        bundleVersion: body.bundleVersion,
+        bytes: zipBytes,
+        contentType: "application/zip",
+      })
+      resolvedStoragePrefix = result.storageKey
+      bytesArchived = true
+      storageDriver = storage.driverName
+    }
+
     const result = await db.transaction(async (tx) => {
       const runId = `IR-Tabletop-${id}-v${body.bundleVersion}-${Date.now()}`
       const [run] = await tx
@@ -255,7 +284,7 @@ export async function POST(
             : new Date(),
           retentionUntil: exercise.retentionUntil,
           generatedByUserId: auth.userId,
-          storagePrefix: body.storagePrefix ?? null,
+          storagePrefix: resolvedStoragePrefix,
           archivedStateSnapshotJson: stateSnapshot,
         })
         .returning()
@@ -277,6 +306,8 @@ export async function POST(
         snapshotVersion: stateSnapshot.snapshotVersion,
         snapshotParticipantCount: stateSnapshot.participants.length,
         snapshotFindingCount: stateSnapshot.findings.length,
+        bytesArchived,
+        storageDriver,
       },
       req,
     })

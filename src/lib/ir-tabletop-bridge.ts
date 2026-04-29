@@ -382,7 +382,15 @@ export const UploadBundleManifestSchema = z.object({
   manifestSha256: z.string().regex(/^[a-f0-9]{64}$/, "Expected lowercase hex sha256"),
   timestampToken: z.string().optional(),
   timestampedAt: IsoDateTimeSchema.optional(),
+  /** Caller-provided storage key (rare). Normally control-plane derives this when bytes are uploaded. */
   storagePrefix: z.string().optional(),
+  /**
+   * Phase 8 byte archival: base64-encoded ZIP bytes. When present, control-plane
+   * stores them via the configured storage driver (azure-blob | local) and sets
+   * `storage_prefix` on the bundle row. Optional for backward compatibility —
+   * if absent, the bundle remains manifest-only.
+   */
+  bundleZipBase64: z.string().optional(),
   files: z
     .array(
       z.object({

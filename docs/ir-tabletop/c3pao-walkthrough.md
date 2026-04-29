@@ -6,7 +6,7 @@
 
 **Scope:** Assessment of NIST SP 800-171 Rev 2 controls **IR.L2-3.6.1**, **IR.L2-3.6.2**, **IR.L2-3.6.3** as implemented through the MacTech CUI Vault Incident Response Exercise & After-Action Report Evidence Package.
 
-**Document version:** v1.0 — produced alongside Phase 7 hardening of the IR Tabletop product line.
+**Document version:** v1.1 — Phase 7 baseline + Phase 8 byte archival & live control library.
 
 ---
 
@@ -31,9 +31,11 @@ Before the C3PAO sits down with the customer, confirm these have been completed:
 
 | Step | Where to verify |
 |---|---|
-| Migration applied: `0046_ir_tabletop` + `0047_ir_bundle_archived_state` | `drizzle/meta/_journal.json` shows both `idx: 46` and `idx: 47` entries |
+| Migrations applied: `0046_ir_tabletop` + `0047_ir_bundle_archived_state` | `drizzle/meta/_journal.json` shows both `idx: 46` and `idx: 47` entries |
 | Scenario catalog seeded (Scenarios A–D) | Inside control-plane: `SELECT code, version, title FROM ir_scenarios WHERE is_active = true` returns 4 rows |
 | Bridge env vars match between training and control-plane | Both `IR_TABLETOP_BRIDGE_TOKEN` and `IR_TABLETOP_BRIDGE_HMAC` set to the same values in both repos |
+| Storage driver configured | `IR_TABLETOP_STORAGE_DRIVER` set on control-plane: `azure-blob` for production (requires `IR_TABLETOP_AZURE_STORAGE_CONNECTION` + optional `IR_TABLETOP_AZURE_CONTAINER`); `local` only for dev |
+| Control library populated | `SELECT count(*) FROM controls` returns >0 — used for live Control Mapping Matrix titles |
 | Customer onboarded | `organizations.clerk_org_id` populated in both training and control-plane Postgres |
 | Assessor account provisioned | Control-plane `users.role = 'Assessor'` for the assessor's email |
 
@@ -161,6 +163,12 @@ SELECT manifest_sha256 FROM ir_exercise_bundles WHERE id = '<bundle uuid>';
 
 If the values match, the bundle is the same one that was archived. (Note: this verifies the manifest, not every file inside the ZIP. To verify every file, extract the ZIP and recompute SHA-256 for each file against `manifest.files[].sha256`.)
 
+**To re-fetch the canonical bytes from control-plane** (Phase 8 byte archival):
+```
+GET /api/ir-tabletop/exercises/{exerciseId}/bundle/{version}/download
+```
+Returns the archived ZIP from blob storage with `X-IR-Manifest-Sha256` header. Logged in the audit trail as `bundle_downloaded`. Returns 410 Gone if the bundle was archived before Phase 8 (manifest-only entry).
+
 ### 6.2 Audit trail
 
 Every state-changing operation writes an `audit_logs` row with `resourceType` in:
@@ -199,49 +207,55 @@ A C3PAO challenge of "why tabletop?" is answered by reading this field.
 
 ---
 
-## 7. Known limitations (Phase 8 backlog)
+## 7. What shipped in Phase 8
 
-### 7.1 Bundle byte archival
+### 7.1 Bundle byte archival ✅
 
-Currently, control-plane stores **the manifest** (with per-file SHA-256s) and the **frozen state snapshot** but not the actual bundle bytes. Bytes are regeneratable from the snapshot using the same generator code.
+Control-plane now stores the **actual ZIP bytes** of every archived bundle via a pluggable storage driver (`src/lib/ir-tabletop-storage.ts`). At archive time, training base64-encodes the ZIP into the `bundleZipBase64` field of the bundle POST; control-plane writes the bytes to durable storage and saves the storage key on `ir_exercise_bundles.storage_prefix`.
 
-**Implication for assessors:** verifying a customer's downloaded ZIP requires control-plane to be available so the manifest hash can be compared. The bytes themselves are not in archival cold storage today.
+**Drivers:**
+- `azure-blob` — Azure Blob Storage. Production target. Requires `IR_TABLETOP_AZURE_STORAGE_CONNECTION` + optional `IR_TABLETOP_AZURE_CONTAINER` (default `ir-tabletop-bundles`). Containers created on demand, private by default.
+- `local` — filesystem under `IR_TABLETOP_LOCAL_STORAGE_DIR` (default `./var/ir-tabletop-bundles`). Dev-only — ephemeral container filesystems WILL lose bundles on restart.
 
-**Mitigation:** The frozen state snapshot (`archived_state_snapshot_json`) is the authoritative record. Even without the bytes, an assessor can read the snapshot and see exactly what was tested, by whom, and what was decided.
+**Bytes can be re-served** from `GET /api/ir-tabletop/exercises/:id/bundle/:version/download`. Both assessors and admins can hit this; downloads are recorded as `bundle_downloaded` audit events with `mode: service|session` so the C3PAO can prove who pulled bytes when.
 
-**Phase 8 plan:** Wire `@azure/storage-blob` (already a control-plane dependency) so the bundle ZIP is stored in Azure Government Blob Storage at archive time. Same hash chain, but bytes are durable.
+### 7.2 Live control library ✅
 
-### 7.2 Generator non-determinism
+The Control Mapping Matrix XLSX now fetches live control titles + family info from `GET /api/ir-tabletop/control-library` (joins `controls` with `control_families` in control-plane's seeded library). The pre-Phase-8 hard-coded subset remains as a fallback if the library fetch fails — generation never blocks on the upstream call.
+
+**Data source:** `controls` + `control_families` tables in control-plane Postgres, seeded from `data/control-library.v1.json`. To extend with additional controls, append rows to those tables (or update the seed JSON and re-run `npm run seed-controls-from-json`); the bridge endpoint reflects the change immediately.
+
+## 8. Known limitations (Phase 9 backlog)
+
+### 8.1 Generator non-determinism
 
 The DOCX, XLSX, and PDF generators embed timestamps and (for PDF) random object IDs at generation time. Re-running the generators with the same inputs does not produce byte-identical output today.
 
-**Implication for assessors:** the manifest's per-file SHA-256s reflect the bytes at archive time. Re-generating the bundle later will produce different byte content with different per-file hashes.
+**Implication for assessors:** the manifest's per-file SHA-256s reflect the bytes at archive time. Re-generating the bundle later from training will produce different byte content with different per-file hashes.
 
-**Mitigation:** the **archived state snapshot** is what the assessor reads. The generated documents are presentations of that snapshot, not the source of truth.
+**Mitigation:** the **archived bytes** (Phase 8) are now the authoritative artifact. Re-generation is no longer required to verify integrity — pull bytes from `/bundle/:version/download` and they match exactly what was archived.
 
-**Phase 8 plan:** Thread `archivedAt` from the snapshot into all three generators so re-runs produce byte-identical output (where library APIs allow).
+**Phase 9 plan:** Thread `archivedAt` from the snapshot into all three generators so re-runs produce byte-identical output (where library APIs allow). With Phase 8 byte archival shipped, this is a nice-to-have rather than a defensibility blocker.
 
-### 7.3 Live control titles
+### 8.2 S3 driver
 
-The Control Mapping Matrix XLSX uses a hard-coded subset of NIST 800-171 control titles for the IR/AC/AU/SI/SC/CM controls referenced by the seed scenarios. Other controls show "—" for title.
+Only `local` and `azure-blob` ship in Phase 8. The `@aws-sdk/client-s3` dependency is available but unused. Customers running on AWS GovCloud will need an S3 driver before going live.
 
-**Phase 8 plan:** Fetch from control-plane's `data/control-library.v1.json` via a new bridge endpoint `GET /api/ir-tabletop/control-library`.
-
-### 7.4 Live MacTech-provided evidence
+### 8.3 Live MacTech-provided evidence
 
 The CUI Vault Technical Evidence Summary PDF lists 13 boilerplate items describing what MacTech provides per tenant. These are static — they don't pull live values from `governance_evidence_files` or `evidence_runs` for the specific customer's vault.
 
-**Phase 8 plan:** Pull tenant-specific evidence inventory at generation time, replacing the boilerplate with the live signal.
+**Phase 9 plan:** Pull tenant-specific evidence inventory at generation time, replacing the boilerplate with the live signal.
 
-### 7.5 Integration tests
+### 8.4 Integration tests
 
-Today only the generator smoke test (`npm run smoke:ir-tabletop`) runs in CI. The bridge auth, archive flow, and assessor view paths are not covered by automated tests.
+Today only the generator smoke test (`npm run smoke:ir-tabletop`) runs in CI. The bridge auth, archive flow, byte storage, and assessor view paths are not covered by automated tests.
 
-**Phase 8 plan:** Add a vitest suite that hits a local control-plane instance with the bridge HMAC.
+**Phase 9 plan:** Add a vitest suite that hits a local control-plane instance with the bridge HMAC.
 
 ---
 
-## 8. Appendix — Assessor CLI commands
+## 9. Appendix — Assessor CLI commands
 
 For an assessor with read access to the control-plane Postgres:
 
@@ -281,13 +295,13 @@ WHERE id = '<bundle uuid>';
 
 ---
 
-## 9. Sign-off
+## 10. Sign-off
 
-This walkthrough is current as of Phase 7 hardening.  Re-issue when:
+This walkthrough is current as of Phase 8 (byte archival + live control library). Re-issue when:
 
 - A new scenario is added to the catalog (`ir_scenarios.code` increments)
 - Bridge contract version bumps (`BRIDGE_CONTRACT_VERSION` in `src/lib/ir-tabletop-bridge.ts`)
 - Retention policy version bumps (`mactech-ir-retention.v1`)
-- Phase 8 ships byte archival or generator determinism
+- Phase 9 ships generator determinism, S3 driver, or live MacTech evidence
 
 — *MacTech Solutions, IR Tabletop product team*
