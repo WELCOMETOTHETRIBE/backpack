@@ -1,4 +1,6 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+import { sendAuditLogAsync } from "@/lib/mactech-audit-client";
 
 const isPublicRoute = createRouteMatcher([
   "/",
@@ -21,9 +23,37 @@ const isPublicRoute = createRouteMatcher([
   "/api/agent/run(.*)",
 ]);
 
+const AUDIT_SESSION_COOKIE = "mactech_audit_session";
+const AUDIT_SESSION_TTL_SECONDS = 60 * 60 * 8; // 8 hours
+
 export default clerkMiddleware(async (auth, req) => {
   if (isPublicRoute(req)) return;
   await auth.protect();
+
+  // Fire one "session opened" audit event per browser session per app.
+  // Cookie-based dedup keeps the central log signal-to-noise high.
+  if (!req.cookies.has(AUDIT_SESSION_COOKIE)) {
+    const session = await auth();
+    sendAuditLogAsync({
+      payload: {
+        appKey: "codex",
+        eventType: "codex.session.opened",
+        eventCategory: "auth",
+        action: "Opened MacTech Codex (CMMC compliance plane)",
+        actorClerkUserId: session.userId ?? undefined,
+        customerOrgClerkId: session.orgId ?? undefined,
+        metadata: { path: req.nextUrl.pathname },
+      },
+    });
+    const response = NextResponse.next();
+    response.cookies.set(AUDIT_SESSION_COOKIE, "1", {
+      httpOnly: true,
+      sameSite: "lax",
+      maxAge: AUDIT_SESSION_TTL_SECONDS,
+      path: "/",
+    });
+    return response;
+  }
 });
 
 export const config = {
