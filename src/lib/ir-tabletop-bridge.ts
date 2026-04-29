@@ -205,6 +205,7 @@ const IsoDateTimeSchema = z.string().datetime();
 const IsoDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Expected ISO date YYYY-MM-DD");
 
 const MethodologySchema = z.enum(["tabletop", "walkthrough", "functional"]);
+const DifficultySchema = z.enum(["management", "mixed", "technical"]);
 const ParticipantRoleSchema = z.enum([
   "facilitator",
   "approver",
@@ -258,6 +259,8 @@ export const CreateExerciseRequestSchema = z.object({
   environmentDescription: z.string().min(1),
   reportingAuthorities: ReportingAuthoritiesSchema,
   scheduledFor: IsoDateTimeSchema.optional(),
+  /** Phase 11: per-exercise difficulty. Defaults to 'mixed'. */
+  difficulty: DifficultySchema.optional(),
   /** Snapshot of CMMC control_ids tested; primary IR + adjacent. */
   controlIds: z
     .array(
@@ -275,8 +278,27 @@ export const UpdateExerciseRequestSchema = CreateExerciseRequestSchema.partial()
   approverUserId: z.string().uuid().optional(),
   executedAt: IsoDateTimeSchema.optional(),
   plannerNotes: z.string().optional(),
+  difficulty: DifficultySchema.optional(),
 });
 export type UpdateExerciseRequest = z.infer<typeof UpdateExerciseRequestSchema>;
+
+// ============== Phase 11: AI-assisted AAR drafting ==============
+const AarSectionKeySchema = z.enum([
+  "executiveSummary",
+  "timelineNarrative",
+  "strengths",
+  "gaps",
+  "evidenceReviewed",
+]);
+export type AarSectionKey = z.infer<typeof AarSectionKeySchema>;
+
+export const DraftAarSectionRequestSchema = z.object({
+  section: AarSectionKeySchema,
+  /** Optional: existing draft text the user has already typed.
+   *  When present, the AI improves/extends rather than replacing wholesale. */
+  existingText: z.string().optional(),
+});
+export type DraftAarSectionRequest = z.infer<typeof DraftAarSectionRequestSchema>;
 
 export const AddParticipantsRequestSchema = z.object({
   participants: z

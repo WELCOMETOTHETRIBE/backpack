@@ -90,6 +90,21 @@ export const irCorrectiveActionStatusEnum = pgEnum("ir_corrective_action_status"
   "deferred",
 ]);
 
+/**
+ * Phase 11: difficulty levels for IR exercises.
+ * - management: high-level decisions, business-impact framing, no technical detail
+ * - mixed (default): full inject prompts as written
+ * - technical: deep system-level detail, log lookups, sample queries
+ *
+ * Lets a customer rotate audiences year-over-year (CEO/CIO → IT staff →
+ * tabletop facilitators) and treat each as a separate IR.L2-3.6.3 test event.
+ */
+export const irExerciseDifficultyEnum = pgEnum("ir_exercise_difficulty", [
+  "management",
+  "mixed",
+  "technical",
+]);
+
 // ============== Inject blueprint shape (in scenarios) ==============
 export type IrScenarioInject = {
   /** Stable identifier within scenario (e.g. "T+30-failed-admin-login"). */
@@ -101,6 +116,13 @@ export type IrScenarioInject = {
   controlIds: string[];
   /** Objective pass criterion, e.g. "decision recorded within 15 min of inject delivery". */
   passCriteria: string;
+  /**
+   * Phase 11: MITRE ATT&CK technique IDs this inject exercises (optional).
+   * Examples: ["T1078.003", "T1110.001"]. Surface in the runtime console,
+   * Facilitator Guide, and Control Mapping Matrix so reports speak the same
+   * vocabulary the customer's SOC already uses.
+   */
+  mitreTtps?: string[];
 };
 
 // ============== 1. Scenario library (catalog, versioned, JSON-seeded) ==============
@@ -119,10 +141,20 @@ export const irScenarios = pgTable(
     /** Inject blueprint — copied to ir_exercises.scenario_snapshot_json at generation time. */
     injectsJson: jsonb("injects_json").$type<IrScenarioInject[]>().notNull(),
     isActive: boolean("is_active").notNull().default(true),
+    /** Phase 11: distinguishes the seeded library (false) from customer-authored
+     *  scenarios (true, written via the AI-assisted custom scenario generator). */
+    isCustom: boolean("is_custom").notNull().default(false),
+    /** Phase 11: who authored this scenario (null for seeded library entries). */
+    createdByUserId: uuid("created_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
-  (t) => [uniqueIndex("ir_scenarios_code_version_idx").on(t.code, t.version)]
+  (t) => [
+    uniqueIndex("ir_scenarios_code_version_idx").on(t.code, t.version),
+    index("ir_scenarios_is_custom_idx").on(t.isCustom),
+  ]
 );
 
 // ============== 2. Exercise (one per scheduled tabletop, per org) ==============
@@ -163,6 +195,10 @@ export const irExercises = pgTable(
     facilitatorUserId: uuid("facilitator_user_id").references(() => users.id),
     approverUserId: uuid("approver_user_id").references(() => users.id),
     status: irExerciseStatusEnum("status").notNull().default("draft"),
+    /** Phase 11: per-exercise difficulty. Defaults to 'mixed' (the existing
+     *  pre-Phase-11 behavior) so historical exercises continue to render
+     *  identically. */
+    difficulty: irExerciseDifficultyEnum("difficulty").notNull().default("mixed"),
     /**
      * Records retention floor (date type).
      * Computed at row creation = (executedAt ?? scheduledFor ?? createdAt)

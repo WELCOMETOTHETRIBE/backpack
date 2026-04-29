@@ -93,6 +93,7 @@ export async function POST(req: NextRequest) {
           organizationId,
           boundaryId: body.boundaryId ?? null,
           scenarioId: body.scenarioId,
+          difficulty: body.difficulty ?? "mixed",
           scenarioSnapshotJson: {
             code: scenario.code,
             version: scenario.version,

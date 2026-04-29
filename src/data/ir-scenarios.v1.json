@@ -25,7 +25,8 @@
           "prompt": "User reports they cannot access the CUI Vault from their office workstation. Helpdesk creates a ticket with priority TBD.",
           "expectedAction": "Open formal incident ticket; classify priority; route to security lead.",
           "controlIds": ["IR.L2-3.6.1"],
-          "passCriteria": "Ticket opened within 5 minutes; classified at minimum P3."
+          "passCriteria": "Ticket opened within 5 minutes; classified at minimum P3.",
+          "mitreTtps": ["T1531"]
         },
         {
           "key": "T+15-failed-admin-logins",
@@ -33,7 +34,8 @@
           "prompt": "SIEM alerts on 7 failed admin login attempts to the vault (RDP) from IP 198.51.100.42 (Brazil) over 90 seconds.",
           "expectedAction": "Escalate to security lead; preserve current logs; begin source IP analysis.",
           "controlIds": ["IR.L2-3.6.1", "AU.L2-3.3.1"],
-          "passCriteria": "Escalation within 15 minutes; explicit log preservation order issued."
+          "passCriteria": "Escalation within 15 minutes; explicit log preservation order issued.",
+          "mitreTtps": ["T1110.001", "T1078"]
         },
         {
           "key": "T+30-successful-login-svc-account",
@@ -41,7 +43,8 @@
           "prompt": "Successful interactive logon from the same IP using service account 'svc-vault-admin'. SSH session active. Account has Backup Operator privileges.",
           "expectedAction": "Disable service account; capture session evidence; review privileged access records.",
           "controlIds": ["IR.L2-3.6.1", "AC.L2-3.1.5", "AC.L2-3.1.7"],
-          "passCriteria": "Account disabled within 10 minutes of inject; session terminated; evidence preservation documented."
+          "passCriteria": "Account disabled within 10 minutes of inject; session terminated; evidence preservation documented.",
+          "mitreTtps": ["T1078.003", "T1021.001"]
         },
         {
           "key": "T+45-bulk-cui-access",
@@ -49,7 +52,8 @@
           "prompt": "Audit logs show 1.2 GB of CUI files accessed in bulk by the suspect session; rsync process detected initiating outbound transfer.",
           "expectedAction": "Determine potential CUI exposure scope; isolate vault network segment; notify customer security lead.",
           "controlIds": ["IR.L2-3.6.1", "AU.L2-3.3.5", "SI.L2-3.14.1"],
-          "passCriteria": "Scoping decision within 15 minutes; customer security lead reached within 30 minutes; isolation order issued."
+          "passCriteria": "Scoping decision within 15 minutes; customer security lead reached within 30 minutes; isolation order issued.",
+          "mitreTtps": ["T1530", "T1041", "T1029"]
         },
         {
           "key": "T+60-dod-reporting-decision",
@@ -57,7 +61,8 @@
           "prompt": "Customer Program Manager asks: must DoD be notified within 72 hours per DFARS 252.204-7012(c)? The 72-hour clock starts when?",
           "expectedAction": "Apply reporting decision criteria; consult contract program officer; identify DC3/DCISE submission path; document the 72-hour clock anchor.",
           "controlIds": ["IR.L2-3.6.2"],
-          "passCriteria": "72-hour clock acknowledged with explicit anchor time; reporting decision documented within 30 minutes; DIBNet/DC3 submission path identified."
+          "passCriteria": "72-hour clock acknowledged with explicit anchor time; reporting decision documented within 30 minutes; DIBNet/DC3 submission path identified.",
+          "mitreTtps": []
         },
         {
           "key": "T+75-recovery-and-poam",
@@ -65,7 +70,8 @@
           "prompt": "Vault is restored from the last known-good snapshot; root cause not yet identified; the suspect IP is now in deny-list.",
           "expectedAction": "Decide recovery acceptance; flag POA&M item for forensic completion; capture lessons learned for AAR.",
           "controlIds": ["IR.L2-3.6.1", "IR.L2-3.6.3"],
-          "passCriteria": "Recovery decision documented; POA&M entry initiated with owner and target date; AAR scheduled."
+          "passCriteria": "Recovery decision documented; POA&M entry initiated with owner and target date; AAR scheduled.",
+          "mitreTtps": []
         }
       ]
     },
@@ -93,7 +99,8 @@
           "prompt": "DLP system alerts: user 'j.smith' downloaded 47 CUI files in the past 60 minutes; outbound HTTPS to unknown domain 'storage-13.relay.example.com'.",
           "expectedAction": "Open incident ticket at P1; assign incident commander; preserve DLP and proxy logs.",
           "controlIds": ["IR.L2-3.6.1", "AU.L2-3.3.1"],
-          "passCriteria": "Ticket opened at P1 within 5 minutes; IC named; log preservation order issued."
+          "passCriteria": "Ticket opened at P1 within 5 minutes; IC named; log preservation order issued.",
+          "mitreTtps": ["T1530", "T1213"]
         },
         {
           "key": "T+15-network-upload",
@@ -101,7 +108,8 @@
           "prompt": "Network telemetry shows 850 MB upload to the unknown domain over TLS; transfer ongoing.",
           "expectedAction": "Decision: terminate user session and isolate endpoint; capture pre-isolation memory image if feasible.",
           "controlIds": ["IR.L2-3.6.1", "AC.L2-3.1.13", "SC.L2-3.13.6"],
-          "passCriteria": "Session termination decision within 5 minutes; isolation order issued; evidence preservation explicit."
+          "passCriteria": "Session termination decision within 5 minutes; isolation order issued; evidence preservation explicit.",
+          "mitreTtps": ["T1567.002", "T1041"]
         },
         {
           "key": "T+30-account-revoked",
@@ -109,7 +117,8 @@
           "prompt": "Endpoint isolated from network; user account session revoked; user has been contacted by HR for interview.",
           "expectedAction": "Confirm containment; review whether other endpoints used the same credentials; rotate dependent secrets.",
           "controlIds": ["IR.L2-3.6.1", "AU.L2-3.3.5"],
-          "passCriteria": "Containment confirmation documented; lateral-access review initiated; dependent secrets identified for rotation."
+          "passCriteria": "Containment confirmation documented; lateral-access review initiated; dependent secrets identified for rotation.",
+          "mitreTtps": ["T1078"]
         },
         {
           "key": "T+45-cui-scope",
@@ -117,7 +126,8 @@
           "prompt": "Affected CUI files identified; preliminary scoping = 12 GB across 3 contract programs (Program Alpha, Beta, Delta).",
           "expectedAction": "Map affected files to contract programs; identify per-contract reporting obligations; flag whether any files contain ITAR/export-controlled material.",
           "controlIds": ["IR.L2-3.6.2", "SI.L2-3.14.7"],
-          "passCriteria": "Per-program impact identified within 15 minutes; ITAR/export-control flag explicitly addressed."
+          "passCriteria": "Per-program impact identified within 15 minutes; ITAR/export-control flag explicitly addressed.",
+          "mitreTtps": []
         },
         {
           "key": "T+60-contract-officer",
@@ -125,7 +135,8 @@
           "prompt": "Contract officer asks for written notification by end of day. Does DFARS 252.204-7012 require DC3/DCISE submission?",
           "expectedAction": "Apply reporting decision criteria; draft contract officer notification; identify DC3/DCISE submission path and 72-hour clock anchor.",
           "controlIds": ["IR.L2-3.6.2"],
-          "passCriteria": "Reporting decision documented within 30 minutes; 72-hour clock anchored explicitly; written notification drafted."
+          "passCriteria": "Reporting decision documented within 30 minutes; 72-hour clock anchored explicitly; written notification drafted.",
+          "mitreTtps": []
         },
         {
           "key": "T+75-forensic-handoff",
@@ -133,7 +144,8 @@
           "prompt": "Forensic image of endpoint preserved with chain of custody; recovery options being evaluated; AAR scheduling pending.",
           "expectedAction": "Confirm chain-of-custody documentation; decide recovery posture; schedule AAR; capture lessons learned.",
           "controlIds": ["IR.L2-3.6.3"],
-          "passCriteria": "Chain-of-custody confirmed in writing; recovery decision made; AAR scheduled within 14 days."
+          "passCriteria": "Chain-of-custody confirmed in writing; recovery decision made; AAR scheduled within 14 days.",
+          "mitreTtps": []
         }
       ]
     },
@@ -159,7 +171,8 @@
           "prompt": "EDR alert on WS-007: ransomware behavioral signature; encrypted file extension '.lockbit3' observed in user document folder.",
           "expectedAction": "Open P1 incident; assign IC; isolate WS-007 from network; preserve EDR alert evidence.",
           "controlIds": ["IR.L2-3.6.1", "SI.L2-3.14.2"],
-          "passCriteria": "P1 ticket within 5 minutes; isolation order within 10 minutes; evidence preserved."
+          "passCriteria": "P1 ticket within 5 minutes; isolation order within 10 minutes; evidence preserved.",
+          "mitreTtps": ["T1486", "T1490"]
         },
         {
           "key": "T+15-boundary-determination",
@@ -167,7 +180,8 @@
           "prompt": "Determine: is WS-007 inside or outside the CMMC assessment boundary as documented in the SSP?",
           "expectedAction": "Consult SSP boundary statement; document determination; if in-scope, apply CMMC IR procedures fully.",
           "controlIds": ["IR.L2-3.6.1"],
-          "passCriteria": "Boundary determination documented in writing within 10 minutes with reference to SSP section."
+          "passCriteria": "Boundary determination documented in writing within 10 minutes with reference to SSP section.",
+          "mitreTtps": []
         },
         {
           "key": "T+20-vault-session-revoke",
@@ -175,7 +189,8 @@
           "prompt": "Vault session for the WS-007 user is still active. Decide whether to revoke immediately.",
           "expectedAction": "Revoke active vault session; document decision; if active CUI access in progress, capture session details first.",
           "controlIds": ["IR.L2-3.6.1", "AC.L2-3.1.18"],
-          "passCriteria": "Session revocation decision documented within 5 minutes; capture-then-revoke order followed if applicable."
+          "passCriteria": "Session revocation decision documented within 5 minutes; capture-then-revoke order followed if applicable.",
+          "mitreTtps": ["T1078"]
         },
         {
           "key": "T+30-credential-rotation",
@@ -183,7 +198,8 @@
           "prompt": "Credential rotation: should service account credentials accessed from WS-007 in the last 30 days be rotated?",
           "expectedAction": "Identify credentials accessed from WS-007; initiate rotation; document scope.",
           "controlIds": ["IR.L2-3.6.1"],
-          "passCriteria": "Credential scope identified within 15 minutes; rotation initiated for in-scope creds."
+          "passCriteria": "Credential scope identified within 15 minutes; rotation initiated for in-scope creds.",
+          "mitreTtps": ["T1098"]
         },
         {
           "key": "T+45-cui-exposure-analysis",
@@ -191,7 +207,8 @@
           "prompt": "CUI exposure analysis: any CUI files the WS-007 user opened in last 24 hours that may now be in attacker hands?",
           "expectedAction": "Enumerate accessed CUI files; cross-reference with last-24h vault audit log; scope notification obligations.",
           "controlIds": ["IR.L2-3.6.2", "SI.L2-3.14.4"],
-          "passCriteria": "File enumeration completed; notification scope documented within 30 minutes."
+          "passCriteria": "File enumeration completed; notification scope documented within 30 minutes.",
+          "mitreTtps": []
         },
         {
           "key": "T+60-backup-validation",
@@ -199,7 +216,8 @@
           "prompt": "Backup restore decision: validate backup integrity before any restore action; confirm RPO acceptable per BCP.",
           "expectedAction": "Validate backup integrity (hash check / restore-to-test); confirm RPO; decide restore source.",
           "controlIds": ["IR.L2-3.6.3"],
-          "passCriteria": "Backup integrity confirmed before restore decision; RPO documented; restore source recorded."
+          "passCriteria": "Backup integrity confirmed before restore decision; RPO documented; restore source recorded.",
+          "mitreTtps": ["T1490"]
         },
         {
           "key": "T+75-recovery-aar",
@@ -207,7 +225,8 @@
           "prompt": "Recovery complete; AAR scheduling and corrective action register opened.",
           "expectedAction": "Confirm recovery success; populate corrective action register with findings; schedule AAR.",
           "controlIds": ["IR.L2-3.6.3"],
-          "passCriteria": "Recovery confirmed; CAR populated with at least 2 findings; AAR scheduled."
+          "passCriteria": "Recovery confirmed; CAR populated with at least 2 findings; AAR scheduled.",
+          "mitreTtps": []
         }
       ]
     },
@@ -234,7 +253,8 @@
           "prompt": "Azure Defender alert: 'Suspicious process spawned by lsass.exe' on Windows Server 2025 vault VM in Azure Gov tenant. Severity High.",
           "expectedAction": "Open P1 incident; assign IC; preserve Defender alert; freeze the VM image (snapshot) before any remediation.",
           "controlIds": ["IR.L2-3.6.1", "AU.L2-3.3.1"],
-          "passCriteria": "P1 ticket within 5 minutes; IC named; pre-remediation snapshot taken; Defender alert preserved."
+          "passCriteria": "P1 ticket within 5 minutes; IC named; pre-remediation snapshot taken; Defender alert preserved.",
+          "mitreTtps": ["T1003.001", "T1055", "T1059.001"]
         },
         {
           "key": "T+15-srm-determination",
@@ -242,7 +262,8 @@
           "prompt": "Determine: is this a MacTech-platform issue or a customer-tenant issue per the Shared Responsibility Matrix?",
           "expectedAction": "Consult SRM; classify the alert per the responsibility column; document the call.",
           "controlIds": ["IR.L2-3.6.1"],
-          "passCriteria": "SRM classification documented in writing within 10 minutes."
+          "passCriteria": "SRM classification documented in writing within 10 minutes.",
+          "mitreTtps": []
         },
         {
           "key": "T+30-mactech-escalation",
@@ -250,7 +271,8 @@
           "prompt": "Escalate to MacTech support; capture initial evidence (Windows Event IDs 4688 process create, 4624 logon, 4672 special privileges).",
           "expectedAction": "Open MacTech support case; share Event IDs and timestamps; agree on collection scope and timing.",
           "controlIds": ["IR.L2-3.6.2", "AU.L2-3.3.5"],
-          "passCriteria": "MacTech case opened with case number; event evidence shared; collection scope agreed."
+          "passCriteria": "MacTech case opened with case number; event evidence shared; collection scope agreed.",
+          "mitreTtps": ["T1059.001"]
         },
         {
           "key": "T+45-evidence-package",
@@ -258,7 +280,8 @@
           "prompt": "Customer security lead requests evidence package: confirm what MacTech provides (vault-side telemetry) vs. what customer must collect (workstation-side, identity tenant).",
           "expectedAction": "Walk through SRM evidence columns; confirm collection ownership for each item; document split.",
           "controlIds": ["IR.L2-3.6.2"],
-          "passCriteria": "Per-item evidence ownership documented; no item left unowned."
+          "passCriteria": "Per-item evidence ownership documented; no item left unowned.",
+          "mitreTtps": []
         },
         {
           "key": "T+60-recovery-known-good",
@@ -266,7 +289,8 @@
           "prompt": "Recovery: restore VM from a known-good configuration baseline; validate post-restore baseline.",
           "expectedAction": "Identify last validated baseline; perform restore (notional); validate against CIS/STIG baseline.",
           "controlIds": ["IR.L2-3.6.3", "CM.L2-3.4.5", "SI.L2-3.14.6"],
-          "passCriteria": "Baseline source documented; restore decision recorded; post-restore validation step planned."
+          "passCriteria": "Baseline source documented; restore decision recorded; post-restore validation step planned.",
+          "mitreTtps": []
         },
         {
           "key": "T+75-service-continuity",
@@ -274,7 +298,8 @@
           "prompt": "Service continuity: confirm vault is available to authorized users; AAR scheduled.",
           "expectedAction": "Smoke-test vault availability for authorized users; capture downtime metric; schedule AAR.",
           "controlIds": ["IR.L2-3.6.3"],
-          "passCriteria": "Availability confirmed; downtime metric captured; AAR scheduled."
+          "passCriteria": "Availability confirmed; downtime metric captured; AAR scheduled.",
+          "mitreTtps": []
         }
       ]
     }

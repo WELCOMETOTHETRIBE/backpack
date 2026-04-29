@@ -104,6 +104,7 @@ export async function PATCH(
       updates.facilitatorUserId = body.facilitatorUserId;
     if (body.approverUserId !== undefined) updates.approverUserId = body.approverUserId;
     if (body.plannerNotes !== undefined) updates.plannerNotes = body.plannerNotes;
+    if (body.difficulty !== undefined) updates.difficulty = body.difficulty;
 
     // executedAt + retention recompute when transitioning from unset → set.
     if (body.executedAt !== undefined) {
