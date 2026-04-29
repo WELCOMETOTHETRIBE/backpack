@@ -148,12 +148,23 @@ export const irScenarios = pgTable(
     createdByUserId: uuid("created_by_user_id").references(() => users.id, {
       onDelete: "set null",
     }),
+    /**
+     * Phase 12: per-tenant scope for custom scenarios.
+     *   NULL  = global library (the seeded SCEN-A..D rows)
+     *   set   = scoped to one organization
+     * Listing logic filters: WHERE is_active AND (organization_id IS NULL OR
+     * organization_id = caller's org). Seeded rows stay NULL forever.
+     */
+    organizationId: uuid("organization_id").references(() => organizations.id, {
+      onDelete: "cascade",
+    }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => [
     uniqueIndex("ir_scenarios_code_version_idx").on(t.code, t.version),
     index("ir_scenarios_is_custom_idx").on(t.isCustom),
+    index("ir_scenarios_organization_id_idx").on(t.organizationId),
   ]
 );
 

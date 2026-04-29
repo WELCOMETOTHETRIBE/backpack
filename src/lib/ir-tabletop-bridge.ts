@@ -300,6 +300,44 @@ export const DraftAarSectionRequestSchema = z.object({
 });
 export type DraftAarSectionRequest = z.infer<typeof DraftAarSectionRequestSchema>;
 
+// ============== Phase 12: AI custom scenario generator ==============
+const MitreTtpSchema = z
+  .string()
+  .regex(/^T\d{4}(\.\d{3})?$/, "Expected MITRE technique ID like T1078 or T1078.003");
+
+const DraftedScenarioInjectSchema = z.object({
+  key: z.string().min(1).max(64).regex(/^[A-Za-z0-9_+\-]+$/, "key must be alphanumeric/dash/underscore/plus only"),
+  offsetMinutes: z.number().int().min(0).max(240),
+  prompt: z.string().min(20).max(2000),
+  expectedAction: z.string().min(10).max(1000),
+  controlIds: z.array(ControlIdSchema).min(1),
+  passCriteria: z.string().min(20).max(500),
+  mitreTtps: z.array(MitreTtpSchema).default([]),
+});
+
+export const DraftedScenarioSchema = z.object({
+  title: z.string().min(5).max(200),
+  summary: z.string().min(20).max(500),
+  narrative: z.string().min(50).max(3000),
+  targetedControlIds: z.array(ControlIdSchema).min(1),
+  defaultRoe: z.string().min(20).max(2000),
+  injectsJson: z.array(DraftedScenarioInjectSchema).min(4).max(12),
+});
+export type DraftedScenario = z.infer<typeof DraftedScenarioSchema>;
+
+export const GenerateScenarioRequestSchema = z.object({
+  /** Plain-language description of the scenario the customer wants drafted. */
+  prompt: z.string().min(10).max(2000),
+  /** Optional: refinement on a previous draft. The endpoint will pass both
+   *  the original prompt and the previous draft to Claude for improvement. */
+  previousDraft: DraftedScenarioSchema.optional(),
+  refinementPrompt: z.string().max(2000).optional(),
+});
+export type GenerateScenarioRequest = z.infer<typeof GenerateScenarioRequestSchema>;
+
+export const CreateScenarioRequestSchema = DraftedScenarioSchema;
+export type CreateScenarioRequest = z.infer<typeof CreateScenarioRequestSchema>;
+
 export const AddParticipantsRequestSchema = z.object({
   participants: z
     .array(

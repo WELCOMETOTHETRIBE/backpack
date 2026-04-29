@@ -344,6 +344,13 @@
       "when": 1776900000000,
       "tag": "0048_ir_tabletop_phase11",
       "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1777000000000,
+      "tag": "0049_ir_scenarios_org_scope",
+      "breakpoints": true
     }
   ]
 }
