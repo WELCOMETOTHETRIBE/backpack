@@ -6,7 +6,7 @@
 
 **Scope:** Assessment of NIST SP 800-171 Rev 2 controls **IR.L2-3.6.1**, **IR.L2-3.6.2**, **IR.L2-3.6.3** as implemented through the MacTech CUI Vault Incident Response Exercise & After-Action Report Evidence Package.
 
-**Document version:** v1.1 — Phase 7 baseline + Phase 8 byte archival & live control library.
+**Document version:** v1.2 — Phase 7 baseline + Phase 8 byte archival & live control library + Phase 9 S3 driver, partial generator determinism, live tenant evidence, storage round-trip tests.
 
 ---
 
@@ -34,7 +34,7 @@ Before the C3PAO sits down with the customer, confirm these have been completed:
 | Migrations applied: `0046_ir_tabletop` + `0047_ir_bundle_archived_state` | `drizzle/meta/_journal.json` shows both `idx: 46` and `idx: 47` entries |
 | Scenario catalog seeded (Scenarios A–D) | Inside control-plane: `SELECT code, version, title FROM ir_scenarios WHERE is_active = true` returns 4 rows |
 | Bridge env vars match between training and control-plane | Both `IR_TABLETOP_BRIDGE_TOKEN` and `IR_TABLETOP_BRIDGE_HMAC` set to the same values in both repos |
-| Storage driver configured | `IR_TABLETOP_STORAGE_DRIVER` set on control-plane: `azure-blob` for production (requires `IR_TABLETOP_AZURE_STORAGE_CONNECTION` + optional `IR_TABLETOP_AZURE_CONTAINER`); `local` only for dev |
+| Storage driver configured | `IR_TABLETOP_STORAGE_DRIVER` set on control-plane: `azure-blob` (Azure Gov), `s3` (AWS GovCloud — requires `IR_TABLETOP_S3_BUCKET` + `IR_TABLETOP_AWS_REGION`), or `local` (dev only) |
 | Control library populated | `SELECT count(*) FROM controls` returns >0 — used for live Control Mapping Matrix titles |
 | Customer onboarded | `organizations.clerk_org_id` populated in both training and control-plane Postgres |
 | Assessor account provisioned | Control-plane `users.role = 'Assessor'` for the assessor's email |
@@ -214,8 +214,11 @@ A C3PAO challenge of "why tabletop?" is answered by reading this field.
 Control-plane now stores the **actual ZIP bytes** of every archived bundle via a pluggable storage driver (`src/lib/ir-tabletop-storage.ts`). At archive time, training base64-encodes the ZIP into the `bundleZipBase64` field of the bundle POST; control-plane writes the bytes to durable storage and saves the storage key on `ir_exercise_bundles.storage_prefix`.
 
 **Drivers:**
-- `azure-blob` — Azure Blob Storage. Production target. Requires `IR_TABLETOP_AZURE_STORAGE_CONNECTION` + optional `IR_TABLETOP_AZURE_CONTAINER` (default `ir-tabletop-bundles`). Containers created on demand, private by default.
+- `azure-blob` — Azure Blob Storage. Azure Government target. Requires `IR_TABLETOP_AZURE_STORAGE_CONNECTION` + optional `IR_TABLETOP_AZURE_CONTAINER` (default `ir-tabletop-bundles`). Containers created on demand, private by default.
+- `s3` (Phase 9) — AWS S3 / S3-compatible. AWS GovCloud target. Requires `IR_TABLETOP_S3_BUCKET` + `IR_TABLETOP_AWS_REGION` (e.g. `us-gov-west-1`). Uses standard AWS credentials chain (env vars, IMDS, IAM role).
 - `local` — filesystem under `IR_TABLETOP_LOCAL_STORAGE_DIR` (default `./var/ir-tabletop-bundles`). Dev-only — ephemeral container filesystems WILL lose bundles on restart.
+
+**Test coverage:** `src/lib/__tests__/ir-tabletop-storage.test.ts` — 10 vitest cases covering round-trip put/get, missing-key behavior, cross-driver key rejection, path-traversal protection, multiple-version support, driver factory env-var validation. Run with `npx vitest run src/lib/__tests__/ir-tabletop-storage.test.ts`.
 
 **Bytes can be re-served** from `GET /api/ir-tabletop/exercises/:id/bundle/:version/download`. Both assessors and admins can hit this; downloads are recorded as `bundle_downloaded` audit events with `mode: service|session` so the C3PAO can prove who pulled bytes when.
 
@@ -225,33 +228,58 @@ The Control Mapping Matrix XLSX now fetches live control titles + family info fr
 
 **Data source:** `controls` + `control_families` tables in control-plane Postgres, seeded from `data/control-library.v1.json`. To extend with additional controls, append rows to those tables (or update the seed JSON and re-run `npm run seed-controls-from-json`); the bridge endpoint reflects the change immediately.
 
-## 8. Known limitations (Phase 9 backlog)
+### 7.3 S3 storage driver (Phase 9) ✅
 
-### 8.1 Generator non-determinism
+For AWS GovCloud customers, `IR_TABLETOP_STORAGE_DRIVER=s3` now works. Uses the standard AWS credentials chain. Storage keys prefixed `s3:<bucket>/<key>`. Round-trip + driver factory error paths covered by vitest.
 
-The DOCX, XLSX, and PDF generators embed timestamps and (for PDF) random object IDs at generation time. Re-running the generators with the same inputs does not produce byte-identical output today.
+### 7.4 Live tenant evidence summary (Phase 9) ✅
 
-**Implication for assessors:** the manifest's per-file SHA-256s reflect the bytes at archive time. Re-generating the bundle later from training will produce different byte content with different per-file hashes.
+The `CUI-Vault-Technical-Evidence-Summary.pdf` now appends a "Live tenant snapshot" section pulled from `GET /api/ir-tabletop/tenant-evidence-summary` at generation time. Surfaces:
+- Governance evidence item / file counts for the customer
+- Latest governance manifest run (id + ingest date + doc count)
+- Latest technical evidence run (id + source + collection date)
+- Authorization boundary statement, system owner, ISSO, declared CUI categories — read from `organizations` row
 
-**Mitigation:** the **archived bytes** (Phase 8) are now the authoritative artifact. Re-generation is no longer required to verify integrity — pull bytes from `/bundle/:version/download` and they match exactly what was archived.
+Generator falls back to boilerplate-only when the upstream call fails. Updates in real time as the customer ingests new governance docs or runs the technical collector.
 
-**Phase 9 plan:** Thread `archivedAt` from the snapshot into all three generators so re-runs produce byte-identical output (where library APIs allow). With Phase 8 byte archival shipped, this is a nice-to-have rather than a defensibility blocker.
+### 7.5 Generator determinism (Phase 9, partial) ✅ / △
 
-### 8.2 S3 driver
+XLSX files (`IR-Scenario-Injects.xlsx`, `IR-Corrective-Action-Register.xlsx`, `IR-Control-Mapping-Matrix.xlsx`) and ZIP entry timestamps are now **fully deterministic** — re-running `composeBundle` with the same `BundleContext` produces byte-identical XLSX output. Verified by the smoke test:
 
-Only `local` and `azure-blob` ship in Phase 8. The `@aws-sdk/client-s3` dependency is available but unused. Customers running on AWS GovCloud will need an S3 driver before going live.
+```
+$ npm run smoke:ir-tabletop
+Determinism (per-file SHA-256, run 1 vs run 2):
+  IR-Scenario-Injects.xlsx                          ✓ identical
+  IR-Corrective-Action-Register.xlsx                ✓ identical
+  IR-Control-Mapping-Matrix.xlsx                    ✓ identical
+  IR-Tabletop-Exercise-Plan.docx                    △ expected drift (library limitation)
+  IR-Facilitator-Guide.docx                         △ expected drift (library limitation)
+  IR-AAR-Report.docx                                △ expected drift (library limitation)
+  IR-Attendance-Attestation.pdf                     △ expected drift (library limitation)
+  CUI-Vault-Technical-Evidence-Summary.pdf          △ expected drift (library limitation)
+  Shared-Responsibility-Matrix.pdf                  △ expected drift (library limitation)
+  Evidence-Manifest.json                            △ transitive drift (manifest reflects DOCX/PDF hashes)
+```
 
-### 8.3 Live MacTech-provided evidence
+**DOCX and PDF byte-identity remains library-limited** — `docx@9.x`'s `Document` constructor doesn't expose `created`/`modified` (auto-set to `new Date()` internally), and `jspdf@4.x` writes its `CreationDate` at `output()` time without a setter. The visible content of all generators is deterministic; only the embedded metadata timestamps drift.
 
-The CUI Vault Technical Evidence Summary PDF lists 13 boilerplate items describing what MacTech provides per tenant. These are static — they don't pull live values from `governance_evidence_files` or `evidence_runs` for the specific customer's vault.
+**Why this is OK for assessors:** Phase 8 byte archival stores the actual ZIP bytes at archive time. The C3PAO never needs to *regenerate* — they download archived bytes from `/bundle/:version/download` and verify the SHA-256 against `ir_exercise_bundles.manifest_sha256`. Generator determinism is a defense-in-depth nice-to-have, not a chain-of-custody requirement.
 
-**Phase 9 plan:** Pull tenant-specific evidence inventory at generation time, replacing the boilerplate with the live signal.
+## 8. Known limitations (Phase 10 backlog)
 
-### 8.4 Integration tests
+### 8.1 Full DOCX/PDF determinism
 
-Today only the generator smoke test (`npm run smoke:ir-tabletop`) runs in CI. The bridge auth, archive flow, byte storage, and assessor view paths are not covered by automated tests.
+Achieving byte-identical DOCX requires either patching the generated XML post-Pack or contributing upstream support to `docx`. PDF byte-identity requires monkey-patching jspdf's internal CreationDate or post-processing the PDF trailer. Neither is necessary for evidence chain (Phase 8 archival covers it) but would be a small win for reproducibility.
 
-**Phase 9 plan:** Add a vitest suite that hits a local control-plane instance with the bridge HMAC.
+### 8.2 End-to-end integration tests
+
+Storage round-trip + HMAC bridge auth verification have unit-level coverage. Full e2e (training POSTs through control-plane HMAC, archives, downloads back) is not yet automated. The smoke test covers generator output but stops short of the network round-trip.
+
+**Phase 10 plan:** vitest suite that boots a local control-plane Next.js instance with a test Postgres + local storage driver, exercises the full archive cycle.
+
+### 8.3 Audit log retention/legal-hold UI
+
+Schema supports `legal_hold_active` + `legal_hold_*` fields on `ir_exercises`. Setting them today requires direct SQL. A small admin UI in control-plane would let compliance staff toggle hold without DB access.
 
 ---
 

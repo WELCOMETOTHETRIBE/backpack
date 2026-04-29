@@ -21,6 +21,11 @@
 import { promises as fs } from "node:fs"
 import path from "node:path"
 import { BlobServiceClient } from "@azure/storage-blob"
+import {
+  GetObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3"
 
 export interface IrTabletopStorage {
   putBundle(opts: PutBundleOpts): Promise<{ storageKey: string }>
@@ -114,6 +119,68 @@ class AzureBlobStorage implements IrTabletopStorage {
   }
 }
 
+/**
+ * AWS S3 driver. Uses standard AWS credentials chain (env vars, IMDS, IAM role
+ * for EC2/ECS, profile from IR_TABLETOP_AWS_PROFILE if set). For AWS GovCloud,
+ * set IR_TABLETOP_AWS_REGION to a GovCloud region (e.g. us-gov-west-1).
+ *
+ * Required env: IR_TABLETOP_S3_BUCKET, IR_TABLETOP_AWS_REGION.
+ */
+class S3Storage implements IrTabletopStorage {
+  readonly driverName = "s3"
+  private client: S3Client
+  constructor(
+    private readonly bucket: string,
+    region: string
+  ) {
+    this.client = new S3Client({ region })
+  }
+
+  async putBundle(opts: PutBundleOpts): Promise<{ storageKey: string }> {
+    const key = `${opts.organizationId}/${opts.exerciseId}/bundle-v${opts.bundleVersion}.zip`
+    await this.client.send(
+      new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        Body: opts.bytes,
+        ContentType: opts.contentType ?? "application/zip",
+      })
+    )
+    return { storageKey: `s3:${this.bucket}/${key}` }
+  }
+
+  async getBundle(storageKey: string): Promise<Buffer | null> {
+    if (!storageKey.startsWith("s3:")) return null
+    const rest = storageKey.slice("s3:".length)
+    const slashIdx = rest.indexOf("/")
+    if (slashIdx === -1) return null
+    const bucket = rest.slice(0, slashIdx)
+    const key = rest.slice(slashIdx + 1)
+    try {
+      const out = await this.client.send(
+        new GetObjectCommand({ Bucket: bucket, Key: key })
+      )
+      const body = out.Body as
+        | { transformToByteArray?: () => Promise<Uint8Array> }
+        | undefined
+      if (!body?.transformToByteArray) {
+        throw new Error("S3 GetObject body does not support transformToByteArray")
+      }
+      const bytes = await body.transformToByteArray()
+      return Buffer.from(bytes)
+    } catch (e: unknown) {
+      const err = e as { name?: string; $metadata?: { httpStatusCode?: number } }
+      if (
+        err?.name === "NoSuchKey" ||
+        err?.$metadata?.httpStatusCode === 404
+      ) {
+        return null
+      }
+      throw e
+    }
+  }
+}
+
 let cached: IrTabletopStorage | null = null
 
 export function getIrTabletopStorage(): IrTabletopStorage {
@@ -130,6 +197,20 @@ export function getIrTabletopStorage(): IrTabletopStorage {
     const container =
       process.env.IR_TABLETOP_AZURE_CONTAINER ?? "ir-tabletop-bundles"
     cached = new AzureBlobStorage(conn, container)
+  } else if (driver === "s3") {
+    const bucket = process.env.IR_TABLETOP_S3_BUCKET
+    const region = process.env.IR_TABLETOP_AWS_REGION
+    if (!bucket) {
+      throw new Error(
+        "IR_TABLETOP_STORAGE_DRIVER=s3 but IR_TABLETOP_S3_BUCKET is not set"
+      )
+    }
+    if (!region) {
+      throw new Error(
+        "IR_TABLETOP_STORAGE_DRIVER=s3 but IR_TABLETOP_AWS_REGION is not set"
+      )
+    }
+    cached = new S3Storage(bucket, region)
   } else if (driver === "local") {
     const baseDir = path.resolve(
       process.env.IR_TABLETOP_LOCAL_STORAGE_DIR ?? "./var/ir-tabletop-bundles"
@@ -137,7 +218,7 @@ export function getIrTabletopStorage(): IrTabletopStorage {
     cached = new LocalFileStorage(baseDir)
   } else {
     throw new Error(
-      `Unknown IR_TABLETOP_STORAGE_DRIVER value: "${driver}" (expected "local" or "azure-blob")`
+      `Unknown IR_TABLETOP_STORAGE_DRIVER value: "${driver}" (expected "local" | "azure-blob" | "s3")`
     )
   }
 
