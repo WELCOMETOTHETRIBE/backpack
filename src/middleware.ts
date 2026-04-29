@@ -21,6 +21,13 @@ const isPublicRoute = createRouteMatcher([
   // environment that has no Clerk session. Each route validates
   // x-agent-secret against AGENT_SHIM_SECRET on its own.
   "/api/agent/run(.*)",
+  // IR Tabletop bridge — service-to-service calls from MacTech Training
+  // (HMAC-signed bearer) plus session-mode reads from /assessor/ir-tabletop
+  // pages. Each route in src/app/api/ir-tabletop/ validates auth via
+  // authorizeIrRequest() in src/lib/ir-tabletop-bridge.ts. Without this
+  // exception, Clerk's protect() rewrites all unauthenticated requests to
+  // /clerk_* (404), blocking the bridge entirely.
+  "/api/ir-tabletop(.*)",
 ]);
 
 const AUDIT_SESSION_COOKIE = "mactech_audit_session";
