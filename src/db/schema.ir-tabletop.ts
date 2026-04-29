@@ -370,6 +370,26 @@ export const irExerciseBundles = pgTable(
     retentionUntil: date("retention_until"),
     generatedByUserId: uuid("generated_by_user_id").references(() => users.id),
     storagePrefix: text("storage_prefix"),
+    /**
+     * Frozen state snapshot at archive time — full read-back of every input
+     * the bundle was generated from (exercise + participants + inject
+     * responses + AAR + findings + corrective actions). This is the
+     * authoritative C3PAO record: even if subsequent edits change live state,
+     * the bundle's archived snapshot tells exactly what was tested.
+     *
+     * Schema:
+     *   {
+     *     archivedAt: ISO,
+     *     exercise: { ... },
+     *     participants: [ ... ],
+     *     injectResponses: [ ... ],
+     *     aar: { ... } | null,
+     *     findings: [{ ...finding, correctiveActions: [ ... ] }],
+     *   }
+     */
+    archivedStateSnapshotJson: jsonb("archived_state_snapshot_json").$type<
+      Record<string, unknown>
+    >(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => [

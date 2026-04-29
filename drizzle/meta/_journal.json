@@ -330,6 +330,13 @@
       "when": 1776700000000,
       "tag": "0046_ir_tabletop",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1776800000000,
+      "tag": "0047_ir_bundle_archived_state",
+      "breakpoints": true
     }
   ]
 }

@@ -1,11 +1,17 @@
 import { NextResponse, type NextRequest } from "next/server"
-import { and, desc, eq } from "drizzle-orm"
+import { and, desc, eq, inArray } from "drizzle-orm"
 import { db } from "@/db"
 import {
   evidenceFiles,
   evidenceRuns,
+  irAars,
+  irCorrectiveActions,
   irExerciseBundles,
+  irExerciseControls,
+  irExerciseParticipants,
   irExercises,
+  irFindings,
+  irInjectResponses,
 } from "@/db/schema"
 import {
   authorizeIrRequest,
@@ -13,6 +19,82 @@ import {
   logIrAuditEvent,
   UploadBundleManifestSchema,
 } from "@/lib/ir-tabletop-bridge"
+
+/**
+ * Capture a full state snapshot for the exercise at archive time.
+ * Returns a JSON-serializable object with every input the bundle's documents
+ * were generated from. Stored on ir_exercise_bundles.archived_state_snapshot_json.
+ */
+async function snapshotExerciseState(exerciseId: string) {
+  const [exercise, participants, controls, injectResponses, aar] =
+    await Promise.all([
+      db
+        .select()
+        .from(irExercises)
+        .where(eq(irExercises.id, exerciseId))
+        .limit(1)
+        .then((r) => r[0] ?? null),
+      db
+        .select()
+        .from(irExerciseParticipants)
+        .where(eq(irExerciseParticipants.exerciseId, exerciseId)),
+      db
+        .select()
+        .from(irExerciseControls)
+        .where(eq(irExerciseControls.exerciseId, exerciseId)),
+      db
+        .select()
+        .from(irInjectResponses)
+        .where(eq(irInjectResponses.exerciseId, exerciseId)),
+      db
+        .select()
+        .from(irAars)
+        .where(eq(irAars.exerciseId, exerciseId))
+        .limit(1)
+        .then((r) => r[0] ?? null),
+    ])
+
+  let findings: Array<
+    typeof irFindings.$inferSelect & {
+      correctiveActions: (typeof irCorrectiveActions.$inferSelect)[]
+    }
+  > = []
+  if (aar) {
+    const rawFindings = await db
+      .select()
+      .from(irFindings)
+      .where(eq(irFindings.aarId, aar.id))
+    const findingIds = rawFindings.map((f) => f.id)
+    const cars =
+      findingIds.length > 0
+        ? await db
+            .select()
+            .from(irCorrectiveActions)
+            .where(inArray(irCorrectiveActions.findingId, findingIds))
+        : []
+    const carsByFinding = new Map<string, typeof cars>()
+    for (const c of cars) {
+      const list = carsByFinding.get(c.findingId) ?? []
+      list.push(c)
+      carsByFinding.set(c.findingId, list)
+    }
+    findings = rawFindings.map((f) => ({
+      ...f,
+      correctiveActions: carsByFinding.get(f.id) ?? [],
+    }))
+  }
+
+  return {
+    archivedAt: new Date().toISOString(),
+    snapshotVersion: "ir-tabletop-state.v1",
+    exercise,
+    participants,
+    controls,
+    injectResponses,
+    aar,
+    findings,
+  }
+}
 
 /**
  * GET /api/ir-tabletop/exercises/:id/bundle
@@ -125,6 +207,11 @@ export async function POST(
       }
     }
 
+    // Capture state snapshot BEFORE the transaction so the snapshot is
+    // independent of in-flight schema state. The snapshot is the assessment-
+    // grade record of "what was tested" — frozen forever from this point.
+    const stateSnapshot = await snapshotExerciseState(id)
+
     const result = await db.transaction(async (tx) => {
       const runId = `IR-Tabletop-${id}-v${body.bundleVersion}-${Date.now()}`
       const [run] = await tx
@@ -135,7 +222,7 @@ export async function POST(
           runId,
           collectedAt: new Date(),
           collectorName: "mactech-training",
-          collectorVersion: "phase6.v1",
+          collectorVersion: "phase7.v1",
           bundleRoot: `${runId}/`,
           manifest: body.manifest,
           hashAlgorithm: "sha256",
@@ -169,6 +256,7 @@ export async function POST(
           retentionUntil: exercise.retentionUntil,
           generatedByUserId: auth.userId,
           storagePrefix: body.storagePrefix ?? null,
+          archivedStateSnapshotJson: stateSnapshot,
         })
         .returning()
 
@@ -186,6 +274,9 @@ export async function POST(
         bundleVersion: body.bundleVersion,
         manifestSha256: body.manifestSha256,
         fileCount: body.files.length,
+        snapshotVersion: stateSnapshot.snapshotVersion,
+        snapshotParticipantCount: stateSnapshot.participants.length,
+        snapshotFindingCount: stateSnapshot.findings.length,
       },
       req,
     })
