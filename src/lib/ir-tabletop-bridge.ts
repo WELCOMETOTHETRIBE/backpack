@@ -19,7 +19,7 @@ import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
-import { organizations, users } from "@/db/schema";
+import { auditLogs, organizations, users } from "@/db/schema";
 import { auth } from "@/lib/auth";
 
 export const BRIDGE_CONTRACT_VERSION = "ir-tabletop.v1";
@@ -359,16 +359,14 @@ export const UploadBundleManifestSchema = z.object({
   manifestSha256: z.string().regex(/^[a-f0-9]{64}$/, "Expected lowercase hex sha256"),
   timestampToken: z.string().optional(),
   timestampedAt: IsoDateTimeSchema.optional(),
-  retentionUntil: IsoDateSchema,
   storagePrefix: z.string().optional(),
-  /** evidence_run row to reuse (dedicated source='ir_tabletop' run); null = create new. */
-  evidenceRunId: z.string().uuid().nullable(),
   files: z
     .array(
       z.object({
-        path: z.string().min(1),
+        filename: z.string().min(1),
         sha256: z.string().regex(/^[a-f0-9]{64}$/),
         sizeBytes: z.number().int().nonnegative(),
+        mimeType: z.string().optional(),
       })
     )
     .min(1),
@@ -396,6 +394,46 @@ export function bridgeErrorResponse(e: unknown): NextResponse {
     { error: msg, contractVersion: BRIDGE_CONTRACT_VERSION },
     { status }
   );
+}
+
+/**
+ * Insert an audit log entry. Best-effort — logs to console on failure but does
+ * not propagate the error (callers should never fail their main operation
+ * because audit logging fell over).
+ *
+ * Usage:
+ *   await logIrAuditEvent({
+ *     organizationId: auth.organizationId,
+ *     userId: auth.userId,
+ *     action: "aar_approved",
+ *     resourceType: "ir_aar",
+ *     resourceId: aar.id,
+ *     details: { exerciseId, drafterUserId },
+ *     req,
+ *   })
+ */
+export async function logIrAuditEvent(opts: {
+  organizationId: string;
+  userId: string | null;
+  action: string;
+  resourceType: string;
+  resourceId: string | null;
+  details?: Record<string, unknown>;
+  req?: Request;
+}): Promise<void> {
+  try {
+    await db.insert(auditLogs).values({
+      organizationId: opts.organizationId,
+      userId: opts.userId,
+      action: opts.action,
+      resourceType: opts.resourceType,
+      resourceId: opts.resourceId,
+      details: opts.details ?? null,
+      ip: opts.req?.headers.get("x-forwarded-for") ?? null,
+    });
+  } catch (e) {
+    console.error("[ir-tabletop] logIrAuditEvent failed:", e);
+  }
 }
 
 /** Stub response for routes whose business logic is deferred to a later phase. */

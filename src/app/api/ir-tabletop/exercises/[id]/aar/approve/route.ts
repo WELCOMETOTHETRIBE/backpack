@@ -6,6 +6,7 @@ import {
   authorizeIrRequest,
   bridgeErrorResponse,
   ApproveAarRequestSchema,
+  logIrAuditEvent,
 } from "@/lib/ir-tabletop-bridge"
 
 /**
@@ -94,6 +95,20 @@ export async function POST(
         .where(eq(irExercises.id, id))
 
       return updated
+    })
+
+    await logIrAuditEvent({
+      organizationId: auth.organizationId,
+      userId: auth.userId,
+      action: "aar_approved",
+      resourceType: "ir_aar",
+      resourceId: row.aarId,
+      details: {
+        exerciseId: id,
+        drafterUserId: row.draftedByUserId,
+        approverUserId: body.approverUserId,
+      },
+      req,
     })
 
     return NextResponse.json(result, { status: 200 })

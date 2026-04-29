@@ -11,6 +11,7 @@ import {
   authorizeIrRequest,
   bridgeErrorResponse,
   CreateExerciseRequestSchema,
+  logIrAuditEvent,
 } from "@/lib/ir-tabletop-bridge";
 
 /**
@@ -130,6 +131,21 @@ export async function POST(req: NextRequest) {
       }
 
       return row;
+    });
+
+    await logIrAuditEvent({
+      organizationId,
+      userId: auth.userId,
+      action: "exercise_created",
+      resourceType: "ir_exercise",
+      resourceId: created.id,
+      details: {
+        name: body.name,
+        scenarioCode: scenario.code,
+        methodology: body.methodology,
+        retentionUntil,
+      },
+      req,
     });
 
     return NextResponse.json(created, { status: 201 });

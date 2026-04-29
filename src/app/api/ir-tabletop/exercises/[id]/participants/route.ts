@@ -6,6 +6,7 @@ import {
   authorizeIrRequest,
   bridgeErrorResponse,
   AddParticipantsRequestSchema,
+  logIrAuditEvent,
 } from "@/lib/ir-tabletop-bridge";
 
 /**
@@ -93,6 +94,16 @@ export async function POST(
         }))
       )
       .returning();
+
+    await logIrAuditEvent({
+      organizationId: auth.organizationId,
+      userId: auth.userId,
+      action: "participants_added",
+      resourceType: "ir_exercise",
+      resourceId: id,
+      details: { count: inserted.length },
+      req,
+    });
 
     return NextResponse.json(inserted, { status: 201 });
   } catch (e) {

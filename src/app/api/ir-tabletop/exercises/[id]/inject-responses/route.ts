@@ -8,6 +8,7 @@ import {
 import {
   authorizeIrRequest,
   bridgeErrorResponse,
+  logIrAuditEvent,
   RecordInjectResponsesRequestSchema,
 } from "@/lib/ir-tabletop-bridge"
 
@@ -122,6 +123,22 @@ export async function POST(
         out.push(row)
       }
       return out
+    })
+
+    await logIrAuditEvent({
+      organizationId: auth.organizationId,
+      userId: auth.userId,
+      action: "inject_responses_recorded",
+      resourceType: "ir_exercise",
+      resourceId: id,
+      details: {
+        count: persisted.length,
+        statuses: persisted.reduce<Record<string, number>>((acc, r) => {
+          acc[r.status] = (acc[r.status] ?? 0) + 1
+          return acc
+        }, {}),
+      },
+      req,
     })
 
     return NextResponse.json(persisted, { status: 200 })
