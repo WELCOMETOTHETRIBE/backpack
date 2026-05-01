@@ -123,6 +123,7 @@ Use the Manual App **SRM module** to:
 4. **Export** the SRM acknowledgement artifact to `C:\evidence` (e.g. `CUI-SRM-Ack-*`) for clean handover.
 
 **Reference documents:**  
+- **Azure inheritance and shared responsibility (formal artifact):** **MAC-SEC-312** — *Azure Inheritance and Shared Responsibility Statement* (inherited controls 3.10.1–3.10.5; shared vs. customer responsibility).  
 - User Access Form / Rules of Behavior: **MAC-FRM-204** (or equivalent).  
 - Governance/Inherited/N-A narrative: **chapters/11_Governance_Inherited_and_NA_Controls.md**.
 

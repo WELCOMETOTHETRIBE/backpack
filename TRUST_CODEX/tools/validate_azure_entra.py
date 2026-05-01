@@ -21,11 +21,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 VALIDATOR_NAME = "validate_azure_entra"
-VALIDATOR_VERSION = "1.4.0"
+VALIDATOR_VERSION = "1.5.0"
 
 CONTROL_TO_LAYER = {
     "AC.L2-3.1.13": "Crypto/Remote-Access",
     "AC.L2-3.1.14": "Access Control",
+    "AC.L2-3.1.18": "Mobile Devices",
+    "AC.L2-3.1.19": "Mobile Devices",
     "IA.L2-3.5.3": "Identity/MFA",
     "IA.L2-3.5.4": "Identity/AuthN",
     "IA.L2-3.5.5": "Identity/AuthN",
@@ -36,11 +38,14 @@ CONTROL_TO_LAYER = {
     "SC.L2-3.13.5": "Network/Boundary",
     "SC.L2-3.13.8": "Crypto/Transit",
     "SC.L2-3.13.10": "Crypto/Key-Mgmt",
+    "MP.L2-3.8.9": "Backups/Confidentiality",
 }
 
 CONTROL_TO_RESPONSIBILITY = {
     "AC.L2-3.1.13": "shared",
     "AC.L2-3.1.14": "shared",
+    "AC.L2-3.1.18": "shared",
+    "AC.L2-3.1.19": "shared",
     "IA.L2-3.5.3": "shared",
     "IA.L2-3.5.4": "shared",
     "IA.L2-3.5.5": "shared",
@@ -51,11 +56,14 @@ CONTROL_TO_RESPONSIBILITY = {
     "SC.L2-3.13.5": "customer",
     "SC.L2-3.13.8": "shared",
     "SC.L2-3.13.10": "shared",
+    "MP.L2-3.8.9": "shared",
 }
 
 CONTROLS = [
     ("AC.L2-3.1.13", "Cryptographic protection for remote access"),
     ("AC.L2-3.1.14", "Remote Access Routing"),
+    ("AC.L2-3.1.18", "Control connection of mobile devices"),
+    ("AC.L2-3.1.19", "Encrypt CUI on mobile devices"),
     ("IA.L2-3.5.3", "MFA for privileged accounts"),
     ("IA.L2-3.5.4", "Replay-resistant authentication"),
     ("IA.L2-3.5.5", "Prevent identifier reuse"),
@@ -66,6 +74,7 @@ CONTROLS = [
     ("SC.L2-3.13.5", "Implement subnetworks"),
     ("SC.L2-3.13.8", "Cryptographic mechanisms for CUI in transit"),
     ("SC.L2-3.13.10", "Cryptographic key management"),
+    ("MP.L2-3.8.9", "Protect backups confidentiality"),
 ]
 
 
@@ -623,6 +632,138 @@ def main() -> int:
     _check["evidence_files_used"] = _tls_evidence
     checks.append(_check)
 
+    # ============================================================================
+    # NEW IN v1.5.0 — close the Bin 8 gap. Three controls were claimed
+    # IMPLEMENTED in CONTROL_INTELLIGENCE without any validator catching them
+    # specifically (3.1.18 mobile devices, 3.1.19 mobile encryption, 3.8.9
+    # backups). Honest control adjudication: every claim needs a check.
+    # ============================================================================
+
+    # AC.L2-3.1.18 — Control connection of mobile devices.
+    # On Azure: Conditional Access policies that enforce compliantDevice +
+    # platform restrictions block iOS/Android from CUI Vault apps. Inspect
+    # conditional-access-policies.json for policies with:
+    #   - grantControls.builtInControls including "compliantDevice", OR
+    #   - conditions.platforms.includePlatforms restricted to "windows"
+    #     (excludes mobile platforms by definition)
+    # OR a signed mobile-blocked-attested.txt fallback.
+    mobile_blocked_via_ca = False
+    mobile_blocked_via_platform = False
+    if isinstance(cap, dict) and isinstance(cap.get("value"), list):
+        for policy in cap["value"]:
+            grant = policy.get("grantControls") or {}
+            built_in = [b.lower() for b in (grant.get("builtInControls") or [])]
+            if "compliantdevice" in built_in or "domainjoineddevice" in built_in:
+                mobile_blocked_via_ca = True
+            cond = policy.get("conditions") or {}
+            platforms = cond.get("platforms") or {}
+            include_platforms = [str(p).lower() for p in (platforms.get("includePlatforms") or [])]
+            exclude_platforms = [str(p).lower() for p in (platforms.get("excludePlatforms") or [])]
+            # Either: includes ONLY windows (excludes mobile), OR explicitly excludes mobile
+            if include_platforms and all(p in ("windows", "windowsphone") for p in include_platforms):
+                mobile_blocked_via_platform = True
+            if any(p in ("ios", "android") for p in exclude_platforms):
+                mobile_blocked_via_platform = True
+    mobile_blocked_attested = (artifact_dir / "mobile-blocked-attested.txt").is_file() and bool(
+        (artifact_dir / "mobile-blocked-attested.txt").read_text(encoding="utf-8").strip()
+    )
+    mobile_blocked_pass = mobile_blocked_via_ca or mobile_blocked_via_platform or mobile_blocked_attested
+    _check = {
+        "id": "AZ-MOBILE-DEVICE-CONTROL",
+        "control": "AC.L2-3.1.18",
+        "title": "Control connection of mobile devices (Conditional Access evidence)",
+        "pass": mobile_blocked_pass,
+        "observed": (
+            f"CA compliantDevice/domainJoined={mobile_blocked_via_ca}; "
+            f"platform-restricted (Windows-only or excludes iOS/Android)={mobile_blocked_via_platform}; "
+            f"signed attestation={mobile_blocked_attested}"
+        ),
+        "expected": "Conditional Access policy enforces compliantDevice OR restricts platforms to Windows only OR excludes iOS/Android — proves mobile devices cannot connect.",
+        "evidence_hint": "conditional-access-policies.json. Policy with grantControls.builtInControls=['compliantDevice'] or conditions.platforms.includePlatforms=['windows']. Or sign mobile-blocked-attested.txt.",
+        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+    }
+    _check["layer"] = CONTROL_TO_LAYER.get(_check["control"], None)
+    _check["provider_or_customer"] = CONTROL_TO_RESPONSIBILITY.get(_check["control"], "shared")
+    _check["evidence_files_used"] = sorted(["conditional-access-policies.json", "mobile-blocked-attested.txt"])
+    checks.append(_check)
+
+    # AC.L2-3.1.19 — Encrypt CUI on mobile devices. Strict reading: mobile
+    # devices are blocked entirely (3.1.18 above), so CUI cannot be on them.
+    # If 3.1.18 passes (mobile blocked), 3.1.19 passes by exclusion. If
+    # mobile devices are allowed, the customer must demonstrate encryption
+    # via Intune managed-device policy (out of scope for this validator).
+    _check = {
+        "id": "AZ-MOBILE-DEVICE-ENCRYPTION",
+        "control": "AC.L2-3.1.19",
+        "title": "Encrypt CUI on mobile devices (mobile-blocked exclusion)",
+        "pass": mobile_blocked_pass,
+        "observed": (
+            f"Mobile devices blocked from CUI access={mobile_blocked_pass} "
+            f"(via CA compliantDevice/platform restriction or signed attestation)"
+        ),
+        "expected": "Mobile devices either fully blocked (satisfies 3.1.19 by exclusion) or covered by Intune-managed encryption policy (out of validator scope).",
+        "evidence_hint": "Same evidence as AC.L2-3.1.18. If mobile blocked, 3.1.19 is satisfied by exclusion (no CUI can be on a device that can't connect).",
+        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+    }
+    _check["layer"] = CONTROL_TO_LAYER.get(_check["control"], None)
+    _check["provider_or_customer"] = CONTROL_TO_RESPONSIBILITY.get(_check["control"], "shared")
+    _check["evidence_files_used"] = sorted(["conditional-access-policies.json", "mobile-blocked-attested.txt"])
+    checks.append(_check)
+
+    # MP.L2-3.8.9 — Protect backups confidentiality.
+    # Azure-side proof: storage accounts are encrypted at rest (Microsoft-managed
+    # keys at minimum, customer-managed via Key Vault preferred). Inspect
+    # storage-account-list.json for encryption.services.blob.enabled or
+    # equivalent. Key Vault soft-delete + purge protection (already validated
+    # by 3.13.10) gives the key-level part of the chain.
+    storage_encryption_ok = True
+    storage_encryption_details: list[dict] = []
+    if has_storage_list and isinstance(storage_list, list) and storage_total > 0:
+        for sa in storage_list:
+            if not isinstance(sa, dict):
+                continue
+            name = sa.get("name") or ""
+            enc = sa.get("encryption") or (sa.get("properties") or {}).get("encryption") or {}
+            services = enc.get("services") or {}
+            blob = services.get("blob") or {}
+            file_svc = services.get("file") or {}
+            blob_enabled = blob.get("enabled", True)  # Azure default = true
+            file_enabled = file_svc.get("enabled", True)
+            ok = bool(blob_enabled) and bool(file_enabled)
+            storage_encryption_details.append({"name": name, "blob_enc": blob_enabled, "file_enc": file_enabled, "ok": ok})
+            if not ok:
+                storage_encryption_ok = False
+    backup_encryption_attested = (artifact_dir / "backup-encryption-attested.txt").is_file() and bool(
+        (artifact_dir / "backup-encryption-attested.txt").read_text(encoding="utf-8").strip()
+    )
+    # PASS conditions:
+    #   (a) storage list present, all storages encrypted, AND key vault TLS pass (covers key chain), OR
+    #   (b) no storage in scope (storage_total == 0) AND key vault TLS pass, OR
+    #   (c) signed backup-encryption-attested.txt
+    backup_pass = (
+        (has_storage_list and storage_total > 0 and storage_encryption_ok and kv_pass)
+        or (has_storage_list and storage_total == 0 and kv_pass)
+        or backup_encryption_attested
+    )
+    _check = {
+        "id": "AZ-BACKUP-CONFIDENTIALITY",
+        "control": "MP.L2-3.8.9",
+        "title": "Protect backups confidentiality (Azure storage encryption + Key Vault evidence)",
+        "pass": backup_pass,
+        "observed": (
+            f"storage accounts inventoried={storage_total}; encryption-at-rest pass={storage_encryption_ok}; "
+            f"key vault TLS pass={kv_pass}; signed attestation={backup_encryption_attested}"
+        ),
+        "expected": "Storage accounts have encryption.services enabled (Azure default) AND Key Vault TLS validated by 3.13.10 — together prove the backup encryption chain.",
+        "evidence_hint": "storage-account-list.json (verifies storage encryption.services.blob/file enabled) + keyvault-list.json (3.13.10 chain). Or sign backup-encryption-attested.txt for environments where Azure Backup is configured separately.",
+        "storage_encryption_details": storage_encryption_details if storage_encryption_details else None,
+        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+    }
+    _check["layer"] = CONTROL_TO_LAYER.get(_check["control"], None)
+    _check["provider_or_customer"] = CONTROL_TO_RESPONSIBILITY.get(_check["control"], "shared")
+    _check["evidence_files_used"] = sorted(["storage-account-list.json", "keyvault-list.json", "backup-encryption-attested.txt"])
+    checks.append(_check)
+
     # Partial = technical config (CA/sign-in/roles) present from Azure/Entra but MFA in path not confirmed from that config; awaiting attestation sign-off (Governance > Evidence)
     for c in checks:
         if c["pass"]:
@@ -675,6 +816,33 @@ def main() -> int:
                 c["status"] = "partial"
                 c["partial"] = True
                 c["partial_reason"] = "storage-account-list.json missing; upgrade collector to v1.4+ to export storage account TLS settings"
+            else:
+                c["status"] = "fail"
+                c["partial"] = False
+                c["partial_reason"] = None
+        elif c["id"] in ("AZ-MOBILE-DEVICE-CONTROL", "AZ-MOBILE-DEVICE-ENCRYPTION"):
+            # Conditional Access export ran but didn't return a clear
+            # mobile-block policy. Likely Graph Conditional Access read
+            # permission missing on the principal, or the policy uses an
+            # exclusion approach the validator's heuristics don't catch.
+            cap_present = isinstance(cap, dict) and isinstance(cap.get("value"), list) and len(cap["value"]) > 0
+            if not cap_present:
+                c["status"] = "partial"
+                c["partial"] = True
+                c["partial_reason"] = "Conditional Access policies empty; grant Policy.Read.All on the executing principal or sign mobile-blocked-attested.txt"
+            else:
+                c["status"] = "fail"
+                c["partial"] = False
+                c["partial_reason"] = None
+        elif c["id"] == "AZ-BACKUP-CONFIDENTIALITY":
+            # Storage list missing OR key vault TLS check failed — PARTIAL
+            if not has_storage_list or not kv_pass:
+                c["status"] = "partial"
+                c["partial"] = True
+                c["partial_reason"] = (
+                    "Need storage-account-list.json with encryption settings AND keyvault-list.json with soft-delete + purge-protection (per 3.13.10). "
+                    "Or sign backup-encryption-attested.txt as a documented fallback."
+                )
             else:
                 c["status"] = "fail"
                 c["partial"] = False

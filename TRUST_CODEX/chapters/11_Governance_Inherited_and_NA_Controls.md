@@ -44,9 +44,12 @@ Some requirements (notably aspects of **physical security**) are inherited from 
 
 ### Azure inheritance (how we keep it assessor-safe)
 
+**Formal artifact:** **MAC-SEC-312** — *Azure Inheritance and Shared Responsibility Statement* (single canonical reference for Azure inherited and shared responsibility).
+
 When we state “inherited” we also state:
-- **Inherited from Azure**: datacenter physical security and facility access controls for the hosted infrastructure.
-- **Still MacTech responsibility**: identity configuration, enclave hardening, network segmentation, logging/monitoring, operational processes, and evidence retention.
+- **Inherited from Azure**: datacenter physical security and facility access controls for the hosted infrastructure (NIST 3.10.1–3.10.5; see MAC-SEC-312 control mapping table).
+- **Shared (Azure + MacTech):** network/NSG configuration, identity and access configuration, logging/monitoring configuration—Azure provides capability; MacTech configures and operates.
+- **MacTech responsibility**: identity configuration, enclave hardening, network segmentation, logging/monitoring, operational processes, and evidence retention.
 
 Evidence expectation:
 - Provider attestations (stored and versioned) for inherited claims
