@@ -192,6 +192,12 @@ interface ManifestPreview {
 }
 
 interface IngestResult {
+  /**
+   * Which pipeline this result is from. Drives different stat-card labels
+   * because "collection errors" is an OS-side concept (files that failed
+   * to gather on the VM) while cloud uploads use validator FAIL counts.
+   */
+  source: "os" | "cloud";
   run_id: string;
   computer_name: string;
   collected_at: string;
@@ -202,6 +208,9 @@ interface IngestResult {
   collection_error_files: string[];
   /** Per-control validator findings written when validation-report.json was bundled. */
   validator_findings?: number;
+  /** Cloud-side: validator PASS / FAIL counts (preferred over collection_errors for cloud results). */
+  cloud_pass_count?: number;
+  cloud_fail_count?: number;
   freshness: "current" | "stale" | "expired";
   age_days: number;
   expires_at: string;
@@ -434,7 +443,7 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
         return;
       }
 
-      setResult(data as IngestResult);
+      setResult({ ...(data as IngestResult), source: "os" });
       setPreview(null);
       setValidationReport(null);
     } catch (err) {
@@ -476,17 +485,22 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
         return;
       }
       // Render a minimal IngestResult-shaped success card so the user gets
-      // the same green confirmation flow as OS uploads.
+      // the same green confirmation flow as OS uploads. Source-tagged as
+      // "cloud" so the stat card labels show validator PASS/FAIL counts
+      // rather than the OS-only "collection errors" label.
       setResult({
+        source: "cloud",
         run_id: runId,
         computer_name: "Azure tenant",
         collected_at: collectedAt,
         links_created: data.findings_count ?? 0,
         linked_controls: data.findings_count ?? 0,
         skipped_controls: 0,
-        collection_errors: data.failed_count ?? 0,
+        collection_errors: 0, // not applicable to cloud
         collection_error_files: [],
         validator_findings: data.findings_count ?? 0,
+        cloud_pass_count: data.passed_count ?? 0,
+        cloud_fail_count: data.failed_count ?? 0,
         freshness: "current",
         age_days: 0,
         expires_at: new Date(Date.now() + 365 * 86400_000).toISOString(),
@@ -530,19 +544,29 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-          {[
-            { label: "Links created", value: result.links_created },
-            { label: "Controls linked", value: result.linked_controls },
-            { label: "Controls skipped", value: result.skipped_controls },
-            { label: "Collection errors", value: result.collection_errors },
-            {
-              label: "Validator findings",
-              value: result.validator_findings ?? 0,
-            },
-          ].map(({ label, value }) => (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {(result.source === "cloud"
+            ? [
+                // Cloud: validator-centric stats. "Collection errors" doesn't
+                // apply -- the validator either reaches the Azure API or doesn't,
+                // there's no per-file collection step.
+                { label: "Controls evidenced", value: result.linked_controls, color: "text-slate-900" },
+                { label: "Validator PASS", value: result.cloud_pass_count ?? 0, color: "text-emerald-700" },
+                { label: "Validator FAIL", value: result.cloud_fail_count ?? 0, color: (result.cloud_fail_count ?? 0) > 0 ? "text-amber-700" : "text-slate-900" },
+                { label: "Findings written", value: result.validator_findings ?? 0, color: "text-slate-900" },
+              ]
+            : [
+                // OS: file-collection-centric stats. "Collection errors" means
+                // the collector tried to gather a file on the VM and failed
+                // (e.g. permissions). Distinct from validator FAIL.
+                { label: "Files linked", value: result.links_created, color: "text-slate-900" },
+                { label: "Controls covered", value: result.linked_controls, color: "text-slate-900" },
+                { label: "Collection errors", value: result.collection_errors, color: result.collection_errors > 0 ? "text-amber-700" : "text-slate-900" },
+                { label: "Validator findings", value: result.validator_findings ?? 0, color: "text-slate-900" },
+              ]
+          ).map(({ label, value, color }) => (
             <div key={label} className="rounded-lg border bg-white p-3 text-center">
-              <p className="text-2xl font-bold tabular-nums">{value}</p>
+              <p className={`text-2xl font-bold tabular-nums ${color}`}>{value}</p>
               <p className="mt-0.5 text-xs text-gray-500">{label}</p>
             </div>
           ))}
