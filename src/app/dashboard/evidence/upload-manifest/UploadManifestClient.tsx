@@ -374,22 +374,34 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
     reader.readAsText(file);
   }, [preview]);
 
+  // Process every file from a drop / browse selection. Each goes through
+  // processFile, which auto-detects shape (manifest, OS validator, cloud
+  // validator) and routes to the right slot. Order doesn't matter -- the
+  // user can drag both OS files together, or one at a time, or all three
+  // at once. Only the first 5 files are considered to keep this bounded.
+  const processFiles = useCallback(
+    (fileList: FileList | File[] | null | undefined) => {
+      if (!fileList) return;
+      const files = Array.from(fileList).slice(0, 5);
+      for (const file of files) processFile(file);
+    },
+    [processFile],
+  );
+
   const handleDrop = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
       e.preventDefault();
       setDragging(false);
-      const file = e.dataTransfer.files[0];
-      if (file) processFile(file);
+      processFiles(e.dataTransfer.files);
     },
-    [processFile]
+    [processFiles],
   );
 
   const handleFileInput = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (file) processFile(file);
+      processFiles(e.target.files);
     },
-    [processFile]
+    [processFiles],
   );
 
   const handleSubmit = async () => {
@@ -683,6 +695,7 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
             ref={fileInputRef}
             type="file"
             accept=".json,application/json"
+            multiple
             className="hidden"
             onChange={handleFileInput}
           />
