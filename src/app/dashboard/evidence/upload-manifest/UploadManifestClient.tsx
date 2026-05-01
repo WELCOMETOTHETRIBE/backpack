@@ -200,6 +200,8 @@ interface IngestResult {
   skipped_controls: number;
   collection_errors: number;
   collection_error_files: string[];
+  /** Per-control validator findings written when validation-report.json was bundled. */
+  validator_findings?: number;
   freshness: "current" | "stale" | "expired";
   age_days: number;
   expires_at: string;
@@ -209,6 +211,16 @@ interface IngestResult {
     errors: string[];
   } | null;
 }
+
+/**
+ * Optional companion to the manifest. When the user drops the OS validator
+ * report (validation-report.json from Test-CuiHardening.ps1) alongside or
+ * after the manifest, we POST it with the manifest so the codex records
+ * per-check PASS/FAIL state in evidenceFindings (same table as the Azure
+ * validator). Schema-detected via summary.computer + checks[] shape.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ValidationReport = any;
 
 const EXPECTED_SCHEMA = "cui-evidence.manifest.v2";
 
@@ -248,6 +260,7 @@ function FreshnessBadge({ freshness }: { freshness: "current" | "stale" | "expir
 export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] }) {
   const [dragging, setDragging] = useState(false);
   const [preview, setPreview] = useState<ManifestPreview | null>(null);
+  const [validationReport, setValidationReport] = useState<ValidationReport | null>(null);
   const [parseError, setParseError] = useState<string | null>(null);
   const [selectedBoundaryId, setSelectedBoundaryId] = useState<string>(boundaries[0]?.id ?? "");
   const [submitting, setSubmitting] = useState(false);
@@ -272,16 +285,15 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
 
   const processFile = useCallback((file: File) => {
     setParseError(null);
-    setPreview(null);
     setResult(null);
     setSubmitError(null);
 
     if (!file.name.endsWith(".json") && file.type !== "application/json") {
-      setParseError("Only JSON files are accepted. Upload the meta/manifest.json from the evidence bundle.");
+      setParseError("Only JSON files are accepted. Upload meta/manifest.json (and optionally the OS validator's validation-report.json).");
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      setParseError("File exceeds 5 MB — upload manifest.json only, not the full evidence bundle.");
+      setParseError("File exceeds 5 MB -- upload manifest.json or validation-report.json only, not the full evidence bundle.");
       return;
     }
 
@@ -291,12 +303,29 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const json = JSON.parse(e.target?.result as string) as any;
 
-        if (json.schema !== EXPECTED_SCHEMA) {
+        // Detect file type by shape:
+        //   - manifest.json: schema === "cui-evidence.manifest.v2"
+        //   - validation-report.json: has summary.pass_count + checks[] (no schema field)
+        const isManifest = json.schema === EXPECTED_SCHEMA;
+        const isValidationReport =
+          !json.schema && json.summary && Array.isArray(json.checks);
+
+        if (isValidationReport) {
+          // Companion drop -- attach to the existing manifest preview if present.
+          setValidationReport(json);
+          if (!preview) {
+            setParseError("Got validation-report.json. Now drop the manifest.json from the same run to enable upload.");
+          }
+          return;
+        }
+
+        if (!isManifest) {
           setParseError(
-            `Unexpected schema: "${json.schema ?? "(none)"}". Expected "${EXPECTED_SCHEMA}". Make sure you're uploading meta/manifest.json from Collect-Cui-Evidence-v2.ps1.`
+            `Unexpected schema: "${json.schema ?? "(none)"}". Expected "${EXPECTED_SCHEMA}" (manifest.json) or a Test-CuiHardening validation-report.json with summary + checks.`
           );
           return;
         }
+
         if (!json.run_id || !json.computer_name || !json.collected_at) {
           setParseError("manifest.json is missing required fields (run_id, computer_name, collected_at).");
           return;
@@ -320,7 +349,7 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
       }
     };
     reader.readAsText(file);
-  }, []);
+  }, [preview]);
 
   const handleDrop = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
@@ -349,7 +378,13 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
       const res = await fetch("/api/evidence/v2/ingest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ manifest: preview.raw, boundary_id: selectedBoundaryId }),
+        body: JSON.stringify({
+          manifest: preview.raw,
+          boundary_id: selectedBoundaryId,
+          // Optional: when the user dropped validation-report.json alongside,
+          // ship it so the codex records per-check PASS/FAIL findings.
+          ...(validationReport ? { validation_report: validationReport } : {}),
+        }),
       });
 
       const data = await res.json();
@@ -366,6 +401,7 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
 
       setResult(data as IngestResult);
       setPreview(null);
+      setValidationReport(null);
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Network error");
     } finally {
@@ -375,6 +411,7 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
 
   const reset = () => {
     setPreview(null);
+    setValidationReport(null);
     setResult(null);
     setParseError(null);
     setSubmitError(null);
@@ -402,12 +439,16 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
           {[
             { label: "Links created", value: result.links_created },
             { label: "Controls linked", value: result.linked_controls },
             { label: "Controls skipped", value: result.skipped_controls },
             { label: "Collection errors", value: result.collection_errors },
+            {
+              label: "Validator findings",
+              value: result.validator_findings ?? 0,
+            },
           ].map(({ label, value }) => (
             <div key={label} className="rounded-lg border bg-white p-3 text-center">
               <p className="text-2xl font-bold tabular-nums">{value}</p>
@@ -561,10 +602,22 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
           <div className="rounded-xl border bg-white p-5 space-y-3">
             <div className="flex items-center justify-between">
               <p className="font-semibold">Manifest preview</p>
-              <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
-                {preview.schema}
-              </span>
+              <div className="flex items-center gap-2">
+                {validationReport && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
+                    + validator report ({validationReport.summary?.pass_count ?? 0} PASS / {validationReport.summary?.fail_count ?? 0} FAIL)
+                  </span>
+                )}
+                <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                  {preview.schema}
+                </span>
+              </div>
             </div>
+            {!validationReport && (
+              <p className="text-xs text-slate-500">
+                Tip: drag <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-[11px]">validation-report.json</code> from the same run to also record per-check PASS/FAIL findings (optional but recommended).
+              </p>
+            )}
             <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
               <div>
                 <span className="text-gray-500">Computer</span>

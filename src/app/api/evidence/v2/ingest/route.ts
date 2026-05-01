@@ -1,10 +1,19 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { controlEvidenceLinks, controlRecords, osAssets, boundaries } from "@/db/schema";
+import {
+  controlEvidenceLinks,
+  controlRecords,
+  osAssets,
+  boundaries,
+  evidenceRuns,
+  evidenceFindings,
+} from "@/db/schema";
 import { eq, and, inArray, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { calculateControlStatus } from "@/lib/control-status";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
+import { controlIdToNist } from "@/lib/compliance/controlId";
+import { createHash } from "crypto";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const SCHEMA = "cui-evidence.manifest.v2";
@@ -84,7 +93,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid JSON body", code: "PARSE_ERROR" }, { status: 400 });
     }
 
-    const { manifest, boundary_id } = body as { manifest?: unknown; boundary_id?: string };
+    const { manifest, boundary_id, validation_report } = body as {
+      manifest?: unknown;
+      boundary_id?: string;
+      validation_report?: unknown; // optional Test-CuiHardening validation-report.json
+    };
 
     // ── Schema validation ────────────────────────────────────────────────────
     if (!manifest || typeof manifest !== "object") {
@@ -321,6 +334,122 @@ export async function POST(req: Request) {
       }
     }
 
+    // ── Optional: ingest Test-CuiHardening validation-report.json ────────────
+    // The OS validator (Test-CuiHardening.ps1) emits per-check PASS/FAIL state
+    // that's richer than the file-level evidence linking above. When the
+    // caller passes validation_report alongside the manifest, we record each
+    // check as an evidenceFindings row (same table the Azure validator uses).
+    // This unlocks per-control validator-PASS signals on the codex side.
+    let validatorFindings = 0;
+    if (validation_report && typeof validation_report === "object") {
+      try {
+        const vr = validation_report as {
+          summary?: { computer?: string; pass_count?: number; fail_count?: number; total?: number };
+          checks?: Array<{
+            id?: string;
+            control?: string;
+            pass?: boolean;
+            observed?: string;
+            expected?: string;
+            evidence_hint?: string;
+          }>;
+        };
+        const checks = Array.isArray(vr.checks) ? vr.checks : [];
+        if (checks.length > 0) {
+          // Find the org's primary boundary to anchor the run (windows_server_hardening
+          // runs are scoped to a boundary like Azure runs are).
+          const targetBoundaryId =
+            boundary_id ??
+            (
+              await db
+                .select({ id: boundaries.id })
+                .from(boundaries)
+                .where(eq(boundaries.organizationId, orgId))
+                .limit(1)
+            )[0]?.id;
+
+          if (targetBoundaryId) {
+            const validatorFingerprint = createHash("sha256")
+              .update(`windows_server_hardening|${runId}|${checks.length}`)
+              .digest("hex");
+
+            // Idempotent: delete prior validator-run row for the same fingerprint.
+            await db
+              .delete(evidenceRuns)
+              .where(
+                and(
+                  eq(evidenceRuns.organizationId, orgId),
+                  eq(evidenceRuns.runFingerprint, validatorFingerprint),
+                ),
+              );
+
+            const [vrun] = await db
+              .insert(evidenceRuns)
+              .values({
+                organizationId: orgId,
+                systemId: targetBoundaryId,
+                runId: `WSH-${runId}`,
+                collectedAt,
+                collectorName: "test_cui_hardening",
+                collectorVersion: "1.0", // bump as Test-CuiHardening evolves
+                bundleRoot: "",
+                manifest: vr as unknown as Record<string, unknown>,
+                hashAlgorithm: "sha256",
+                source: "windows_server_hardening",
+                boundaryId: targetBoundaryId,
+                runFingerprint: validatorFingerprint,
+              })
+              .returning();
+
+            if (vrun) {
+              const findingRows = checks
+                .map((c) => {
+                  const nist = c.control ? controlIdToNist(c.control) : null;
+                  if (!nist) return null;
+                  return {
+                    evidenceRunId: vrun.id,
+                    controlId: nist,
+                    pass: Boolean(c.pass),
+                    observed: c.observed ?? "",
+                    expected: c.expected ?? "",
+                    evidenceHint: c.evidence_hint ?? "",
+                    evidenceFilesUsed: [],
+                    providerOrCustomer: "customer",
+                    layer: null,
+                    details: null,
+                    partial: false,
+                  };
+                })
+                .filter((r): r is NonNullable<typeof r> => r !== null);
+
+              if (findingRows.length > 0) {
+                // Per-control: collapse multiple checks per control to a single
+                // row. The PK is (evidenceRunId, controlId) so dupes break.
+                // Strategy: keep the last FAIL if any, else PASS. This mirrors
+                // assessor logic: any failing check on a control fails the
+                // control overall.
+                const collapsed = new Map<string, (typeof findingRows)[number]>();
+                for (const r of findingRows) {
+                  const existing = collapsed.get(r.controlId);
+                  if (!existing) {
+                    collapsed.set(r.controlId, r);
+                  } else if (existing.pass && !r.pass) {
+                    collapsed.set(r.controlId, r); // FAIL takes precedence
+                  }
+                }
+                await db.insert(evidenceFindings).values([...collapsed.values()]);
+                validatorFindings = collapsed.size;
+              }
+            }
+          }
+        }
+      } catch (err) {
+        // Validator-report ingestion is best-effort; don't fail the manifest
+        // ingest if it errors. Log and continue.
+        console.warn("validation_report ingestion failed:", (err as Error).message);
+      }
+    }
+
     // ── Audit log ─────────────────────────────────────────────────────────────
     console.log(JSON.stringify({
       event: "v2_manifest_ingested",
@@ -332,6 +461,7 @@ export async function POST(req: Request) {
       linkedControls: linkedControls.length,
       skippedControls: skippedControls.length,
       collectionErrors: collectionErrors.length,
+      validatorFindings,
       bundleValidation: m.bundle_validation ?? null,
     }));
 
@@ -349,6 +479,7 @@ export async function POST(req: Request) {
       skipped_controls: skippedControls.length,
       collection_errors: collectionErrors.length,
       collection_error_files: collectionErrors,
+      validator_findings: validatorFindings,
       freshness,
       age_days: ageDays,
       expires_at: expiresAt.toISOString(),
