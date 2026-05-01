@@ -270,7 +270,7 @@ export default async function OutstandingPage() {
   );
   const azureRunEverPresent = recentAzureRuns.length > 0;
 
-  // Of the 12 Azure-validated controls, count how many have technical_status
+  // Of the 15 Azure-validated controls, count how many have technical_status
   // != satisfied (i.e. would benefit from an Azure run). The hint banner is
   // only shown when there are ≥1 such controls AND no recent Azure run.
   const azureControlsNeedingEvidence = AZURE_ENTRA_12_CONTROL_IDS.filter((cid) => {
@@ -432,13 +432,14 @@ function AzureRunHintBanner({
               </>
             ) : (
               <>
-                The 12 Azure-touching controls{" "}
+                The 15 Azure-touching controls{" "}
                 <span className="font-mono text-xs">
-                  (3.1.13, 3.1.14, 3.3.1, 3.3.2, 3.5.3-6, 3.7.5, 3.13.5, 3.13.8, 3.13.10)
+                  (3.1.13, 3.1.14, 3.1.18, 3.1.19, 3.3.1, 3.3.2, 3.5.3-6, 3.7.5, 3.8.9, 3.13.5, 3.13.8, 3.13.10)
                 </span>{" "}
                 claim Azure-side technical evidence, but no Azure validator
-                report has been uploaded yet. Until you run the collector,
-                those claims are unverified — a C3PAO will ask for the report.
+                report has been uploaded yet. Until you run the collector
+                (validate_azure_entra v1.5+), those claims are unverified --
+                a C3PAO will ask for the report.
               </>
             )}
           </p>

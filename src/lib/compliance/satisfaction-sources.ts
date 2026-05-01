@@ -1,12 +1,15 @@
 /**
  * C3PAO-aligned SCTM satisfaction source bins:
- * - 73 OS: controls met by OS configuration (enclave / windows_server_hardening)
- * - 17 Cloud: 5 inherited (3.10.1–.5) + 12 Azure/Entra validated by
- *   validate_azure_entra.py v1.4+. Reconciled 2026-05-01 — every control here
- *   corresponds to a real validator check, no aspirational claims.
- * - 17 Governance: true governance only (PURE_GOV — policy/documentation)
+ * - 73 OS: controls met by OS configuration (enclave / windows_server_hardening,
+ *   validated by Test-CuiHardening.ps1 -- 53 PASS / 0 FAIL on the live VM
+ *   covering 43 distinct NIST controls; rest are PARTIAL or N/A).
+ * - 21 Cloud: 4 strict-inherited (3.10.1, .2, .4, .5 from Microsoft Azure
+ *   FedRAMP High) + 2 customer-attested-inherited (3.10.3, 3.10.6 via the
+ *   attestation flow) + 15 Azure/Entra validated by validate_azure_entra.py
+ *   v1.5+. Every entry here maps to a real validator check.
+ * - 17 Governance: true governance only (PURE_GOV -- policy/documentation)
  * - Hybrid: 31 OS partial (OS + gov docs to close) + delta (not OS/Cloud/N/A/Governance)
- * - 7 N/A: often not applicable (wireless, alternate work sites, VoIP, etc.)
+ * - 6 N/A: architecture-static N/A (wireless, off-site maintenance, VoIP, etc.)
  */
 
 import { ENCLAVE_73_NIST_IDS, ENCLAVE_OS_PARTIAL_31_NIST_IDS } from "@/lib/compliance/os-evidence-manifest";
@@ -20,22 +23,22 @@ import { PURE_GOV_CONTROL_IDS } from "@/lib/governance/seed-data";
 export const OS_73_CONTROL_IDS = new Set(ENCLAVE_73_NIST_IDS);
 
 /**
- * 18 controls met by cloud:
- *   4 strict-inherited (3.10.1, .2, .4, .5 — Microsoft Azure FedRAMP High)
- * + 2 customer-attested-inherited (3.10.3 visitor records, 3.10.6 alt work sites
- *   — inherited contingent on customer attestation; they stay PARTIAL until signed)
- * + 12 Azure/Entra validated (validate_azure_entra.py v1.4+)
- * = 18 distinct cloud controls
+ * 21 controls met by cloud:
+ *   4 strict-inherited (3.10.1, .2, .4, .5 -- Microsoft Azure FedRAMP High)
+ * + 2 customer-attested-inherited (3.10.3 visitor records, 3.10.6 alt work
+ *   sites -- inherited contingent on customer attestation; stay PARTIAL until
+ *   signed via the Outstanding Wizard)
+ * + 15 Azure/Entra validated (validate_azure_entra.py v1.5+, including
+ *   the v1.5 additions: 3.1.18, 3.1.19, 3.8.9)
+ * = 21 distinct cloud controls
  *
- * Reconciled 2026-05-01: 3.10.3 was dual-classified as both strict-inherited
- * (in AZURE_INHERITED_3_10_CONTROL_IDS) AND customer-attested. Now strict =
- * 4 controls only, customer-attested explicit. The set name CLOUD_12_CONTROL_IDS
- * is legacy and kept for backward-compat; the actual size is 18.
+ * The set name CLOUD_12_CONTROL_IDS is legacy and kept for backward-compat;
+ * the actual size is 21. Renaming is a separate sweep.
  */
 export const CLOUD_12_CONTROL_IDS = new Set([
   ...AZURE_INHERITED_3_10_CONTROL_IDS,
   ...CUSTOMER_ATTESTED_INHERITED.map((c) => c.controlId),
-  ...AZURE_ENTRA_7_CONTROL_IDS, // legacy export name; resolves to the reconciled 12 IDs
+  ...AZURE_ENTRA_7_CONTROL_IDS, // legacy export name; resolves to the reconciled 15 IDs
 ]);
 
 /** 7 controls often not applicable. */
