@@ -1,57 +1,35 @@
 "use client";
 
 import { useState } from "react";
-import { CLOUD_ONLY_AZURE_PRESET } from "@/lib/compliance/scoping-presets";
-import { VAULT_CONTROL_MAP } from "@/data/vault-control-map";
 
 interface Phase3Props {
   onComplete: (data: Record<string, unknown>) => void;
 }
 
+/**
+ * Phase 3 — Boundary Confirmation.
+ *
+ * Customer affirms the single canonical CUI Vault boundary (Win Server 2025
+ * VM on Azure Gov FedRAMP High). That's it. No data submission, no per-
+ * control adjudication side-effects.
+ *
+ * Earlier versions auto-wrote 10 N/A control adjudications (wireless, alt
+ * work sites, VoIP, etc.) directly to the DB during this phase, bypassing
+ * the signed-attestation flow that makes those N/A claims C3PAO-defensible.
+ * That's been moved to the Outstanding Controls Wizard's Bucket E, where
+ * each N/A attestation is a SHA-256-bound signed artifact. Onboarding stays
+ * thin: confirm the architecture, then everything per-control happens in the
+ * dashboard wizard.
+ */
 export function Phase3_BoundaryConfirmation({ onComplete }: Phase3Props) {
   const [confirmed, setConfirmed] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [expanded, setExpanded] = useState(false);
 
-  async function handleConfirm() {
+  function handleConfirm() {
     if (!confirmed) return;
-    setSubmitting(true);
-    setError(null);
-
-    try {
-      // Auto-write the 10 N/A adjudications to DB
-      const naAdjudications = CLOUD_ONLY_AZURE_PRESET.controls.map((ctrl) => {
-        const vaultCtrl = VAULT_CONTROL_MAP.find((c) => c.controlId === ctrl.controlId);
-        return {
-          controlId: ctrl.controlId,
-          tier: "not_applicable",
-          status: "not_applicable",
-          narrative: ctrl.reason,
-          needsReview: false,
-        };
-      });
-
-      const res = await fetch("/api/onboarding/adjudicate-controls", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ adjudications: naAdjudications }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error ?? "Failed to record N/A controls");
-      }
-
-      onComplete({
-        boundaryConfirmed: true,
-        scopeComponents: ["windows_server_vm", "azure_cloud"],
-        naControlsWritten: CLOUD_ONLY_AZURE_PRESET.controls.map((c) => c.controlId),
-      });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-      setSubmitting(false);
-    }
+    onComplete({
+      boundaryConfirmed: true,
+      scopeComponents: ["windows_server_vm", "azure_cloud"],
+    });
   }
 
   return (
@@ -59,7 +37,7 @@ export function Phase3_BoundaryConfirmation({ onComplete }: Phase3Props) {
       {/* Boundary statement */}
       <div className="border border-[#0EA5E9]/30 bg-[#0EA5E9]/5 p-4">
         <h3 className="text-xs font-mono font-bold text-[#0EA5E9] uppercase tracking-widest mb-3">
-          Authorization Boundary (Read-Only for Pilot)
+          Authorization Boundary (Fixed Architecture)
         </h3>
         <div className="flex flex-col gap-2">
           <BoundaryComponent
@@ -90,37 +68,19 @@ export function Phase3_BoundaryConfirmation({ onComplete }: Phase3Props) {
         </div>
       </div>
 
-      {/* Auto-applied N/A controls */}
-      <div className="border border-[#1E2D3D]">
-        <button
-          type="button"
-          onClick={() => setExpanded(!expanded)}
-          className="w-full flex items-center justify-between p-3 text-left hover:bg-[#1E2D3D]/30 transition-colors"
-        >
-          <span className="text-xs font-mono text-[#94A3B8] uppercase tracking-wider">
-            Auto-Applied N/A Controls (
-            {CLOUD_ONLY_AZURE_PRESET.controls.length} controls)
-          </span>
-          <span className="text-[#6B7280] font-mono text-xs">
-            {expanded ? "▲ HIDE" : "▼ SHOW"}
-          </span>
-        </button>
-        {expanded && (
-          <div className="border-t border-[#1E2D3D] divide-y divide-[#1E2D3D]">
-            {CLOUD_ONLY_AZURE_PRESET.controls.map((ctrl) => (
-              <div key={ctrl.controlId} className="p-3 flex flex-col gap-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono text-[#F59E0B] bg-[#F59E0B]/10 px-2 py-0.5 border border-[#F59E0B]/30">
-                    N/A
-                  </span>
-                  <span className="text-xs font-mono text-white">{ctrl.controlId}</span>
-                  <span className="text-xs text-[#94A3B8]">{ctrl.title}</span>
-                </div>
-                <p className="text-xs text-[#6B7280] pl-[52px]">{ctrl.reason}</p>
-              </div>
-            ))}
-          </div>
-        )}
+      {/* Note: per-control adjudication (inherited, N/A, register entries,
+          signed attestations) happens after onboarding via the Outstanding
+          Controls Wizard at /dashboard/readiness/outstanding. Onboarding
+          captures the boundary; adjudication is its own workflow. */}
+      <div className="border border-[#1E2D3D] bg-[#0A1218] p-3">
+        <p className="text-xs text-[#94A3B8] leading-relaxed">
+          <span className="text-[#0EA5E9] font-semibold">Next:</span> after
+          this step, you&apos;ll land on the dashboard. Inherited controls (Azure
+          FedRAMP), N/A attestations (no wireless, no alt work sites, etc.),
+          register entries, and attestation sign-offs all live in the{" "}
+          <span className="text-white font-mono">Outstanding Controls Wizard</span>{" "}
+          there. Each is a discrete, signed action — not pre-applied.
+        </p>
       </div>
 
       {/* Confirmation */}
@@ -135,29 +95,21 @@ export function Phase3_BoundaryConfirmation({ onComplete }: Phase3Props) {
           I confirm that the single Windows Server VM on Microsoft Azure Government
           described above is the{" "}
           <strong className="text-white">complete boundary</strong> for my
-          organization's CUI processing under this Vault agreement.
+          organization&apos;s CUI processing under this Vault agreement.
         </span>
       </label>
-
-      {error && (
-        <div className="border border-[#EF4444] bg-[#7F1D1D]/20 text-[#EF4444] text-sm font-mono px-3 py-2">
-          {error}
-        </div>
-      )}
 
       <button
         type="button"
         onClick={handleConfirm}
-        disabled={!confirmed || submitting}
+        disabled={!confirmed}
         className={`w-full py-3 text-sm font-mono font-bold uppercase tracking-widest transition-colors ${
-          confirmed && !submitting
+          confirmed
             ? "bg-[#0EA5E9] text-black hover:bg-[#38BDF8] cursor-pointer"
             : "bg-[#1E2D3D] text-[#4B5563] cursor-not-allowed"
         }`}
       >
-        {submitting
-          ? "RECORDING N/A CONTROLS..."
-          : "CONFIRM BOUNDARY & CONTINUE"}
+        Confirm boundary &amp; continue
       </button>
     </div>
   );

@@ -16,8 +16,10 @@ import { eq, and, sql } from "drizzle-orm";
 import { writeAuditLog } from "@/lib/audit";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { getInheritedControls } from "@/lib/compliance";
-import { syncOrgAzureInheritedControls } from "@/lib/compliance/azure-inherited-controls";
-import { syncInheritedControls } from "@/lib/boundary/sync-inherited-controls";
+// syncOrgAzureInheritedControls + syncInheritedControls intentionally NOT
+// imported here — onboarding doesn't pre-flip inherited controls anymore.
+// They run via /api/boundary/sync-inherited-controls (manual button) or
+// when cloud evidence is ingested.
 import { computeAndPersistSprsScore } from "@/lib/sprs";
 import { REGISTER_DEFINITIONS } from "@/lib/governance/seed-data";
 import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
@@ -168,13 +170,23 @@ export async function POST(req: Request) {
         );
     }
 
-    // Sync Azure / FedRAMP inherited controls (3.10.1–3.10.5 physical protection)
-    // and any external-service-provider inherited controls captured on the org
-    // profile. Both are safe no-ops when there's nothing to inherit.
-    await syncOrgAzureInheritedControls(db, orgId);
-    if (actor.id) {
-      await syncInheritedControls(orgId, actor.id);
-    }
+    // INTENTIONALLY DO NOT auto-flip inherited controls during onboarding.
+    //
+    // Earlier versions called syncOrgAzureInheritedControls + syncInheritedControls
+    // here, which flipped 3.10.1, .2, .4, .5 to status='inherited' the moment
+    // onboarding completed. That made the dashboard show "4/110 adjudicated"
+    // before the customer had actually uploaded any evidence — misleading.
+    //
+    // Correct architecture: adjudication progresses with EVIDENCE, not with
+    // signup. The 4 strict-inherited controls flip to 'inherited' when the
+    // customer's cloud evidence run (validate_azure_entra.py output) is
+    // ingested — that report is what proves the boundary is on Azure Gov
+    // FedRAMP High in the first place. Until then they stay un-adjudicated.
+    //
+    // External-service-provider inheritance (additional providers the
+    // customer declared) is similarly deferred — it'll be applied via the
+    // "Re-sync inherited controls" button on /dashboard/boundary or the
+    // evidence-upload flow, not during onboarding.
 
     // ── Seed governance registers eagerly ────────────────────────────────────
     // Registers are needed for dashboard health metrics, evidence engine, and control status.
