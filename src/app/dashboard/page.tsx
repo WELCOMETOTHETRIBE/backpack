@@ -30,7 +30,9 @@ import {
   onboardingWizardState,
 } from "@/db/schema";
 import { getComplianceRegisterHealth, aggregateRegisterHealth } from "@/lib/registers/compliance-health";
-import { reconcileMacTechVaultInheritance } from "@/lib/boundary/reconcile-vault-inheritance";
+// reconcileMacTechVaultInheritance intentionally NOT imported -- inherited
+// flips happen via cloud evidence upload or the manual /dashboard/boundary
+// button, never as a side effect of loading the dashboard.
 import { eq, and, desc, lt, sql } from "drizzle-orm";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { sprsScoringData, SPRS_MAX } from "@/lib/sprs";
@@ -159,10 +161,23 @@ export default async function DashboardPage() {
   const orgId = user?.organizationId;
   if (!orgId) redirect("/auth/signin");
 
-  // Reconcile MacTech CUI Vault inheritance (Azure physical-protection
-  // controls 3.10.1–3.10.5). Safe no-op when already reconciled; corrects
-  // orgs that onboarded before the boundary captured cloud metadata.
-  await reconcileMacTechVaultInheritance(orgId);
+  // INTENTIONALLY do not auto-reconcile inherited controls on dashboard load.
+  //
+  // reconcileMacTechVaultInheritance() calls syncOrgAzureInheritedControls,
+  // which flips 3.10.1, .2, .4, .5 to status='inherited' based on the
+  // boundary having cloudProvider=azure. That's correct logic for an
+  // EXPLICIT user action ("re-sync inherited controls" button), but wrong
+  // as a side effect of loading a page -- a fresh org would land here with
+  // 4 controls already adjudicated before uploading any evidence.
+  //
+  // Adjudication progresses with EVIDENCE, not with reads (commit c8e5453).
+  // The 4 inherited controls flip when:
+  //   - cloud evidence is uploaded (validate_azure_entra report proves the
+  //     boundary is actually on Azure Gov), OR
+  //   - the user clicks "Re-sync inherited controls" on /dashboard/boundary.
+  //
+  // The reconcile function is preserved (still useful for explicit triggers
+  // and the recover-onboarding script), just not auto-fired here.
 
   // ── Control records ──
   const records = await db
