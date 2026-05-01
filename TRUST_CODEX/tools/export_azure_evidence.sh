@@ -61,10 +61,24 @@ if ! compgen -G "nsg-rules-*.json" >/dev/null 2>&1 && command -v jq &>/dev/null;
   fi
 fi
 
-# Optional: sign-in list (requires az ad signin list - may need preview)
+# Sign-in list via Microsoft Graph (no native `az` command exists for this — the
+# previous `az ad signin list` invocation was a no-op typo). Requires (a) Audit
+# Logs Reader role on the executing principal AND (b) Entra ID P1 or P2 licensing
+# on the tenant. Non-Premium tenants get HTTP 403 ("Tenant is not a B2C tenant
+# and doesn't have premium license") — we write [] and let the customer flip
+# 3.3.2/3.3.1 via the unique-traceability-attested.txt fallback documented in
+# validate_azure_entra.py.
 echo "Exporting Entra sign-in list..."
-az ad signin list --top 500 -o json > entra-signin.json 2>/dev/null || echo "[]" > entra-signin.json
-az ad signin list --top 500 -o table > entra-signin.txt 2>/dev/null || true
+az rest --method GET \
+  --url "https://graph.microsoft.com/v1.0/auditLogs/signIns?\$top=500" \
+  --query "value" -o json > entra-signin.json 2>/dev/null \
+  || echo "[]" > entra-signin.json
+if [[ -s entra-signin.json ]] && [[ "$(jq 'length' entra-signin.json 2>/dev/null)" != "0" ]]; then
+  jq -r '.[] | [.createdDateTime, .userPrincipalName, .appDisplayName, .ipAddress] | @tsv' \
+    entra-signin.json > entra-signin.txt 2>/dev/null || true
+else
+  echo "(no sign-in entries returned — tenant likely not Entra ID Premium)" > entra-signin.txt
+fi
 
 # Conditional Access policies (IA 3.5.3, 3.5.4–3.5.6, MA 3.7.5 — via Microsoft Graph)
 echo "Exporting Conditional Access policies (Graph)..."
