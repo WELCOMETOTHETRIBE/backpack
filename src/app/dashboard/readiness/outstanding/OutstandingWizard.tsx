@@ -18,6 +18,25 @@ import type {
 } from "@/lib/compliance/outstanding-controls";
 import type { AttestationTemplate } from "@/lib/compliance/attestation-templates";
 import { AttestationModal } from "@/components/adjudication/AttestationModal";
+import {
+  CONTROL_FAMILIES,
+  getControlFamilyPrefix,
+} from "@/components/governance-wizard/constants";
+
+// Map control prefix → family code so the "View control" deep-link can route
+// to /dashboard/controls?family=XX&control=YYY (the SCTM detail route). The
+// /dashboard/controls/[id] route expects a UUID, not a NIST id, so linking
+// directly there 404s — that was the broken-link bug from feedback.
+const FAMILY_CODE_BY_PREFIX: Record<string, string> = Object.fromEntries(
+  CONTROL_FAMILIES.map((f) => [f.controlPrefix, f.code])
+);
+
+function controlDetailHref(controlId: string): string {
+  const code = FAMILY_CODE_BY_PREFIX[getControlFamilyPrefix(controlId)];
+  return code
+    ? `/dashboard/controls?family=${code}&control=${controlId}`
+    : `/dashboard/controls?control=${controlId}`;
+}
 
 export type WizardLiveStatus = "closed" | "in_progress" | "not_started";
 
@@ -173,21 +192,79 @@ export function OutstandingWizard({
         </section>
       )}
 
-      {/* Cards grid */}
-      <div className="grid gap-3 lg:grid-cols-2">
-        {sortedCards.map((card) => (
-          <CloseControlCard
-            key={card.controlId}
-            card={card}
-            onAttest={() =>
-              card.template &&
-              setActiveTemplate({ template: card.template, controlId: card.controlId })
-            }
-          />
-        ))}
-      </div>
+      {/* Cards grid. Bucket A mixes Awareness & Training (3.2.x) and Incident
+          Response (3.6.x) — split them into two explicit columns so the
+          training cards stack on the left and the IR-tabletop cards stack on
+          the right. Other buckets keep the standard row-major grid. */}
+      {activeBucket === "A" ? (
+        (() => {
+          const atCards = sortedCards.filter((c) => c.controlId.startsWith("3.2."));
+          const irCards = sortedCards.filter((c) => c.controlId.startsWith("3.6."));
+          const other = sortedCards.filter(
+            (c) => !c.controlId.startsWith("3.2.") && !c.controlId.startsWith("3.6.")
+          );
+          const renderCard = (card: WizardCard) => (
+            <CloseControlCard
+              key={card.controlId}
+              card={card}
+              onAttest={() =>
+                card.template &&
+                setActiveTemplate({ template: card.template, controlId: card.controlId })
+              }
+            />
+          );
+          return (
+            <div className="space-y-4">
+              <div className="grid gap-3 lg:grid-cols-2">
+                <div className="space-y-3">
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Awareness &amp; Training (AT)
+                  </h3>
+                  {atCards.length > 0 ? (
+                    atCards.map(renderCard)
+                  ) : (
+                    <p className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-xs text-slate-500">
+                      No open AT controls.
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-3">
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Incident Response (IR)
+                  </h3>
+                  {irCards.length > 0 ? (
+                    irCards.map(renderCard)
+                  ) : (
+                    <p className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-xs text-slate-500">
+                      No open IR controls.
+                    </p>
+                  )}
+                </div>
+              </div>
+              {other.length > 0 && (
+                <div className="grid gap-3 lg:grid-cols-2">
+                  {other.map(renderCard)}
+                </div>
+              )}
+            </div>
+          );
+        })()
+      ) : (
+        <div className="grid gap-3 lg:grid-cols-2">
+          {sortedCards.map((card) => (
+            <CloseControlCard
+              key={card.controlId}
+              card={card}
+              onAttest={() =>
+                card.template &&
+                setActiveTemplate({ template: card.template, controlId: card.controlId })
+              }
+            />
+          ))}
+        </div>
+      )}
 
-      {sortedCards.length === 0 && (
+      {sortedCards.length === 0 && activeBucket !== "A" && (
         <div className="rounded-xl border border-dashed border-slate-300 p-12 text-center">
           <p className="text-sm text-slate-600">No controls in this view.</p>
         </div>
@@ -330,10 +407,10 @@ function CloseControlCard({
   } else {
     actionEl = (
       <Link
-        href={`/dashboard/controls/${card.controlId}`}
+        href={controlDetailHref(card.controlId)}
         className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
       >
-        View control
+        Open in SCTM
         <ExternalLink className="h-3.5 w-3.5" />
       </Link>
     );

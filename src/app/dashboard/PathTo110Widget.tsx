@@ -122,13 +122,6 @@ export async function PathTo110Widget({ orgId }: { orgId: string }) {
           }
         />
       </div>
-
-      <p className="mt-4 text-xs text-slate-500">
-        Wizard scope: {buckets.openAll} card{buckets.openAll === 1 ? "" : "s"} still open
-        {buckets.closedAll > 0 ? ` · ${buckets.closedAll} closed` : ""}.
-        Every action is C3PAO-defensible — each card shows the examiner note and the
-        conditions you&apos;re affirming.
-      </p>
     </div>
   );
 }

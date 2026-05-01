@@ -45,10 +45,18 @@ import {
   cadenceLabel,
 } from "@/data/cmmc/control-intelligence";
 import vaultNarratives from "@/data/cmmc/vault-narratives.json";
+import { sprsScoringData } from "@/lib/sprs";
 
 type DetailTab = "guide" | "policy" | "evidence" | "poam" | "history";
 
 const VAULT_NARRATIVES = vaultNarratives as Record<string, string>;
+
+// Canonical SPRS deduction values per NIST SP 800-171 DoD Assessment Methodology
+// v1.2.1 Annex A. Authoritative for the header chip — the per-control SCTM JSON
+// has drifted (~66 mismatches) and would lie to assessors otherwise.
+const SPRS_VALUE_BY_CONTROL: Record<string, 1 | 3 | 5> = Object.fromEntries(
+  sprsScoringData.map((c) => [c.id, c.value])
+);
 
 function buildVaultNarrative(controlId: string): string | null {
   const raw = VAULT_NARRATIVES[controlId];
@@ -636,9 +644,9 @@ export function SCTMControlDetail({
                   {record.satisfiedByGovernance && <span className="inline-flex items-center rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-medium text-violet-800">Governance</span>}
                 </>
               )}
-              {sctmOptimized?.scoring && (
+              {SPRS_VALUE_BY_CONTROL[record.controlId] !== undefined && (
                 <span className="inline-flex items-center rounded-full bg-gray-50 border border-gray-200 px-2 py-0.5 text-[10px] font-medium text-gray-600">
-                  SPRS {sctmOptimized.scoring.sprs}
+                  SPRS {SPRS_VALUE_BY_CONTROL[record.controlId]}
                 </span>
               )}
             </div>
