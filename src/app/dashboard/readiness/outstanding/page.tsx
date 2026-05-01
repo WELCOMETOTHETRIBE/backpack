@@ -1,5 +1,11 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
+
+// Force dynamic rendering so router.refresh() (called from AttestationModal
+// after a successful sign) always re-fetches DB state. Without this, Next.js
+// can serve a cached server-render and the just-signed card stays "Open".
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { db } from "@/db";
@@ -166,24 +172,29 @@ export default async function OutstandingPage() {
     const record = recordByControlId.get(entry.controlId);
     if (!record) return "not_started";
 
-    // Bucket E: closed if attestation completion exists with the template label
+    // Bucket E: closed ONLY when a customer-signed attestation exists for the
+    // template. Architecture-level disposition=not_applicable from
+    // CONTROL_INTELLIGENCE is necessary but NOT sufficient — a C3PAO will
+    // ask for the customer's signed attestation that the conditions hold,
+    // not just trust the platform default. So we never fall back to
+    // implementationStatus alone.
     if (entry.bucket === "E" && entry.attestationTemplateId) {
       const cs = completionsByRecordId.get(record.id) ?? [];
       const has = cs.some(
         (c) => c.artifactType === "ATTESTATION" && c.artifactLabel === entry.attestationTemplateId
       );
-      if (has || record.implementationStatus === "not_applicable") return "closed";
-      return "not_started";
+      return has ? "closed" : "not_started";
     }
 
-    // Bucket C: closed if attestation completion exists OR implementation marked
+    // Bucket C: same C3PAO-strict policy — only the signed attestation flips
+    // the card to closed. The disposition='implemented' default doesn't carry
+    // the per-condition affirmation a C3PAO needs.
     if (entry.bucket === "C" && entry.attestationTemplateId) {
       const cs = completionsByRecordId.get(record.id) ?? [];
       const has = cs.some(
         (c) => c.artifactType === "ATTESTATION" && c.artifactLabel === entry.attestationTemplateId
       );
-      if (has || record.implementationStatus === "implemented") return "closed";
-      return "not_started";
+      return has ? "closed" : "not_started";
     }
 
     // Bucket B: closed if any final register entry exists for the targeted register

@@ -51,6 +51,7 @@ vi.mock("@/lib/audit", () => ({
 }));
 
 import { POST } from "./route";
+import { getAttestationTemplate } from "@/lib/compliance/attestation-templates";
 
 function makeReq(body: unknown): Request {
   return new Request("http://localhost/api/adjudication/attest", {
@@ -60,16 +61,16 @@ function makeReq(body: unknown): Request {
   });
 }
 
+// Load conditions from the canonical template so this test stays green when
+// template language is revised (e.g., first-person rewrites). The test's job
+// is to verify the API contract, not to assert specific legal text.
+const T = getAttestationTemplate("na_no_voip")!;
 const VALID_BODY = {
   templateId: "na_no_voip",
   controlId: "3.13.14",
   signatoryName: "Patrick Caruso",
   signatoryTitle: "Compliance Officer",
-  acceptedConditions: [
-    "No customer-managed VoIP gateways / SIP infrastructure in scope",
-    "No voice-call recording or storage of CUI",
-    "User training includes 'do not discuss CUI on uncontrolled voice channels'",
-  ],
+  acceptedConditions: T.conditions,
 };
 
 describe("POST /api/adjudication/attest — permissions", () => {
