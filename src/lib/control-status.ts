@@ -338,7 +338,7 @@ export async function calculateControlStatus(controlRecordId: string): Promise<I
     technicalComplete = technicalComplete || res.ok;
   }
 
-  // Check OS ingest evidence links — if any successful links exist, technical lane is satisfied
+  // Check OS ingest evidence links -- if any successful links exist, technical lane is satisfied
   const evidenceLinks = await db
     .select({ id: controlEvidenceLinks.id })
     .from(controlEvidenceLinks)
@@ -347,6 +347,30 @@ export async function calculateControlStatus(controlRecordId: string): Promise<I
   const hasEvidenceLinks = evidenceLinks.length > 0;
   if (hasEvidenceLinks) {
     technicalComplete = true;
+  }
+
+  // Cloud-side technical evidence: a PASS finding from the Azure validator
+  // (validate_azure_entra) counts as positive technical signal -- this is
+  // how Azure-only controls (3.1.14, 3.8.9) get their technical lane
+  // satisfied (they have no OS-side evidence specs at all), and how
+  // dual-pipeline controls satisfy needsBothPipelines.
+  if (!technicalComplete) {
+    const cloudPass = await db
+      .select({ id: evidenceFindings.evidenceRunId })
+      .from(evidenceFindings)
+      .innerJoin(evidenceRuns, eq(evidenceFindings.evidenceRunId, evidenceRuns.id))
+      .where(
+        and(
+          eq(evidenceRuns.organizationId, record.organizationId),
+          eq(evidenceRuns.source, "azure_entra"),
+          eq(evidenceFindings.controlId, controlId),
+          eq(evidenceFindings.pass, true),
+        ),
+      )
+      .limit(1);
+    if (cloudPass.length > 0) {
+      technicalComplete = true;
+    }
   }
 
   // Check governance manifest links — if approved (non-DRAFT) docs are mapped to this control,

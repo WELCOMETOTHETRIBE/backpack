@@ -335,11 +335,10 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
         }
 
         if (isOsValidationReport) {
-          // Companion drop -- attach to the existing manifest preview if present.
+          // Forgiving: accept the OS validator report regardless of whether
+          // the manifest is loaded yet. Drop order shouldn't matter -- we
+          // surface a friendly status hint in the UI block, never an error.
           setValidationReport(json);
-          if (!preview) {
-            setParseError("Got OS validation-report.json. Now drop the manifest.json from the same run to enable upload.");
-          }
           return;
         }
 
@@ -668,8 +667,12 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
             </svg>
           </div>
           <div>
-            <p className="font-medium text-gray-900">Drop manifest.json here</p>
-            <p className="mt-0.5 text-sm text-gray-500">or click to browse — JSON only, max 5 MB</p>
+            <p className="font-medium text-gray-900">
+              Drop a JSON file here -- any of the three above
+            </p>
+            <p className="mt-0.5 text-sm text-gray-500">
+              Auto-detects manifest, OS validator, or cloud validator. Drop in any order. JSON only, max 5 MB.
+            </p>
           </div>
           <input
             ref={fileInputRef}
@@ -684,8 +687,21 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
       {/* Parse error */}
       {parseError && (
         <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-800 dark:bg-red-950/20 dark:text-red-300">
-          <p className="font-medium">Invalid manifest</p>
+          <p className="font-medium">Couldn&apos;t read that file</p>
           <p className="mt-1">{parseError}</p>
+        </div>
+      )}
+
+      {/* OS validator report loaded but no manifest yet -- not an error,
+          just a "you're partway done" status hint. */}
+      {!preview && validationReport && (
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/20 dark:text-emerald-300">
+          <p className="font-medium">
+            ? Got the OS validator report ({validationReport.summary?.pass_count ?? 0} PASS / {validationReport.summary?.fail_count ?? 0} FAIL).
+          </p>
+          <p className="mt-1">
+            Drop <code className="rounded bg-white/70 px-1 py-0.5 font-mono text-[11px]">manifest.json</code> from the same run next; we&apos;ll bundle them together at upload. Drop order doesn&apos;t matter.
+          </p>
         </div>
       )}
 
