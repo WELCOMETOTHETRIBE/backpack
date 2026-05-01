@@ -2079,6 +2079,255 @@
         }
       ],
       "control_ids": []
+    },
+    {
+      "register_id": "remote_access_authorization",
+      "description": "Documents who is authorized to access the CUI Vault remotely (Azure Bastion, VPN, or any other channel) and the conditions of that access. Required by 3.1.12, 3.1.13, 3.1.14, 3.1.15.",
+      "default_cadence_days": 365,
+      "entry_types": [
+        {
+          "type": "authorize_remote_access",
+          "short_help": "Document approval for a user to access CUI Vault remotely.",
+          "required": [
+            "subject_user",
+            "remote_access_method",
+            "approved_by",
+            "approved_at",
+            "business_justification",
+            "review_due_at"
+          ],
+          "optional": [
+            "device_compliance_attestation",
+            "conditional_access_policy_ref",
+            "session_recording_required",
+            "expires_at",
+            "notes"
+          ],
+          "enums": {
+            "remote_access_method": [
+              "azure_bastion",
+              "azure_pim",
+              "vpn",
+              "rdp_through_bastion",
+              "ssh_through_bastion",
+              "other"
+            ]
+          },
+          "recommended_attachments": [
+            "conditional_access_policy_export",
+            "approval_record",
+            "iam_screenshot"
+          ]
+        },
+        {
+          "type": "annual_remote_access_review",
+          "short_help": "Annual recertification that each remote-access authorization is still valid.",
+          "required": [
+            "subject_user",
+            "remote_access_method",
+            "reviewer",
+            "reviewed_at",
+            "decision"
+          ],
+          "optional": [
+            "next_review_due_at",
+            "notes"
+          ],
+          "enums": {
+            "decision": [
+              "retained",
+              "modified",
+              "revoked"
+            ]
+          },
+          "recommended_attachments": [
+            "review_log_export"
+          ]
+        }
+      ],
+      "control_ids": [
+        "3.1.12",
+        "3.1.13",
+        "3.1.14",
+        "3.1.15"
+      ]
+    },
+    {
+      "register_id": "external_system_connections",
+      "description": "Inventory of every external (non-org-owned) system permitted to interact with the CUI boundary, including the data shared, the authorization basis, and the trust relationship. Required by 3.1.20.",
+      "default_cadence_days": 365,
+      "entry_types": [
+        {
+          "type": "authorize_external_connection",
+          "short_help": "Document approval for an external system to connect to the CUI Vault.",
+          "required": [
+            "external_system_name",
+            "external_org",
+            "connection_type",
+            "data_categories_shared",
+            "authorization_basis",
+            "approved_by",
+            "approved_at",
+            "review_due_at"
+          ],
+          "optional": [
+            "trust_agreement_ref",
+            "encryption_in_transit",
+            "fedramp_authorization_level",
+            "data_flow_diagram_ref",
+            "expires_at",
+            "notes"
+          ],
+          "enums": {
+            "connection_type": [
+              "api_inbound",
+              "api_outbound",
+              "sftp",
+              "vpn_site_to_site",
+              "express_route",
+              "saml_federation",
+              "scim_provisioning",
+              "other"
+            ],
+            "authorization_basis": [
+              "fedramp_high_inheritance",
+              "fedramp_moderate_inheritance",
+              "trust_codex_acceptance",
+              "interconnection_security_agreement",
+              "data_sharing_agreement",
+              "no_cui_in_scope"
+            ],
+            "fedramp_authorization_level": [
+              "high",
+              "moderate",
+              "low",
+              "not_authorized",
+              "not_applicable"
+            ]
+          },
+          "recommended_attachments": [
+            "trust_agreement_pdf",
+            "interconnection_diagram",
+            "fedramp_authorization_letter"
+          ]
+        },
+        {
+          "type": "decommission_external_connection",
+          "short_help": "Record removal of an external system connection.",
+          "required": [
+            "external_system_name",
+            "decommissioned_by",
+            "decommissioned_at",
+            "decommission_reason"
+          ],
+          "optional": [
+            "data_purge_attestation",
+            "notes"
+          ],
+          "enums": {
+            "decommission_reason": [
+              "agreement_expired",
+              "no_longer_needed",
+              "trust_violation",
+              "vendor_disqualified",
+              "other"
+            ]
+          },
+          "recommended_attachments": [
+            "data_purge_evidence"
+          ]
+        }
+      ],
+      "control_ids": [
+        "3.1.20"
+      ]
+    },
+    {
+      "register_id": "portable_storage_authorization",
+      "description": "Per-event approval log for any use of portable storage media (USB, optical, removable drive) within the CUI boundary. Default architecture has portable storage prohibited; this register exists to document approved exceptions. Required by 3.1.21, 3.8.7, 3.8.8.",
+      "default_cadence_days": 0,
+      "entry_types": [
+        {
+          "type": "authorize_portable_storage_exception",
+          "short_help": "Approve a one-time or scoped use of portable storage in the CUI boundary.",
+          "required": [
+            "subject_user",
+            "device_type",
+            "device_owner",
+            "purpose",
+            "approved_by",
+            "approved_at",
+            "expires_at",
+            "encryption_method"
+          ],
+          "optional": [
+            "device_serial_or_id",
+            "data_categories",
+            "supervisor_present",
+            "notes"
+          ],
+          "enums": {
+            "device_type": [
+              "encrypted_usb",
+              "external_hdd",
+              "optical_disc",
+              "sd_card",
+              "other"
+            ],
+            "device_owner": [
+              "organization",
+              "individual_employee",
+              "third_party_vendor",
+              "auditor"
+            ],
+            "encryption_method": [
+              "fips_140_2_validated",
+              "fips_140_3_validated",
+              "bitlocker_to_go",
+              "other"
+            ]
+          },
+          "recommended_attachments": [
+            "device_encryption_certificate",
+            "approval_record",
+            "data_categories_attestation"
+          ]
+        },
+        {
+          "type": "revoke_portable_storage_exception",
+          "short_help": "Revoke a previously-approved portable storage exception.",
+          "required": [
+            "subject_user",
+            "device_type",
+            "revoked_by",
+            "revoked_at",
+            "revocation_reason"
+          ],
+          "optional": [
+            "device_returned_at",
+            "data_purge_attestation",
+            "notes"
+          ],
+          "enums": {
+            "revocation_reason": [
+              "exception_expired",
+              "user_left_organization",
+              "policy_change",
+              "compromise_suspected",
+              "other"
+            ]
+          },
+          "recommended_attachments": [
+            "data_purge_evidence",
+            "device_return_receipt"
+          ]
+        }
+      ],
+      "control_ids": [
+        "3.1.21",
+        "3.8.7",
+        "3.8.8"
+      ]
     }
   ]
 }

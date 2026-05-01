@@ -5,6 +5,7 @@ import { db } from "@/db";
 import ExportButton from "@/components/ExportButton";
 import FlowDownBanner from "@/components/FlowDownBanner";
 import { DashboardSetupWidget, VaultSetupCTA } from "./DashboardSetupWidget";
+import { PathTo110Widget } from "./PathTo110Widget";
 import {
   controlRecords,
   poamItems,
@@ -481,6 +482,8 @@ export default async function DashboardPage() {
       <div className="mx-auto max-w-5xl space-y-6">
         <DashboardSetupWidget onboardingStarted={onboardingStarted} />
         {!onboardingStarted && <VaultSetupCTA />}
+
+        {onboardingStarted && <PathTo110Widget orgId={orgId} />}
 
         {primeCount > 0 && <FlowDownBanner primeCount={primeCount} />}
 

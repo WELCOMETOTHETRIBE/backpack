@@ -204,6 +204,30 @@
       "warning_days": 0,
       "expected_entries_per_year": 0,
       "notes": "Per collector run (no fixed cadence)."
+    },
+    {
+      "register_id": "remote_access_authorization",
+      "cadence_type": "annual",
+      "cadence_days": 365,
+      "warning_days": 30,
+      "expected_entries_per_year": 1,
+      "notes": "Per-event entries when authorizing/revoking remote access; annual recertification of every active authorization (3.1.12, 3.1.13, 3.1.14, 3.1.15)."
+    },
+    {
+      "register_id": "external_system_connections",
+      "cadence_type": "annual",
+      "cadence_days": 365,
+      "warning_days": 30,
+      "expected_entries_per_year": 1,
+      "notes": "Per-event entries on connection authorization/decommission; annual review of every active external connection (3.1.20)."
+    },
+    {
+      "register_id": "portable_storage_authorization",
+      "cadence_type": "event_driven",
+      "cadence_days": 0,
+      "warning_days": 0,
+      "expected_entries_per_year": 0,
+      "notes": "Default architecture prohibits portable storage; this register only sees entries when an exception is granted. Event-driven (3.1.21, 3.8.7, 3.8.8)."
     }
   ]
 }

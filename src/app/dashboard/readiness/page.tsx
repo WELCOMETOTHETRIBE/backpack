@@ -146,7 +146,15 @@ export default async function ReadinessPage() {
             Prepare for C3PAO assessment with mock assessments and readiness tools.
           </p>
         </div>
-        <RecalculateControlsButton />
+        <div className="flex items-center gap-2">
+          <Link
+            href="/dashboard/readiness/outstanding"
+            className="inline-flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+          >
+            Outstanding Controls
+          </Link>
+          <RecalculateControlsButton />
+        </div>
       </div>
 
       <div className="mb-6">

@@ -1,0 +1,332 @@
+{
+  "schema": "mactech.cmmc.attestation-templates.v1",
+  "version": "1.0.0",
+  "description": "Attestation templates for the Outstanding Controls Wizard. Each template encodes the precise representations a customer signs to close a control under specific architectural conditions. C3PAO examiners will read the attestation statement; the customer's signature + the conditions captured here are what defends the disposition.",
+  "guidance": "Every template MUST surface the conditions that must remain true for the attestation to hold. If a condition becomes false (e.g., customer adds telework), the platform re-classifies the control to its fallback disposition (PARTIAL with a register) and notifies the compliance owner.",
+  "templates": [
+    {
+      "templateId": "digital_only_media",
+      "kind": "implemented_attestation",
+      "title": "All CUI Is Digital, BitLocker-Protected",
+      "summary": "Affirm that no physical media (paper, USB, optical, removable disk) is used to store or transit CUI within the boundary.",
+      "attestationStatement": "I attest that, as of the date below, no physical media of any kind is used to store, transit, or process CUI within the CUI Vault boundary. All CUI is stored encrypted at rest (BitLocker on managed Windows endpoints, BitLocker XTS-AES 256 on Azure-managed disks) and in transit (TLS 1.2+ with FIPS-validated cipher suites, SMB signing enforced). Any future introduction of physical media into CUI workflows will be authorized via the Portable Storage Register and will trigger re-adjudication of MP family controls.",
+      "conditions": [
+        "All CUI access occurs via Azure Bastion to managed Windows endpoints",
+        "Removable storage is blocked by Group Policy at the OS level",
+        "BitLocker is enabled and FIPS-mode active on all in-scope endpoints",
+        "Email gateway DLP rules prevent CUI from being attached to outbound mail outside the boundary"
+      ],
+      "fallbackIfConditionFails": {
+        "controlIds": ["3.8.1"],
+        "fallbackDisposition": "partial",
+        "fallbackRegisterSchemaId": "media_access",
+        "actionRequired": "Begin maintaining a Media Inventory + Marking Register; re-attest annually."
+      },
+      "evidenceProduced": "governance_artifact_completion (ATTESTATION) on control_records for 3.8.1",
+      "linkedControlIds": ["3.8.1"],
+      "recommendedSignatoryRole": "compliance_owner",
+      "renewalCadenceDays": 365,
+      "c3paoExaminerNote": "Examiner will ask: 'Show me how you prevent physical media from carrying CUI.' Customer points to: (1) GPO blocking removable storage, (2) BitLocker policy, (3) this attestation, (4) absence of media inventory entries."
+    },
+    {
+      "templateId": "azure_managed_disposal",
+      "kind": "implemented_attestation",
+      "title": "Disposal Is Inherited from Azure Government",
+      "summary": "Affirm that all storage media containing CUI is destroyed/sanitized via Azure-managed deletion under the FedRAMP High authorization.",
+      "attestationStatement": "I attest that the CUI Vault has no customer-owned physical storage media that requires NIST 800-88 sanitization. All CUI storage is on Azure-managed disks within the FedRAMP High boundary; Microsoft is responsible for end-of-life sanitization per their FedRAMP Customer Responsibility Matrix. The customer commits to: (1) re-attesting annually, (2) treating any future on-prem storage introduction as a control re-trigger requiring this attestation to be voided and a customer-side Media Sanitization Register to be activated.",
+      "conditions": [
+        "All CUI is stored exclusively in Azure Government services (Azure Disks, Azure Blob, Azure SQL)",
+        "Customer holds no on-prem storage in scope (no NAS, no removable disks, no archive tapes)",
+        "Customer does not perform local backups of CUI outside Azure"
+      ],
+      "fallbackIfConditionFails": {
+        "controlIds": ["3.8.3"],
+        "fallbackDisposition": "partial",
+        "fallbackRegisterSchemaId": "media_destruction",
+        "actionRequired": "Activate the Media Destruction Log, document NIST 800-88 method, and capture certificates of destruction."
+      },
+      "evidenceProduced": "governance_artifact_completion (ATTESTATION) on control_records for 3.8.3",
+      "linkedControlIds": ["3.8.3"],
+      "recommendedSignatoryRole": "compliance_owner",
+      "renewalCadenceDays": 365,
+      "c3paoExaminerNote": "Examiner will ask: 'When you retire a disk holding CUI, what's the sanitization process?' Customer points to: (1) Azure FedRAMP CRM, (2) this attestation, (3) absence of customer-owned in-scope storage in the boundary inventory."
+    },
+    {
+      "templateId": "architectural_isolation",
+      "kind": "implemented_attestation",
+      "title": "Process & Role Separation by Azure Architecture",
+      "summary": "Affirm that the Azure Government tenant configuration enforces process and role isolation between privileged users, application code, and CUI data plane.",
+      "attestationStatement": "I attest that the CUI Vault tenant enforces architectural isolation per NIST 800-171 §3.13.3: (1) management plane (Azure Portal, ARM API, PIM) is separated from data plane (Azure Bastion → Windows endpoint) by Conditional Access; (2) privileged-access workstation (PAW) policy prohibits admin actions from unmanaged endpoints; (3) application code and CUI data are isolated at the storage account / RBAC scope level; (4) no shared service accounts span the user/system boundary. The attached architectural diagram and Conditional Access policy export support this attestation.",
+      "conditions": [
+        "Privileged operations require a separate PIM-elevated identity (no standing admin)",
+        "Conditional Access blocks management-plane access from non-PAW devices",
+        "Storage RBAC is least-privilege and reviewed quarterly via the Privileged User Register",
+        "Architectural diagram is current (reviewed within last 12 months)"
+      ],
+      "fallbackIfConditionFails": {
+        "controlIds": ["3.13.3"],
+        "fallbackDisposition": "partial",
+        "fallbackRegisterSchemaId": "role_assignment_matrix",
+        "actionRequired": "Document role-separation gaps, add to POA&M, refresh role assignment matrix, and re-attest."
+      },
+      "evidenceProduced": "governance_artifact_completion (ATTESTATION) on control_records for 3.13.3 with diagram + Conditional Access export attached",
+      "linkedControlIds": ["3.13.3"],
+      "recommendedSignatoryRole": "system_owner",
+      "renewalCadenceDays": 365,
+      "c3paoExaminerNote": "Examiner will ask: 'Show me how user actions are separated from system functions.' Customer presents: (1) architectural diagram, (2) Conditional Access export, (3) PIM/role-assignment summary, (4) this attestation."
+    },
+    {
+      "templateId": "na_no_wireless",
+      "kind": "na_attestation",
+      "title": "No Wireless Infrastructure in Scope",
+      "summary": "Affirm that no wireless networking exists within the CUI boundary.",
+      "attestationStatement": "I attest that, as of the date below, no wireless access points, wireless network interfaces, or wireless authentication infrastructure exist within the CUI Vault boundary. All connectivity to the boundary is wired (Ethernet) or via managed Azure Bastion sessions originating from compliant endpoints. Any future introduction of wireless infrastructure into the boundary will be treated as a control re-trigger and will require the Wireless SSID Register to be activated and 3.1.16 / 3.1.17 to be re-adjudicated.",
+      "conditions": [
+        "No wireless APs, controllers, or gateways within the boundary",
+        "No wireless network interfaces enabled on in-scope endpoints (verified by GPO / OS Collector)",
+        "No 802.1X / WPA-Enterprise authentication infrastructure"
+      ],
+      "fallbackIfConditionFails": {
+        "controlIds": ["3.1.16", "3.1.17"],
+        "fallbackDisposition": "partial",
+        "fallbackRegisterSchemaId": "wireless_ssid_authorization",
+        "actionRequired": "Activate the Wireless SSID Register and document each authorized SSID."
+      },
+      "evidenceProduced": "governance_artifact_completion (ATTESTATION) on control_records for 3.1.16 and 3.1.17",
+      "linkedControlIds": ["3.1.16", "3.1.17"],
+      "recommendedSignatoryRole": "system_owner",
+      "renewalCadenceDays": 365,
+      "c3paoExaminerNote": "Examiner will ask: 'Are there any wireless networks in your CUI environment?' Customer points to: (1) network architecture diagram showing no wireless, (2) OS Collector wireless-interfaces-disabled evidence, (3) this attestation."
+    },
+    {
+      "templateId": "na_azure_managed_disposal",
+      "kind": "na_attestation",
+      "title": "No Customer Equipment Subject to Sanitization",
+      "summary": "Affirm that there is no customer-owned equipment in the CUI boundary that requires sanitization at end-of-life.",
+      "attestationStatement": "I attest that the CUI Vault contains no customer-owned physical equipment subject to NIST 800-88 sanitization at end-of-life. All hosting hardware is owned and operated by Microsoft within the Azure Government FedRAMP High boundary. End-user endpoints accessing the vault are managed Windows devices with BitLocker FIPS-mode encryption; their disposition follows organizational property-management policy and does not impact the CUI boundary because no CUI is stored locally (Azure Bastion sessions do not cache CUI to disk).",
+      "conditions": [
+        "No customer-owned in-scope server hardware",
+        "End-user endpoints do not cache CUI locally (Bastion-only access)",
+        "BitLocker FIPS mode active on all managed endpoints"
+      ],
+      "fallbackIfConditionFails": {
+        "controlIds": ["3.7.3"],
+        "fallbackDisposition": "partial",
+        "fallbackRegisterSchemaId": "media_destruction",
+        "actionRequired": "Activate the Media Destruction Log for any customer-owned equipment touching CUI."
+      },
+      "evidenceProduced": "governance_artifact_completion (ATTESTATION) on control_records for 3.7.3",
+      "linkedControlIds": ["3.7.3"],
+      "recommendedSignatoryRole": "system_owner",
+      "renewalCadenceDays": 365,
+      "c3paoExaminerNote": "Examiner will ask: 'When you retire equipment, how do you sanitize it?' Customer presents: (1) boundary inventory showing no customer-owned hardware in scope, (2) BitLocker policy, (3) this attestation."
+    },
+    {
+      "templateId": "na_no_onprem_maintenance",
+      "kind": "na_attestation",
+      "title": "No On-Prem Maintenance",
+      "summary": "Affirm that no maintenance is performed on customer-owned on-premise infrastructure within the CUI boundary.",
+      "attestationStatement": "I attest that no on-premise maintenance occurs within the CUI Vault boundary because no customer-owned infrastructure exists in scope. All maintenance is performed by Microsoft within the Azure Government FedRAMP High boundary (inherited) or by org-internal admins via Azure PIM-elevated cloud-only operations. No physical maintenance tools transit the boundary.",
+      "conditions": [
+        "No customer-owned servers, network equipment, or HSMs in scope",
+        "All admin operations are cloud-only (PIM + Conditional Access from PAW)",
+        "No hardware vendors enter the customer environment for in-scope work"
+      ],
+      "fallbackIfConditionFails": {
+        "controlIds": ["3.7.4"],
+        "fallbackDisposition": "partial",
+        "fallbackRegisterSchemaId": "maintenance_log",
+        "actionRequired": "Activate the Authorized Tools Register for any maintenance tools that enter the CUI boundary."
+      },
+      "evidenceProduced": "governance_artifact_completion (ATTESTATION) on control_records for 3.7.4",
+      "linkedControlIds": ["3.7.4"],
+      "recommendedSignatoryRole": "system_owner",
+      "renewalCadenceDays": 365,
+      "c3paoExaminerNote": "Examiner will ask: 'What tools do you use for maintenance? Who controls them?' Customer presents: (1) boundary inventory showing no on-prem hardware, (2) PIM activation logs, (3) this attestation."
+    },
+    {
+      "templateId": "na_no_thirdparty_maintenance",
+      "kind": "na_attestation",
+      "title": "No Third-Party Maintenance Personnel",
+      "summary": "Affirm that no third-party (non-employee) maintenance personnel access the CUI Vault.",
+      "attestationStatement": "I attest that all maintenance activities affecting the CUI Vault are performed by direct employees of the organization who have completed personnel screening per 3.9.1. No contractors, vendors, or third-party maintenance personnel access the boundary in a maintenance capacity. Any future engagement of third-party maintenance personnel will trigger 3.7.6 re-adjudication and Personnel Screening Register entries.",
+      "conditions": [
+        "No third-party admin / maintenance contracts in effect",
+        "All admin actions traceable to a screened employee",
+        "Vendor support engagements (Microsoft Support, etc.) are read-only and supervised"
+      ],
+      "fallbackIfConditionFails": {
+        "controlIds": ["3.7.6"],
+        "fallbackDisposition": "partial",
+        "fallbackRegisterSchemaId": "personnel_screening",
+        "actionRequired": "Add third-party personnel to the Personnel Screening Register; document supervision."
+      },
+      "evidenceProduced": "governance_artifact_completion (ATTESTATION) on control_records for 3.7.6",
+      "linkedControlIds": ["3.7.6"],
+      "recommendedSignatoryRole": "compliance_owner",
+      "renewalCadenceDays": 365,
+      "c3paoExaminerNote": "Examiner will ask: 'Who has admin access for maintenance? Are they screened?' Customer points to: (1) PIM membership, (2) Personnel Screening Register, (3) this attestation."
+    },
+    {
+      "templateId": "na_digital_only_media",
+      "kind": "na_attestation",
+      "title": "No Physical Media to Mark",
+      "summary": "Affirm that all CUI is digital with metadata-based marking; no physical media exists to require physical CUI markings.",
+      "attestationStatement": "I attest that all CUI is stored and accessed in digital form within Azure Government. CUI marking is implemented at the file/blob layer via Microsoft Purview sensitivity labels and document-level metadata; no physical CUI markings are required because no physical media exists in scope. Authorized users are trained to apply digital labels per the CUI Marking Standard.",
+      "conditions": [
+        "All CUI lives in Azure Government storage with Purview classification",
+        "No physical printing of CUI (or printing requires explicit waiver and physical-handling SOP)",
+        "User training includes digital CUI marking obligations (3.2.x register)"
+      ],
+      "fallbackIfConditionFails": {
+        "controlIds": ["3.8.4"],
+        "fallbackDisposition": "partial",
+        "fallbackRegisterSchemaId": null,
+        "actionRequired": "Document a physical CUI marking SOP and capture marking-evidence in the governance bundle."
+      },
+      "evidenceProduced": "governance_artifact_completion (ATTESTATION) on control_records for 3.8.4",
+      "linkedControlIds": ["3.8.4"],
+      "recommendedSignatoryRole": "compliance_owner",
+      "renewalCadenceDays": 365,
+      "c3paoExaminerNote": "Examiner will ask: 'How is CUI marked?' Customer shows: (1) Purview label policy export, (2) sample labeled documents, (3) training register, (4) this attestation."
+    },
+    {
+      "templateId": "na_no_media_transport",
+      "kind": "na_attestation",
+      "title": "No Physical Media Transport",
+      "summary": "Affirm that physical media containing CUI is never transported outside the boundary.",
+      "attestationStatement": "I attest that no physical media containing CUI is transported outside the CUI Vault boundary. CUI access occurs exclusively via Azure Bastion sessions from managed Windows endpoints; CUI does not leave Azure Government except via authorized digital-only channels (TLS-protected, audit-logged). Removable storage is blocked by GPO at the OS layer.",
+      "conditions": [
+        "Removable storage GPO active and verified by OS Collector",
+        "No SFTP / file-transfer endpoints handling CUI outside the boundary",
+        "Email DLP blocks CUI from outbound attachments"
+      ],
+      "fallbackIfConditionFails": {
+        "controlIds": ["3.8.5"],
+        "fallbackDisposition": "partial",
+        "fallbackRegisterSchemaId": null,
+        "actionRequired": "Activate Media Accountability Register; document chain-of-custody for all CUI transports."
+      },
+      "evidenceProduced": "governance_artifact_completion (ATTESTATION) on control_records for 3.8.5",
+      "linkedControlIds": ["3.8.5"],
+      "recommendedSignatoryRole": "system_owner",
+      "renewalCadenceDays": 365,
+      "c3paoExaminerNote": "Examiner will ask: 'Is CUI ever physically transported?' Customer presents: (1) GPO removable-storage block, (2) DLP policy, (3) network egress audit, (4) this attestation."
+    },
+    {
+      "templateId": "na_no_split_tunneling",
+      "kind": "na_attestation",
+      "title": "No Split Tunneling (No VPN in Architecture)",
+      "summary": "Affirm that the access architecture does not allow split tunneling; in fact, no VPN exists.",
+      "attestationStatement": "I attest that the CUI Vault access architecture does not permit split tunneling. The architecture has no VPN; all CUI access is via Azure Bastion sessions tunneled through TLS to the Bastion service, with the user's local internet traffic remaining on their endpoint outside the boundary. There is no VPN client capable of routing or split-routing traffic into the CUI environment.",
+      "conditions": [
+        "No customer-managed VPN gateways or clients in scope",
+        "Azure Bastion is the sole remote access path",
+        "Conditional Access requires compliant device + MFA for Bastion access"
+      ],
+      "fallbackIfConditionFails": {
+        "controlIds": ["3.13.7"],
+        "fallbackDisposition": "implemented",
+        "fallbackRegisterSchemaId": null,
+        "actionRequired": "Configure VPN to disable split tunneling; capture configuration export as technical evidence."
+      },
+      "evidenceProduced": "governance_artifact_completion (ATTESTATION) on control_records for 3.13.7",
+      "linkedControlIds": ["3.13.7"],
+      "recommendedSignatoryRole": "system_owner",
+      "renewalCadenceDays": 365,
+      "c3paoExaminerNote": "Examiner will ask: 'When users connect remotely, does any non-CUI traffic split off?' Customer presents: (1) network diagram, (2) Bastion architecture description, (3) this attestation."
+    },
+    {
+      "templateId": "na_no_collaborative_devices",
+      "kind": "na_attestation",
+      "title": "No Collaborative Computing Devices in Scope",
+      "summary": "Affirm that no smart-room equipment, video conferencing systems, interactive whiteboards, or other collaborative devices exist within the CUI boundary.",
+      "attestationStatement": "I attest that no collaborative computing devices (smart TVs, video conferencing systems, interactive whiteboards, room cameras, smart speakers) are within the CUI Vault boundary. CUI access occurs only via managed Windows endpoints under user control. Any future introduction of collaborative devices into CUI workflows will require this attestation to be voided and 3.13.12 re-adjudicated with explicit user-controllable indicators.",
+      "conditions": [
+        "No managed conference rooms with CUI display capability",
+        "No personal-use smart devices on the same network as in-scope endpoints",
+        "Background blur / video-off norms enforced for CUI-relevant calls"
+      ],
+      "fallbackIfConditionFails": {
+        "controlIds": ["3.13.12"],
+        "fallbackDisposition": "partial",
+        "fallbackRegisterSchemaId": null,
+        "actionRequired": "Document collaborative-device inventory and user-control indicators."
+      },
+      "evidenceProduced": "governance_artifact_completion (ATTESTATION) on control_records for 3.13.12",
+      "linkedControlIds": ["3.13.12"],
+      "recommendedSignatoryRole": "system_owner",
+      "renewalCadenceDays": 365,
+      "c3paoExaminerNote": "Examiner will ask: 'Do users access CUI in conference rooms with smart equipment?' Customer presents: (1) endpoint inventory, (2) user-handling SOP, (3) this attestation."
+    },
+    {
+      "templateId": "na_no_voip",
+      "kind": "na_attestation",
+      "title": "No VoIP in Scope",
+      "summary": "Affirm that no VoIP infrastructure exists within the CUI boundary and that CUI is never transmitted by voice.",
+      "attestationStatement": "I attest that no VoIP infrastructure is within the CUI Vault boundary. No CUI is transmitted via voice communications. Any voice-conferencing tools used by personnel (e.g., Microsoft Teams) are out-of-band from the CUI data plane and are not used to discuss CUI in unencrypted form.",
+      "conditions": [
+        "No customer-managed VoIP gateways / SIP infrastructure in scope",
+        "No voice-call recording or storage of CUI",
+        "User training includes 'do not discuss CUI on uncontrolled voice channels'"
+      ],
+      "fallbackIfConditionFails": {
+        "controlIds": ["3.13.14"],
+        "fallbackDisposition": "partial",
+        "fallbackRegisterSchemaId": null,
+        "actionRequired": "Document VoIP architecture, encryption, and CUI-handling rules."
+      },
+      "evidenceProduced": "governance_artifact_completion (ATTESTATION) on control_records for 3.13.14",
+      "linkedControlIds": ["3.13.14"],
+      "recommendedSignatoryRole": "compliance_owner",
+      "renewalCadenceDays": 365,
+      "c3paoExaminerNote": "Examiner will ask: 'How do you protect CUI on voice channels?' Customer presents: (1) network inventory, (2) training register, (3) this attestation."
+    },
+    {
+      "templateId": "attest_no_onsite_cui_visitors",
+      "kind": "customer_attested_inherited",
+      "title": "No On-Site Visitors with CUI Access",
+      "summary": "Affirm that visitors to the customer's office locations do not have access to systems where CUI is processed; therefore visitor records inherit from Azure Government datacenter logs.",
+      "attestationStatement": "I attest that the customer's office locations are not where CUI is processed. CUI is accessed only from managed Windows endpoints via Azure Bastion; the endpoints display CUI but do not store it locally. No visitors to the customer's offices have access to the managed endpoints, the user accounts that can launch Bastion sessions, or any system component within the CUI boundary. Visitor records for the Azure Government datacenter are inherited from Microsoft. If on-site visitors gain access to in-scope endpoints, this attestation is void and 3.10.3 reverts to PARTIAL with a customer-side Visitor Log Register.",
+      "conditions": [
+        "Visitors are physically separated from in-scope endpoint workspaces",
+        "Visitor sign-in policy enforced at customer offices (separate from this attestation)",
+        "No visitor accounts on in-scope systems"
+      ],
+      "fallbackIfConditionFails": {
+        "controlIds": ["3.10.3"],
+        "fallbackDisposition": "partial",
+        "fallbackRegisterSchemaId": "visitor_log",
+        "actionRequired": "Activate the Visitor Log Register; document visitor entries with host, purpose, and area accessed."
+      },
+      "evidenceProduced": "governance_artifact_completion (ATTESTATION) on control_records for 3.10.3; control_records.implementationStatus updated to 'inherited' with inheritedFrom='Azure Government + customer attestation'",
+      "linkedControlIds": ["3.10.3"],
+      "recommendedSignatoryRole": "system_owner",
+      "renewalCadenceDays": 365,
+      "c3paoExaminerNote": "Examiner will ask: 'Could a visitor to your office see or interact with CUI?' Customer presents: (1) office floor plan / endpoint location, (2) visitor sign-in policy, (3) Azure FedRAMP CRM for datacenter visitors, (4) this attestation."
+    },
+    {
+      "templateId": "attest_no_alternate_work_sites",
+      "kind": "customer_attested_inherited",
+      "title": "No Alternate Work Sites for CUI Access",
+      "summary": "Affirm that all CUI access occurs from a managed environment with no telework or alternate work sites; therefore 3.10.6 inherits from Azure Government.",
+      "attestationStatement": "I attest that all access to the CUI Vault occurs from a managed Windows endpoint operated within a controlled environment (the customer's primary office or a defined alternate work site governed by a signed Remote Work Authorization). No casual telework or unmanaged alternate sites are permitted. Endpoints enforcement (Conditional Access requiring compliant device, full-disk encryption, screen-lock on inactivity) extends the CUI boundary to wherever the managed endpoint is used. If telework is permitted without signed Remote Work Authorizations, this attestation is void and 3.10.6 reverts to PARTIAL with the Remote Work Authorization Register.",
+      "conditions": [
+        "All in-scope endpoints are managed (Intune / Entra-joined with compliance policies)",
+        "Conditional Access blocks Bastion access from non-compliant devices",
+        "Either no telework, OR every teleworker has a signed Remote Work Authorization on file"
+      ],
+      "fallbackIfConditionFails": {
+        "controlIds": ["3.10.6"],
+        "fallbackDisposition": "partial",
+        "fallbackRegisterSchemaId": "access_authorization",
+        "actionRequired": "Activate the Remote Work Authorization Register; capture signed user agreements and physical-environment attestations."
+      },
+      "evidenceProduced": "governance_artifact_completion (ATTESTATION) on control_records for 3.10.6; control_records.implementationStatus updated to 'inherited' with inheritedFrom='Azure Government + customer attestation'",
+      "linkedControlIds": ["3.10.6"],
+      "recommendedSignatoryRole": "system_owner",
+      "renewalCadenceDays": 365,
+      "c3paoExaminerNote": "Examiner will ask: 'Where do users access CUI from? Do you have remote workers?' Customer presents: (1) Conditional Access policy requiring compliant devices, (2) Intune compliance reports, (3) Remote Work Authorization Register or this attestation, (4) Azure FedRAMP CRM for datacenter."
+    }
+  ]
+}
