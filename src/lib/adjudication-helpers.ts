@@ -6,11 +6,37 @@ import {
   governanceRegisterEntries,
   artifacts,
   governanceArtifactCompletions,
+  evidenceRuns,
+  evidenceFindings,
 } from "@/db/schema";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
 import { getCadenceRuleByRegisterId } from "@/data/cmmc/register-cadence-rules";
 import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
+import { ENCLAVE_73_NIST_IDS } from "@/lib/compliance/os-evidence-manifest";
+import { AZURE_ENTRA_15_CONTROL_IDS } from "@/lib/compliance/azure-entra-controls";
+import { controlIdToNist } from "@/lib/compliance/controlId";
+
+/**
+ * Controls that BOTH the OS pipeline and the Azure/Entra pipeline have a
+ * legitimate claim on (defense-in-depth, Bin 5 of the canonical partition).
+ * Each control's actual enforcement spans both layers — e.g. 3.13.5 is the
+ * Azure NSG, 3.5.3 is Entra Conditional Access — so OS evidence alone proves
+ * only half the story. These stay PARTIAL until BOTH pipelines have produced
+ * a passing finding for the control.
+ *
+ * Computed as OS_73 ∩ AZURE_15. As either set evolves (new validator checks,
+ * new OS-manifest entries) this constraint auto-updates without further code
+ * changes.
+ */
+export const NEEDS_BOTH_PIPELINES_CONTROL_IDS: ReadonlySet<string> = new Set(
+  AZURE_ENTRA_15_CONTROL_IDS.filter((id) => new Set(ENCLAVE_73_NIST_IDS).has(id))
+);
+
+/** True if OS evidence alone is insufficient — need cloud evidence too. */
+export function needsBothPipelines(controlId: string): boolean {
+  return NEEDS_BOTH_PIPELINES_CONTROL_IDS.has(controlId);
+}
 
 /**
  * CMMC-rigorous per-control adjudication helpers. Single source of truth for
@@ -52,6 +78,13 @@ export type AdjudicationContext = {
   provisionedRegisterKeys: Set<string>;
   artifactBackedRecordIds: Set<string>;
   attestationBackedRecordIds: Set<string>;
+  /**
+   * NIST-format control IDs (e.g. "3.13.5") with at least one PASS finding
+   * from an azure_entra-source evidence run. Used to enforce the "needs both
+   * pipelines" constraint for the 11 dual-coverage controls — see
+   * NEEDS_BOTH_PIPELINES_CONTROL_IDS.
+   */
+  cloudPipelineSatisfiedNistIds: Set<string>;
   intelMap: Map<
     string,
     { registerSchemaId: string | null; registerRequired: boolean }
@@ -135,6 +168,25 @@ export async function computeAdjudicationContext(
     for (const r of rows) attestationBackedRecordIds.add(r.controlRecordId);
   }
 
+  // Cloud pipeline (azure_entra) PASSes — used to gate the 11 OS+Azure
+  // dual-pipeline controls so they don't adjudicate on OS evidence alone.
+  const cloudPipelineSatisfiedNistIds = new Set<string>();
+  const cloudFindings = await db
+    .select({ controlId: evidenceFindings.controlId, pass: evidenceFindings.pass })
+    .from(evidenceFindings)
+    .innerJoin(evidenceRuns, eq(evidenceFindings.evidenceRunId, evidenceRuns.id))
+    .where(
+      and(
+        eq(evidenceRuns.organizationId, orgId),
+        eq(evidenceRuns.source, "azure_entra"),
+        eq(evidenceFindings.pass, true),
+      ),
+    );
+  for (const f of cloudFindings) {
+    // Findings store CMMC-format IDs (e.g. AC.L2-3.1.13); normalize to NIST.
+    cloudPipelineSatisfiedNistIds.add(controlIdToNist(f.controlId));
+  }
+
   const intelMap = new Map(
     CONTROL_INTELLIGENCE.map((c) => [
       c.controlId,
@@ -147,6 +199,7 @@ export async function computeAdjudicationContext(
     provisionedRegisterKeys,
     artifactBackedRecordIds,
     attestationBackedRecordIds,
+    cloudPipelineSatisfiedNistIds,
     intelMap,
   };
 }
@@ -193,6 +246,17 @@ export function isControlAdjudicated(
     r.implementationStatus === "implemented" ||
     r.implementationStatus === "assessed"
   ) {
+    // Defense-in-depth gate: 11 controls live in BOTH the OS pipeline and the
+    // Azure pipeline. OS evidence alone is not enough — the actual enforcement
+    // mechanism (NSG, Conditional Access, Key Vault, etc.) is on the Azure
+    // side. Stay PARTIAL until cloud evidence (validate_azure_entra) has also
+    // produced a passing finding.
+    if (
+      needsBothPipelines(r.controlId) &&
+      !ctx.cloudPipelineSatisfiedNistIds.has(r.controlId)
+    ) {
+      return false;
+    }
     if (r.policyDocRequired) {
       return (
         r.technicalStatus === "satisfied" &&
