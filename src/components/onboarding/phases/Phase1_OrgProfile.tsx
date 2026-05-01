@@ -204,17 +204,12 @@ export function Phase1_OrgProfile({ initialData, seed, onComplete }: Phase1Props
           <p className="text-xs text-[#6B7280] font-mono mb-2 uppercase tracking-wider">
             Information System Security Officer (ISSO)
           </p>
-          <label className="flex items-center gap-2 mb-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={mactechIsso}
-              onChange={(e) => setMactechIsso(e.target.checked)}
-              className="w-4 h-4 accent-[#0EA5E9]"
-            />
-            <span className="text-sm text-[#94A3B8] font-mono">
-              MacTech Solutions LLC serves as ISSO under the MSP agreement
-            </span>
-          </label>
+          <p className="text-xs text-[#94A3B8] font-mono mb-3 leading-relaxed">
+            The ISSO is responsible for the day-to-day security posture of your
+            CUI Vault. By default, you designate someone in your organization
+            (often the CISO, security manager, or IT director). A C3PAO will
+            interview this person about your control implementation.
+          </p>
           {!mactechIsso && (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
@@ -223,6 +218,7 @@ export function Phase1_OrgProfile({ initialData, seed, onComplete }: Phase1Props
                   type="text"
                   value={issoName}
                   onChange={(e) => setIssoName(e.target.value)}
+                  placeholder="Jane Smith"
                   className="w-full bg-[#0D1117] border border-[#1E2D3D] text-white px-3 py-2 text-sm font-mono focus:outline-none focus:border-[#0EA5E9]"
                 />
               </div>
@@ -232,11 +228,26 @@ export function Phase1_OrgProfile({ initialData, seed, onComplete }: Phase1Props
                   type="email"
                   value={issoEmail}
                   onChange={(e) => setIssoEmail(e.target.value)}
+                  placeholder="security@yourcompany.com"
                   className="w-full bg-[#0D1117] border border-[#1E2D3D] text-white px-3 py-2 text-sm font-mono focus:outline-none focus:border-[#0EA5E9]"
                 />
               </div>
             </div>
           )}
+          <label className="flex items-start gap-2 mt-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={mactechIsso}
+              onChange={(e) => setMactechIsso(e.target.checked)}
+              className="w-4 h-4 mt-0.5 accent-[#0EA5E9]"
+            />
+            <span className="text-xs text-[#94A3B8] font-mono leading-relaxed">
+              <span className="text-[#94A3B8]">Optional:</span> we have a separately-signed
+              MSP agreement designating MacTech Solutions LLC as our ISSO. (Only check this if
+              your organization has an active vISSO/MSP contract with MacTech — leaving it
+              unchecked keeps your organization as the ISSO of record.)
+            </span>
+          </label>
         </div>
 
         <div>

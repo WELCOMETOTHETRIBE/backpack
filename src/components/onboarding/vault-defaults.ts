@@ -3,15 +3,18 @@
 //
 // Pre-fills onboarding fields for the MacTech CUI Vault deployment model:
 // a single Windows Server 2025 Datacenter VM running in Microsoft Azure
-// Government, managed by MacTech Solutions LLC under a MSP/ISSO agreement.
+// Government.
 //
 // These values are STARTING POINTS — every field remains editable, so
-// customers with unique configurations (different CUI categories, self-
-// managed ISSO, etc.) can override.
+// customers with unique configurations (different CUI categories, etc.)
+// can override.
 //
 // Design rule: if a default would be wrong for a non-trivial portion of
 // customers, leave it empty. We pre-fill only what's architecturally
-// identical across every MacTech Vault deployment.
+// identical across every MacTech Vault deployment. ISSO designation is
+// expressly NOT pre-filled — that's a customer governance decision and
+// defaults to the customer naming their own ISSO; the MacTech-as-ISSO
+// MSP service is an explicit opt-in with a separate signed agreement.
 // ────────────────────────────────────────────────────────────────────────────
 
 export interface Phase1Defaults {
@@ -43,7 +46,11 @@ export function getPhase1Defaults(orgName: string | null | undefined): Phase1Def
       `contractors in fulfillment of active contracts requiring NIST SP 800-171 Rev 2`,
       `and CMMC Level 2 compliance.`,
     ].join(" "),
-    mactechIsso: true, // MacTech Vault customers typically use the MSP ISSO by default
+    // The customer is the ISSO by default — that's the C3PAO-defensible
+    // and accountability-correct posture. MacTech-as-ISSO is an MSP
+    // service contract, separate from platform onboarding, and must be
+    // explicitly opted into by the customer.
+    mactechIsso: false,
   };
 }
 

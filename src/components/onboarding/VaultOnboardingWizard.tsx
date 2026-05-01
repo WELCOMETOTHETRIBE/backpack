@@ -28,6 +28,36 @@ const LAST_PHASE_INDEX = PHASES.length - 1; // 4
  * POST /api/onboarding/complete. All fields on the endpoint are optional, so
  * we pass through what we have and let the server fill in the rest.
  */
+/**
+ * Surface Zod-level validation details from an API error response into a
+ * human-readable string. The wizard's API routes wrap their bodies in a
+ * standard { error, details } shape; details is the array of Zod issues
+ * (path + message). Without surfacing that, customers see only "Invalid
+ * request" and have no way to know which field is wrong.
+ */
+function formatApiError(err: unknown, fallback: string): string {
+  if (!err || typeof err !== "object") return fallback;
+  const e = err as { error?: unknown; details?: unknown };
+  const baseMsg = typeof e.error === "string" ? e.error : fallback;
+  if (Array.isArray(e.details) && e.details.length > 0) {
+    const issues = e.details
+      .map((issue: unknown) => {
+        if (!issue || typeof issue !== "object") return null;
+        const i = issue as { path?: unknown; message?: unknown };
+        const path = Array.isArray(i.path) ? i.path.join(".") : "";
+        const msg = typeof i.message === "string" ? i.message : "";
+        if (!msg) return null;
+        return path ? `${path}: ${msg}` : msg;
+      })
+      .filter((s): s is string => !!s)
+      .slice(0, 3);
+    if (issues.length > 0) {
+      return `${baseMsg} — ${issues.join("; ")}`;
+    }
+  }
+  return baseMsg;
+}
+
 function mapPhaseDataToCompleteBody(
   phaseData: Record<string, unknown>
 ): Record<string, unknown> {
@@ -133,8 +163,8 @@ export function VaultOnboardingWizard({
           body: JSON.stringify({ phase, data, complete }),
         });
         if (!res.ok) {
-          const err = await res.json();
-          setSaveError(err.error ?? "Failed to save progress");
+          const err = await res.json().catch(() => ({}));
+          setSaveError(formatApiError(err, "Failed to save progress"));
         }
       } catch {
         setSaveError("Network error — progress may not have been saved");
@@ -170,8 +200,10 @@ export function VaultOnboardingWizard({
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
           setSaveError(
-            err.error ??
+            formatApiError(
+              err,
               "Onboarding completed but post-setup seeding failed. Please contact support."
+            )
           );
           return;
         }
