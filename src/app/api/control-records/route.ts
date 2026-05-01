@@ -5,7 +5,9 @@ import { eq, and, like, desc, inArray } from "drizzle-orm";
 import { requireOrg, requireRole } from "@/lib/auth";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { controlIdToNist } from "@/lib/compliance/controlId";
-import { syncOrgAzureInheritedControls } from "@/lib/compliance/azure-inherited-controls";
+// syncOrgAzureInheritedControls intentionally NOT imported -- inherited flips
+// happen via cloud evidence upload or the manual /dashboard/boundary button,
+// never as a side effect of reading control records.
 import { getSatisfactionSources } from "@/lib/compliance/satisfaction-sources";
 import { isHybridControl } from "@/lib/compliance/control-bins";
 import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
@@ -48,12 +50,19 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: message }, { status: 401 });
   }
 
-  try {
-    // Ensure 3.10.1–3.10.5 inherited status is in sync with any Azure boundary (non-blocking)
-    await syncOrgAzureInheritedControls(db, orgId);
-  } catch {
-    // Sync failure should not block listing control records
-  }
+  // INTENTIONALLY DO NOT auto-sync inherited controls on read.
+  //
+  // A previous version called syncOrgAzureInheritedControls() here, which
+  // flipped 3.10.1, .2, .4, .5 to status='inherited' on every dashboard
+  // page load. That contradicted the "0/110 adjudicated post-onboarding"
+  // architecture (commit c8e5453) -- a fresh org would land on the
+  // dashboard and see 4 controls already inherited before uploading any
+  // evidence. Adjudication progresses with EVIDENCE, not with reads.
+  //
+  // Inherited controls flip when the customer uploads cloud evidence
+  // (validate_azure_entra report verifies the boundary is actually on
+  // Azure Gov), or via the manual "Re-sync inherited controls" button on
+  // /dashboard/boundary.
 
   try {
     const { searchParams } = new URL(req.url);

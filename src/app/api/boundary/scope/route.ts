@@ -3,7 +3,9 @@ import { db } from "@/db";
 import { organizations } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireOrg, requireRole } from "@/lib/auth";
-import { syncInheritedControls } from "@/lib/boundary/sync-inherited-controls";
+// syncInheritedControls intentionally NOT imported -- inherited flips happen
+// via cloud evidence upload or the manual /dashboard/boundary button, never
+// as a side effect of completing the org-profile form.
 
 /** GET /api/boundary/scope — returns current SSP scoping fields for the org */
 export async function GET() {
@@ -58,14 +60,14 @@ export async function POST(req: Request) {
 
     await db.update(organizations).set(patch).where(eq(organizations.id, orgId));
 
-    // On first completion, automatically sync inherited controls from external providers.
-    // This is the integration that makes the boundary wizard actionable.
-    let syncResult = null;
-    if (body.markComplete === true && user.id) {
-      syncResult = await syncInheritedControls(orgId, user.id).catch(() => null);
-    }
-
-    return NextResponse.json({ ok: true, syncResult });
+    // INTENTIONALLY do not auto-sync inherited controls on boundary
+    // completion. Inherited claims (3.10.x from Azure FedRAMP, plus any
+    // external service providers the customer declared) only become
+    // adjudicated when actual evidence is in -- via the cloud evidence
+    // upload (validate_azure_entra report proves the customer is on Azure
+    // Gov) or the manual "Re-sync inherited controls" button on
+    // /dashboard/boundary. Onboarding leaves 0/110 adjudicated by design.
+    return NextResponse.json({ ok: true, syncResult: null });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Server error";
     return NextResponse.json({ error: msg }, { status: 401 });
