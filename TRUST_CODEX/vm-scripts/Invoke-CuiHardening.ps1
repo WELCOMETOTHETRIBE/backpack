@@ -20,7 +20,7 @@ param(
   [bool]$DisableRdp  = $false,
   [bool]$DisableSmb1 = $true,
   [int]$InactivityTimeoutSecs = 900,
-  # RDP session limits (AC.L2-3.1.11): idle → disconnect; disconnected → end session (re-auth on reconnect). Times in minutes/hours.
+  # RDP session limits (AC.L2-3.1.11): idle -> disconnect; disconnected -> end session (re-auth on reconnect). Times in minutes/hours.
   [int]$RdpMaxIdleMinutes = 15,
   [int]$RdpMaxDisconnectionMinutes = 5,
   [int]$RdpMaxConnectionHours = 8,
@@ -217,6 +217,16 @@ Set-Reg "HKLM:\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters" "
 ### UAC baseline
 Set-Reg "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" "ConsentPromptBehaviorAdmin" 2
 Set-Reg "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" "PromptOnSecureDesktop" 1
+# AC.L2-3.1.7 -- Standard users cannot elevate (silent deny on UAC prompt).
+# 0 = Automatically deny elevation requests for standard users; this prevents
+# privileged-function execution by non-privileged accounts at the OS level.
+Set-Reg "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" "ConsentPromptBehaviorUser" 0
+
+### AU.L2-3.3.4 -- Halt the system on audit logging failure.
+# 1 = halt; 2 = halt + disable non-admin logon. We use 1 (halt) as the
+# pilot-safe default so we don't lock ourselves out if the Security log
+# fills under unusual conditions; flip to 2 for production-strict.
+Set-Reg "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa" "CrashOnAuditFail" 1
 
 ### AppLocker baseline (CM.L2-3.4.7/3.4.8/3.4.9 support)
 # Goal: ensure an evidence-friendly baseline policy exists without risking lockout.
@@ -236,21 +246,37 @@ if ($Mode -eq "pilot_strict" -and $EnableAppLocker) {
 
       $curXml = ""
       try { $curXml = (Get-AppLockerPolicy -Effective -Xml) 2>&1 | Out-String } catch { $curXml = "" }
-      if (-not ($curXml -match '(?is)<RuleCollection\\b')) {
+      if (-not ($curXml -match '(?is)<RuleCollection\b')) {
         try {
           $xml = New-AppLockerPolicy -AllowWindows -RuleType Path -User Everyone -Xml
           # Make policy enforcement explicit (still based on safe allow rules).
-          $xml = $xml -replace 'EnforcementMode=\"NotConfigured\"', 'EnforcementMode=\"Enabled\"'
+          $xml = $xml -replace 'EnforcementMode="NotConfigured"', 'EnforcementMode="Enabled"'
           $xmlPath = Join-Path $HardeningRoot "applocker-baseline.xml"
           Set-Content -LiteralPath $xmlPath -Value $xml -Encoding UTF8
           # Set-AppLockerPolicy expects a path to an XML policy file.
           Set-AppLockerPolicy -XmlPolicy $xmlPath -ErrorAction Stop
-          Write-Log "AppLocker baseline policy applied (AllowWindows Path rules)" "CHANGE"
+          Write-Log "AppLocker baseline policy applied (AllowWindows Path rules, Enforced)" "CHANGE"
         } catch {
           Write-Log "AppLocker policy apply failed (continuing): $($_.Exception.Message)" "WARN"
         }
       } else {
-        Write-Log "AppLocker policy already present (RuleCollection detected); no changes made"
+        # CM.L2-3.4.9 -- ensure existing policy is in EnforcementMode=Enabled,
+        # not AuditOnly. AuditOnly logs but doesn't block -- assessor sees the
+        # rules but no actual control. Flip every RuleCollection to Enabled.
+        $needsFlip = ($curXml -match 'EnforcementMode="(AuditOnly|NotConfigured)"')
+        if ($needsFlip) {
+          try {
+            $newXml = $curXml -replace 'EnforcementMode="(AuditOnly|NotConfigured)"', 'EnforcementMode="Enabled"'
+            $xmlPath = Join-Path $HardeningRoot "applocker-baseline.xml"
+            Set-Content -LiteralPath $xmlPath -Value $newXml -Encoding UTF8
+            Set-AppLockerPolicy -XmlPolicy $xmlPath -ErrorAction Stop
+            Write-Log "AppLocker existing policy flipped from AuditOnly/NotConfigured to Enabled" "CHANGE"
+          } catch {
+            Write-Log "AppLocker enforcement flip failed (continuing): $($_.Exception.Message)" "WARN"
+          }
+        } else {
+          Write-Log "AppLocker policy already present and in Enabled mode; no changes made"
+        }
       }
     }
   } catch {
@@ -269,7 +295,7 @@ Set-Reg "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Control Panel\Desktop" "Scree
 Set-Reg "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Control Panel\Desktop" "ScreenSaveTimeOut" ([string]$InactivityTimeoutSecs)
 
 ### Authentication UX hardening (IA.L2-3.5.11)
-# Obscure authentication feedback (don’t show last username)
+# Obscure authentication feedback (don't show last username)
 Set-Reg "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" "DontDisplayLastUserName" 1
 
 ### Password/NTLM posture (IA.L2-3.5.10 supporting control)
@@ -526,7 +552,7 @@ if ($Mode -eq "pilot_strict" -and $EnableBitLocker) {
 ### Portable storage baseline (AC.L2-3.1.21 + MP.L2-3.8.7 support)
 Set-Reg "HKLM:\SYSTEM\CurrentControlSet\Services\USBSTOR" "Start" 4
 
-### Windows Update services (SI.L2-3.14.1 support) — ensure not disabled
+### Windows Update services (SI.L2-3.14.1 support) -- ensure not disabled
 try {
   if ($WhatIf) {
     Write-Log "WHATIF Would ensure wuauserv/bits StartType not Disabled" "WHATIF"
