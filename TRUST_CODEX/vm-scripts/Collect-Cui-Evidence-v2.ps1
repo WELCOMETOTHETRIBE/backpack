@@ -565,9 +565,64 @@ $results += Run-And-Capture -Name "windows_update_services" -OutFile (Join-Path 
 }
 
 # -----------------------------
-# Azure inheritance placeholders (optional; keep compatible with your portal)
+# Azure inheritance / shared-responsibility artifact (AC.L2-3.1.1 evidence).
+# Inlined here so every evidence run produces a self-contained azure-inheritance.json
+# at azure/azure-inheritance.json -- no separate Export-AzureInheritedControls
+# step needed. The validator's AZ-INHERITANCE check parses this file's
+# boundary_statement field.
 # -----------------------------
 Write-Text -Path (Join-Path $dirAzure "azure-artifacts-source.txt") -Content "Populate with Azure exports (NSG, policy assignments, disk encryption, Entra CA) in your Governance Portal for HYBRID evidence."
+
+$azureInheritance = [pscustomobject]@{
+  schema = "mactech.codex.azure_inheritance"
+  version = 2
+  generated_utc = ($now.ToUniversalTime().ToString("o"))
+  run_id = $RunId
+  computer = $env:COMPUTERNAME
+  boundary_statement = (@"
+The enclave runs on Microsoft Azure Government (FedRAMP High Authorized).
+Azure provides physical datacenter security and underlying platform operations
+for hosted infrastructure components within the cloud provider boundary.
+
+Customer (MacTech CUI Vault tenant) remains responsible for all enclave
+configuration and operation: identity and authentication configuration
+(Entra tenant, roles, administrative access paths via Conditional Access),
+network rules and segmentation (NSG, vNet topology), OS hardening (DISA STIG
+baseline + Defender), logging/monitoring/alerting and review processes
+(Azure Monitor + Sentinel + this evidence run), governance controls
+(MacTech Governance Bundle policies + SOPs), incident response processes
+(IR tabletop AAR), and evidence retention.
+
+Inherited/shared claims are defensible only when: (1) the boundary is
+explicit, (2) responsibilities are assigned per control, (3) provider and
+customer evidence expectations are documented, (4) evidence snapshots are
+retained, (5) SRM review is recorded (initial + annual + per material change).
+"@).Trim()
+  inherited_controls = @("3.10.1","3.10.2","3.10.4","3.10.5")
+  customer_attested_inherited_controls = @("3.10.3","3.10.6")
+  azure_responsibility = @{
+    physical_security = "Microsoft Azure FedRAMP High SSP citation"
+    facility_access = "Microsoft Azure FedRAMP High SSP citation"
+    media_destruction = "Microsoft Azure FedRAMP High SSP citation"
+  }
+  customer_responsibility = @(
+    "Identity & access (Entra) configuration",
+    "Network rules (NSG)",
+    "OS hardening (DISA STIG)",
+    "Logging / SIEM operation",
+    "Governance documentation upkeep",
+    "Evidence retention"
+  )
+  provider_evidence_required = @(
+    "Microsoft Azure FedRAMP High Authorization (provider attestation, retained as PDF)"
+  )
+  customer_evidence_required = @(
+    "SRM review record (initial + annual + per material change), signed by ISSO",
+    "Customer-side configuration exports (this evidence bundle)",
+    "Customer operational records (register entries, IR tabletop AAR, attestations)"
+  )
+}
+Write-Json -Path (Join-Path $dirAzure "azure-inheritance.json") -Object $azureInheritance
 
 # -----------------------------
 # Control mapping stub (portal-friendly)

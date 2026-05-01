@@ -244,28 +244,35 @@ try {
     -EvidenceHint "interactive-logon-notice.txt"
 }
 
-### Azure inheritance / boundary artifact present (shared responsibility evidence)
+### Azure inheritance / boundary artifact present (shared responsibility evidence).
+### Collector v2 writes azure/azure-inheritance.json inline; check both that path
+### and the legacy bundle-root location for backward compat with older bundles.
 try {
-  $ok = (Has-EvidenceFile "azure-inheritance.json")
-  $obs = if ($ok) { "azure-inheritance.json present" } else { "azure-inheritance.json missing" }
+  $candidatePaths = @("azure/azure-inheritance.json", "azure-inheritance.json")
+  $foundPath = $null
+  foreach ($p in $candidatePaths) {
+    if (Has-EvidenceFile $p) { $foundPath = $p; break }
+  }
+  $ok = ($null -ne $foundPath)
+  $obs = if ($ok) { "$foundPath present" } else { "azure-inheritance.json missing (checked: $($candidatePaths -join ', '))" }
   if ($ok) {
     try {
-      $raw = Get-Content -LiteralPath (Get-EvidenceFilePath "azure-inheritance.json") -Raw -ErrorAction Stop
+      $raw = Get-Content -LiteralPath (Get-EvidenceFilePath $foundPath) -Raw -ErrorAction Stop
       $obj = $raw | ConvertFrom-Json -ErrorAction Stop
       $b = if ($obj -and $obj.boundary_statement) { [string]$obj.boundary_statement } else { "" }
-      if ([string]::IsNullOrWhiteSpace($b)) { $ok = $false; $obs = "azure-inheritance.json invalid (missing boundary_statement)" }
+      if ([string]::IsNullOrWhiteSpace($b)) { $ok = $false; $obs = "$foundPath invalid (missing boundary_statement)" }
     } catch {
       $ok = $false
-      $obs = "azure-inheritance.json unreadable/invalid JSON"
+      $obs = "$foundPath unreadable/invalid JSON"
     }
   }
   Add-Check -Id "AZ-INHERITANCE" -Control "AC.L2-3.1.1" -Title "Azure inheritance/shared responsibility artifact present (boundary statement recorded)" `
-    -Pass $ok -Observed $obs -Expected "azure-inheritance.json present with boundary_statement" `
-    -EvidenceHint "azure-inheritance.json (copied into evidence bundle)"
+    -Pass $ok -Observed $obs -Expected "azure/azure-inheritance.json (or root) present with boundary_statement" `
+    -EvidenceHint "azure/azure-inheritance.json (collector v2 inlines this)"
 } catch {
   Add-Check -Id "AZ-INHERITANCE" -Control "AC.L2-3.1.1" -Title "Azure inheritance/shared responsibility artifact present (boundary statement recorded)" `
     -Pass $false -Observed ("ERROR: " + $_.Exception.Message) -Expected "azure-inheritance.json parseable" `
-    -EvidenceHint "azure-inheritance.json"
+    -EvidenceHint "azure/azure-inheritance.json"
 }
 
 ### Machine inactivity limit set (AC 3.1.11 support)
