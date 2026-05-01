@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useTransition } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   CheckCircle2,
   Circle,
@@ -8,11 +8,10 @@ import {
   ExternalLink,
   FileSignature,
   Info,
-  Loader2,
   ShieldCheck,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import type {
   OutstandingControlEntry,
   CustomerAttestedInherited,
@@ -35,13 +34,35 @@ export interface WizardCustomerAttestedCard extends CustomerAttestedInherited {
 }
 
 const BUCKETS = {
-  A: { label: "Already running", subtitle: "Confirm evidence is flowing", color: "emerald" },
-  B: { label: "Register entries", subtitle: "Make entries on cadence", color: "amber" },
-  C: { label: "Sign-off needed", subtitle: "One-time architectural attestations", color: "indigo" },
-  E: { label: "N/A attestations", subtitle: "5-minute one-click sign-offs", color: "slate" },
+  A: {
+    label: "Training & IR tabletop",
+    subtitle: "Push training records + run IR tabletop; evidence auto-attaches",
+    color: "emerald",
+  },
+  B: {
+    label: "Register entries",
+    subtitle: "Make entries on cadence",
+    color: "amber",
+  },
+  C: {
+    label: "Sign-off needed",
+    subtitle: "One-time architectural attestations",
+    color: "indigo",
+  },
+  E: {
+    label: "N/A attestations",
+    subtitle: "5-minute one-click sign-offs",
+    color: "slate",
+  },
 } as const;
 
 type BucketKey = keyof typeof BUCKETS;
+
+const VALID_BUCKETS: readonly BucketKey[] = ["A", "B", "C", "E"];
+
+function isValidBucket(value: string | null): value is BucketKey {
+  return value !== null && (VALID_BUCKETS as readonly string[]).includes(value);
+}
 
 export function OutstandingWizard({
   cards,
@@ -52,7 +73,23 @@ export function OutstandingWizard({
   customerAttestedCards: WizardCustomerAttestedCard[];
   signatoryName: string;
 }) {
-  const [activeBucket, setActiveBucket] = useState<BucketKey | "ALL">("ALL");
+  // Deep-link support: PathTo110Widget chips link here with ?bucket=A|B|C|E.
+  // Read it on mount so the user lands on the right tab immediately.
+  const searchParams = useSearchParams();
+  const initialBucket: BucketKey | "ALL" = (() => {
+    const v = searchParams.get("bucket");
+    return isValidBucket(v) ? v : "ALL";
+  })();
+  const [activeBucket, setActiveBucket] = useState<BucketKey | "ALL">(initialBucket);
+
+  // Keep tab in sync if the user navigates between bucket-filtered URLs in
+  // the same session (e.g. clicks a chip while already on this page).
+  useEffect(() => {
+    const v = searchParams.get("bucket");
+    if (isValidBucket(v)) setActiveBucket(v);
+    else if (v === null) setActiveBucket("ALL");
+  }, [searchParams]);
+
   const [activeTemplate, setActiveTemplate] = useState<{
     template: AttestationTemplate;
     controlId: string;

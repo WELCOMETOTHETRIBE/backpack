@@ -80,37 +80,54 @@ export async function PathTo110Widget({ orgId }: { orgId: string }) {
       </div>
 
       {/* Effort breakdown — DYNAMIC open-per-bucket counts (not snapshot
-          constants). Format: "X of Y" so the customer sees both the live
+          constants). Each chip is a deep-link into the wizard, filtered to
+          that bucket. Format: "X of Y" so the customer sees both the live
           state and the bucket size. When all of a bucket is closed, the chip
-          displays a green check and the "Done" label. */}
+          turns emerald-tinted with explicit "All done" copy. */}
       <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <BucketChip
+          href="/dashboard/readiness/outstanding?bucket=A"
           icon={<CheckCircle2 className="h-4 w-4 text-emerald-600" />}
-          label="Already running"
+          label="Training & IR tabletop"
           open={buckets.open.A}
           total={buckets.total.A}
-          subtitle={buckets.open.A === 0 ? "All evidence flowing" : "Confirm evidence is flowing"}
+          subtitle={
+            buckets.open.A === 0
+              ? "All flows ingested"
+              : "Push training + run tabletop"
+          }
         />
         <BucketChip
+          href="/dashboard/readiness/outstanding?bucket=B"
           icon={<Clock className="h-4 w-4 text-amber-600" />}
           label="Register entries"
           open={buckets.open.B}
           total={buckets.total.B}
-          subtitle={buckets.open.B === 0 ? "All registers filled" : "15–30 min each, on cadence"}
+          subtitle={
+            buckets.open.B === 0
+              ? "All registers filled"
+              : "15–30 min each, on cadence"
+          }
         />
         <BucketChip
+          href="/dashboard/readiness/outstanding?bucket=C"
           icon={<FileSignature className="h-4 w-4 text-indigo-600" />}
           label="Sign-off needed"
           open={buckets.open.C}
           total={buckets.total.C}
-          subtitle={buckets.open.C === 0 ? "All signed" : "5 min each, one-time"}
+          subtitle={
+            buckets.open.C === 0 ? "All signed" : "5 min each, one-time"
+          }
         />
         <BucketChip
+          href="/dashboard/readiness/outstanding?bucket=E"
           icon={<FileSignature className="h-4 w-4 text-slate-500" />}
           label="N/A attestations"
           open={buckets.open.E}
           total={buckets.total.E}
-          subtitle={buckets.open.E === 0 ? "All attested" : "5 min each, one-click"}
+          subtitle={
+            buckets.open.E === 0 ? "All attested" : "5 min each, one-click"
+          }
         />
       </div>
 
@@ -185,12 +202,14 @@ function PathDescription({
 }
 
 function BucketChip({
+  href,
   icon,
   label,
   open,
   total,
   subtitle,
 }: {
+  href: string;
   icon: React.ReactNode;
   label: string;
   open: number;
@@ -199,20 +218,26 @@ function BucketChip({
 }) {
   const allDone = open === 0 && total > 0;
   return (
-    <div
-      className={`rounded-lg border p-3 ${
-        allDone ? "border-emerald-200 bg-emerald-50/50" : "border-slate-200 bg-white/70"
+    <Link
+      href={href}
+      className={`group block rounded-lg border p-3 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${
+        allDone
+          ? "border-emerald-200 bg-emerald-50/50 hover:border-emerald-300 hover:bg-emerald-50"
+          : "border-slate-200 bg-white/70 hover:border-blue-300 hover:bg-white hover:shadow-sm"
       }`}
     >
-      <div className="flex items-center gap-1.5">
-        {icon}
-        <span className="text-xs font-medium text-slate-700">{label}</span>
+      <div className="flex items-center justify-between gap-1.5">
+        <div className="flex items-center gap-1.5">
+          {icon}
+          <span className="text-xs font-medium text-slate-700">{label}</span>
+        </div>
+        <ArrowRight className="h-3 w-3 text-slate-400 opacity-0 transition group-hover:translate-x-0.5 group-hover:opacity-100" />
       </div>
       <div className="mt-1 flex items-baseline gap-1">
         <span className="text-xl font-semibold text-slate-900">{open}</span>
         <span className="text-xs text-slate-500">of {total}</span>
       </div>
       <div className="text-[11px] leading-tight text-slate-500">{subtitle}</div>
-    </div>
+    </Link>
   );
 }
