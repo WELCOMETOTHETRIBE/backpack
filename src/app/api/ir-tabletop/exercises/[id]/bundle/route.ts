@@ -2,8 +2,10 @@ import { NextResponse, type NextRequest } from "next/server"
 import { and, desc, eq, inArray } from "drizzle-orm"
 import { db } from "@/db"
 import {
+  controlRecords,
   evidenceFiles,
   evidenceRuns,
+  governanceArtifactCompletions,
   irAars,
   irCorrectiveActions,
   irExerciseBundles,
@@ -289,7 +291,88 @@ export async function POST(
         })
         .returning()
 
-      return { run, bundle }
+      // ─── Auto-attach governance_artifact_completions to linked controls ──
+      // For every NIST control linked to this exercise via ir_exercise_controls,
+      // upsert a governance_artifact_completion row (Lane 4 evidence) so the
+      // Outstanding Controls Wizard can flip 3.6.1/3.6.2/3.6.3 to "closed"
+      // automatically once the bundle is archived. Adjacent controls (AU/AC/
+      // CP/SI marked is_primary=false) also get attached because the AAR
+      // demonstrably exercised them — but they only flip if other lane
+      // requirements are also met (handled by isControlAdjudicated()).
+      const linkedControls = await tx
+        .select({ controlId: irExerciseControls.controlId })
+        .from(irExerciseControls)
+        .where(eq(irExerciseControls.exerciseId, id))
+
+      const completionInserts: { controlId: string; completionId: string }[] = []
+      for (const link of linkedControls) {
+        // Resolve or lazy-create the org's control_record
+        let [record] = await tx
+          .select({ id: controlRecords.id })
+          .from(controlRecords)
+          .where(
+            and(
+              eq(controlRecords.organizationId, auth.organizationId),
+              eq(controlRecords.controlId, link.controlId)
+            )
+          )
+          .limit(1)
+        if (!record) {
+          ;[record] = await tx
+            .insert(controlRecords)
+            .values({
+              organizationId: auth.organizationId,
+              controlId: link.controlId,
+            })
+            .returning({ id: controlRecords.id })
+        }
+
+        // Upsert a completion row keyed on (controlRecordId, artifactLabel).
+        // The label embeds the bundle id so the same exercise's later bundles
+        // (versions) each get their own completion row, and re-archiving the
+        // same bundle (same id) is idempotent.
+        const artifactLabel = `ir_tabletop_bundle:${bundle.id}`
+        const [completion] = await tx
+          .insert(governanceArtifactCompletions)
+          .values({
+            organizationId: auth.organizationId,
+            controlRecordId: record.id,
+            artifactLabel,
+            artifactType: "ATTESTATION",
+            valueText: `IR tabletop AAR archived as bundle ${bundle.id} (manifest sha256 ${body.manifestSha256.slice(0, 16)}…). Exercise ${id}, version ${body.bundleVersion}.`,
+            attestedBy: auth.userId ?? null,
+            attestedAt: new Date(),
+          })
+          .onConflictDoUpdate({
+            target: [
+              governanceArtifactCompletions.controlRecordId,
+              governanceArtifactCompletions.artifactLabel,
+            ],
+            set: {
+              valueText: `IR tabletop AAR archived as bundle ${bundle.id} (manifest sha256 ${body.manifestSha256.slice(0, 16)}…). Exercise ${id}, version ${body.bundleVersion}.`,
+              attestedAt: new Date(),
+              updatedAt: new Date(),
+            },
+          })
+          .returning({ id: governanceArtifactCompletions.id })
+
+        // Stamp lastValidationDate on the control record so the readiness
+        // checklist's cadence math reflects the exercise.
+        await tx
+          .update(controlRecords)
+          .set({
+            lastValidationDate: new Date(),
+            updatedAt: new Date(),
+          })
+          .where(eq(controlRecords.id, record.id))
+
+        completionInserts.push({
+          controlId: link.controlId,
+          completionId: completion.id,
+        })
+      }
+
+      return { run, bundle, completionInserts }
     })
 
     await logIrAuditEvent({
@@ -308,6 +391,8 @@ export async function POST(
         snapshotFindingCount: stateSnapshot.findings.length,
         bytesArchived,
         storageDriver,
+        completionsAttached: result.completionInserts.length,
+        completionControls: result.completionInserts.map((c) => c.controlId),
       },
       req,
     })

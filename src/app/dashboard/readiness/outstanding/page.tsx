@@ -8,8 +8,11 @@ import {
   governanceArtifactCompletions,
   governanceRegisterEntries,
   governanceRegisters,
+  irExerciseBundles,
+  irExerciseControls,
+  irExercises,
 } from "@/db/schema";
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and, inArray, desc } from "drizzle-orm";
 import {
   OUTSTANDING_36_CONTROL_IDS,
   OUTSTANDING_CLOSE_PATHS,
@@ -95,7 +98,38 @@ export default async function OutstandingPage() {
     completionsByRecordId.set(c.controlRecordId, arr);
   }
 
-  // 3) provisioned registers + final-entry counts (for Bucket B controls)
+  // 3) IR tabletop bundles within the last 12 months for this org. The
+  //    presence of any archived bundle covering 3.6.x is the authoritative
+  //    "tabletop ran" signal — closes Bucket A 3.6.1/3.6.2/3.6.3 cards.
+  const TWELVE_MONTHS_MS = 365 * 24 * 60 * 60 * 1000;
+  const cutoff = new Date(Date.now() - TWELVE_MONTHS_MS);
+  const irBundleControlsRecent = await db
+    .select({
+      controlId: irExerciseControls.controlId,
+      bundleId: irExerciseBundles.id,
+      timestampedAt: irExerciseBundles.timestampedAt,
+    })
+    .from(irExerciseBundles)
+    .innerJoin(
+      irExercises,
+      and(
+        eq(irExerciseBundles.exerciseId, irExercises.id),
+        eq(irExercises.organizationId, orgId)
+      )
+    )
+    .innerJoin(
+      irExerciseControls,
+      eq(irExerciseControls.exerciseId, irExercises.id)
+    );
+
+  const recentBundleControls = new Set<string>();
+  for (const row of irBundleControlsRecent) {
+    if (row.timestampedAt && new Date(row.timestampedAt) >= cutoff) {
+      recentBundleControls.add(row.controlId);
+    }
+  }
+
+  // 4) provisioned registers + final-entry counts (for Bucket B controls)
   const orgRegisters = await db
     .select({ id: governanceRegisters.id, registerKey: governanceRegisters.registerKey })
     .from(governanceRegisters)
@@ -162,16 +196,27 @@ export default async function OutstandingPage() {
       return "not_started";
     }
 
-    // Bucket A: closed if the underlying register has any final entry (training_completion / incident_log etc.)
+    // Bucket A: closed when the upstream system delivers evidence
     if (entry.bucket === "A") {
-      // Map control to its register key
-      let key: string | undefined;
-      if (entry.controlId.startsWith("3.2.")) key = "training_completion";
-      if (entry.controlId.startsWith("3.6.")) key = "incident_log";
-      if (key) {
-        const count = finalCounts.get(key) ?? 0;
+      // 3.6.x: an archived IR tabletop bundle in the last 12 months covering
+      // this control is the authoritative signal. Bundle archive auto-writes
+      // governance_artifact_completions for linked controls (see
+      // /api/ir-tabletop/exercises/[id]/bundle), so the completion lane will
+      // also be flipped — but we check the bundle directly to be explicit.
+      if (entry.controlId.startsWith("3.6.")) {
+        if (recentBundleControls.has(entry.controlId)) return "closed";
+        // Any bundle ever (even older than 12 months) → in_progress (overdue)
+        const everBundled = irBundleControlsRecent.some(
+          (b) => b.controlId === entry.controlId
+        );
+        return everBundled ? "in_progress" : "not_started";
+      }
+      // 3.2.x: training_completion register has any final entry
+      if (entry.controlId.startsWith("3.2.")) {
+        const count = finalCounts.get("training_completion") ?? 0;
         if (count > 0) return "closed";
-        if (registerIdByKey.has(key)) return "in_progress";
+        if (registerIdByKey.has("training_completion")) return "in_progress";
+        return "not_started";
       }
       return "not_started";
     }

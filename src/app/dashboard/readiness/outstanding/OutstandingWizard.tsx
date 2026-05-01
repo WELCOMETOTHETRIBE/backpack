@@ -269,17 +269,26 @@ function CloseControlCard({
       </Link>
     );
   } else if (card.bucket === "A") {
-    const href = card.controlId.startsWith("3.2.")
-      ? "/dashboard/training"
-      : "/dashboard/incident-response/tabletop";
+    // 3.2.x: in-app training records flow.
+    // 3.6.x: external IR tabletop on training.mactechsolutionsllc.com — the
+    // export package will push back to Codex via the bridge and auto-flip
+    // these cards to "closed" without manual action.
+    const isIr = card.controlId.startsWith("3.6.");
+    const href = isIr
+      ? (process.env.NEXT_PUBLIC_MACTECH_TRAINING_URL ??
+          "https://training.mactechsolutionsllc.com/ir-tabletop")
+      : "/dashboard/training";
+    const label = isIr ? "Schedule tabletop" : "Go to training";
     actionEl = (
-      <Link
+      <a
         href={href}
+        target={isIr ? "_blank" : undefined}
+        rel={isIr ? "noopener noreferrer" : undefined}
         className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
       >
-        Go to flow
+        {label}
         <ExternalLink className="h-3.5 w-3.5" />
-      </Link>
+      </a>
     );
   } else {
     actionEl = (
