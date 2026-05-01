@@ -1,12 +1,13 @@
 /**
  * Azure/Entra controls — NIST 800-171 Rev 2 controls validated by the
  * Azure/Entra evidence collector (`TRUST_CODEX/tools/export_azure_evidence.sh`
- * + `validate_azure_entra.py` v1.4+).
+ * + `validate_azure_entra.py` v1.5+).
  *
- * Reconciled 2026-05-01 to match the validator's 12-control coverage exactly.
- * Previous list was 7 controls but only 3 had actual technical validation;
- * the rest were aspirational claims. Honest control adjudication: every entry
- * here corresponds to a real check the validator runs against real artifacts.
+ * Reconciled 2026-05-01b: bumped 12 → 15 to close the Bin 8 gap. The validator
+ * now has dedicated checks for 3.1.18, 3.1.19, 3.8.9 — controls previously
+ * claimed IMPLEMENTED in CONTROL_INTELLIGENCE without any specific validator
+ * proof. Honest control adjudication: every entry here corresponds to a real
+ * check the validator runs against real artifacts.
  *
  * Used for: system boundary creation (cloud baseline), Azure/Entra baseline
  * display, the Outstanding Controls Wizard's "Has your Azure run gone in?"
@@ -14,9 +15,11 @@
  * vs claimed.
  */
 
-export const AZURE_ENTRA_12_CONTROL_IDS: string[] = [
+export const AZURE_ENTRA_15_CONTROL_IDS: string[] = [
   "3.1.13", // Cryptographic protection for remote access
   "3.1.14", // Control CUI flow / managed access control points
+  "3.1.18", // Control connection of mobile devices  ← NEW v1.5
+  "3.1.19", // Encrypt CUI on mobile devices         ← NEW v1.5
   "3.3.1",  // Audit record creation (Entra sign-in / audit log)
   "3.3.2",  // Unique user traceability
   "3.5.3",  // MFA for privileged accounts
@@ -24,18 +27,21 @@ export const AZURE_ENTRA_12_CONTROL_IDS: string[] = [
   "3.5.5",  // Prevent identifier reuse
   "3.5.6",  // Disable identifiers after inactivity
   "3.7.5",  // MFA for nonlocal maintenance
+  "3.8.9",  // Protect backups confidentiality       ← NEW v1.5
   "3.13.5", // Implement subnetworks (NSG)
   "3.13.8", // Cryptographic mechanisms for CUI in transit
   "3.13.10", // Cryptographic key management (Azure Key Vault)
 ];
 
 /**
- * Backwards-compat alias. The codebase originally had a 7-control list with
- * aspirational claims that the validator didn't fully cover. Existing call
- * sites still reference this name; pointing it at the reconciled 12 means
- * every consumer immediately gets the honest set.
+ * Backwards-compat aliases. The codebase originally had a 7-control list with
+ * aspirational claims, then 12 (reconciled to validator coverage), now 15
+ * (Bin 8 gap closed). Existing call sites still reference these names;
+ * pointing them at the reconciled set means every consumer immediately gets
+ * the honest list.
  */
-export const AZURE_ENTRA_7_CONTROL_IDS: string[] = AZURE_ENTRA_12_CONTROL_IDS;
+export const AZURE_ENTRA_12_CONTROL_IDS: string[] = AZURE_ENTRA_15_CONTROL_IDS;
+export const AZURE_ENTRA_7_CONTROL_IDS: string[] = AZURE_ENTRA_15_CONTROL_IDS;
 
 export type AzureEntraBaselineEntry = {
   controlId: string;
@@ -59,6 +65,20 @@ export const AZURE_ENTRA_BASELINE: AzureEntraBaselineEntry[] = [
     azureConfigurationRequirement:
       "Route remote access through managed control points (Azure Bastion + Conditional Access). NSG blocks public RDP/SSH; Entra evidence shows the access path. Evidence: nsg-list/rules, entra-signin, conditional-access-policies.",
     validatorCheckId: "AC-REMOTE-ACCESS",
+  },
+  {
+    controlId: "3.1.18",
+    title: "Control connection of mobile devices",
+    azureConfigurationRequirement:
+      "Conditional Access policy enforces compliantDevice OR restricts platforms to Windows-only OR explicitly excludes iOS/Android — proves mobile devices cannot connect to CUI Vault. Evidence: conditional-access-policies.json (or signed mobile-blocked-attested.txt).",
+    validatorCheckId: "AZ-MOBILE-DEVICE-CONTROL",
+  },
+  {
+    controlId: "3.1.19",
+    title: "Encrypt CUI on mobile devices",
+    azureConfigurationRequirement:
+      "Strict reading: mobile devices are blocked entirely (3.1.18), so CUI cannot be on them — satisfied by exclusion. Evidence: same as 3.1.18.",
+    validatorCheckId: "AZ-MOBILE-DEVICE-ENCRYPTION",
   },
   {
     controlId: "3.3.1",
@@ -108,6 +128,13 @@ export const AZURE_ENTRA_BASELINE: AzureEntraBaselineEntry[] = [
     azureConfigurationRequirement:
       "MFA required for cloud admin paths (Azure Portal, ARM API, PIM). Evidence: conditional-access-policies, entra-signin, signed mfa-in-path-attested.",
     validatorCheckId: "ENTRA-MFA-MA",
+  },
+  {
+    controlId: "3.8.9",
+    title: "Protect backups confidentiality",
+    azureConfigurationRequirement:
+      "Storage accounts have encryption.services enabled (Azure default: yes); Key Vault soft-delete + purge protection (per 3.13.10). Together prove backup encryption chain. Evidence: storage-account-list.json + keyvault-list/properties + (optional) backup-encryption-attested.txt.",
+    validatorCheckId: "AZ-BACKUP-CONFIDENTIALITY",
   },
   {
     controlId: "3.13.5",

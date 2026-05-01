@@ -14,12 +14,16 @@
  * "✓ Pre-classified as N/A — confirm or override" chip instead of an
  * open-ended yes/no question for the architecture-default cases.
  */
+// Removed 3.10.6 in 2026-05-01b reconciliation: 3.10.6 (Alternate Work Sites)
+// is now customer-attested-inherited via the attest_no_alternate_work_sites
+// template — that's the C3PAO-defensible path, not a generic "mark N/A".
+// Same outcome (not actively maintained on customer side), but a signed
+// attestation is more defensible than a blanket N/A.
 export const LIKELY_NA_CONTROL_IDS = [
   "3.1.16",
   "3.1.17",
   "3.7.3",
   "3.7.4",
-  "3.10.6",
   "3.13.7",
   "3.13.14",
 ] as const;
@@ -84,14 +88,9 @@ export const LIKELY_NA_CONTROL_DEFS: LikelyNaControlDef[] = [
     preClassificationRationale:
       "No on-prem maintenance permitted; all admin work via Azure PIM.",
   },
-  {
-    controlId: "3.10.6",
-    title: "Alternative Work Sites",
-    question: "Does CUI in this boundary get accessed from alternate work sites (e.g., telework)?",
-    preClassification: "inherited_customer_attested",
-    preClassificationRationale:
-      "Inherited from Azure Government FedRAMP High when customer attests no telework / alternate sites.",
-  },
+  // 3.10.6 removed in 2026-05-01b reconciliation — handled by the
+  // customer-attested-inherited attestation flow in the Outstanding Wizard
+  // (template: attest_no_alternate_work_sites), not by this questionnaire.
   {
     controlId: "3.13.7",
     title: "Split Tunneling",
