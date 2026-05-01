@@ -1,6 +1,14 @@
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
+
+// Adjudication state changes (attestation signs, register entries, IR bundle
+// archives) need to surface here without a hard refresh. revalidatePath() in
+// the relevant API routes also helps, but force-dynamic is the belt-and-
+// suspenders that guarantees the rollup shown on PathTo110Widget always
+// reflects current DB state.
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 import { db } from "@/db";
 import ExportButton from "@/components/ExportButton";
 import FlowDownBanner from "@/components/FlowDownBanner";

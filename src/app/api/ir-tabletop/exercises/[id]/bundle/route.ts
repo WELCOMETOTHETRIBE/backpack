@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server"
+import { revalidatePath } from "next/cache"
 import { and, desc, eq, inArray } from "drizzle-orm"
 import { db } from "@/db"
 import {
@@ -396,6 +397,19 @@ export async function POST(
       },
       req,
     })
+
+    // Bundle archive may have flipped 3.6.1/3.6.2/3.6.3 (and any adjacent
+    // controls linked via ir_exercise_controls) into the customer's
+    // operational evidence. Invalidate cached server-renders so the
+    // dashboard rollup, readiness checklist, and Outstanding Wizard all
+    // reflect the new state on the customer's next navigation.
+    revalidatePath("/dashboard")
+    revalidatePath("/dashboard/readiness")
+    revalidatePath("/dashboard/readiness/outstanding")
+    revalidatePath("/dashboard/incident-response/tabletop")
+    for (const c of result.completionInserts) {
+      revalidatePath(`/dashboard/controls/${c.controlId}`)
+    }
 
     return NextResponse.json(
       { alreadyArchived: false, bundle: result.bundle },

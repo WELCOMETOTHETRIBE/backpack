@@ -50,6 +50,13 @@ vi.mock("@/lib/audit", () => ({
   writeAuditLog: async () => undefined,
 }));
 
+// next/cache.revalidatePath is a no-op outside a Next request context;
+// stub it so the route's success path doesn't throw.
+vi.mock("next/cache", () => ({
+  revalidatePath: () => undefined,
+  revalidateTag: () => undefined,
+}));
+
 import { POST } from "./route";
 import { getAttestationTemplate } from "@/lib/compliance/attestation-templates";
 

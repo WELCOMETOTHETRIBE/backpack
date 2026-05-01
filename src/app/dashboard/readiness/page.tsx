@@ -1,6 +1,12 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+
+// Same rationale as /dashboard/page.tsx: this page renders rollup-derived
+// state (SPRS, readiness checklist) that must reflect the latest DB after
+// any attestation, register entry, or IR bundle archive.
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 import { FileText, Calculator } from "lucide-react";
 import { db } from "@/db";
 import {

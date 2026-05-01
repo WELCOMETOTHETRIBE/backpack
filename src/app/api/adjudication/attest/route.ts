@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import {
   controlRecords,
@@ -240,6 +241,19 @@ export async function POST(req: Request) {
         attestationId: attestation?.id,
       },
     });
+
+    // Invalidate every cached route that displays adjudication state. The
+    // wizard itself was already force-dynamic, but the dashboard rollup,
+    // readiness checklist, and SCTM views all read from the same control
+    // records and were happily serving stale renders post-sign. Calling
+    // revalidatePath here means the customer's next navigation rebuilds
+    // those pages from fresh DB state — counts move, SPRS shifts, the
+    // PathTo110 widget decrements outstanding.
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/readiness");
+    revalidatePath("/dashboard/readiness/outstanding");
+    revalidatePath("/dashboard/controls");
+    revalidatePath(`/dashboard/controls/${controlId}`);
 
     return NextResponse.json({
       ok: true,
