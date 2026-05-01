@@ -37,6 +37,8 @@ import {
   PURE_TECHNICAL_IDS,
   PURE_GOVERNANCE_IDS,
 } from "./compliance/control-bins";
+import { needsBothPipelines } from "./adjudication-helpers";
+import { evidenceRuns, evidenceFindings } from "@/db/schema";
 import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
 import { getCadenceRuleByRegisterId } from "@/data/cmmc/register-cadence-rules";
 import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
@@ -301,7 +303,19 @@ export async function calculateControlStatus(controlRecordId: string): Promise<I
     : null;
   const { technical: technicalReqs } = getEvidenceRequirements(controlId, profile);
   const requiredTechnicalIds = technicalReqs.filter((r) => !r.inherited).map((r) => r.id);
-  let technicalComplete = true;
+  // Default to false ("guilty until proven by evidence"). The earlier default
+  // of true was vacuously satisfying the technical lane for any control with
+  // NO required technical evidence specs -- e.g. Azure-only controls (3.8.9)
+  // and customer-attested-inherited (3.10.3) had no OS specs, defaulted to
+  // true, and flipped to implementationStatus='implemented' the moment we
+  // ran calculateControlStatus, even though the codex had zero positive
+  // technical signal for them. Fixed by requiring at least one of:
+  //   - requiredTechnicalIds defined AND all satisfied
+  //   - isEnclaveMappedControl with a passing fresh finding (below)
+  //   - hasEvidenceLinks from OS ingest (below)
+  // For pure-governance bins, the allComplete check doesn't consult
+  // technicalComplete, so a default of false is harmless there.
+  let technicalComplete = false;
   if (requiredTechnicalIds.length > 0) {
     const evidenceRows = await db
       .select({ requirementId: technicalEvidence.requirementId })
@@ -432,9 +446,37 @@ export async function calculateControlStatus(controlRecordId: string): Promise<I
   } else {
     allComplete = effectiveGovernanceDone && technicalComplete && registerComplete;
   }
-  // Execution evidence gate applies on top of the lane checks — if the
+  // Execution evidence gate applies on top of the lane checks -- if the
   // specific artifact isn't uploaded, the control cannot be implemented.
   allComplete = allComplete && executionEvidenceSatisfied;
+
+  // Defense-in-depth gate: 11 controls live in BOTH the OS pipeline and the
+  // Azure pipeline (NEEDS_BOTH_PIPELINES_CONTROL_IDS). For these, OS evidence
+  // alone isn't enough -- their actual enforcement (NSG, Conditional Access,
+  // Key Vault, Entra audit, etc.) is on the Azure side. Hold them as
+  // in_progress until cloud evidence (validate_azure_entra) has produced a
+  // PASS finding. Without this gate, calculateControlStatus would set
+  // implementationStatus='implemented' on these the moment OS evidence
+  // landed, contradicting isControlAdjudicated()'s downstream check and
+  // splitting the dashboard count from the SCTM filter count.
+  if (allComplete && needsBothPipelines(controlId)) {
+    const cloudPass = await db
+      .select({ id: evidenceFindings.evidenceRunId })
+      .from(evidenceFindings)
+      .innerJoin(evidenceRuns, eq(evidenceFindings.evidenceRunId, evidenceRuns.id))
+      .where(
+        and(
+          eq(evidenceRuns.organizationId, record.organizationId),
+          eq(evidenceRuns.source, "azure_entra"),
+          eq(evidenceFindings.controlId, controlId),
+          eq(evidenceFindings.pass, true),
+        ),
+      )
+      .limit(1);
+    if (cloudPass.length === 0) {
+      allComplete = false; // hold as in_progress until cloud evidence is in
+    }
+  }
   const hasSomeProgress =
     existingArtifacts.length > 0 ||
     hasNarrative ||
