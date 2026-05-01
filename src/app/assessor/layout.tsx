@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { SignOutButton } from "@clerk/nextjs";
 import { db } from "@/db";
 import { organizations } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -61,13 +62,18 @@ export default async function AssessorLayout({
 
         <AssessorNav />
 
-        <a
-          href="/api/auth/signout"
-          className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-        >
-          <LogOut className="h-3.5 w-3.5" aria-hidden />
-          Sign out
-        </a>
+        {/* Clerk-driven sign-out — `/api/auth/signout` was the old NextAuth
+            route that was deleted during the Clerk migration. SignOutButton
+            invalidates the Clerk session, then redirects to /sign-in. */}
+        <SignOutButton redirectUrl="/sign-in">
+          <button
+            type="button"
+            className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+          >
+            <LogOut className="h-3.5 w-3.5" aria-hidden />
+            Sign out
+          </button>
+        </SignOutButton>
       </header>
 
       {/* Page content */}
