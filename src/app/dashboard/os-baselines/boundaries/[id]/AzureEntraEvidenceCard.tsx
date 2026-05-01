@@ -71,7 +71,9 @@ export function AzureEntraEvidenceCard({ boundaryId }: { boundaryId: string }) {
         Upload Azure/Entra evidence
       </h2>
       <p className="mt-1 text-sm text-[var(--color-gray-600)]">
-        Attach evidence for the 7 Azure/Entra baseline controls (Conditional Access, Entra audit logs, TLS config, etc.).
+        Attach evidence for the 12 Azure/Entra controls validated by{" "}
+        <code className="rounded bg-[var(--color-gray-100)] px-1 py-0.5 text-[11px]">validate_azure_entra.py</code>{" "}
+        v1.4+ (NSG, Key Vault, Conditional Access, Entra audit logs, storage TLS, etc.).
       </p>
       <div className="mt-4 space-y-4">
         {AZURE_ENTRA_7_CONTROL_IDS.map((controlId) => {

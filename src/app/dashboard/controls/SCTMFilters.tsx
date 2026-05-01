@@ -21,7 +21,7 @@ export type SCTMRecord = {
   evidencePartial?: boolean;
   /** True when control is in the 73 OS (enclave) set. */
   satisfiedByOs?: boolean;
-  /** True when control is in the 12 Cloud set (5 inherited + 7 Azure/Entra). */
+  /** True when control is in the 17 Cloud set (5 inherited + 12 Azure/Entra validated). */
   satisfiedByCloud?: boolean;
   /** True when control is in the 18 true governance set (PURE_GOV). */
   satisfiedByGovernance?: boolean;

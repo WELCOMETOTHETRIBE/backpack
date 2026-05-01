@@ -18,10 +18,15 @@ import { PURE_GOV_CONTROL_IDS } from "@/lib/governance/seed-data";
 /** 73 controls met by OS configuration (enclave baseline). */
 export const OS_73_CONTROL_IDS = new Set(ENCLAVE_73_NIST_IDS);
 
-/** 12 controls met by cloud: 5 inherited (3.10.1–3.10.5) + 7 Azure/Entra. */
+/**
+ * 17 controls met by cloud: 5 inherited (3.10.1–.5) + 12 Azure/Entra validated
+ * by validate_azure_entra.py v1.4+. Reconciled 2026-05-01 from 12 → 17 to
+ * match validator coverage exactly. The set name (CLOUD_12_CONTROL_IDS) is
+ * legacy and kept for backward-compat with import sites; the size is 17.
+ */
 export const CLOUD_12_CONTROL_IDS = new Set([
   ...AZURE_INHERITED_3_10_CONTROL_IDS,
-  ...AZURE_ENTRA_7_CONTROL_IDS,
+  ...AZURE_ENTRA_7_CONTROL_IDS, // legacy export name; resolves to the reconciled 12 IDs
 ]);
 
 /** 7 controls often not applicable. */
