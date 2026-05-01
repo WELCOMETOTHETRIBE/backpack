@@ -297,16 +297,120 @@ export default async function OutstandingPage() {
             {totalRemaining} remaining
           </span>
           <span className="rounded-full bg-slate-100 px-2.5 py-1 font-medium text-slate-700">
-            ~{Math.round(totalEffortMinutes / 60)} hours of work left
+            {totalEffortMinutes < 60
+              ? `~${totalEffortMinutes} min of work left`
+              : `~${Math.round(totalEffortMinutes / 60)} hours of work left`}
           </span>
         </div>
       </header>
 
-      <OutstandingWizard
-        cards={cards}
-        customerAttestedCards={customerAttestedCards}
-        signatoryName={user?.name ?? user?.email ?? ""}
-      />
+      {totalRemaining === 0 ? (
+        <AllClosedCelebration totalClosed={totalClosed} />
+      ) : records.length === 0 ? (
+        <NoRecordsGuidance />
+      ) : (
+        <OutstandingWizard
+          cards={cards}
+          customerAttestedCards={customerAttestedCards}
+          signatoryName={user?.name ?? user?.email ?? ""}
+        />
+      )}
     </main>
+  );
+}
+
+// ─── Empty / celebration states ──────────────────────────────────────────
+
+function AllClosedCelebration({ totalClosed }: { totalClosed: number }) {
+  return (
+    <section className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-blue-50 p-10 text-center">
+      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+        <svg
+          className="h-8 w-8 text-emerald-600"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+          aria-hidden
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
+      <h2 className="mt-4 text-2xl font-semibold text-slate-900">
+        All {totalClosed} outstanding controls are closed
+      </h2>
+      <p className="mx-auto mt-2 max-w-xl text-sm text-slate-600">
+        You&apos;re at <strong>110 / 110 adjudicated</strong>. The Outstanding Controls Wizard has
+        nothing left to surface — every NIST 800-171 Rev 2 control for the MacTech CUI Vault has
+        either been signed, attested, registered, or inherited.
+      </p>
+      <p className="mx-auto mt-4 max-w-2xl text-xs leading-relaxed text-slate-500">
+        Keep your registers current on cadence (training annual, audit log review monthly, etc.) and
+        re-run the IR tabletop within 12 months to keep 3.6.x current. Re-attest any sign-offs
+        annually so the SHA-256 binding stays fresh for a C3PAO audit.
+      </p>
+      <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+        <Link
+          href="/dashboard/readiness"
+          className="inline-flex items-center gap-1.5 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+        >
+          See readiness checklist
+        </Link>
+        <Link
+          href="/dashboard/reporting"
+          className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+        >
+          Generate C3PAO assessment package
+        </Link>
+      </div>
+    </section>
+  );
+}
+
+function NoRecordsGuidance() {
+  return (
+    <section className="rounded-2xl border border-amber-200 bg-amber-50/60 p-8">
+      <div className="flex items-start gap-3">
+        <svg
+          className="mt-0.5 h-5 w-5 shrink-0 text-amber-700"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+          aria-hidden
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4a2 2 0 0 0-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z"
+          />
+        </svg>
+        <div className="flex-1">
+          <h2 className="text-base font-semibold text-amber-900">
+            Complete onboarding to see your outstanding controls
+          </h2>
+          <p className="mt-1.5 text-sm text-amber-800">
+            We can&apos;t show your outstanding-controls wizard until you&apos;ve finished
+            onboarding. Specifically: define your system boundary, accept the Trust Codex, and
+            let the platform initialize your 110 NIST 800-171 control records. Then come back here
+            and you&apos;ll see all 36 outstanding cards bucketed by close-path.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link
+              href="/welcome"
+              className="inline-flex items-center gap-1.5 rounded-md bg-amber-700 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-800"
+            >
+              Resume onboarding
+            </Link>
+            <Link
+              href="/dashboard/boundary"
+              className="inline-flex items-center gap-1.5 rounded-md border border-amber-300 bg-white px-3.5 py-2 text-sm font-semibold text-amber-900 transition hover:bg-amber-100"
+            >
+              Define system boundary
+            </Link>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
