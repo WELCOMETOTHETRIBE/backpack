@@ -65,21 +65,31 @@ describe("satisfaction-sources", () => {
       expect(result.expectedTotal).toBe(110);
 
       expect(result.tally.os).toBe(73);
-      expect(result.tally.cloud).toBe(12);
+      // CLOUD = 5 inherited (3.10.1–.5) + 12 Azure/Entra validated by
+      // tools/validate_azure_entra.py = 17 distinct controls. (Was 12 with
+      // the legacy 7-control claim; reconciled 2026-05-01 to match the
+      // validator's actual coverage — honest control adjudication.)
+      expect(result.tally.cloud).toBe(17);
       expect(result.tally.oftenNotApplicable).toBe(7);
       expect(result.tally.governance).toBe(17);
       expect(result.tally.hybrid).toBe(45); // 31 OS partial + delta (3.4.3 was already hybrid by os+osPartial)
-      expect(result.tally.osAndCloud).toBe(6);
+      // OS+Cloud overlap grew from 6 to 11 because the expanded validator
+      // now covers 3.5.4, 3.5.5, 3.5.6, 3.13.5, 3.13.10 — all in OS_73 and
+      // now also in AZURE_ENTRA_12.
+      expect(result.tally.osAndCloud).toBe(11);
 
       expect(result.unassigned).toHaveLength(0);
-      expect(result.osCloudOverlap).toHaveLength(6);
+      expect(result.osCloudOverlap).toHaveLength(11);
       expect(result.osCloudOverlap).toContain("3.1.13");
       expect(result.osCloudOverlap).toContain("3.13.8");
+      expect(result.osCloudOverlap).toContain("3.13.10");
+      expect(result.osCloudOverlap).toContain("3.5.5");
     });
 
-    it("set sizes match C3PAO expectations", () => {
+    it("set sizes match C3PAO expectations (post 2026-05-01 reconciliation)", () => {
       expect(OS_73_CONTROL_IDS.size).toBe(73);
-      expect(CLOUD_12_CONTROL_IDS.size).toBe(12);
+      // CLOUD set is the union of 5 inherited + 12 Azure-Entra; previously 12.
+      expect(CLOUD_12_CONTROL_IDS.size).toBe(17);
       expect(NA_7_CONTROL_IDS.size).toBe(7);
       expect(GOVERNANCE_18_CONTROL_IDS.size).toBe(17);
       expect(OS_PARTIAL_31_CONTROL_IDS.size).toBe(31);

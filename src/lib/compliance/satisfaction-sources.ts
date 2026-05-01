@@ -1,9 +1,11 @@
 /**
  * C3PAO-aligned SCTM satisfaction source bins:
  * - 73 OS: controls met by OS configuration (enclave / windows_server_hardening)
- * - 12 Cloud: 5 inherited (3.10.1–3.10.5) + 7 Azure/Entra
- * - 18 Governance: true governance only (PURE_GOV – policy/documentation)
- * - Hybrid: 31 OS partial (OS + gov docs to close) + 6 delta (not OS/Cloud/N/A/Governance)
+ * - 17 Cloud: 5 inherited (3.10.1–.5) + 12 Azure/Entra validated by
+ *   validate_azure_entra.py v1.4+. Reconciled 2026-05-01 — every control here
+ *   corresponds to a real validator check, no aspirational claims.
+ * - 17 Governance: true governance only (PURE_GOV — policy/documentation)
+ * - Hybrid: 31 OS partial (OS + gov docs to close) + delta (not OS/Cloud/N/A/Governance)
  * - 7 N/A: often not applicable (wireless, alternate work sites, VoIP, etc.)
  */
 
@@ -87,7 +89,11 @@ export interface C3PAOValidationResult {
 }
 
 const EXPECTED_OS = 73;
-const EXPECTED_CLOUD = 12;
+// CLOUD set: 5 inherited (3.10.1–.5) + 12 Azure/Entra validated by
+// validate_azure_entra.py v1.4+. Reconciled 2026-05-01 from 12 → 17 to
+// match validator's actual coverage. Honest control adjudication: every
+// control here corresponds to a real check that runs against real artifacts.
+const EXPECTED_CLOUD = 17;
 const EXPECTED_NA = 7;
 const EXPECTED_GOVERNANCE = 17;
 const EXPECTED_OS_PARTIAL = 31;

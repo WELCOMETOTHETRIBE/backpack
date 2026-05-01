@@ -146,6 +146,54 @@ export function Phase4_AzureInheritance({ onComplete }: Phase4Props) {
         })}
       </div>
 
+      {/* Evidence collector explainer — what the customer does AFTER onboarding */}
+      <section className="border border-[#0EA5E9]/40 bg-[#0EA5E9]/5 p-4">
+        <h4 className="text-xs font-mono font-bold text-[#0EA5E9] uppercase tracking-widest mb-2">
+          Two evidence collectors back these claims
+        </h4>
+        <p className="text-xs text-[#94A3B8] font-mono leading-relaxed mb-3">
+          The 6 Physical Protection controls above are inherited unconditionally
+          from Azure Gov FedRAMP High. The other 12 cloud-touching controls
+          (3.1.13/14, 3.3.1/2, 3.5.3-6, 3.7.5, 3.13.5/8/10) require an actual
+          Azure validator run against your tenant. After onboarding, you&apos;ll run
+          two scripts and upload both reports:
+        </p>
+        <ul className="space-y-2 text-xs font-mono">
+          <li className="flex items-start gap-2">
+            <span className="text-[#0EA5E9] mt-0.5">1.</span>
+            <span className="text-[#94A3B8]">
+              <span className="text-white">OS Collector</span> — runs on the Windows
+              VM (<code className="text-[#0EA5E9]">Collect-Cui-Evidence-v2.ps1</code>),
+              produces evidence for 73 OS-level controls.
+            </span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-[#0EA5E9] mt-0.5">2.</span>
+            <span className="text-[#94A3B8]">
+              <span className="text-white">Azure/Entra Collector</span> — runs on
+              any machine with <code className="text-[#0EA5E9]">az login</code>{" "}
+              (<code className="text-[#0EA5E9]">export_azure_evidence.sh</code>{" "}
+              or <code className="text-[#0EA5E9]">Collect-AzureEntraEvidence.ps1</code>),
+              produces evidence for 12 cloud controls.
+            </span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-[#0EA5E9] mt-0.5">3.</span>
+            <span className="text-[#94A3B8]">
+              Both produce a <code className="text-[#0EA5E9]">validation-report-*.json</code>{" "}
+              that you upload at{" "}
+              <span className="text-white">/dashboard/os-baselines/boundaries/&lt;id&gt;</span>.
+            </span>
+          </li>
+        </ul>
+        <p className="text-xs text-[#6B7280] font-mono mt-3 leading-relaxed">
+          Or use the unified runner:{" "}
+          <code className="text-[#0EA5E9]">Run-CuiAndAzureBulkEvidenceAndValidate.ps1</code>{" "}
+          — one command, one RunId, both bundles. We&apos;ll surface this on your
+          dashboard once you finish onboarding.
+        </p>
+      </section>
+
       {error && (
         <div className="border border-[#EF4444] bg-[#7F1D1D]/20 text-[#EF4444] text-sm font-mono px-3 py-2">
           {error}

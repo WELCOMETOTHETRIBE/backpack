@@ -17,6 +17,8 @@ import {
   irExerciseBundles,
   irExerciseControls,
   irExercises,
+  evidenceRuns,
+  boundaries,
 } from "@/db/schema";
 import { eq, and, inArray, desc } from "drizzle-orm";
 import {
@@ -27,6 +29,7 @@ import {
   type OutstandingControlEntry,
 } from "@/lib/compliance/outstanding-controls";
 import { getAttestationTemplate } from "@/lib/compliance/attestation-templates";
+import { AZURE_ENTRA_12_CONTROL_IDS } from "@/lib/compliance/azure-entra-controls";
 import { OutstandingWizard } from "./OutstandingWizard";
 
 /**
@@ -235,6 +238,45 @@ export default async function OutstandingPage() {
     return "not_started";
   }
 
+  // ─── Azure-collector run check ──────────────────────────────────────────
+  // Has an Azure/Entra evidence run been ingested for this org? Drives the
+  // wizard's "Run the Azure collector" hint banner. We look for any
+  // evidence_run with source='azure_entra' in the last 12 months.
+  const TWELVE_MONTHS_MS_AZURE = 365 * 24 * 60 * 60 * 1000;
+  const azureCutoff = new Date(Date.now() - TWELVE_MONTHS_MS_AZURE);
+  const orgBoundaryIds = (
+    await db
+      .select({ id: boundaries.id })
+      .from(boundaries)
+      .where(eq(boundaries.organizationId, orgId))
+  ).map((b) => b.id);
+  const recentAzureRuns =
+    orgBoundaryIds.length > 0
+      ? await db
+          .select({ id: evidenceRuns.id, collectedAt: evidenceRuns.collectedAt })
+          .from(evidenceRuns)
+          .where(
+            and(
+              eq(evidenceRuns.organizationId, orgId),
+              eq(evidenceRuns.source, "azure_entra")
+            )
+          )
+          .orderBy(desc(evidenceRuns.collectedAt))
+          .limit(5)
+      : [];
+  const azureRunRecent = recentAzureRuns.some(
+    (r) => r.collectedAt && new Date(r.collectedAt) >= azureCutoff
+  );
+  const azureRunEverPresent = recentAzureRuns.length > 0;
+
+  // Of the 12 Azure-validated controls, count how many have technical_status
+  // != satisfied (i.e. would benefit from an Azure run). The hint banner is
+  // only shown when there are ≥1 such controls AND no recent Azure run.
+  const azureControlsNeedingEvidence = AZURE_ENTRA_12_CONTROL_IDS.filter((cid) => {
+    const r = recordByControlId.get(cid);
+    return !r || r.technicalStatus !== "satisfied";
+  }).length;
+
   const cards = OUTSTANDING_36_CONTROL_IDS.map((cid) => {
     const entry = OUTSTANDING_CLOSE_PATHS.get(cid);
     if (!entry) return null;
@@ -320,13 +362,121 @@ export default async function OutstandingPage() {
       ) : records.length === 0 ? (
         <NoRecordsGuidance />
       ) : (
-        <OutstandingWizard
-          cards={cards}
-          customerAttestedCards={customerAttestedCards}
-          signatoryName={user?.name ?? user?.email ?? ""}
-        />
+        <>
+          <AzureRunHintBanner
+            azureRunRecent={azureRunRecent}
+            azureRunEverPresent={azureRunEverPresent}
+            azureControlsNeedingEvidence={azureControlsNeedingEvidence}
+            boundaryId={orgBoundaryIds[0] ?? null}
+          />
+          <OutstandingWizard
+            cards={cards}
+            customerAttestedCards={customerAttestedCards}
+            signatoryName={user?.name ?? user?.email ?? ""}
+          />
+        </>
       )}
     </main>
+  );
+}
+
+function AzureRunHintBanner({
+  azureRunRecent,
+  azureRunEverPresent,
+  azureControlsNeedingEvidence,
+  boundaryId,
+}: {
+  azureRunRecent: boolean;
+  azureRunEverPresent: boolean;
+  azureControlsNeedingEvidence: number;
+  boundaryId: string | null;
+}) {
+  // Don't surface if there's nothing to fix or the customer is already covered.
+  if (azureRunRecent || azureControlsNeedingEvidence === 0) return null;
+
+  const isStale = azureRunEverPresent && !azureRunRecent;
+
+  return (
+    <section className="mb-6 rounded-2xl border border-blue-200 bg-blue-50/60 p-5">
+      <div className="flex items-start gap-3">
+        <svg
+          className="mt-0.5 h-5 w-5 shrink-0 text-blue-700"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+          aria-hidden
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+        <div className="flex-1">
+          <h3 className="text-sm font-semibold text-blue-900">
+            {isStale
+              ? "Your Azure validator run is older than 12 months"
+              : `Run the Azure validator to satisfy ${azureControlsNeedingEvidence} cloud-side control${
+                  azureControlsNeedingEvidence === 1 ? "" : "s"
+                }`}
+          </h3>
+          <p className="mt-1 text-sm leading-relaxed text-blue-800">
+            {isStale ? (
+              <>
+                We have an Azure evidence run on file but it&apos;s gone stale.
+                Re-run the Azure collector and upload the fresh report so a C3PAO
+                sees current evidence for 3.1.13/14, 3.3.1/2, 3.5.3-6, 3.7.5,
+                3.13.5/8/10.
+              </>
+            ) : (
+              <>
+                The 12 Azure-touching controls{" "}
+                <span className="font-mono text-xs">
+                  (3.1.13, 3.1.14, 3.3.1, 3.3.2, 3.5.3-6, 3.7.5, 3.13.5, 3.13.8, 3.13.10)
+                </span>{" "}
+                claim Azure-side technical evidence, but no Azure validator
+                report has been uploaded yet. Until you run the collector,
+                those claims are unverified — a C3PAO will ask for the report.
+              </>
+            )}
+          </p>
+          <div className="mt-3 grid gap-3 text-xs text-blue-900 sm:grid-cols-2">
+            <div className="rounded-md border border-blue-200 bg-white p-3">
+              <div className="font-semibold">macOS / Linux</div>
+              <code className="mt-1 block whitespace-pre rounded bg-slate-900 p-2 font-mono text-[11px] text-slate-100">
+{`AZURE_RG=<your-rg> \\
+  bash TRUST_CODEX/tools/export_azure_evidence.sh
+python3 TRUST_CODEX/tools/validate_azure_entra.py`}
+              </code>
+            </div>
+            <div className="rounded-md border border-blue-200 bg-white p-3">
+              <div className="font-semibold">Windows / VM</div>
+              <code className="mt-1 block whitespace-pre rounded bg-slate-900 p-2 font-mono text-[11px] text-slate-100">
+{`.\\Run-AzureEntraCollectAndValidate.ps1 \`
+  -ResourceGroup <your-rg>`}
+              </code>
+            </div>
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {boundaryId && (
+              <Link
+                href={`/dashboard/os-baselines/boundaries/${boundaryId}`}
+                className="inline-flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+              >
+                Upload validator report
+              </Link>
+            )}
+            <Link
+              href="/dashboard/evidence-engine/about-collectors"
+              className="inline-flex items-center gap-1.5 rounded-md border border-blue-300 bg-white px-3 py-1.5 text-sm font-semibold text-blue-900 transition hover:bg-blue-100"
+            >
+              Two collectors, one workflow
+            </Link>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
