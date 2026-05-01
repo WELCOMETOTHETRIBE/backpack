@@ -55,11 +55,20 @@ function Run-And-Capture {
   try {
     $out = & $Block 2>&1 | Out-String
     Write-Text -Path $OutFile -Content $out
-    return @{ name=$Name; file=$OutFile; ok=$true; error=$null }
+    return @{ name=$Name; file=$OutFile; ok=$true; error=$null; status="ok" }
   } catch {
     $msg = $_.Exception.Message
-    Write-Text -Path $OutFile -Content ("ERROR running {0}: {1}`r`n{2}" -f $Name, $msg, ($_.ScriptStackTrace | Out-String))
-    return @{ name=$Name; file=$OutFile; ok=$false; error=$msg }
+    # Write a machine-readable error stub so the manifest always has a file for this entry.
+    # The control plane treats files with status=collection_error as "attempted but failed".
+    $errorContent = @{
+      collection_error = $true
+      command = $Name
+      error_message = $msg
+      stack_trace = ($_.ScriptStackTrace | Out-String).Trim()
+      timestamp = (Get-Date).ToString("o")
+    } | ConvertTo-Json -Depth 5
+    Write-Text -Path $OutFile -Content $errorContent
+    return @{ name=$Name; file=$OutFile; ok=$false; error=$msg; status="collection_error" }
   }
 }
 
@@ -77,7 +86,9 @@ function Run-Exe-And-Capture {
     $psi.RedirectStandardError = $true
     $psi.UseShellExecute = $false
     $psi.CreateNoWindow = $true
-    foreach ($a in $Args) { [void]$psi.ArgumentList.Add($a) }
+    # PS5.1 uses .NET Framework 4.x -- ProcessStartInfo.ArgumentList does NOT exist.
+    # (.ArgumentList is .NET Core 2.1+, PS7+ only.) Use .Arguments (single string) instead.
+    if ($Args.Count -gt 0) { $psi.Arguments = $Args -join " " }
 
     $p = New-Object System.Diagnostics.Process
     $p.StartInfo = $psi
@@ -214,14 +225,24 @@ $results += Run-And-Capture -Name "remote_desktop_users" -OutFile (Join-Path $di
   } else { "Remote Desktop Users group not present." }
 }
 
-# Export local security policy (secedit)
+# Export local security policy (secedit) -- direct & invocation, PS5.1 compatible.
 $secpolPath = Join-Path $dirPolicy "secpol.cfg"
-$results += Run-Exe-And-Capture -Name "secedit_export" -Exe "secedit.exe" -Args @("/export","/cfg",$secpolPath) -OutFile (Join-Path $dirPolicy "secedit-export.txt")
+$results += Run-And-Capture -Name "secedit_export" -OutFile (Join-Path $dirPolicy "secedit-export.txt") -Block {
+  & secedit.exe /export /cfg $secpolPath /quiet 2>&1 | Out-String
+  if (Test-Path $secpolPath) { "secpol.cfg exported to: $secpolPath" } else { "WARNING: secpol.cfg not created - may require elevation." }
+}
 
 # User rights assignments (parse from secpol as a convenience)
 $results += Run-And-Capture -Name "user_rights_assignments" -OutFile (Join-Path $dirPolicy "user-rights-assignments.txt") -Block {
   if (Test-Path -LiteralPath $secpolPath) {
-    (Select-String -Path $secpolPath -Pattern "Se.*Right|Se.*Privilege" -SimpleMatch -Context 0,1 | Out-String)
+    # secedit emits secpol.cfg as UTF-16 LE with BOM. Reading it back with the
+    # default ASCII codepage (or via -SimpleMatch on a regex pattern) yielded an
+    # empty file. Read explicitly as Unicode and filter for Privilege Rights
+    # lines via real regex.
+    $raw = Get-Content -LiteralPath $secpolPath -Encoding Unicode -Raw
+    $lines = $raw -split "`r?`n" | Where-Object { $_ -match "^Se[A-Za-z]+(Right|Privilege)\s*=" }
+    if ($lines.Count -eq 0) { "(no Se*Right / Se*Privilege lines found in secpol.cfg)" }
+    else { $lines -join "`r`n" }
   } else { "secpol.cfg not found; secedit may have failed or requires elevation." }
 }
 
@@ -280,18 +301,33 @@ $results += Run-And-Capture -Name "rdp_tcp" -OutFile (Join-Path $dirNetwork "rdp
 # -----------------------------
 # GPO / RSOP evidence
 # -----------------------------
-$results += Run-Exe-And-Capture -Name "gpresult_computer" -Exe "cmd.exe" -Args @("/c","gpresult /r /scope computer") -OutFile (Join-Path $dirPolicy "gpresult-computer.txt")
-$results += Run-Exe-And-Capture -Name "gpresult_user" -Exe "cmd.exe" -Args @("/c","gpresult /r /scope user") -OutFile (Join-Path $dirPolicy "gpresult-user.txt")
+# GPResult: use direct & invocation -- avoids ProcessStartInfo entirely (PS5.1 compatible).
+$results += Run-And-Capture -Name "gpresult_computer" -OutFile (Join-Path $dirPolicy "gpresult-computer.txt") -Block {
+  & gpresult.exe /r /scope computer 2>&1 | Out-String
+}
+$results += Run-And-Capture -Name "gpresult_user" -OutFile (Join-Path $dirPolicy "gpresult-user.txt") -Block {
+  & gpresult.exe /r /scope user 2>&1 | Out-String
+}
 
-# Stronger RSOP outputs (HTML + XML)
-$results += Run-Exe-And-Capture -Name "gpresult_html" -Exe "cmd.exe" -Args @("/c","gpresult /h `"$($dirPolicy)\gpresult.html`" /f") -OutFile (Join-Path $dirPolicy "gpresult-html-export.txt")
-$results += Run-Exe-And-Capture -Name "gpresult_xml" -Exe "cmd.exe" -Args @("/c","gpresult /x `"$($dirPolicy)\rsop.xml`" /f") -OutFile (Join-Path $dirPolicy "gpresult-xml-export.txt")
+# Stronger RSOP outputs (HTML + XML written to policy folder as separate files)
+$gpHtmlPath = Join-Path $dirPolicy "gpresult.html"
+$gpXmlPath  = Join-Path $dirPolicy "rsop.xml"
+$results += Run-And-Capture -Name "gpresult_html" -OutFile (Join-Path $dirPolicy "gpresult-html-export.txt") -Block {
+  & gpresult.exe /h $gpHtmlPath /f 2>&1 | Out-String
+  if (Test-Path $gpHtmlPath) { "HTML report written to: $gpHtmlPath" } else { "WARNING: HTML file not created." }
+}
+$results += Run-And-Capture -Name "gpresult_xml" -OutFile (Join-Path $dirPolicy "gpresult-xml-export.txt") -Block {
+  & gpresult.exe /x $gpXmlPath /f 2>&1 | Out-String
+  if (Test-Path $gpXmlPath) { "XML report written to: $gpXmlPath" } else { "WARNING: XML file not created." }
+}
 
 # -----------------------------
 # Audit policy + event log configuration
 # -----------------------------
 $results += Run-And-Capture -Name "auditpol" -OutFile (Join-Path $dirAudit "auditpol.txt") -Block { auditpol /get /category:* }
-$results += Run-And-Capture -Name "auditpol_subcategories" -OutFile (Join-Path $dirAudit "auditpol-subcategories.txt") -Block { auditpol /get /subcategory:* }
+# auditpol /get /subcategory:* returns error 0x57 (invalid parameter) on some builds.
+# Correct syntax to enumerate available subcategories is /list /subcategory:*.
+$results += Run-And-Capture -Name "auditpol_subcategories" -OutFile (Join-Path $dirAudit "auditpol-subcategories.txt") -Block { auditpol /list /subcategory:* }
 
 # Event log config
 $results += Run-And-Capture -Name "eventlog_security_config" -OutFile (Join-Path $dirAudit "eventlog-security.txt") -Block { wevtutil gl Security }
@@ -302,6 +338,23 @@ $results += Run-And-Capture -Name "eventlog_application_config" -OutFile (Join-P
 $results += Run-And-Capture -Name "security_evtx_acl" -OutFile (Join-Path $dirAudit "security-evtx-acl.txt") -Block {
   $p = "C:\Windows\System32\winevt\Logs\Security.evtx"
   if (Test-Path -LiteralPath $p) { (Get-Acl $p).Access | Format-Table -Auto | Out-String } else { "Missing: $p" }
+}
+
+# Audit-log-failure response policy (AU.L2-3.3.4 -- alert/halt on logging failure).
+# Captures CrashOnAuditFail (1=halt, 2=halt+disable logon) and the auto-reboot
+# behavior. PASS criterion: CrashOnAuditFail=1 or 2 (system halts/alerts when
+# Security log can't accept new events).
+$results += Run-And-Capture -Name "audit_failure_policy" -OutFile (Join-Path $dirAudit "audit-failure-policy.txt") -Block {
+  $lsa = "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa"
+  $val = (Get-ItemProperty -Path $lsa -Name "CrashOnAuditFail" -ErrorAction SilentlyContinue).CrashOnAuditFail
+  if ($null -eq $val) { $val = 0 }
+  $meaning = switch ([int]$val) {
+    0 { "0 = no halt on audit failure (NOT compliant for 3.3.4)" }
+    1 { "1 = halt system on audit failure (compliant)" }
+    2 { "2 = halt + disable non-admin logon (most strict, compliant)" }
+    default { "$val = unknown" }
+  }
+  "CrashOnAuditFail = $val`r`n$meaning"
 }
 
 # Sample events (optional)
@@ -345,9 +398,9 @@ $results += Run-And-Capture -Name "listening_ports" -OutFile (Join-Path $dirNetw
 }
 $results += Run-And-Capture -Name "listening_processes" -OutFile (Join-Path $dirNetwork "listening-processes.txt") -Block {
   $pids = (Get-NetTCPConnection -State Listen | Select-Object -ExpandProperty OwningProcess -Unique)
-  foreach ($pid in $pids) {
-    try { Get-Process -Id $pid | Select Id, ProcessName, Path | Format-Table -Auto | Out-String }
-    catch { "PID $pid: $(($_.Exception.Message))" }
+  foreach ($procId in $pids) {
+    try { Get-Process -Id $procId | Select-Object Id, ProcessName, Path | Format-Table -Auto | Out-String }
+    catch { "PID ${procId}: $($_.Exception.Message)" }
   }
 }
 
@@ -580,6 +633,12 @@ Write-Json -Path (Join-Path $dirMeta "bundle.json") -Object $bundleHint
 # Enumerate EVERY file under bundle root (after transcript + README + bundle.json); exclude nothing except .zip (zip lives in OutRoot, not in bundle)
 $allFiles = Get-ChildItem -LiteralPath $bundleRoot -Recurse -File | Where-Object { $_.Name -notmatch "\.zip$" }
 
+# Build a lookup of failed command names to their output file paths for status annotation
+$failedByFile = @{}
+foreach ($r in $results) {
+  if (-not $r.ok) { $failedByFile[$r.file.Replace("\","/")] = $r.status }
+}
+
 $hashLines = @()
 $fileManifest = @()
 foreach ($f in $allFiles) {
@@ -587,15 +646,50 @@ foreach ($f in $allFiles) {
   $rel = $f.FullName.Substring($bundleRoot.Length).TrimStart("\").Replace("\", "/")
   $sha = Get-Sha256 $f.FullName
   $hashLines += ("{0}  {1}" -f $sha, $rel)
+
+  # Determine if this file came from a failed command (collection_error status)
+  $relFullNorm = $f.FullName.Replace("\", "/")
+  $fileStatus = if ($failedByFile.ContainsKey($relFullNorm)) { $failedByFile[$relFullNorm] } else { "ok" }
+
   $fileManifest += @{
     path = $rel
     sha256 = $sha
     size_bytes = $f.Length
     collected_at = ($now.ToString("o"))
+    status = $fileStatus
   }
 }
 
 Write-Text -Path (Join-Path $dirMeta "hashes.sha256.txt") -Content ($hashLines -join "`r`n")
+
+# -- Bundle validation ---------------------------------------------------------
+# Verify every file in $fileManifest physically exists and that hash+count match.
+$validationErrors = @()
+$okCount = 0
+$errorCount = 0
+foreach ($entry in $fileManifest) {
+  $fullPath = Join-Path $bundleRoot ($entry.path.Replace("/", "\"))
+  if (-not (Test-Path -LiteralPath $fullPath)) {
+    $validationErrors += "MISSING: $($entry.path)"
+    $errorCount++
+  } elseif (-not $entry.sha256) {
+    $validationErrors += "HASH_FAILED: $($entry.path)"
+    $errorCount++
+  } else {
+    $okCount++
+  }
+}
+$hashLineCount = ($hashLines | Measure-Object).Count
+if ($hashLineCount -ne $fileManifest.Count) {
+  $validationErrors += "COUNT_MISMATCH: files[]=$($fileManifest.Count) hashes.sha256.txt=$hashLineCount"
+}
+
+$bundleValidationSummary = if ($validationErrors.Count -eq 0) {
+  "Bundle validation PASSED: $okCount/$($fileManifest.Count) files present and hashed."
+} else {
+  "Bundle validation WARNING: $errorCount error(s) - $($validationErrors -join '; ')"
+}
+Write-Host $bundleValidationSummary
 
 $manifest = @{
   schema = "cui-evidence.manifest.v2"
@@ -608,6 +702,12 @@ $manifest = @{
   files = $fileManifest
   command_results = $results
   warnings = $warnings
+  bundle_validation = @{
+    summary = $bundleValidationSummary
+    files_ok = $okCount
+    files_total = $fileManifest.Count
+    errors = $validationErrors
+  }
 }
 Write-Json -Path (Join-Path $dirMeta "manifest.json") -Object $manifest
 
@@ -624,10 +724,15 @@ if ($CreateZip) {
   }
 }
 
+$failCount = ($results | Where-Object { -not $_.ok } | Measure-Object).Count
+$passCount = ($results | Where-Object { $_.ok } | Measure-Object).Count
+
 Write-Host ""
-Write-Host "✅ Evidence bundle created at: $bundleRoot"
-if ($CreateZip) { Write-Host "✅ ZIP (if successful) at: $zipPath" }
-Write-Host "Manifest: $(Join-Path $dirMeta "manifest.json")"
-Write-Host "Hashes:   $(Join-Path $dirMeta "hashes.sha256.txt")"
+Write-Host "Evidence bundle created at: $bundleRoot"
+if ($CreateZip) { Write-Host "ZIP (if successful) at: $zipPath" }
+Write-Host "Manifest:   $(Join-Path $dirMeta 'manifest.json')"
+Write-Host "Hashes:     $(Join-Path $dirMeta 'hashes.sha256.txt')"
+Write-Host "Commands:   $passCount ok, $failCount failed"
+Write-Host "Validation: $bundleValidationSummary"
 Write-Host ""
-Write-Host "Tip: Upload the entire folder (or ZIP) to your Governance Portal and link files to controls."
+Write-Host "Next: upload meta\manifest.json to your Trust Codex control plane at /dashboard/evidence/upload-manifest"

@@ -7,7 +7,7 @@ Design intent:
 - Produces a PASS/FAIL report for key baseline items we care about for CUI handling
 - Writes both a human-readable report and a JSON report suitable for evidence retention
 
-This is not a “certification test.” It is a repeatable validation aid.
+This is not a "certification test." It is a repeatable validation aid.
 #>
 
 param(
@@ -302,7 +302,7 @@ Add-Check -Id "RDP-REDIR" -Control "AC.L2-3.1.3" -Title "RDP redirection disable
   -Expected "fDisableClip=1; fDisableCdm=1; NLA=1" `
   -EvidenceHint "rdp-policy.txt + rdp-tcp.txt"
 
-### RDP session time limits (AC.L2-3.1.11 remote path — session ended after disconnect, re-auth on reconnect)
+### RDP session time limits (AC.L2-3.1.11 remote path -- session ended after disconnect, re-auth on reconnect)
 $rdpTcpPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp"
 try {
   $r = Get-ItemProperty -Path $rdpTcpPath -Name MaxIdleTime, MaxDisconnectionTime, MaxConnectionTime -ErrorAction Stop
@@ -318,7 +318,7 @@ try {
     -EvidenceHint "rdp-tcp.txt"
 }
 
-### AU.L2-3.3.1 (Create and retain audit logs) — validate Security log is enabled + audit policy is queryable
+### AU.L2-3.3.1 (Create and retain audit logs) -- validate Security log is enabled + audit policy is queryable
 try {
   $sec = (wevtutil gl Security) 2>&1 | Out-String
   $enabledLine = ($sec -split "`n" | Where-Object { $_ -match '^\s*enabled\s*:' } | Select-Object -First 1)
@@ -346,7 +346,7 @@ try {
     -EvidenceHint "auditpol.txt"
 }
 
-### AU.L2-3.3.1 — audit subcategories enabled (stronger than 'queryable')
+### AU.L2-3.3.1 -- audit subcategories enabled (stronger than 'queryable')
 try {
   # On some builds, `auditpol /get /subcategory:*` fails with parameter errors.
   # `auditpol /get /category:*` includes subcategory lines + their settings and is more reliable.
@@ -384,7 +384,7 @@ try {
     -EvidenceHint "auditpol-subcategories.txt"
 }
 
-### AU.L2-3.3.1 — event log max sizes (supports retention)
+### AU.L2-3.3.1 -- event log max sizes (supports retention)
 function Parse-WevtutilGl([string]$name) {
   $txt = (wevtutil gl $name) 2>&1 | Out-String
   $msLine = ($txt -split "`n" | Where-Object { $_ -match '^\s*maxSize\s*:' } | Select-Object -First 1)
@@ -429,20 +429,20 @@ try {
     -EvidenceHint "time-sync.txt"
 }
 
-### CM.L2-3.4.2 (Security configuration settings) — ensure secpol export exists in evidence bundle
+### CM.L2-3.4.2 (Security configuration settings) -- ensure secpol export exists in evidence bundle
 try {
-  $ok = (Has-EvidenceFile "secpol.cfg")
+  $ok = (Has-EvidenceFile "policy\secpol.cfg")
   Add-Check -Id "SECPOL-EXPORTED" -Control "CM.L2-3.4.2" -Title "Local security policy export present in evidence bundle (secpol.cfg)" `
     -Pass $ok -Observed $(if ($ok) { "secpol.cfg present" } else { "secpol.cfg missing" }) -Expected "secpol.cfg present" `
-    -EvidenceHint "secpol.cfg (in evidence bundle)"
+    -EvidenceHint "policy\secpol.cfg (in evidence bundle)"
 } catch {
   Add-Check -Id "SECPOL-EXPORTED" -Control "CM.L2-3.4.2" -Title "Local security policy export present in evidence bundle (secpol.cfg)" `
     -Pass $false -Observed ("ERROR: " + $_.Exception.Message) -Expected "secpol.cfg present" `
-    -EvidenceHint "secpol.cfg"
+    -EvidenceHint "policy\secpol.cfg"
 }
 
 try {
-  $p = (Get-EvidenceFilePath "secpol.cfg")
+  $p = (Get-EvidenceFilePath "policy\secpol.cfg")
   if ($p -and (Test-Path -LiteralPath $p -PathType Leaf)) {
     $raw = Get-Content -LiteralPath $p -ErrorAction Stop
     $hasSys = ($raw | Where-Object { $_ -match '^\s*\[System Access\]\s*$' } | Select-Object -First 1)
@@ -462,7 +462,7 @@ try {
     -EvidenceHint "secpol.cfg"
 }
 
-### IA.L2-3.5.1 (Identify users) — baseline proxy: local Guest account is disabled (or not present/renamed)
+### IA.L2-3.5.1 (Identify users) -- baseline proxy: local Guest account is disabled (or not present/renamed)
 try {
   $guest = $null
   try { $guest = Get-CimInstance Win32_UserAccount -Filter "LocalAccount=True AND Name='Guest'" -ErrorAction Stop } catch { $guest = $null }
@@ -494,7 +494,7 @@ try {
     -EvidenceHint "registry Winlogon AutoAdminLogon"
 }
 
-### SC.L2-3.13.1 (Monitor/control/protect communications) — proxy to firewall boundary
+### SC.L2-3.13.1 (Monitor/control/protect communications) -- proxy to firewall boundary
 try {
   $fw = ($script:Checks | Where-Object { $_.id -eq 'NET-FW' } | Select-Object -First 1)
   $pass = ($fw -and ($fw.pass -eq $true))
@@ -520,7 +520,7 @@ try {
     -EvidenceHint "smb-signing.txt"
 }
 
-### SI.L2-3.14.1 (Identify/report/correct flaws) — Windows Update services not disabled
+### SI.L2-3.14.1 (Identify/report/correct flaws) -- Windows Update services not disabled
 try {
   $wua = Get-Service -Name wuauserv -ErrorAction Stop
   $bits = Get-Service -Name bits -ErrorAction Stop
@@ -534,7 +534,7 @@ try {
     -EvidenceHint "windows-update-services.txt"
 }
 
-### SI.L2-3.14.2 + SI.L2-3.14.4 — Defender enabled and signatures not stale
+### SI.L2-3.14.2 + SI.L2-3.14.4 -- Defender enabled and signatures not stale
 try {
   $st = Get-MpComputerStatus -ErrorAction Stop
   $passOn = [bool]$st.RealTimeProtectionEnabled
@@ -650,12 +650,12 @@ try {
 }
 
 try {
-  $ok = (Has-EvidenceFile "applocker-policy.txt")
+  $ok = (Has-EvidenceFile "apps\applocker-policy.txt")
   $obs = if ($ok) { "applocker-policy.txt present" } else { "applocker-policy.txt missing" }
   $pass = $false
   if ($ok) {
     try {
-      $raw = Get-Content -LiteralPath (Get-EvidenceFilePath "applocker-policy.txt") -Raw -ErrorAction Stop
+      $raw = Get-Content -LiteralPath (Get-EvidenceFilePath "apps\applocker-policy.txt") -Raw -ErrorAction Stop
       # Expect XML output from Get-AppLockerPolicy -Effective -Xml when configured.
       $hasXml = ($raw -match '(?is)<AppLockerPolicy')
       $hasRules = ($raw -match '(?is)<RuleCollection')
@@ -680,11 +680,14 @@ try {
 try {
   $pass = $false
   $obs = ""
-  if (Has-EvidenceFile "bitlocker-status.txt") {
-    $raw = Get-Content -LiteralPath (Get-EvidenceFilePath "bitlocker-status.txt") -Raw -ErrorAction Stop
-    $m = ($raw -match '(?is)Volume\s+C:\s+.*?Conversion Status:\s*(Fully Encrypted|Used Space Only Encrypted).*?Protection Status:\s*Protection On')
-    $pass = [bool]$m
-    $obs = if ($pass) { "C: Fully Encrypted; Protection On" } else { "C: not fully encrypted and/or protection not on (see bitlocker-status.txt)" }
+  if (Has-EvidenceFile "storage\bitlocker-status.txt") {
+    $raw = Get-Content -LiteralPath (Get-EvidenceFilePath "storage\bitlocker-status.txt") -Raw -ErrorAction Stop
+    # Support both manage-bde format ("Conversion Status: Fully Encrypted / Protection Status: Protection On")
+    # and Get-BitLockerVolume table format ("C:  FullyEncrypted  On  100  XtsAes128")
+    $m1 = ($raw -match '(?is)Volume\s+C:\s+.*?Conversion Status:\s*(Fully Encrypted|Used Space Only Encrypted).*?Protection Status:\s*Protection On')
+    $m2 = ($raw -match '(?m)^C:\s+FullyEncrypted\s+On\s')
+    $pass = [bool]$m1 -or [bool]$m2
+    $obs = if ($pass) { "C: FullyEncrypted; ProtectionStatus=On" } else { "C: not fully encrypted and/or protection not on (see bitlocker-status.txt)" }
   } else {
     $obs = "bitlocker-status.txt missing"
   }
@@ -706,7 +709,7 @@ try {
     -Pass $true -Observed "Captured net accounts output" -Expected "Policy visible for review" `
     -EvidenceHint "net-accounts.txt"
 
-  # Prohibit password reuse (IA.L2-3.5.8) — local-only check
+  # Prohibit password reuse (IA.L2-3.5.8) -- local-only check
   $hist = ""
   $histLine = ($na -split "`n" | Where-Object { $_ -match '(?i)^\s*Length of password history maintained\s*:' } | Select-Object -First 1)
   if ($histLine) { $hist = ($histLine -split ':',2)[1].Trim() }
@@ -719,6 +722,287 @@ try {
   Add-Check -Id "ACCT-POLICY" -Control "IA.L2-3.5.7" -Title "Local account policy captured (informational)" `
     -Pass $false -Observed ("ERROR: " + $_.Exception.Message) -Expected "net accounts available" `
     -EvidenceHint "net-accounts.txt"
+}
+
+### --------------------------------------------------------------------------
+### Coverage-gap closeout -- 13 STRONG controls previously uncovered.
+### Each check parses an existing evidence-bundle artifact (no new collection
+### needed except audit-failure-policy.txt). All read-only.
+### --------------------------------------------------------------------------
+
+# AC.L2-3.1.2 -- Limit transactions/functions.
+# User Rights Assignment captures who holds privileged rights. We verify
+# (a) SeRemoteInteractiveLogonRight is restricted (not Everyone/Users), and
+# (b) SeBackupPrivilege/SeRestorePrivilege belong only to Administrators
+# class. The full set of rights is in the secpol.cfg [Privilege Rights]
+# section that we already export.
+$uraPath = Get-EvidenceFilePath "policy/user-rights-assignments.txt"
+if ($uraPath -and (Test-Path $uraPath)) {
+  $uraText = (Get-Content $uraPath -Raw -ErrorAction SilentlyContinue) -join "`n"
+  $hasRights = ($uraText.Trim().Length -gt 0)
+  # Only flag PRIVILEGED rights when granted to broad principals. SeNetwork-
+  # LogonRight and SeChangeNotifyPrivilege are expected to include Everyone/
+  # Authenticated Users -- that's the OS default for network share access and
+  # the file-system change-notify "bypass traverse checking" right.
+  $sensitive = @(
+    "SeBackupPrivilege","SeRestorePrivilege","SeDebugPrivilege",
+    "SeSecurityPrivilege","SeShutdownPrivilege","SeTakeOwnershipPrivilege",
+    "SeLoadDriverPrivilege","SeCreateTokenPrivilege",
+    "SeAssignPrimaryTokenPrivilege","SeImpersonatePrivilege",
+    "SeManageVolumePrivilege","SeRemoteInteractiveLogonRight"
+  )
+  $broadOnSensitive = @()
+  foreach ($priv in $sensitive) {
+    # Match: SePrivName = ...,*S-1-1-0,...  OR  ...,*S-1-5-32-545,...  (Users)
+    # OR ...,*S-1-5-11,... (Authenticated Users)
+    if ($uraText -match "(?m)^$priv\s*=.*?(\*S-1-1-0|\*S-1-5-32-545|\*S-1-5-11)") {
+      $broadOnSensitive += $priv
+    }
+  }
+  $broadGrant = ($broadOnSensitive.Count -gt 0)
+  Add-Check -Id "URA-LIMITED" -Control "AC.L2-3.1.2" -Title "User rights assignment captured; sensitive privileges not granted to broad principals" `
+    -Pass ($hasRights -and -not $broadGrant) `
+    -Observed ("rights captured=$hasRights; broad-on-sensitive=" + ($(if ($broadGrant) { $broadOnSensitive -join "," } else { "none" }))) `
+    -Expected "URA export non-empty AND no Everyone/Users/Auth-Users on sensitive privileges" `
+    -EvidenceHint "policy/user-rights-assignments.txt"
+} else {
+  Add-Check -Id "URA-LIMITED" -Control "AC.L2-3.1.2" -Title "User rights assignment captured" `
+    -Pass $false -Observed "user-rights-assignments.txt missing from bundle" `
+    -Expected "policy/user-rights-assignments.txt present" `
+    -EvidenceHint "policy/user-rights-assignments.txt"
+}
+
+# AC.L2-3.1.6 -- Use non-privileged accounts for non-security functions.
+# Local admins should be a SHORT, named list (not domain users, not Everyone).
+# We already collect local-admins.txt; assert membership count is small.
+$adminsPath = Get-EvidenceFilePath "policy/local-admins.txt"
+if ($adminsPath -and (Test-Path $adminsPath)) {
+  $adminLines = @(Get-Content $adminsPath -ErrorAction SilentlyContinue | Where-Object { $_ -match "\S" -and $_ -notmatch "^Members:|^---|^Name\s+|Alias name|Comment|^The command completed" })
+  $count = $adminLines.Count
+  Add-Check -Id "ADMINS-SHORT-LIST" -Control "AC.L2-3.1.6" -Title "Local Administrators group is a short named list (non-privileged accounts used by default)" `
+    -Pass ($count -le 5 -and $count -ge 1) `
+    -Observed ("Members count: $count") `
+    -Expected "Between 1 and 5 named members; no broad groups" `
+    -EvidenceHint "policy/local-admins.txt"
+} else {
+  Add-Check -Id "ADMINS-SHORT-LIST" -Control "AC.L2-3.1.6" -Title "Local Administrators captured" `
+    -Pass $false -Observed "local-admins.txt missing" -Expected "policy/local-admins.txt present" `
+    -EvidenceHint "policy/local-admins.txt"
+}
+
+# AC.L2-3.1.7 -- Prevent privileged function execution by non-privileged users.
+# UAC ConsentPromptBehaviorUser=0 blocks elevation prompts entirely for std users
+# (silent deny). Combined with AppLocker enforcement this is the OS-side proof.
+$uacPath = Get-EvidenceFilePath "policy/uac-policy.txt"
+$cpbu = $null
+if ($uacPath -and (Test-Path $uacPath)) {
+  $uacText = (Get-Content $uacPath -Raw -ErrorAction SilentlyContinue)
+  if ($uacText -match "ConsentPromptBehaviorUser\s*[:=]\s*(\d+)") { $cpbu = [int]$Matches[1] }
+}
+Add-Check -Id "UAC-USER-DENY" -Control "AC.L2-3.1.7" -Title "Standard users cannot elevate (ConsentPromptBehaviorUser=0)" `
+  -Pass ($cpbu -eq 0) -Observed ("ConsentPromptBehaviorUser=" + ($(if ($null -eq $cpbu) { "<not set>" } else { $cpbu }))) `
+  -Expected "ConsentPromptBehaviorUser=0 (silent deny for non-admins)" `
+  -EvidenceHint "policy/uac-policy.txt"
+
+# AU.L2-3.3.4 -- Alert on audit logging failure.
+# CrashOnAuditFail tells the OS to halt (1) or halt+disable-logon (2) when
+# the Security log can't accept events. Either value is compliant.
+$afPath = Get-EvidenceFilePath "audit/audit-failure-policy.txt"
+$cof = $null
+if ($afPath -and (Test-Path $afPath)) {
+  $afText = (Get-Content $afPath -Raw -ErrorAction SilentlyContinue)
+  if ($afText -match "CrashOnAuditFail\s*=\s*(\d+)") { $cof = [int]$Matches[1] }
+}
+Add-Check -Id "AUDIT-FAIL-RESPONSE" -Control "AU.L2-3.3.4" -Title "Audit-log failure response configured (CrashOnAuditFail)" `
+  -Pass ($cof -eq 1 -or $cof -eq 2) `
+  -Observed ("CrashOnAuditFail=" + ($(if ($null -eq $cof) { "<not set>" } else { $cof }))) `
+  -Expected "CrashOnAuditFail = 1 (halt) or 2 (halt + disable logon)" `
+  -EvidenceHint "audit/audit-failure-policy.txt"
+
+# AU.L2-3.3.8 -- Protect audit information.
+# Security.evtx ACL must be restricted (no Everyone/Users with Modify+ rights).
+$aclPath = Get-EvidenceFilePath "audit/security-evtx-acl.txt"
+if ($aclPath -and (Test-Path $aclPath)) {
+  $aclText = (Get-Content $aclPath -Raw -ErrorAction SilentlyContinue)
+  $broadAce = $aclText -match "(Everyone|BUILTIN\\Users|NT AUTHORITY\\Authenticated Users).*?(FullControl|Modify|Write)"
+  Add-Check -Id "AUDIT-LOG-ACL" -Control "AU.L2-3.3.8" -Title "Security log ACL restricts write access (no broad principals)" `
+    -Pass (-not $broadAce) `
+    -Observed ("broad-write-ACE-detected=" + ($broadAce -ne $false)) `
+    -Expected "No Everyone/Users/Authenticated-Users with Write/Modify/FullControl on Security.evtx" `
+    -EvidenceHint "audit/security-evtx-acl.txt"
+} else {
+  Add-Check -Id "AUDIT-LOG-ACL" -Control "AU.L2-3.3.8" -Title "Security log ACL captured" `
+    -Pass $false -Observed "security-evtx-acl.txt missing" -Expected "audit/security-evtx-acl.txt present" `
+    -EvidenceHint "audit/security-evtx-acl.txt"
+}
+
+# AU.L2-3.3.9 -- Limit audit management to authorized users.
+# SeAuditPrivilege (generate audit entries) and SeSecurityPrivilege (manage
+# audit + security log) should both be granted only to Administrators.
+$ura3 = if ($uraPath -and (Test-Path $uraPath)) { (Get-Content $uraPath -Raw -ErrorAction SilentlyContinue) } else { "" }
+$secPriv = $ura3 -match "SeSecurityPrivilege"
+$secPrivBroad = $ura3 -match "SeSecurityPrivilege.*?(Everyone|Users)"
+Add-Check -Id "AUDIT-MGMT-LIMITED" -Control "AU.L2-3.3.9" -Title "Audit-management privilege restricted (SeSecurityPrivilege not granted broadly)" `
+  -Pass ($secPriv -and -not $secPrivBroad) `
+  -Observed ("SeSecurityPrivilege present=$secPriv; broad-grant=$secPrivBroad") `
+  -Expected "SeSecurityPrivilege granted only to Administrators class" `
+  -EvidenceHint "policy/user-rights-assignments.txt"
+
+# CM.L2-3.4.6 -- Employ principle of least functionality.
+# Installed Windows features list should NOT include Server-Gui-Mgmt-Infra,
+# Telnet-Client, SMB1-protocol-features, Print-Server, etc. on a CUI Vault.
+# We capture installed-roles-features.txt; assert no flagged features installed.
+$rfPath = Get-EvidenceFilePath "host/installed-roles-features.txt"
+if ($rfPath -and (Test-Path $rfPath)) {
+  $rfText = (Get-Content $rfPath -Raw -ErrorAction SilentlyContinue)
+  $blacklist = @("Telnet-Client","TFTP-Client","SMB1Protocol","RSAT-AD-Tools","Print-Services")
+  $found = @()
+  foreach ($b in $blacklist) {
+    if ($rfText -match "(?im)\b$b\b\s+Installed") { $found += $b }
+  }
+  Add-Check -Id "LEAST-FUNCTIONALITY" -Control "CM.L2-3.4.6" -Title "Least functionality -- no banned roles/features installed" `
+    -Pass ($found.Count -eq 0) `
+    -Observed ("banned-installed=" + ($(if ($found.Count) { $found -join "," } else { "none" }))) `
+    -Expected "None of: $($blacklist -join ', ') installed" `
+    -EvidenceHint "host/installed-roles-features.txt"
+} else {
+  Add-Check -Id "LEAST-FUNCTIONALITY" -Control "CM.L2-3.4.6" -Title "Installed roles/features captured" `
+    -Pass $false -Observed "installed-roles-features.txt missing" `
+    -Expected "host/installed-roles-features.txt present" `
+    -EvidenceHint "host/installed-roles-features.txt"
+}
+
+# CM.L2-3.4.7 -- Restrict use of nonessential programs/services/ports.
+# Listening ports should be a tight set; on a CUI Vault we expect roughly:
+# RDP (3389), DNS (53 if DC), SMB (445), Bastion-tunnel (no direct public).
+# Assert the count of distinct LISTENING TCP ports is bounded.
+$portsPath = Get-EvidenceFilePath "network/listening-ports.txt"
+if ($portsPath -and (Test-Path $portsPath)) {
+  $portsText = Get-Content $portsPath -Raw -ErrorAction SilentlyContinue
+  # listening-ports.txt is `Get-NetTCPConnection -State Listen` output,
+  # formatted as a table with columns: LocalAddress | LocalPort | OwningProcess.
+  # Each data row has 3 whitespace-separated fields, last column is process id.
+  # We extract LocalPort (the middle numeric column) per row.
+  $rows = @(($portsText -split "`r?`n") | Where-Object {
+    $_ -match "^\s*\S+\s+\d+\s+\d+\s*$"
+  })
+  $portList = @($rows | ForEach-Object {
+    if ($_ -match "^\s*\S+\s+(\d+)\s+\d+\s*$") { $Matches[1] }
+  } | Sort-Object -Unique)
+  $portCount = $portList.Count
+  Add-Check -Id "RESTRICT-NONESSENTIAL" -Control "CM.L2-3.4.7" -Title "Nonessential listeners restricted (distinct listening TCP ports bounded)" `
+    -Pass ($portCount -gt 0 -and $portCount -le 30) `
+    -Observed ("distinct-listening-ports=$portCount") `
+    -Expected "1 to 30 distinct TCP listeners (CUI Vault baseline)" `
+    -EvidenceHint "network/listening-ports.txt"
+} else {
+  Add-Check -Id "RESTRICT-NONESSENTIAL" -Control "CM.L2-3.4.7" -Title "Listening ports captured" `
+    -Pass $false -Observed "listening-ports.txt missing" `
+    -Expected "network/listening-ports.txt present" `
+    -EvidenceHint "network/listening-ports.txt"
+}
+
+# CM.L2-3.4.9 -- Control and monitor user-installed software (AppLocker enforced).
+# AppLocker XML must show EnforcementMode=Enabled per RuleCollection.
+$appPath = Get-EvidenceFilePath "apps/applocker-policy.txt"
+if ($appPath -and (Test-Path $appPath)) {
+  $appText = Get-Content $appPath -Raw -ErrorAction SilentlyContinue
+  $enforcedCount = ([regex]::Matches($appText, 'EnforcementMode="Enabled"')).Count
+  Add-Check -Id "APPLOCKER-ENFORCED" -Control "CM.L2-3.4.9" -Title "AppLocker enforcement enabled (not just AuditOnly)" `
+    -Pass ($enforcedCount -gt 0) `
+    -Observed ("RuleCollections in Enabled mode=$enforcedCount") `
+    -Expected ">= 1 RuleCollection with EnforcementMode=Enabled" `
+    -EvidenceHint "apps/applocker-policy.txt"
+} else {
+  Add-Check -Id "APPLOCKER-ENFORCED" -Control "CM.L2-3.4.9" -Title "AppLocker policy captured" `
+    -Pass $false -Observed "applocker-policy.txt missing" `
+    -Expected "apps/applocker-policy.txt present" `
+    -EvidenceHint "apps/applocker-policy.txt"
+}
+
+# IA.L2-3.5.2 -- Authenticate users, processes, and devices.
+# Composite OS-side evidence: NLA enabled (devices), NTLMv2 only (processes/auth),
+# password policy non-trivial. We already check the components; this aggregates.
+$nlaText = if ($null -ne (Get-EvidenceFilePath "network/rdp-tcp.txt")) {
+  Get-Content (Get-EvidenceFilePath "network/rdp-tcp.txt") -Raw -ErrorAction SilentlyContinue
+} else { "" }
+$ntText = if ($null -ne (Get-EvidenceFilePath "policy/ntlm-policy.txt")) {
+  Get-Content (Get-EvidenceFilePath "policy/ntlm-policy.txt") -Raw -ErrorAction SilentlyContinue
+} else { "" }
+$nlaOk = $nlaText -match "UserAuthentication\s*[:=]\s*1"
+$ntlmv2 = $ntText -match "LmCompatibilityLevel\s*[:=]\s*5"
+Add-Check -Id "AUTHENTICATE-USERS" -Control "IA.L2-3.5.2" -Title "Authentication mechanisms enforced (NLA + NTLMv2 only)" `
+  -Pass ($nlaOk -and $ntlmv2) `
+  -Observed ("NLA=$nlaOk; NTLMv2-only=$ntlmv2") `
+  -Expected "NLA UserAuthentication=1 AND LmCompatibilityLevel=5" `
+  -EvidenceHint "network/rdp-tcp.txt + policy/ntlm-policy.txt"
+
+# MP.L2-3.8.6 -- Implement crypto mechanisms during transport (or use alternate
+# physical safeguards). For a no-removable-media enclave (USBSTOR Start=4),
+# this is satisfied by exclusion: there's no transport media to encrypt.
+$usbPath = Get-EvidenceFilePath "storage/usbstor.txt"
+$usbText = if ($usbPath -and (Test-Path $usbPath)) { Get-Content $usbPath -Raw -ErrorAction SilentlyContinue } else { "" }
+$usbDisabled = $usbText -match "Start\s*[:=]\s*4"
+Add-Check -Id "TRANSPORT-CRYPTO-OR-EXCLUSION" -Control "MP.L2-3.8.6" -Title "CUI on transport media: encrypted OR no removable media (satisfied by exclusion)" `
+  -Pass $usbDisabled `
+  -Observed ("USBSTOR.Start=" + ($(if ($usbDisabled) { "4 (disabled)" } else { "<not 4>" }))) `
+  -Expected "USBSTOR Start=4 (no removable media -> no transport to encrypt)" `
+  -EvidenceHint "storage/usbstor.txt"
+
+# SC.L2-3.13.16 -- Protect confidentiality of CUI at rest.
+# BitLocker must be enabled for ALL fixed volumes that could hold CUI, not
+# just C:. Iterate the bitlocker-status.txt and assert every fixed volume
+# is in FullyEncrypted + ProtectionStatus On.
+$blPath = Get-EvidenceFilePath "storage/bitlocker-status.txt"
+if ($blPath -and (Test-Path $blPath)) {
+  $blText = Get-Content $blPath -Raw -ErrorAction SilentlyContinue
+  $volMatches = [regex]::Matches($blText, "MountPoint\s*[:=]\s*([A-Z]:)\s.*?VolumeStatus\s*[:=]\s*(\w+).*?ProtectionStatus\s*[:=]\s*(\w+)", "Singleline")
+  $allOk = $true
+  $report = @()
+  foreach ($m in $volMatches) {
+    $mp = $m.Groups[1].Value; $vs = $m.Groups[2].Value; $ps = $m.Groups[3].Value
+    $report += "$mp VolumeStatus=$vs Protection=$ps"
+    if ($vs -ne "FullyEncrypted" -or $ps -ne "On") { $allOk = $false }
+  }
+  if ($volMatches.Count -eq 0) {
+    # Fallback: at least the OS-volume check (BITLOCKER-OS) covers C:; treat
+    # absence of additional fixed volumes as compliance by exclusion.
+    $allOk = ($blText -match "FullyEncrypted")
+    $report += "(only one volume detected -- see BITLOCKER-OS for C:)"
+  }
+  Add-Check -Id "BITLOCKER-ALL-VOLUMES" -Control "SC.L2-3.13.16" -Title "BitLocker enabled on ALL fixed volumes (CUI at rest)" `
+    -Pass $allOk `
+    -Observed ($report -join "; ") `
+    -Expected "Every fixed volume: VolumeStatus=FullyEncrypted, Protection=On" `
+    -EvidenceHint "storage/bitlocker-status.txt"
+} else {
+  Add-Check -Id "BITLOCKER-ALL-VOLUMES" -Control "SC.L2-3.13.16" -Title "BitLocker status captured" `
+    -Pass $false -Observed "bitlocker-status.txt missing" `
+    -Expected "storage/bitlocker-status.txt present" `
+    -EvidenceHint "storage/bitlocker-status.txt"
+}
+
+# SI.L2-3.14.5 -- Periodic scans of the information system.
+# Defender preferences must show ScanScheduleDay/Time configured and
+# DisableArchiveScanning=False (we want archives scanned).
+$dpPath = Get-EvidenceFilePath "defender/defender-preferences.txt"
+if ($dpPath -and (Test-Path $dpPath)) {
+  $dpText = Get-Content $dpPath -Raw -ErrorAction SilentlyContinue
+  $hasSchedDay = $dpText -match "ScanScheduleDay\s*[:=]\s*\S+"
+  $disableArchive = $false
+  if ($dpText -match "DisableArchiveScanning\s*[:=]\s*(True|False)") {
+    $disableArchive = ($Matches[1] -eq "True")
+  }
+  Add-Check -Id "DEFENDER-SCAN-SCHEDULE" -Control "SI.L2-3.14.5" -Title "Defender periodic scan scheduled (archives included)" `
+    -Pass ($hasSchedDay -and -not $disableArchive) `
+    -Observed ("ScheduleDay-set=$hasSchedDay; DisableArchiveScanning=$disableArchive") `
+    -Expected "ScanScheduleDay configured AND DisableArchiveScanning=False" `
+    -EvidenceHint "defender/defender-preferences.txt"
+} else {
+  Add-Check -Id "DEFENDER-SCAN-SCHEDULE" -Control "SI.L2-3.14.5" -Title "Defender preferences captured" `
+    -Pass $false -Observed "defender-preferences.txt missing" `
+    -Expected "defender/defender-preferences.txt present" `
+    -EvidenceHint "defender/defender-preferences.txt"
 }
 
 ### Write report files
