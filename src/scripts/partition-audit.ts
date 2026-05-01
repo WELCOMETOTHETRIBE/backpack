@@ -15,14 +15,17 @@ import {
 import { LIKELY_NA_CONTROL_IDS } from "../lib/compliance/likely-na-controls";
 import { PURE_GOV_CONTROL_IDS } from "../lib/governance/seed-data";
 
-const OS_73 = new Set(ENCLAVE_73_NIST_IDS);
-const _OS_PARTIAL = new Set(ENCLAVE_OS_PARTIAL_31_NIST_IDS);
-const STRICT_INHERIT = new Set(AZURE_INHERITED_3_10_CONTROL_IDS);
-const CUST_ATTEST = new Set(CUSTOMER_ATTESTED_INHERITED.map((c) => c.controlId));
-const AZURE = new Set(AZURE_ENTRA_15_CONTROL_IDS);
-const NA = new Set(LIKELY_NA_CONTROL_IDS);
-const PURE_GOV = new Set(PURE_GOV_CONTROL_IDS);
-const OUTSTANDING = new Set(OUTSTANDING_36_CONTROL_IDS);
+// Widen all set element types to plain `string` so .has(id) accepts the
+// generic ALL_CONTROL_IDS items (some constant lists use `as const` with
+// narrow literal types that would otherwise reject lookups).
+const OS_73 = new Set<string>(ENCLAVE_73_NIST_IDS);
+const _OS_PARTIAL = new Set<string>(ENCLAVE_OS_PARTIAL_31_NIST_IDS);
+const STRICT_INHERIT = new Set<string>(AZURE_INHERITED_3_10_CONTROL_IDS);
+const CUST_ATTEST = new Set<string>(CUSTOMER_ATTESTED_INHERITED.map((c) => c.controlId));
+const AZURE = new Set<string>(AZURE_ENTRA_15_CONTROL_IDS);
+const NA = new Set<string>(LIKELY_NA_CONTROL_IDS);
+const PURE_GOV = new Set<string>(PURE_GOV_CONTROL_IDS);
+const OUTSTANDING = new Set<string>(OUTSTANDING_36_CONTROL_IDS);
 
 const bins: Record<string, string[]> = {
   "1. Strict inherited (Azure FedRAMP)": [],
