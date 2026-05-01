@@ -1,8 +1,8 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
-import { boundaries, controlRecords, organizations } from "@/db/schema";
-import { eq, and, inArray } from "drizzle-orm";
+import { boundaries, organizations } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import Link from "next/link";
 import {
   CheckCircle2,
@@ -12,13 +12,16 @@ import {
   ShieldCheck,
   Upload,
 } from "lucide-react";
-import { LIKELY_NA_CONTROL_IDS } from "@/lib/compliance/likely-na-controls";
+// LIKELY_NA_CONTROL_IDS no longer needed here -- the questionnaire moved
+// to the Outstanding Wizard's Bucket E (signed N/A attestations).
 import { SyncInheritedButton } from "./SyncInheritedButton";
 import { EndpointSection } from "@/components/boundary/EndpointSection";
 // AzureEntraEvidenceCard intentionally NOT imported -- evidence uploads are
 // centralized at /dashboard/evidence/upload-manifest. The boundary page is
 // pure architecture summary + endpoint registration; uploads happen in one place.
-import { LikelyNaQuestionnaire } from "@/components/boundary/LikelyNaQuestionnaire";
+// LikelyNaQuestionnaire removed -- N/A attestations moved to the
+// Outstanding Controls Wizard's Bucket E (the canonical signed-attestation
+// flow). Component file preserved in case we need it for something else later.
 
 // Adjudication state changes (attestation signs, register entries) flip
 // implementationStatus on control_records — this page reads org metadata
@@ -115,20 +118,9 @@ export default async function BoundaryPage() {
     0,
   );
 
-  // ── Likely-N/A control records (for the questionnaire) ──────────────────
-  const likelyNaRecords = await db
-    .select({
-      controlId: controlRecords.controlId,
-      implementationStatus: controlRecords.implementationStatus,
-      governanceNarrative: controlRecords.governanceNarrative,
-    })
-    .from(controlRecords)
-    .where(
-      and(
-        eq(controlRecords.organizationId, orgId),
-        inArray(controlRecords.controlId, [...LIKELY_NA_CONTROL_IDS]),
-      ),
-    );
+  // (LikelyNa questionnaire removed -- N/A attestations live in the
+  // Outstanding Controls Wizard's Bucket E with signed attestation
+  // artifacts. One canonical place for that workflow.)
 
   return (
     <div className="min-h-0">
@@ -318,13 +310,12 @@ export default async function BoundaryPage() {
           </div>
         </section>
 
-        {/* ── 4. Likely-N/A questionnaire (6 customer-attestable N/A controls) ── */}
-        <LikelyNaQuestionnaire
-          boundaryId={boundary.id}
-          initialRecords={likelyNaRecords}
-        />
+        {/* (N/A attestations removed from this page -- they live in the
+            Outstanding Controls Wizard's Bucket E where each is a signed
+            artifact with a SHA-256 dataHash binding. Single canonical
+            workflow; no duplicate yes/no questionnaire here.) */}
 
-        {/* ── 5. Pointer to centralized evidence upload ── */}
+        {/* ── 4. Pointer to centralized evidence upload ── */}
         <section className={cardClass}>
           <div className="flex items-start justify-between gap-4">
             <div>
