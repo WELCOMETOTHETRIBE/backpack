@@ -99,7 +99,7 @@ export default async function BoundaryPage() {
               <p className="mt-0.5 text-sm text-[var(--color-gray-600)]">
                 Every CUI Vault customer runs on the same hardened boundary. There is
                 nothing to choose; the architecture is a constant of the platform and
-                drives the canonical 74-adjudicated / 36-outstanding control split.
+                drives canonical CMMC L2 control adjudication across the 110 NIST 800-171 controls.
               </p>
 
               <dl className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -112,7 +112,7 @@ export default async function BoundaryPage() {
                     Windows Server 2025 Datacenter
                   </dd>
                   <dd className="mt-0.5 text-xs text-[var(--color-gray-600)]">
-                    DISA STIG hardened · BitLocker FIPS · 73 OS-validated controls
+                    DISA STIG hardened · BitLocker FIPS · OS evidence pipeline (Collect-Cui-Evidence v2)
                   </dd>
                 </div>
                 <div className="rounded-lg border border-[var(--color-border)] bg-white p-3">
@@ -124,7 +124,7 @@ export default async function BoundaryPage() {
                     Microsoft Azure Government
                   </dd>
                   <dd className="mt-0.5 text-xs text-[var(--color-gray-600)]">
-                    FedRAMP High Authorized · Entra ID · 6 inherited + 12 validated controls
+                    FedRAMP High Authorized · Entra ID · Cloud evidence pipeline (validate_azure_entra v1.5)
                   </dd>
                 </div>
               </dl>

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, Clock, FileSignature, ShieldCheck } from "lucide-react";
 import { computeAdjudicationRollup } from "@/lib/adjudication-helpers";
-import { OUTSTANDING_TOTALS } from "@/lib/compliance/outstanding-controls";
 import { computeOutstandingBucketCounts } from "@/lib/compliance/outstanding-bucket-counts";
 
 /**
@@ -11,13 +10,9 @@ import { computeOutstandingBucketCounts } from "@/lib/compliance/outstanding-buc
  *
  * Every number on this card is dynamic — none are hardcoded snapshot
  * constants. The state-aware headline copy adapts to where the customer
- * actually is on the path:
- *
- *   - 0–10 adjudicated  → "Get started — your fastest path to 74 is..."
- *   - 11–63 (in transit) → "{N} of 110. Ingest OS evidence + sign bundle to hit 74."
- *   - 64–84 (at baseline)→ "You've reached the OS+governance baseline. {M} remain."
- *   - 85–109            → "{N} of 110. Most of what's left is operational evidence."
- *   - 110               → "All 110 adjudicated — ready for C3PAO assessment."
+ * actually is on the path. Five bands keyed off `adjudicated`, all framed
+ * around the live `outstanding` number — the bin partition is the
+ * canonical taxonomy.
  *
  * Bucket chips show OPEN counts per close-path category (not the snapshot's
  * static bucket sizes). A control is "open" only when the actual lane
@@ -29,8 +24,6 @@ export async function PathTo110Widget({ orgId }: { orgId: string }) {
   const adjudicated = rollup.inherited + rollup.notApplicable + rollup.implementedEvidenced;
   const outstanding = rollup.outstanding;
   const pct = Math.min(100, Math.round((adjudicated / 110) * 100));
-
-  const targetAdjudicated = OUTSTANDING_TOTALS.adjudicated; // 74 — the OS+gov baseline
 
   // Per-bucket dynamic open counts (single source of truth shared with the wizard)
   const buckets = await computeOutstandingBucketCounts(orgId);
@@ -50,7 +43,6 @@ export async function PathTo110Widget({ orgId }: { orgId: string }) {
             <PathDescription
               adjudicated={adjudicated}
               outstanding={outstanding}
-              targetAdjudicated={targetAdjudicated}
             />
           </p>
         </div>
@@ -132,7 +124,7 @@ export async function PathTo110Widget({ orgId }: { orgId: string }) {
       </div>
 
       <p className="mt-4 text-xs text-slate-500">
-        Wizard scope: {buckets.openAll} of 36 outstanding cards still open
+        Wizard scope: {buckets.openAll} card{buckets.openAll === 1 ? "" : "s"} still open
         {buckets.closedAll > 0 ? ` · ${buckets.closedAll} closed` : ""}.
         Every action is C3PAO-defensible — each card shows the examiner note and the
         conditions you&apos;re affirming.
@@ -143,16 +135,16 @@ export async function PathTo110Widget({ orgId }: { orgId: string }) {
 
 /**
  * State-aware headline copy. Five bands keyed off `adjudicated` so the
- * description never claims the customer has done work they haven't.
+ * description never claims the customer has done work they haven't. Phrased
+ * in terms of the live `outstanding` count rather than any static baseline
+ * number — the bin partition is the canonical taxonomy.
  */
 function PathDescription({
   adjudicated,
   outstanding,
-  targetAdjudicated,
 }: {
   adjudicated: number;
   outstanding: number;
-  targetAdjudicated: number;
 }) {
   if (adjudicated >= 110) {
     return (
@@ -165,7 +157,7 @@ function PathDescription({
   if (adjudicated >= 85) {
     return (
       <>
-        <strong>{outstanding} of 110 still need adjudication.</strong> Most of
+        <strong>{outstanding} still need adjudication.</strong> Most of
         what&apos;s left is operational evidence — register entries on cadence and
         a few attestations. The Outstanding Controls Wizard groups them by
         effort tier.
@@ -175,19 +167,19 @@ function PathDescription({
   if (adjudicated >= 64) {
     return (
       <>
-        You&apos;ve reached the {targetAdjudicated}-control baseline covered by
-        OS evidence and the signed governance bundle. <strong>{outstanding} controls
-        remain</strong> — most are 5-minute attestations or quick register entries.
+        Most of the technical and governance baseline is in place.
+        <strong> {outstanding} controls remain</strong> — most are 5-minute
+        attestations or quick register entries grouped by effort tier in the wizard.
       </>
     );
   }
   if (adjudicated >= 11) {
     return (
       <>
-        <strong>{outstanding} of 110 still need adjudication.</strong> Your
-        fastest jump is to ingest OS evidence + sign the governance bundle —
-        that gets you to ~{targetAdjudicated} adjudicated. Then the wizard walks
-        you through the remaining {110 - targetAdjudicated} cards.
+        <strong>{outstanding} still need adjudication.</strong> Your
+        fastest jump is to ingest OS evidence and sign the MacTech governance bundle —
+        together they evidence the bulk of the technical and governance lanes.
+        Then the Outstanding Controls Wizard walks you through what&apos;s left.
       </>
     );
   }
@@ -195,8 +187,8 @@ function PathDescription({
     <>
       <strong>Get started.</strong> Your fastest path is: (1) ingest OS evidence
       from the Win 2025 collector, (2) sign the MacTech governance bundle.
-      Together those cover ~{targetAdjudicated} of the 110 controls — then the
-      Outstanding Controls Wizard walks you through the remaining {110 - targetAdjudicated}.
+      Together they evidence the bulk of the technical and governance lanes — then
+      the Outstanding Controls Wizard walks you through what&apos;s left.
     </>
   );
 }

@@ -35,12 +35,13 @@ import { OutstandingWizard } from "./OutstandingWizard";
 /**
  * /dashboard/readiness/outstanding
  *
- * The Outstanding Controls Wizard. Surfaces the 36 controls that aren't yet
- * adjudicated for a CUI Vault customer, grouped by close-path bucket, with
+ * The Outstanding Controls Wizard. Surfaces the controls that aren't yet
+ * adjudicated for a CUI Vault customer (sourced from
+ * OUTSTANDING_36_CONTROL_IDS), grouped by close-path bucket, with
  * one-click actions per control.
  *
  * Server-side this page:
- *   1. Loads the org's control_records for all 36 outstanding control IDs
+ *   1. Loads the org's control_records for every outstanding control ID
  *   2. Loads governance_artifact_completions (attestation lane evidence)
  *   3. Loads provisioned registers + final-entry counts
  *   4. Computes per-control liveStatus: closed | in_progress | not_started
@@ -59,7 +60,7 @@ export default async function OutstandingPage() {
   const outstandingIds = [...OUTSTANDING_36_CONTROL_IDS];
   const customerAttestedIds = new Set(CUSTOMER_ATTESTED_INHERITED.map((c) => c.controlId));
 
-  // 1) control_records for all 36 + the 2 customer-attested-inherited
+  // 1) control_records for every outstanding control + the customer-attested-inherited set
   const allRelevantIds = Array.from(new Set([...outstandingIds, ...customerAttestedIds]));
   const records = await db
     .select({
@@ -554,7 +555,7 @@ function NoRecordsGuidance() {
             We can&apos;t show your outstanding-controls wizard until you&apos;ve finished
             onboarding. Specifically: define your system boundary, accept the Trust Codex, and
             let the platform initialize your 110 NIST 800-171 control records. Then come back here
-            and you&apos;ll see all 36 outstanding cards bucketed by close-path.
+            and you&apos;ll see your outstanding cards bucketed by close-path.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <Link
