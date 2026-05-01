@@ -33,7 +33,7 @@ export default async function EvidenceEngineControlDetailPage({ params, searchPa
         <Link href="/dashboard/evidence-engine" className="text-sm text-[var(--color-gray-600)] hover:underline">← Evidence Engine</Link>
         <h1 className="text-xl font-semibold text-[var(--color-navy-primary)]">Control {controlId}</h1>
         <p className="text-[var(--color-gray-600)]">Select a system boundary to view evidence.</p>
-        <Link href="/dashboard/os-baselines" className="text-sm text-[var(--color-blue-accent)] hover:underline">Create a boundary in System Boundary</Link>
+        <Link href="/dashboard/boundary" className="text-sm text-[var(--color-blue-accent)] hover:underline">Open System Boundary</Link>
       </div>
     );
   }

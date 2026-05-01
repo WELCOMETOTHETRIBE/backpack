@@ -46,8 +46,8 @@ export default async function EvidenceEngineDashboardPage({ searchParams }: Page
         <h1 className="text-xl font-semibold text-[var(--color-navy-primary)]">Evidence Registers</h1>
         <p className="text-[var(--color-gray-600)]">Select a system boundary to view evidence.</p>
         <p className="text-sm text-[var(--color-gray-500)]">
-          <Link href="/dashboard/os-baselines" className="text-[var(--color-blue-accent)] hover:underline">
-            Create a boundary in System Boundary
+          <Link href="/dashboard/boundary" className="text-[var(--color-blue-accent)] hover:underline">
+            Open System Boundary
           </Link>{" "}
           to get started.
         </p>

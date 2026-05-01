@@ -460,14 +460,12 @@ python3 TRUST_CODEX/tools/validate_azure_entra.py`}
             </div>
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
-            {boundaryId && (
-              <Link
-                href={`/dashboard/os-baselines/boundaries/${boundaryId}`}
-                className="inline-flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
-              >
-                Upload validator report
-              </Link>
-            )}
+            <Link
+              href="/dashboard/boundary"
+              className="inline-flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+            >
+              Upload validator report
+            </Link>
             <Link
               href="/dashboard/evidence-engine/about-collectors"
               className="inline-flex items-center gap-1.5 rounded-md border border-blue-300 bg-white px-3 py-1.5 text-sm font-semibold text-blue-900 transition hover:bg-blue-100"

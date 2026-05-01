@@ -33,7 +33,7 @@ export default async function EvidenceEngineRegistersPage({ searchParams }: Page
         <h2 className="text-xl font-semibold text-[var(--color-navy-primary)]">Registers</h2>
         <p className="text-[var(--color-gray-600)]">Select a system boundary to view evidence.</p>
         <p className="text-sm">
-          <Link href="/dashboard/os-baselines" className="text-[var(--color-blue-accent)] hover:underline">Create a boundary in System Boundary</Link> to get started.
+          <Link href="/dashboard/boundary" className="text-[var(--color-blue-accent)] hover:underline">Open System Boundary</Link> to get started.
         </p>
       </div>
     );

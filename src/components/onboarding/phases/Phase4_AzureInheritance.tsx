@@ -182,7 +182,7 @@ export function Phase4_AzureInheritance({ onComplete }: Phase4Props) {
             <span className="text-[#94A3B8]">
               Both produce a <code className="text-[#0EA5E9]">validation-report-*.json</code>{" "}
               that you upload at{" "}
-              <span className="text-white">/dashboard/os-baselines/boundaries/&lt;id&gt;</span>.
+              <span className="text-white">/dashboard/boundary</span>.
             </span>
           </li>
         </ul>
