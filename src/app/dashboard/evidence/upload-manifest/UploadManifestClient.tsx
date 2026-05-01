@@ -450,6 +450,11 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
             run_id: runId,
             collected_at: collectedAt,
             report: cloudReport,
+            // Re-uploads of the same content (same fingerprint) overwrite
+            // the prior run instead of 409'ing. Re-running the validator and
+            // uploading again is a normal user workflow; making them edit
+            // the report to bypass dedup would be silly.
+            replace_existing: true,
           }),
         },
       );
@@ -598,21 +603,21 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
           collected -- only the manifest (file paths + SHA-256 hashes) and
           validator findings are transmitted.
         </p>
-        <div className="mt-3 grid gap-2 text-xs sm:grid-cols-3">
-          <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
-            <div className="font-semibold text-slate-700">1. OS manifest</div>
-            <div className="mt-0.5 font-mono text-[11px] text-slate-600">meta/manifest.json</div>
-            <div className="mt-1 text-slate-500">From <code className="font-mono text-[10px]">Collect-Cui-Evidence-v2.ps1</code>. Links 76 files to controls.</div>
+        <div className="mt-3 grid gap-2 text-xs sm:grid-cols-2">
+          <div className="rounded-md border border-indigo-200 bg-indigo-50 px-3 py-2">
+            <div className="font-semibold text-indigo-900">OS evidence (drop BOTH together)</div>
+            <ul className="mt-1 list-inside list-disc space-y-0.5 text-slate-700">
+              <li><span className="font-mono text-[11px]">manifest.json</span> -- from <code className="font-mono text-[10px]">Collect-Cui-Evidence-v2.ps1</code></li>
+              <li><span className="font-mono text-[11px]">validation-report.json</span> -- from <code className="font-mono text-[10px]">Test-CuiHardening.ps1</code></li>
+            </ul>
+            <div className="mt-1 text-slate-500">Together: 76 files linked to controls + 53 per-check findings. Upload requires both.</div>
           </div>
-          <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
-            <div className="font-semibold text-slate-700">2. OS validator report</div>
-            <div className="mt-0.5 font-mono text-[11px] text-slate-600">validation-report.json</div>
-            <div className="mt-1 text-slate-500">From <code className="font-mono text-[10px]">Test-CuiHardening.ps1</code>. Records 53 per-check PASS/FAIL findings. Drop alongside the manifest.</div>
-          </div>
-          <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
-            <div className="font-semibold text-slate-700">3. Cloud validator report</div>
-            <div className="mt-0.5 font-mono text-[11px] text-slate-600">validation-report-azure-entra.json</div>
-            <div className="mt-1 text-slate-500">From <code className="font-mono text-[10px]">validate_azure_entra v1.5+</code>. Adjudicates 15 Azure controls in one shot.</div>
+          <div className="rounded-md border border-blue-200 bg-blue-50 px-3 py-2">
+            <div className="font-semibold text-blue-900">Cloud evidence (drop alone)</div>
+            <ul className="mt-1 list-inside list-disc space-y-0.5 text-slate-700">
+              <li><span className="font-mono text-[11px]">validation-report-azure-entra.json</span> -- from <code className="font-mono text-[10px]">validate_azure_entra v1.5+</code></li>
+            </ul>
+            <div className="mt-1 text-slate-500">Adjudicates 15 Azure controls in one shot. Re-uploads of the same run overwrite (idempotent).</div>
           </div>
         </div>
       </div>
@@ -793,7 +798,13 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
             </button>
             <button
               onClick={handleSubmit}
-              disabled={submitting || !selectedBoundaryId || boundaries.length === 0}
+              disabled={
+                submitting ||
+                !selectedBoundaryId ||
+                boundaries.length === 0 ||
+                !validationReport /* OS evidence is a 2-file PAIR — manifest + validator report. Don't let the user upload manifest alone; the codex needs both for full per-check adjudication. */
+              }
+              title={!validationReport ? "Drop validation-report.json from the same run before uploading -- the codex needs both files to record per-check PASS/FAIL findings." : ""}
               className="flex-1 inline-flex items-center justify-center rounded-full bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitting ? (
@@ -804,11 +815,22 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
                   </svg>
                   Ingesting&hellip;
                 </span>
+              ) : !validationReport ? (
+                "Drop validation-report.json to enable upload"
               ) : (
-                "Ingest manifest"
+                "Ingest OS evidence (manifest + validator report)"
               )}
             </button>
           </div>
+          {!validationReport && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 dark:border-amber-800 dark:bg-amber-950/20 dark:text-amber-300">
+              <strong>OS evidence is a pair.</strong> Drop{" "}
+              <code className="rounded bg-white/70 px-1 py-0.5 font-mono text-[11px]">validation-report.json</code>{" "}
+              from the same run to enable upload. The manifest gives the codex
+              file-level evidence; the validator report gives the codex
+              per-check PASS/FAIL findings. We need both to adjudicate properly.
+            </div>
+          )}
         </div>
       )}
 

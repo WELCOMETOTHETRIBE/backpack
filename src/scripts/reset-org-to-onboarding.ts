@@ -56,6 +56,7 @@ import {
   technicalEvidence,
   governanceArtifactCompletions,
   controlEvidenceLinks,
+  evidenceRuns,
   boundaries,
   governanceRegisters,
   governanceRegisterEntries,
@@ -193,6 +194,13 @@ async function countOrgScoped(orgId: string): Promise<CountRow[]> {
       .select({ cnt: sql<number>`count(*)::int` })
       .from(controlEvidenceLinks)
       .where(eq(controlEvidenceLinks.organizationId, orgId))
+  );
+  await n(
+    "evidence_runs (cascades to evidence_findings + evidence_files)",
+    db
+      .select({ cnt: sql<number>`count(*)::int` })
+      .from(evidenceRuns)
+      .where(eq(evidenceRuns.organizationId, orgId))
   );
   await n(
     "governance_registers (org-scoped only)",
@@ -352,13 +360,20 @@ async function executeReset(orgId: string) {
       );
     await tx.delete(poamItems).where(eq(poamItems.organizationId, orgId));
 
-    // 5. Control-record-referencing tables — all before control_records.
+    // 5. Control-record-referencing tables -- all before control_records.
     await tx.delete(technicalEvidence).where(eq(technicalEvidence.organizationId, orgId));
     await tx
       .delete(governanceArtifactCompletions)
       .where(eq(governanceArtifactCompletions.organizationId, orgId));
     await tx.delete(controlEvidenceLinks).where(eq(controlEvidenceLinks.organizationId, orgId));
     await tx.delete(controlAdjudications).where(eq(controlAdjudications.organizationId, orgId));
+
+    // 5a. Evidence runs + findings (Azure validator + OS Test-CuiHardening
+    // both write here). Without wiping these, re-uploading the same evidence
+    // file after a reset hits the (organization_id, run_fingerprint) unique
+    // index and 409s. evidenceFindings cascades from evidenceRuns via
+    // ON DELETE CASCADE so a single delete on evidenceRuns is enough.
+    await tx.delete(evidenceRuns).where(eq(evidenceRuns.organizationId, orgId));
     // control_history FK's controlImplementations.id — delete it FIRST.
     await tx
       .delete(controlHistory)
