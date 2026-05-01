@@ -15,7 +15,9 @@ import {
 import { LIKELY_NA_CONTROL_IDS } from "@/lib/compliance/likely-na-controls";
 import { SyncInheritedButton } from "./SyncInheritedButton";
 import { EndpointSection } from "@/components/boundary/EndpointSection";
-import { AzureEntraEvidenceCard } from "@/components/boundary/AzureEntraEvidenceCard";
+// AzureEntraEvidenceCard intentionally NOT imported -- evidence uploads are
+// centralized at /dashboard/evidence/upload-manifest. The boundary page is
+// pure architecture summary + endpoint registration; uploads happen in one place.
 import { LikelyNaQuestionnaire } from "@/components/boundary/LikelyNaQuestionnaire";
 
 // Adjudication state changes (attestation signs, register entries) flip
@@ -301,38 +303,50 @@ export default async function BoundaryPage() {
 
         {/* ── 3. Endpoint (one Win 2025 VM) ── */}
         <section className={cardClass}>
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1">
-              <h2 className="text-base font-semibold text-[var(--color-gray-900)]">
-                CUI Vault VM
-              </h2>
-              <p className="mt-0.5 text-sm text-[var(--color-gray-600)]">
-                Register your Windows Server 2025 Datacenter hostname so OS
-                evidence runs are attributed to it. One VM per CUI Vault
-                customer.
-              </p>
-            </div>
-            <Link
-              href="/dashboard/evidence/upload-manifest"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-white px-3.5 py-2 text-sm font-medium text-[var(--color-gray-700)] transition-colors hover:bg-[var(--color-gray-50)]"
-            >
-              <Upload className="h-3.5 w-3.5" />
-              Upload OS evidence
-            </Link>
+          <div>
+            <h2 className="text-base font-semibold text-[var(--color-gray-900)]">
+              CUI Vault VM
+            </h2>
+            <p className="mt-0.5 text-sm text-[var(--color-gray-600)]">
+              Register your Windows Server 2025 Datacenter hostname so OS
+              evidence runs are attributed to it. One VM per CUI Vault
+              customer.
+            </p>
           </div>
           <div className="mt-4">
             <EndpointSection boundaryId={boundary.id} />
           </div>
         </section>
 
-        {/* ── 4. Cloud evidence pipeline (Azure/Entra validator) ── */}
-        <AzureEntraEvidenceCard boundaryId={boundary.id} />
-
-        {/* ── 5. Likely-N/A questionnaire (6 customer-attestable N/A controls) ── */}
+        {/* ── 4. Likely-N/A questionnaire (6 customer-attestable N/A controls) ── */}
         <LikelyNaQuestionnaire
           boundaryId={boundary.id}
           initialRecords={likelyNaRecords}
         />
+
+        {/* ── 5. Pointer to centralized evidence upload ── */}
+        <section className={cardClass}>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-base font-semibold text-[var(--color-gray-900)]">
+                Evidence uploads
+              </h2>
+              <p className="mt-0.5 text-sm text-[var(--color-gray-600)]">
+                All three evidence files (OS manifest, OS validator report, Cloud
+                validator report) are uploaded from one place. Drop them on
+                the Upload Evidence page and they auto-route to the right
+                ingest path.
+              </p>
+            </div>
+            <Link
+              href="/dashboard/evidence/upload-manifest"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-[var(--color-blue-accent)] px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
+            >
+              <Upload className="h-3.5 w-3.5" />
+              Upload Evidence
+            </Link>
+          </div>
+        </section>
 
         {/* ── 6. External service providers (additive to Azure Gov canonical) ── */}
         {totalInheritedControls > 0 && (

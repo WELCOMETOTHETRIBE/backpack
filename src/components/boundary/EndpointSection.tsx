@@ -100,14 +100,35 @@ export function EndpointSection({ boundaryId }: { boundaryId: string }) {
     setSaving(true);
     setError(null);
     try {
+      // Role + baseline are constants of the Vault architecture -- always
+      // member_server, always the canonical Win 2025 CUI baseline. We pick
+      // the profile by name pattern with version + first-match fallbacks
+      // so we don't break if the profile name evolves.
+      const canonical =
+        profiles.find(
+          (p) =>
+            p.osFamily === DEFAULT_OS_FAMILY &&
+            p.osVersion === DEFAULT_OS_VERSION &&
+            p.role === DEFAULT_ROLE &&
+            p.name?.toLowerCase().includes("cui baseline"),
+        ) ??
+        profiles.find(
+          (p) =>
+            p.osFamily === DEFAULT_OS_FAMILY &&
+            p.osVersion === DEFAULT_OS_VERSION &&
+            p.role === DEFAULT_ROLE,
+        ) ??
+        null;
+      const baselineId = canonical?.id ?? null;
+
       if (asset) {
         const res = await fetch(`/api/os-baselines/assets/${asset.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             hostname: hostname.trim(),
-            role,
-            baseline_profile_id: baselineProfileId || null,
+            role: DEFAULT_ROLE,
+            baseline_profile_id: baselineId,
           }),
         });
         if (!res.ok) throw new Error(await res.text());
@@ -121,8 +142,8 @@ export function EndpointSection({ boundaryId }: { boundaryId: string }) {
               hostname: hostname.trim(),
               os_family: DEFAULT_OS_FAMILY,
               os_version: DEFAULT_OS_VERSION,
-              role,
-              baseline_profile_id: baselineProfileId || null,
+              role: DEFAULT_ROLE,
+              baseline_profile_id: baselineId,
             }),
           },
         );
@@ -185,59 +206,61 @@ export function EndpointSection({ boundaryId }: { boundaryId: string }) {
     );
   }
 
-  // Editing or creating
+  // Editing or creating. Hostname is the only thing that varies per
+  // customer -- role and baseline are constants of the CUI Vault platform.
+  // Auto-pick the canonical Win 2025 baseline if available; fall back to
+  // first match. Role is hard-coded to member_server (the only valid role
+  // for a Vault VM -- Domain Controller / Bastion / App Server are not
+  // part of the Vault architecture).
+  const canonicalProfile =
+    matchingProfiles.find((p) => p.name?.toLowerCase().includes("cui baseline")) ??
+    matchingProfiles.find((p) => p.osVersion === "2025") ??
+    matchingProfiles[0];
   if (editing) {
     return (
       <form onSubmit={handleSave} className="space-y-3">
         <div>
           <label className="block text-xs font-medium text-[var(--color-gray-700)]">
-            Hostname
+            VM hostname
           </label>
           <input
             type="text"
             value={hostname}
             onChange={(e) => setHostname(e.target.value)}
-            placeholder="e.g. cui-vault-prod-01"
+            placeholder="e.g. cui-win-pilot-0"
             required
             className="mt-1 w-full rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm focus:border-[var(--color-blue-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--color-blue-accent)]"
           />
+          <p className="mt-1 text-[11px] text-[var(--color-gray-500)]">
+            The hostname your Win 2025 VM reports (run{" "}
+            <code className="rounded bg-[var(--color-gray-100)] px-1 py-0.5 font-mono text-[10px]">
+              hostname
+            </code>{" "}
+            on the VM, or check the Azure portal). Used to attribute OS
+            evidence runs to this endpoint.
+          </p>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div>
-            <label className="block text-xs font-medium text-[var(--color-gray-700)]">
-              Role
-            </label>
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              className="mt-1 w-full rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm focus:border-[var(--color-blue-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--color-blue-accent)]"
-            >
-              <option value="member_server">Member server</option>
-              <option value="domain_controller">Domain controller</option>
-              <option value="bastion_host">Bastion host</option>
-              <option value="application_server">Application server</option>
-            </select>
+        {/* Role + baseline are constants of the Vault architecture. Surface
+            them read-only so the customer sees what's being applied, but
+            don't ask for input. */}
+        <div className="grid gap-3 sm:grid-cols-2 text-xs">
+          <div className="rounded-md border border-[var(--color-border-muted)] bg-[var(--color-gray-50)]/60 px-3 py-2">
+            <div className="font-medium text-[var(--color-gray-500)]">Role</div>
+            <div className="mt-0.5 text-sm text-[var(--color-gray-800)]">Member server</div>
+            <div className="mt-0.5 text-[10px] text-[var(--color-gray-500)]">
+              Fixed for Vault VMs (no DC, no Bastion -- Bastion is Azure-managed)
+            </div>
           </div>
-          <div>
-            <label className="block text-xs font-medium text-[var(--color-gray-700)]">
-              OS baseline
-            </label>
-            <select
-              value={
-                matchingProfiles.some((p) => p.id === baselineProfileId)
-                  ? baselineProfileId
-                  : ""
-              }
-              onChange={(e) => setBaselineProfileId(e.target.value)}
-              className="mt-1 w-full rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm focus:border-[var(--color-blue-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--color-blue-accent)]"
-            >
-              <option value="">Unassigned</option>
-              {matchingProfiles.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name} (v{p.version})
-                </option>
-              ))}
-            </select>
+          <div className="rounded-md border border-[var(--color-border-muted)] bg-[var(--color-gray-50)]/60 px-3 py-2">
+            <div className="font-medium text-[var(--color-gray-500)]">OS baseline</div>
+            <div className="mt-0.5 text-sm text-[var(--color-gray-800)]">
+              {canonicalProfile
+                ? `${canonicalProfile.name} (v${canonicalProfile.version})`
+                : "Windows Server 2025 CUI Baseline"}
+            </div>
+            <div className="mt-0.5 text-[10px] text-[var(--color-gray-500)]">
+              DISA STIG hardened by MacTech, validated by Test-CuiHardening v2
+            </div>
           </div>
         </div>
         {error && <p className="text-xs text-rose-700">{error}</p>}

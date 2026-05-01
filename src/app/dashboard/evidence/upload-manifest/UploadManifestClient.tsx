@@ -261,6 +261,11 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
   const [dragging, setDragging] = useState(false);
   const [preview, setPreview] = useState<ManifestPreview | null>(null);
   const [validationReport, setValidationReport] = useState<ValidationReport | null>(null);
+  // Cloud validator report (validate_azure_entra v1.5+) routes through a
+  // different ingest endpoint than the OS bundle, so it gets its own slot.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [cloudReport, setCloudReport] = useState<any | null>(null);
+  const [cloudSubmitting, setCloudSubmitting] = useState(false);
   const [parseError, setParseError] = useState<string | null>(null);
   const [selectedBoundaryId, setSelectedBoundaryId] = useState<string>(boundaries[0]?.id ?? "");
   const [submitting, setSubmitting] = useState(false);
@@ -303,25 +308,44 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const json = JSON.parse(e.target?.result as string) as any;
 
-        // Detect file type by shape:
-        //   - manifest.json: schema === "cui-evidence.manifest.v2"
-        //   - validation-report.json: has summary.pass_count + checks[] (no schema field)
+        // Detect file type by shape -- the page accepts THREE distinct files:
+        //
+        //   1. OS manifest.json
+        //      schema === "cui-evidence.manifest.v2"
+        //
+        //   2. OS validation-report.json (from Test-CuiHardening.ps1)
+        //      has summary.pass_count + checks[]; NO validator.name field
+        //
+        //   3. Cloud validation-report-azure-entra.json (validate_azure_entra v1.5+)
+        //      has validator.name === "validate_azure_entra" + checks[]
+        //      (Routes through a different ingest endpoint than the OS bundle)
         const isManifest = json.schema === EXPECTED_SCHEMA;
-        const isValidationReport =
-          !json.schema && json.summary && Array.isArray(json.checks);
+        const isCloudReport =
+          json.validator?.name === "validate_azure_entra" &&
+          Array.isArray(json.checks);
+        const isOsValidationReport =
+          !json.schema &&
+          !isCloudReport &&
+          json.summary &&
+          Array.isArray(json.checks);
 
-        if (isValidationReport) {
+        if (isCloudReport) {
+          setCloudReport(json);
+          return;
+        }
+
+        if (isOsValidationReport) {
           // Companion drop -- attach to the existing manifest preview if present.
           setValidationReport(json);
           if (!preview) {
-            setParseError("Got validation-report.json. Now drop the manifest.json from the same run to enable upload.");
+            setParseError("Got OS validation-report.json. Now drop the manifest.json from the same run to enable upload.");
           }
           return;
         }
 
         if (!isManifest) {
           setParseError(
-            `Unexpected schema: "${json.schema ?? "(none)"}". Expected "${EXPECTED_SCHEMA}" (manifest.json) or a Test-CuiHardening validation-report.json with summary + checks.`
+            `Unexpected file shape. This page accepts: (1) OS manifest.json (schema "${EXPECTED_SCHEMA}"), (2) OS validation-report.json from Test-CuiHardening, or (3) Cloud validation-report-azure-entra.json from validate_azure_entra v1.5+.`
           );
           return;
         }
@@ -409,9 +433,60 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
     }
   };
 
+  const handleCloudSubmit = async () => {
+    if (!cloudReport || !selectedBoundaryId) return;
+    setCloudSubmitting(true);
+    setSubmitError(null);
+    try {
+      const runId =
+        cloudReport.run_id ?? `cloud-${Date.now()}`;
+      const collectedAt =
+        cloudReport.generated_utc ?? new Date().toISOString();
+      const res = await fetch(
+        `/api/os-baselines/boundaries/${selectedBoundaryId}/evidence-runs/import-report`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            run_id: runId,
+            collected_at: collectedAt,
+            report: cloudReport,
+          }),
+        },
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setSubmitError(`Cloud ingest failed: ${data.error ?? res.statusText}`);
+        return;
+      }
+      // Render a minimal IngestResult-shaped success card so the user gets
+      // the same green confirmation flow as OS uploads.
+      setResult({
+        run_id: runId,
+        computer_name: "Azure tenant",
+        collected_at: collectedAt,
+        links_created: data.findings_count ?? 0,
+        linked_controls: data.findings_count ?? 0,
+        skipped_controls: 0,
+        collection_errors: data.failed_count ?? 0,
+        collection_error_files: [],
+        validator_findings: data.findings_count ?? 0,
+        freshness: "current",
+        age_days: 0,
+        expires_at: new Date(Date.now() + 365 * 86400_000).toISOString(),
+      });
+      setCloudReport(null);
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Network error");
+    } finally {
+      setCloudSubmitting(false);
+    }
+  };
+
   const reset = () => {
     setPreview(null);
     setValidationReport(null);
+    setCloudReport(null);
     setResult(null);
     setParseError(null);
     setSubmitError(null);
@@ -517,12 +592,30 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
   return (
     <div className="space-y-6 py-4">
       <div>
-        <h1 className="text-xl font-semibold">Upload Evidence Manifest</h1>
+        <h1 className="text-xl font-semibold">Upload Evidence</h1>
         <p className="mt-1 text-sm text-gray-500">
-          Upload the <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-xs">meta/manifest.json</code> produced by{" "}
-          <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-xs">Collect-Cui-Evidence-v2.ps1</code>. Evidence files stay on your
-          VM — only the manifest (file paths + SHA-256 hashes) is transmitted.
+          Drop any of the three files below. Each one auto-detects and routes
+          to the right ingest path. Evidence files stay where they were
+          collected -- only the manifest (file paths + SHA-256 hashes) and
+          validator findings are transmitted.
         </p>
+        <div className="mt-3 grid gap-2 text-xs sm:grid-cols-3">
+          <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
+            <div className="font-semibold text-slate-700">1. OS manifest</div>
+            <div className="mt-0.5 font-mono text-[11px] text-slate-600">meta/manifest.json</div>
+            <div className="mt-1 text-slate-500">From <code className="font-mono text-[10px]">Collect-Cui-Evidence-v2.ps1</code>. Links 76 files to controls.</div>
+          </div>
+          <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
+            <div className="font-semibold text-slate-700">2. OS validator report</div>
+            <div className="mt-0.5 font-mono text-[11px] text-slate-600">validation-report.json</div>
+            <div className="mt-1 text-slate-500">From <code className="font-mono text-[10px]">Test-CuiHardening.ps1</code>. Records 53 per-check PASS/FAIL findings. Drop alongside the manifest.</div>
+          </div>
+          <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
+            <div className="font-semibold text-slate-700">3. Cloud validator report</div>
+            <div className="mt-0.5 font-mono text-[11px] text-slate-600">validation-report-azure-entra.json</div>
+            <div className="mt-1 text-slate-500">From <code className="font-mono text-[10px]">validate_azure_entra v1.5+</code>. Adjudicates 15 Azure controls in one shot.</div>
+          </div>
+        </div>
       </div>
 
       {/* Boundary selector */}
@@ -703,8 +796,66 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
         </div>
       )}
 
+      {/* Cloud validator-report preview + submit (separate ingest path from
+          the OS bundle -- routes through /api/os-baselines/.../import-report). */}
+      {cloudReport && (
+        <div className="space-y-4">
+          <div className="rounded-xl border bg-white p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="font-semibold">Cloud validator report</p>
+              <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                {cloudReport.validator?.name ?? "validate_azure_entra"} v{cloudReport.validator?.version ?? "?"}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+              <div>
+                <span className="text-gray-500">Run ID</span>
+                <p className="font-medium font-mono text-xs mt-0.5 break-all">{cloudReport.run_id ?? "(none)"}</p>
+              </div>
+              <div>
+                <span className="text-gray-500">Generated</span>
+                <p className="font-medium mt-0.5">
+                  {cloudReport.generated_utc
+                    ? parseFreshnessDate(cloudReport.generated_utc)
+                    : "(unknown)"}
+                </p>
+              </div>
+              <div>
+                <span className="text-gray-500">Verdict</span>
+                <p className="font-medium mt-0.5">
+                  {cloudReport.summary?.pass_count ?? 0} PASS &middot;{" "}
+                  {cloudReport.summary?.partial_count ?? 0} PARTIAL &middot;{" "}
+                  {cloudReport.summary?.fail_count ?? 0} FAIL
+                </p>
+              </div>
+              <div>
+                <span className="text-gray-500">Checks</span>
+                <p className="font-medium mt-0.5">{Array.isArray(cloudReport.checks) ? cloudReport.checks.length : 0}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <button
+              onClick={() => setCloudReport(null)}
+              disabled={cloudSubmitting}
+              className="rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleCloudSubmit}
+              disabled={cloudSubmitting || !selectedBoundaryId || boundaries.length === 0}
+              className="flex-1 inline-flex items-center justify-center rounded-full bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {cloudSubmitting ? "Ingesting cloud report…" : "Ingest cloud report"}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Instructions */}
-      {!preview && (
+      {!preview && !cloudReport && (
         <details className="rounded-lg border p-4">
           <summary className="cursor-pointer text-sm font-medium">How to get manifest.json from your CUI Vault VM</summary>
           <ol className="mt-3 space-y-2 text-sm text-gray-500 list-decimal list-inside">
