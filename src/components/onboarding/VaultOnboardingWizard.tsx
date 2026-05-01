@@ -69,7 +69,13 @@ function mapPhaseDataToCompleteBody(
   const phase1 = (phaseData["1"] ?? {}) as Record<string, unknown>;
   const owner = (phase1.systemOwner ?? {}) as Record<string, unknown>;
 
-  return {
+  // Build the body, then strip null/undefined entries before sending. Zod's
+  // .optional() on the receive side accepts undefined but NOT null, so a
+  // null cageCode (user skipped it on Phase 0) used to fail validation with
+  // an opaque "Invalid request" — surfaced to the user as the "Your progress
+  // may not have been saved" warning. Stripping nulls keeps the request
+  // shape exactly { onlyDefined: ... } and the schema accepts everything.
+  const raw: Record<string, unknown> = {
     name: phase1.orgName,
     cageCode: phase0.cageCode,
     primaryAddress: phase1.address,
@@ -80,6 +86,12 @@ function mapPhaseDataToCompleteBody(
     systemScope: phase1.systemDescription,
     selectedTechnologies: get<string[]>(3, "scopeComponents"),
   };
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(raw)) {
+    if (v === null || v === undefined) continue;
+    out[k] = v;
+  }
+  return out;
 }
 
 export function VaultOnboardingWizard({

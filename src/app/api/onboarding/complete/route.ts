@@ -23,18 +23,23 @@ import { REGISTER_DEFINITIONS } from "@/lib/governance/seed-data";
 import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
 import { generateClientRequiredPoams } from "@/lib/onboarding/generate-client-poams";
 
+// Defense-in-depth: every optional field is .nullish() so a null sent by a
+// caller (e.g. wizard passing through a stored null cageCode) is treated as
+// "not provided" instead of failing Zod validation with an opaque "Invalid
+// request". The wizard now strips nulls client-side too, but accepting them
+// here means future callers can't trip on this same edge.
 const requestSchema = z.object({
-  name: z.string().optional(),
-  cageCode: z.string().max(10).optional(),
-  primaryAddress: z.string().optional(),
-  primaryContactName: z.string().max(255).optional(),
-  primaryContactEmail: z.string().max(255).optional(),
-  organizationType: z.string().optional(),
-  cmmcTargetLevel: z.string().optional(),
-  cuiBoundary: z.string().optional(),
-  systemScope: z.string().optional(),
-  teamMembers: z.array(z.string()).optional(),
-  selectedTechnologies: z.array(z.string()).optional(),
+  name: z.string().nullish(),
+  cageCode: z.string().max(10).nullish(),
+  primaryAddress: z.string().nullish(),
+  primaryContactName: z.string().max(255).nullish(),
+  primaryContactEmail: z.string().max(255).nullish(),
+  organizationType: z.string().nullish(),
+  cmmcTargetLevel: z.string().nullish(),
+  cuiBoundary: z.string().nullish(),
+  systemScope: z.string().nullish(),
+  teamMembers: z.array(z.string()).nullish(),
+  selectedTechnologies: z.array(z.string()).nullish(),
 });
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -54,11 +59,13 @@ export async function POST(req: Request) {
       organizationType: body.organizationType ?? null,
       cmmcTargetLevel: body.cmmcTargetLevel ?? null,
     };
-    if (body.name !== undefined && body.name.trim()) orgUpdates.name = body.name.trim();
-    if (body.cageCode !== undefined) orgUpdates.cageCode = body.cageCode?.slice(0, 10) ?? null;
-    if (body.primaryAddress !== undefined) orgUpdates.primaryAddress = body.primaryAddress ?? null;
-    if (body.primaryContactName !== undefined) orgUpdates.primaryContactName = body.primaryContactName?.slice(0, 255) ?? null;
-    if (body.primaryContactEmail !== undefined) orgUpdates.primaryContactEmail = body.primaryContactEmail?.slice(0, 255) ?? null;
+    // Schema accepts null | undefined | string for these fields. Treat null
+    // and undefined identically: "not provided, leave existing value alone".
+    if (body.name != null && body.name.trim()) orgUpdates.name = body.name.trim();
+    if (body.cageCode != null) orgUpdates.cageCode = body.cageCode.slice(0, 10);
+    if (body.primaryAddress != null) orgUpdates.primaryAddress = body.primaryAddress;
+    if (body.primaryContactName != null) orgUpdates.primaryContactName = body.primaryContactName.slice(0, 255);
+    if (body.primaryContactEmail != null) orgUpdates.primaryContactEmail = body.primaryContactEmail.slice(0, 255);
     await db
       .update(organizations)
       .set(orgUpdates)
