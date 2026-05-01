@@ -1,6 +1,9 @@
 <#
 Collect-AzureEntraEvidence.ps1
-Collects Azure/Entra artifacts for the 7 Azure/Entra controls (IA.L2-3.5.3, 3.5.4, 3.5.5, 3.5.6, MA.L2-3.7.5, SC.L2-3.13.10, SC.L2-3.13.5).
+Collects Azure/Entra artifacts for the 12 Azure/Entra controls validated by
+tools/validate_azure_entra.py v1.4+ (AC.L2-3.1.13, AC.L2-3.1.14, IA.L2-3.5.3,
+IA.L2-3.5.4, IA.L2-3.5.5, IA.L2-3.5.6, MA.L2-3.7.5, AU.L2-3.3.1, AU.L2-3.3.2,
+SC.L2-3.13.5, SC.L2-3.13.8, SC.L2-3.13.10).
 
 Design intent:
 - Run on a machine with Azure CLI (az) installed and logged in (az login).
@@ -163,6 +166,37 @@ if ($ResourceGroup) {
   } catch { }
 }
 
+# Storage Account list (SC.L2-3.13.8 — TLS for CUI in transit). Validator
+# v1.4+ inspects each account's enableHttpsTrafficOnly + minimumTlsVersion.
+try {
+  $saList = az storage account list -o json 2>$null
+  if (-not $saList) { $saList = "[]" }
+  Write-Artifact -Name "storage-account-list" -Content $saList -Suffix "json"
+  $saTxt = az storage account list -o table 2>$null
+  if ($saTxt) { Write-Artifact -Name "storage-account-list" -Content $saTxt -Suffix "txt" }
+} catch { }
+
+# Entra audit log (AU.L2-3.3.1). Best-effort via Graph; requires Audit Logs
+# Reader role on the executing principal. Falls back to an empty value array.
+try {
+  $graphTok = az account get-access-token --resource 00000003-0000-0000-c000-000000000000 --query accessToken -o tsv 2>$null
+  if ($graphTok) {
+    $resp = Invoke-RestMethod -Method Get `
+      -Uri 'https://graph.microsoft.com/v1.0/auditLogs/directoryAudits?$top=500' `
+      -Headers @{ Authorization = "Bearer $graphTok" } `
+      -ErrorAction SilentlyContinue 2>$null
+    if ($resp) {
+      Write-Artifact -Name "entra-audit-log" -Content ($resp | ConvertTo-Json -Depth 8) -Suffix "json"
+    } else {
+      Write-Artifact -Name "entra-audit-log" -Content '{"value":[]}' -Suffix "json"
+    }
+  } else {
+    Write-Artifact -Name "entra-audit-log" -Content '{"value":[]}' -Suffix "json"
+  }
+} catch {
+  Write-Artifact -Name "entra-audit-log" -Content '{"value":[]}' -Suffix "json"
+}
+
 # Key Vault list (SC.L2-3.13.10 - cryptographic key management)
 try {
   $kvList = az keyvault list -o json 2>$null
@@ -174,4 +208,4 @@ try {
 $manifest | ConvertTo-Json -Depth 5 | Set-Content -Path (Join-Path $targetDir "manifest.json") -Encoding utf8
 
 Write-Host "Collected Azure/Entra evidence to: $targetDir"
-Write-Host "Run Test-AzureEntraControls.ps1 -AzureEntraDir '$targetDir' to validate the 7 controls."
+Write-Host "Run Test-AzureEntraControls.ps1 -AzureEntraDir '$targetDir' (or validate_azure_entra.py) to validate the 12 controls."

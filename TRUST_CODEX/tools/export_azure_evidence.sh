@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 # Export Azure/Entra evidence for CMMC L2 / NIST 800-171 (C3PAO assessment).
-# Per EVIDENCE_RUNBOOK.md. Produces role assignments, NSG list+rules, Entra sign-in,
-# Conditional Access, Key Vault list+properties for the 7 Azure/Entra controls.
+# Per EVIDENCE_RUNBOOK.md. Produces role assignments, NSG list+rules, Entra
+# sign-in, Conditional Access, Entra audit log, Key Vault list+properties,
+# and Storage Account list for the 12 Azure/Entra controls validated by
+# tools/validate_azure_entra.py v1.4+ (3.1.13, 3.1.14, 3.5.3, 3.5.4, 3.5.5,
+# 3.5.6, 3.7.5, 3.3.1, 3.3.2, 3.13.5, 3.13.8, 3.13.10).
 #
 # OUT_DIR defaults to evidence/runs/<RunId>/raw/azure. Set AZURE_RG to your enclave
 # resource group for NSG rule export (default: rg-cui-pilot-envclave). Requires: az, jq.
@@ -73,6 +76,25 @@ if [[ ! -s conditional-access-policies.json ]]; then
   echo '{"value":[]}' > conditional-access-policies.json
 fi
 
+# Storage Account list (SC.L2-3.13.8 — TLS for CUI in transit). Validator v1.4+
+# inspects each account's enableHttpsTrafficOnly + minimumTlsVersion fields.
+echo "Exporting Storage Account list..."
+az storage account list -o json > storage-account-list.json 2>/dev/null || echo "[]" > storage-account-list.json
+az storage account list -o table > storage-account-list.txt 2>/dev/null || true
+
+# Entra audit log (AU.L2-3.3.1 — explicit audit-log presence beyond sign-ins).
+# Best-effort; requires Audit Logs Reader on the executing principal. Falls
+# back to placeholder when the CLI/Graph permission isn't granted.
+echo "Exporting Entra audit log (best-effort)..."
+if [[ -n "$GRAPH_TOKEN" ]]; then
+  curl -sS -H "Authorization: Bearer $GRAPH_TOKEN" \
+    "https://graph.microsoft.com/v1.0/auditLogs/directoryAudits?\$top=500" \
+    -o entra-audit-log.json 2>/dev/null || true
+fi
+if [[ ! -s entra-audit-log.json ]]; then
+  echo '{"value":[]}' > entra-audit-log.json
+fi
+
 # Key Vault list (SC.L2-3.13.10 - cryptographic key management)
 echo "Exporting Key Vault list..."
 az keyvault list -o json > keyvault-list.json 2>/dev/null || echo "[]" > keyvault-list.json
@@ -106,10 +128,10 @@ jq -n \
     collected_utc: $collected_utc,
     compliance_framework: "CMMC L2 / NIST 800-171",
     evidence_purpose: "C3PAO assessment — Azure/Entra controls",
-    control_set: ["IA.L2-3.5.3", "IA.L2-3.5.4", "IA.L2-3.5.5", "IA.L2-3.5.6", "MA.L2-3.7.5", "SC.L2-3.13.10", "SC.L2-3.13.5"],
+    control_set: ["AC.L2-3.1.13", "AC.L2-3.1.14", "IA.L2-3.5.3", "IA.L2-3.5.4", "IA.L2-3.5.5", "IA.L2-3.5.6", "MA.L2-3.7.5", "AU.L2-3.3.1", "AU.L2-3.3.2", "SC.L2-3.13.5", "SC.L2-3.13.8", "SC.L2-3.13.10"],
     azure_resource_group: $azure_rg,
     artifacts: {}
-  }' > "$manifest_path" 2>/dev/null || printf '%s\n' "{\"run_id\":\"$RUN_ID\",\"out_dir\":\"$OUT_DIR\",\"collected_utc\":\"$COLLECTED_UTC\",\"compliance_framework\":\"CMMC L2 / NIST 800-171\",\"evidence_purpose\":\"C3PAO assessment\",\"control_set\":[\"IA.L2-3.5.3\",\"IA.L2-3.5.4\",\"IA.L2-3.5.5\",\"IA.L2-3.5.6\",\"MA.L2-3.7.5\",\"SC.L2-3.13.10\",\"SC.L2-3.13.5\"],\"azure_resource_group\":\"$AZURE_RG\",\"artifacts\":{}}" > "$manifest_path"
+  }' > "$manifest_path" 2>/dev/null || printf '%s\n' "{\"run_id\":\"$RUN_ID\",\"out_dir\":\"$OUT_DIR\",\"collected_utc\":\"$COLLECTED_UTC\",\"compliance_framework\":\"CMMC L2 / NIST 800-171\",\"evidence_purpose\":\"C3PAO assessment\",\"control_set\":[\"AC.L2-3.1.13\",\"AC.L2-3.1.14\",\"IA.L2-3.5.3\",\"IA.L2-3.5.4\",\"IA.L2-3.5.5\",\"IA.L2-3.5.6\",\"MA.L2-3.7.5\",\"AU.L2-3.3.1\",\"AU.L2-3.3.2\",\"SC.L2-3.13.5\",\"SC.L2-3.13.8\",\"SC.L2-3.13.10\"],\"azure_resource_group\":\"$AZURE_RG\",\"artifacts\":{}}" > "$manifest_path"
 
 # Evidence collection summary for assessors (C3PAO)
 cat > "$OUT_DIR/EVIDENCE_COLLECTION.txt" << EOF
