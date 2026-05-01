@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { BoundaryScopingWizard } from "@/components/boundary-wizard/BoundaryScopingWizard";
+import { OrgProfileForm } from "@/components/boundary-wizard/OrgProfileForm";
 
 interface Props {
   initialData: {
@@ -25,6 +25,14 @@ interface Props {
   };
 }
 
+/**
+ * Boundary "scoping" client — historically a 6-step wizard that duplicated
+ * onboarding inputs and asked customers to "choose" architecture details
+ * that are now constants (Win 2025 + Azure Gov). Replaced with a slim
+ * single-page edit form (OrgProfileForm) that keeps only the genuinely
+ * customer-specific fields. The route name is preserved for backward-compat
+ * with the boundary page link.
+ */
 export function ScopingWizardClient({ initialData }: Props) {
   const router = useRouter();
 
@@ -34,7 +42,7 @@ export function ScopingWizardClient({ initialData }: Props) {
   };
 
   return (
-    <BoundaryScopingWizard
+    <OrgProfileForm
       initialData={{
         systemName: initialData.systemName ?? "",
         systemDescription: initialData.systemDescription ?? "",

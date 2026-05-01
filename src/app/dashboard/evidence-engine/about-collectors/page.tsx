@@ -37,11 +37,21 @@ export default function AboutCollectorsPage() {
           OS evidence + Azure evidence = your C3PAO bundle
         </h1>
         <p className="mt-2 max-w-3xl text-sm text-slate-600">
-          The MacTech CUI Vault relies on two parallel evidence pipelines.
-          Together they prove the technical state of {ENCLAVE_73_NIST_IDS.length} OS-level
-          controls and {AZURE_ENTRA_12_CONTROL_IDS.length} cloud-level controls. A C3PAO
-          assessor expects both bundles — the OS hardening alone or the Azure
-          configuration alone is not enough.
+          The MacTech CUI Vault relies on two parallel evidence pipelines. The
+          OS Collector validates {ENCLAVE_73_NIST_IDS.length} enclave-baseline controls;
+          the Azure/Entra Collector validates {AZURE_ENTRA_12_CONTROL_IDS.length} cloud-side
+          controls. <strong>11 of those overlap</strong> (the same control validated by both
+          pipelines for defense-in-depth) — so together the two produce
+          technical proof for <strong>74 distinct controls</strong>. A C3PAO expects both
+          bundles: the OS hardening alone or the Azure configuration alone is
+          not enough.
+        </p>
+        <p className="mt-2 max-w-3xl text-xs text-slate-500">
+          Plus 5 controls (3.10.1, 3.10.2, 3.10.4, 3.10.5 + the broader 3.10
+          family on attestation) are inherited from Azure Government FedRAMP
+          High and need no customer-side collector. The remaining controls
+          (governance, attestations, register entries) are surfaced by the
+          Outstanding Controls Wizard at <code>/dashboard/readiness/outstanding</code>.
         </p>
       </header>
 

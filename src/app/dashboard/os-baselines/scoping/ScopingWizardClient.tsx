@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { BoundaryScopingWizard } from "@/components/boundary-wizard/BoundaryScopingWizard";
+import { OrgProfileForm } from "@/components/boundary-wizard/OrgProfileForm";
 
 interface Props {
   initialData: {
@@ -25,6 +25,12 @@ interface Props {
   };
 }
 
+/**
+ * /dashboard/os-baselines/scoping client. Uses the same OrgProfileForm
+ * as /dashboard/boundary/scoping — single source of truth for editing
+ * the customer-specific organization profile. Returns to the OS Baselines
+ * page on completion.
+ */
 export function ScopingWizardClient({ initialData }: Props) {
   const router = useRouter();
 
@@ -34,7 +40,7 @@ export function ScopingWizardClient({ initialData }: Props) {
   };
 
   return (
-    <BoundaryScopingWizard
+    <OrgProfileForm
       initialData={{
         systemName: initialData.systemName ?? "",
         systemDescription: initialData.systemDescription ?? "",
