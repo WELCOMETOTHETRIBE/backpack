@@ -45,7 +45,10 @@ import {
   cadenceLabel,
 } from "@/data/cmmc/control-intelligence";
 import vaultNarratives from "@/data/cmmc/vault-narratives.json";
-import { sprsScoringData } from "@/lib/sprs";
+// Import the scoring data file directly (not via @/lib/sprs, which resolves
+// to sprs.ts and pulls the DB layer + the postgres driver into the client
+// bundle, breaking the build).
+import { sprsScoringData } from "@/lib/sprs/sprs_scoring_data";
 
 type DetailTab = "guide" | "policy" | "evidence" | "poam" | "history";
 
