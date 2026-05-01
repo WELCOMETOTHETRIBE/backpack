@@ -5,23 +5,24 @@ import { Phase0_TrustCodex } from "./phases/Phase0_TrustCodex";
 import { Phase1_OrgProfile } from "./phases/Phase1_OrgProfile";
 import { Phase2_CuiCategories } from "./phases/Phase2_CuiCategories";
 import { Phase3_BoundaryConfirmation } from "./phases/Phase3_BoundaryConfirmation";
-import { Phase4_AzureInheritance } from "./phases/Phase4_AzureInheritance";
-// Phase5 (MacTech Coverage) and Phase6 (Your Controls) intentionally removed
-// from onboarding. Per-control adjudication now lives in the Codex
-// (/dashboard/controls) so onboarding stays a thin signup-and-acknowledge flow.
-
-// Onboarding is the boundary-definition + agreement step. SPRS reporting, SSP
-// generation, and other deliverables live in the dashboard as post-onboarding
-// work (training, IR tabletop, governance sign-off, evidence collection).
+// Phase 4 (Azure Inheritance) intentionally removed — the 4 strict-inherited
+// 3.10.x records are auto-set by syncOrgAzureInheritedControls based on the
+// boundary's cloudProvider=azure flag (server-side, no UI needed). The 2
+// customer-attested-inherited (3.10.3, 3.10.6) are addressed in the Outstanding
+// Controls Wizard's attestation flow. Forcing the user to check 6 boxes
+// during signup added zero data and only created friction.
+//
+// Phase5 (MacTech Coverage) and Phase6 (Your Controls) similarly removed earlier.
+// Per-control adjudication lives in the Codex (/dashboard/readiness/outstanding)
+// so onboarding stays a thin signup-and-acknowledge flow.
 const PHASES = [
   { index: 0, label: "Trust Codex", shortLabel: "Codex" },
   { index: 1, label: "Org Profile", shortLabel: "Profile" },
   { index: 2, label: "CUI Categories", shortLabel: "CUI" },
   { index: 3, label: "Boundary", shortLabel: "Boundary" },
-  { index: 4, label: "Azure Inheritance", shortLabel: "Azure" },
 ];
 
-const LAST_PHASE_INDEX = PHASES.length - 1; // 4
+const LAST_PHASE_INDEX = PHASES.length - 1; // 3
 
 /**
  * Map the wizard's accumulated phaseData into the body shape expected by
@@ -387,11 +388,6 @@ export function VaultOnboardingWizard({
           {currentPhase === 3 && (
             <Phase3_BoundaryConfirmation
               onComplete={(data) => handlePhaseComplete(3, data)}
-            />
-          )}
-          {currentPhase === 4 && (
-            <Phase4_AzureInheritance
-              onComplete={(data) => handlePhaseComplete(4, data)}
             />
           )}
 

@@ -71,15 +71,23 @@ export async function POST(req: Request) {
       .set(orgUpdates)
       .where(eq(organizations.id, orgId));
 
-    // Ensure all 110 controlRecords exist for the org
+    // Ensure all 110 controlRecords exist for the org. Earlier phases of the
+    // wizard (boundary confirmation, etc.) hit /api/onboarding/adjudicate-controls
+    // which creates a SUBSET of records as a side effect — so a `limit(1)`
+    // existence check would return true after partial creation and cause /complete
+    // to skip the full backfill. Bug observed in prod: orgs ended up with 4
+    // records (the strict-inherited 3.10 family) instead of 110, breaking the
+    // Outstanding Controls Wizard. Fix: backfill any missing IDs unconditionally,
+    // leaving existing records untouched.
     const existingRecords = await db
-      .select({ id: controlRecords.id })
+      .select({ controlId: controlRecords.controlId })
       .from(controlRecords)
-      .where(eq(controlRecords.organizationId, orgId))
-      .limit(1);
-    if (existingRecords.length === 0) {
+      .where(eq(controlRecords.organizationId, orgId));
+    const existingIds = new Set(existingRecords.map((r) => r.controlId));
+    const missing = ALL_CONTROL_IDS.filter((id) => !existingIds.has(id));
+    if (missing.length > 0) {
       await db.insert(controlRecords).values(
-        ALL_CONTROL_IDS.map((controlId) => ({ organizationId: orgId, controlId }))
+        missing.map((controlId) => ({ organizationId: orgId, controlId }))
       );
     }
 
