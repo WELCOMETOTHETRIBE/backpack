@@ -11,7 +11,6 @@ import { SCTMControlDetail, type NistRow } from "./SCTMControlDetail";
 import type { SctmOptimizedControl } from "@/lib/sctm-optimized-types";
 import { getOptimizedByControlId } from "@/lib/sctm-optimized-types";
 
-const ADJUDICATED = ["implemented", "assessed", "inherited", "not_applicable"];
 
 /** Get color classes based on implementation percentage — 5-tier spectrum */
 function getPercentageColors(pct: number, isActive: boolean): {
@@ -132,6 +131,11 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
   const [nistList, setNistList] = useState<NistRow[]>([]);
   const [uploadedLabels, setUploadedLabels] = useState<string[]>([]);
   const [optimizedList, setOptimizedList] = useState<SctmOptimizedControl[]>([]);
+  // Server-computed adjudicated set -- the canonical answer from
+  // adjudication-helpers.ts. SCTM used to recompute this client-side with a
+  // local helper that diverged from the dashboard Overview (split count of
+  // 88 vs 70). Now both surfaces read the same number from the same helper.
+  const [adjudicatedSet, setAdjudicatedSet] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -160,10 +164,11 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [recRes, nistRes, labelsRes, ultimateRes, fallbackRes] = await Promise.all([
+      const [recRes, nistRes, labelsRes, adjRes, ultimateRes, fallbackRes] = await Promise.all([
         fetch("/api/control-records"),
         fetch("/api/controls/nist"),
         fetch("/api/governance-documents/uploaded-labels"),
+        fetch("/api/control-records/adjudicated-ids"),
         fetch("/CMMC_SCTM_Ultimate_Onboarding_Data.json").catch(() => null),
         fetch("/CMMC_SCTM_UI_Optimized.json").catch(() => null),
       ]);
@@ -172,6 +177,10 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
       if (labelsRes.ok) {
         const d = await labelsRes.json().catch(() => ({}));
         setUploadedLabels(d.uploadedLabels ?? []);
+      }
+      if (adjRes.ok) {
+        const d = (await adjRes.json()) as { adjudicatedControlIds?: string[] };
+        setAdjudicatedSet(new Set(d.adjudicatedControlIds ?? []));
       }
       const optArr = ultimateRes?.ok ? await ultimateRes.json() : fallbackRes?.ok ? await fallbackRes.json() : null;
       if (Array.isArray(optArr) && optArr.length > 0) setOptimizedList(optArr);
@@ -250,35 +259,27 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
   );
   const selectedNist = selectedRecord ? nistByControlId[selectedRecord.controlId] : undefined;
 
-  // A record is fully adjudicated when all evidence lanes are satisfied:
-  // technical + policy (if required) + register (if required).
+  // Adjudicated set comes from /api/control-records/adjudicated-ids, which
+  // applies the canonical isControlAdjudicated() helper from
+  // adjudication-helpers.ts. Same source of truth the dashboard Overview
+  // uses -- previously SCTM had its own inline check that diverged from
+  // the canonical helper, producing the 88-vs-70 split count. Don't
+  // reintroduce a local check here.
   function isFullyAdjudicated(r: (typeof records)[0]): boolean {
-    const registerOk = !r.registerRequired || r.registerSatisfied !== false;
-    if (r.policyDocRequired) {
-      return r.technicalStatus === "satisfied" && r.policyStatus === "satisfied" && registerOk;
-    }
-    return ADJUDICATED.includes(r.implementationStatus) && registerOk;
+    return adjudicatedSet.has(r.controlId);
   }
 
   const familyStats = useMemo(() => {
-    const adjudicatedControlIds = new Set(
-      records.filter(isFullyAdjudicated).map((r) => r.controlId)
-    );
     return CONTROL_FAMILIES.map((f) => {
       const total = FAMILY_CONTROL_COUNTS[f.code] ?? 0;
       const inFamilyIds = ALL_CONTROL_IDS.filter((id) => getControlFamilyPrefix(id) === f.controlPrefix);
-      const adj = inFamilyIds.filter((id) => adjudicatedControlIds.has(id)).length;
+      const adj = inFamilyIds.filter((id) => adjudicatedSet.has(id)).length;
       const pct = total ? Math.round((adj / total) * 100) : 0;
       return { code: f.code, plainName: f.plainName, name: f.name, total, adjudicated: adj, pct, icon: f.icon };
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [records]);
+  }, [adjudicatedSet]);
 
-  const adjudicatedControlIds = useMemo(
-    () => new Set(records.filter(isFullyAdjudicated).map((r) => r.controlId)),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [records]
-  );
+  const adjudicatedControlIds = adjudicatedSet;
   const partialControlIds = useMemo(
     () => new Set(records.filter((r) => r.evidencePartial === true).map((r) => r.controlId)),
     [records]
