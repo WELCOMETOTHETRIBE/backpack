@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ChevronDown, ChevronRight, FolderOpen } from "lucide-react";
+import { AttestationReceiptModal } from "@/components/adjudication/AttestationReceiptModal";
 
 export type ArtifactRow = {
   id: string;
@@ -141,13 +142,17 @@ function NotApplicablePill({ reason }: { reason?: string | null }) {
   );
 }
 
-function ArtifactTableRow({ r }: { r: ArtifactRow }) {
+function ArtifactTableRow({
+  r,
+  onOpenAttestation,
+}: {
+  r: ArtifactRow;
+  onOpenAttestation: (completionId: string) => void;
+}) {
   const dimmed = r.controlNotApplicable ? "opacity-70 italic" : "";
-  // Attestation rows have no artifact-detail page -- route to the
-  // control detail where the signed attestation card lives in context.
-  const viewHref = r.isAttestation
-    ? `/dashboard/controls/${encodeURIComponent(r.controlId)}`
-    : `/dashboard/artifacts/${r.id}`;
+  // For attestation rows the id is prefixed "att:<completionId>" -- strip
+  // the prefix before opening the receipt modal.
+  const completionId = r.isAttestation ? r.id.replace(/^att:/, "") : null;
   return (
     <tr className={`border-b border-[var(--color-border)] last:border-none hover:bg-[var(--color-surface-muted)] ${dimmed}`}>
       <td className="px-3 py-2 font-medium">
@@ -181,15 +186,34 @@ function ArtifactTableRow({ r }: { r: ArtifactRow }) {
           : r.fileName ? `${r.fileName} · ${formatSize(r.fileSize)}` : "—"}
       </td>
       <td className="px-3 py-2 text-right">
-        <Link href={viewHref} className="text-sm font-medium text-sky-600 hover:underline">
-          View
-        </Link>
+        {completionId ? (
+          <button
+            type="button"
+            onClick={() => onOpenAttestation(completionId)}
+            className="text-sm font-medium text-sky-600 hover:underline"
+          >
+            View
+          </button>
+        ) : (
+          <Link
+            href={`/dashboard/artifacts/${r.id}`}
+            className="text-sm font-medium text-sky-600 hover:underline"
+          >
+            View
+          </Link>
+        )}
       </td>
     </tr>
   );
 }
 
-function FamilyTable({ rows }: { rows: ArtifactRow[] }) {
+function FamilyTable({
+  rows,
+  onOpenAttestation,
+}: {
+  rows: ArtifactRow[];
+  onOpenAttestation: (completionId: string) => void;
+}) {
   return (
     <div className="overflow-x-auto rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)]">
       <table className="min-w-full text-sm">
@@ -207,7 +231,9 @@ function FamilyTable({ rows }: { rows: ArtifactRow[] }) {
           </tr>
         </thead>
         <tbody>
-          {rows.map((r) => <ArtifactTableRow key={r.id} r={r} />)}
+          {rows.map((r) => (
+            <ArtifactTableRow key={r.id} r={r} onOpenAttestation={onOpenAttestation} />
+          ))}
         </tbody>
       </table>
     </div>
@@ -218,10 +244,12 @@ function FamilySection({
   family,
   rows,
   defaultExpanded,
+  onOpenAttestation,
 }: {
   family: string;
   rows: ArtifactRow[];
   defaultExpanded: boolean;
+  onOpenAttestation: (completionId: string) => void;
 }) {
   const [expanded, setExpanded] = useState(defaultExpanded);
   // N/A rows don't count toward awaiting/approved — no active obligation.
@@ -273,7 +301,7 @@ function FamilySection({
       </button>
       {expanded && (
         <div className="border-t border-slate-100 p-3">
-          <FamilyTable rows={rows} />
+          <FamilyTable rows={rows} onOpenAttestation={onOpenAttestation} />
         </div>
       )}
     </div>
@@ -285,6 +313,7 @@ export function ArtifactsTable({ rows }: { rows: ArtifactRow[] }) {
   const [family, setFamily] = useState("");
   const [search, setSearch] = useState("");
   const [grouped, setGrouped] = useState(true);
+  const [openAttestationId, setOpenAttestationId] = useState<string | null>(null);
 
   const filtered = useMemo(
     () =>
@@ -390,17 +419,25 @@ export function ArtifactsTable({ rows }: { rows: ArtifactRow[] }) {
               family={f}
               rows={fRows}
               defaultExpanded={byFamily.length <= 3 || fRows.some((r) => r.status === "awaiting_upload")}
+              onOpenAttestation={setOpenAttestationId}
             />
           ))}
         </div>
       ) : (
-        <FamilyTable rows={filtered} />
+        <FamilyTable rows={filtered} onOpenAttestation={setOpenAttestationId} />
       )}
 
       <div className="text-xs text-[var(--color-text-muted)]">
         Showing {filtered.length} of {rows.length} artifact
         {rows.length === 1 ? "" : "s"}.
       </div>
+
+      {openAttestationId && (
+        <AttestationReceiptModal
+          completionId={openAttestationId}
+          onClose={() => setOpenAttestationId(null)}
+        />
+      )}
     </div>
   );
 }
