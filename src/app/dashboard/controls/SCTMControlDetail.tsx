@@ -731,7 +731,22 @@ export function SCTMControlDetail({
                         {LANE_LABELS[lane]}
                       </span>
                     ))}
-                    {intel.evidenceLanes.length === 0 && <span className="text-[10px] text-[var(--color-gray-400)] italic">None</span>}
+                    {/* "Partial — requires both lanes" controls always have a
+                        second governance-tier lane (policy doc and/or register).
+                        Surface those as pills so the count matches the label. */}
+                    {intel.disposition === "partial" && intel.policyDocRequired && (
+                      <span className="inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-medium bg-amber-50 border-amber-200 text-amber-700">
+                        Policy Doc
+                      </span>
+                    )}
+                    {intel.disposition === "partial" && intel.registerRequired && (
+                      <span className="inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-medium bg-emerald-50 border-emerald-200 text-emerald-700">
+                        Register
+                      </span>
+                    )}
+                    {intel.evidenceLanes.length === 0 && !intel.policyDocRequired && !intel.registerRequired && (
+                      <span className="text-[10px] text-[var(--color-gray-400)] italic">None</span>
+                    )}
                   </div>
                 </div>
                 <div>

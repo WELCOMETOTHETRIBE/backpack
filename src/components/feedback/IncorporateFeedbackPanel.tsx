@@ -23,12 +23,47 @@ const TOOL_ICONS: Record<string, React.ReactNode> = {
   write_file: <FilePen className="h-3 w-3" />,
 }
 
+// Match http(s) URLs up to the first whitespace or trailing punctuation
+// (the closing `.,)]}>"'` characters that are almost always sentence terminators
+// rather than part of the URL).
+const URL_REGEX = /(https?:\/\/[^\s<>"']+[^\s<>"'.,;:!?)\]}])/g
+
+function renderMessageWithLinks(message: string | undefined, linkClassName: string) {
+  if (!message) return null
+  const parts: React.ReactNode[] = []
+  let lastIndex = 0
+  let match: RegExpExecArray | null
+  URL_REGEX.lastIndex = 0
+  while ((match = URL_REGEX.exec(message)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(message.slice(lastIndex, match.index))
+    }
+    const url = match[0]
+    parts.push(
+      <a
+        key={`url-${match.index}`}
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={linkClassName}
+      >
+        {url}
+      </a>,
+    )
+    lastIndex = match.index + url.length
+  }
+  if (lastIndex < message.length) parts.push(message.slice(lastIndex))
+  return parts.length > 0 ? parts : message
+}
+
 function EventRow({ ev, idx }: { ev: AgentEvent; idx: number }) {
   if (ev.type === 'log') {
     return (
       <div key={idx} className="flex items-start gap-2 text-neutral-400">
         <ChevronRight className="h-3 w-3 shrink-0 mt-0.5 text-neutral-600" />
-        <span>{ev.message}</span>
+        <span className="break-all">
+          {renderMessageWithLinks(ev.message, 'text-indigo-300 underline underline-offset-2 hover:text-indigo-200')}
+        </span>
       </div>
     )
   }
@@ -36,7 +71,9 @@ function EventRow({ ev, idx }: { ev: AgentEvent; idx: number }) {
     return (
       <div key={idx} className="flex items-start gap-2 text-indigo-300 italic">
         <Bot className="h-3 w-3 shrink-0 mt-0.5 text-indigo-400" />
-        <span className="opacity-80">{ev.message}</span>
+        <span className="opacity-80 break-all">
+          {renderMessageWithLinks(ev.message, 'not-italic underline underline-offset-2 hover:text-indigo-200')}
+        </span>
       </div>
     )
   }
@@ -84,7 +121,9 @@ function EventRow({ ev, idx }: { ev: AgentEvent; idx: number }) {
     return (
       <div key={idx} className="flex items-start gap-2 text-red-400">
         <AlertCircle className="h-3 w-3 shrink-0 mt-0.5" />
-        <span>{ev.message}</span>
+        <span className="break-all">
+          {renderMessageWithLinks(ev.message, 'underline underline-offset-2 hover:text-red-300')}
+        </span>
       </div>
     )
   }
