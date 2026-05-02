@@ -27,7 +27,17 @@
  *   # shows a per-table count of what WOULD be deleted (dry run)
  *
  *   npx tsx src/scripts/reset-org-to-onboarding.ts --email patrick@example.com --confirm
- *   # executes inside a single transaction
+ *   # executes inside a single transaction; user restarts at phase 0
+ *
+ *   npx tsx src/scripts/reset-org-to-onboarding.ts --email patrick@example.com --confirm --fast-forward
+ *   # AFTER reset, immediately re-applies the post-onboarding state:
+ *   #   - 110 control_records (status not_started)
+ *   #   - 1 boundary (MacTech CUI Vault on Azure Gov)
+ *   #   - 11 governance_registers (org-scoped copies of the templates)
+ *   #   - onboardingWizardState.completedAt = now (skips the wizard)
+ *   #   - organizations.boundaryScopingCompletedAt = now
+ *   # User logs in and lands directly on the dashboard, ready to upload
+ *   # evidence / sign attestations -- no questionnaire to re-walk through.
  *
  * Alternative identifiers:
  *   --org-id <uuid>          reset by organization id
@@ -35,6 +45,9 @@
  *   --email <email>          lookup the user, use their organizationId
  */
 import { db } from "../db";
+import { ALL_CONTROL_IDS } from "../lib/artifact-guide";
+import { REGISTER_DEFINITIONS } from "../lib/governance/seed-data";
+import { CONTROL_INTELLIGENCE } from "../data/cmmc/control-intelligence";
 import {
   organizations,
   users,
@@ -76,8 +89,15 @@ import {
 import { eq, inArray, and, isNotNull, sql } from "drizzle-orm";
 
 function parseArgs(argv: string[]) {
-  const out: { email?: string; orgId?: string; orgSlug?: string; confirm: boolean } = {
+  const out: {
+    email?: string;
+    orgId?: string;
+    orgSlug?: string;
+    confirm: boolean;
+    fastForward: boolean;
+  } = {
     confirm: false,
+    fastForward: false,
   };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
@@ -85,6 +105,7 @@ function parseArgs(argv: string[]) {
     else if (a === "--org-id") out.orgId = argv[++i];
     else if (a === "--org-slug") out.orgSlug = argv[++i];
     else if (a === "--confirm") out.confirm = true;
+    else if (a === "--fast-forward") out.fastForward = true;
   }
   return out;
 }
@@ -491,6 +512,101 @@ async function executeReset(orgId: string) {
   });
 }
 
+/**
+ * Fast-forward an org from its just-reset state into the "post-onboarding"
+ * resting state. Mirrors what /api/onboarding/complete does, minus the auth
+ * checks (this script is privileged) and the SSP/POAM seeding (those are
+ * driven by the actual evidence the user uploads).
+ *
+ * After this runs the user can log in and immediately start uploading
+ * evidence / signing attestations -- no questionnaire to walk through.
+ */
+async function fastForwardToPostOnboarding(orgId: string): Promise<void> {
+  // 1. Backfill all 110 control_records as not_started.
+  await db.insert(controlRecords).values(
+    ALL_CONTROL_IDS.map((controlId) => ({ organizationId: orgId, controlId })),
+  );
+
+  // 2. Provision the MacTech CUI Vault boundary on Azure Government.
+  //    (cloudProvider/azureEnvironment let downstream sync-inherited-controls
+  //    flip the 3.10 family to inherited when cloud evidence lands.)
+  await db.insert(boundaries).values({
+    organizationId: orgId,
+    name: "MacTech CUI Vault",
+    description:
+      "Primary CUI processing boundary. Runs on MacTech's Azure Government / FedRAMP High enclave; managed by MacTech.",
+    scopeComponents: ["mactech_vault_azure_gov"],
+    boundaryType: "cui_enclave",
+    cloudProvider: "azure",
+    azureEnvironment: "gov",
+  });
+
+  // 3. Provision the org's governance registers (copies of the global
+  //    templates) with controlIds wired up from CONTROL_INTELLIGENCE.
+  const registerControlMap = new Map<string, string[]>();
+  for (const intel of CONTROL_INTELLIGENCE) {
+    if (intel.registerRequired && intel.registerSchemaId) {
+      const arr = registerControlMap.get(intel.registerSchemaId) ?? [];
+      arr.push(intel.controlId);
+      registerControlMap.set(intel.registerSchemaId, arr);
+    }
+  }
+  let templates = await db
+    .select()
+    .from(governanceRegisters)
+    .where(sql`${governanceRegisters.organizationId} IS NULL`);
+  if (templates.length === 0) {
+    for (const def of REGISTER_DEFINITIONS) {
+      await db.insert(governanceRegisters).values({
+        organizationId: null,
+        projectId: null,
+        registerKey: def.registerKey,
+        name: def.name,
+        description: def.description ?? null,
+        requiredColumns: def.requiredColumns,
+        retainForDays: def.retainForDays ?? null,
+      });
+    }
+    templates = await db
+      .select()
+      .from(governanceRegisters)
+      .where(sql`${governanceRegisters.organizationId} IS NULL`);
+  }
+  for (const t of templates) {
+    const controlIds = registerControlMap.get(t.registerKey) ?? [];
+    await db.insert(governanceRegisters).values({
+      organizationId: orgId,
+      projectId: null,
+      registerKey: t.registerKey,
+      name: t.name,
+      description: t.description,
+      requiredColumns: t.requiredColumns,
+      retainForDays: t.retainForDays,
+      controlIds: controlIds.length > 0 ? controlIds : null,
+    });
+  }
+
+  // 4. Mark the wizard as completed -- this is the "just past onboarding"
+  //    pivot. The dashboard reads completedAt to decide whether to redirect
+  //    the user back to /dashboard/onboarding.
+  const now = new Date();
+  await db
+    .update(onboardingWizardState)
+    .set({
+      currentPhase: 99, // beyond any real phase number
+      completedAt: now,
+      updatedAt: now,
+    })
+    .where(eq(onboardingWizardState.organizationId, orgId));
+
+  // 5. Mark organization boundary scoping completed -- mirrors what the
+  //    boundary-confirmation step would have set.
+  await db
+    .update(organizations)
+    .set({ boundaryScopingCompletedAt: now })
+    .where(eq(organizations.id, orgId));
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const orgId = await resolveOrgId(args);
@@ -506,6 +622,9 @@ async function main() {
   console.log(`Organization:  ${org.name ?? "(no name)"}  [slug: ${org.slug ?? "(none)"}]`);
   console.log(`Org ID:        ${org.id}`);
   console.log(`Mode:          ${args.confirm ? "EXECUTE" : "DRY RUN (add --confirm to apply)"}`);
+  console.log(
+    `Target state:  ${args.fastForward ? "JUST PAST ONBOARDING (110 records, boundary, registers, completedAt)" : "PRE-ONBOARDING (wizard phase 0)"}`,
+  );
   console.log("─".repeat(70));
 
   const counts = await countOrgScoped(orgId);
@@ -532,7 +651,17 @@ async function main() {
 
   console.log("Executing reset in a single transaction…");
   await executeReset(orgId);
-  console.log("✓ Reset complete. User can now log in and restart onboarding from phase 0.");
+  console.log("✓ Reset complete.");
+
+  if (args.fastForward) {
+    console.log("Fast-forwarding to just-past-onboarding state…");
+    await fastForwardToPostOnboarding(orgId);
+    console.log(
+      "✓ Fast-forward complete. User logs in and lands on the dashboard ready to upload evidence.",
+    );
+  } else {
+    console.log("User can now log in and restart onboarding from phase 0.");
+  }
 }
 
 main()
