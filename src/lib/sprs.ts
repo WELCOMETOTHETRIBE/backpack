@@ -7,6 +7,11 @@ import {
   type ControlImplementation,
 } from "./sprs/index";
 import { notifyCaptureOsOfSprsChange } from "./captureos-bridge";
+import {
+  computeAdjudicationContext,
+  isControlAdjudicated,
+  type ControlRecordRow,
+} from "./adjudication-helpers";
 
 /**
  * Computes SPRS score from controlRecords, persists to organizations.sprsScore, and returns the score.
@@ -15,32 +20,43 @@ import { notifyCaptureOsOfSprsChange } from "./captureos-bridge";
 export async function computeAndPersistSprsScore(
   organizationId: string
 ): Promise<number> {
-  const records = await db
+  // Pull the wider record shape adjudication-helpers needs so we can
+  // classify each control with the canonical helper rather than a raw
+  // status check. Same source-of-truth the dashboard Overview and SCTM
+  // use -- "implemented" only counts if there's actual operational
+  // evidence on at least one lane.
+  const records = (await db
     .select({
+      id: controlRecords.id,
       controlId: controlRecords.controlId,
       implementationStatus: controlRecords.implementationStatus,
+      technicalStatus: controlRecords.technicalStatus,
+      policyDocRequired: controlRecords.policyDocRequired,
+      policyStatus: controlRecords.policyStatus,
       sprs31311Condition: controlRecords.sprs31311Condition,
     })
     .from(controlRecords)
-    .where(eq(controlRecords.organizationId, organizationId));
+    .where(eq(controlRecords.organizationId, organizationId))) as Array<
+    ControlRecordRow & { sprs31311Condition: string | null }
+  >;
 
-  // SPRS-credited statuses per DoD Assessment Methodology + CMMC Scoping
-  // Guidance: "implemented", "assessed", and "inherited" are met; "not_applicable"
-  // controls properly tailored out via scoping are also treated as met (no
-  // deduction). Anything else (not_started, in_progress, etc.) deducts.
-  const isSprsCredited = (s: string | null | undefined) =>
-    s === "implemented" || s === "assessed" || s === "inherited" || s === "not_applicable";
+  const ctx = await computeAdjudicationContext(
+    organizationId,
+    records.map((r) => r.id),
+  );
+  const isAdjudicated = (r: (typeof records)[number]) =>
+    isControlAdjudicated(r, ctx);
 
   const implementations: ControlImplementation[] = records.map((r) => ({
     controlId: r.controlId,
-    isImplemented: isSprsCredited(r.implementationStatus),
+    isImplemented: isAdjudicated(r),
   }));
 
   const record31311 = records.find((r) => r.controlId === "3.13.11");
   const controlDeductionOverrides: Record<string, number> = {};
   if (
     record31311 &&
-    !isSprsCredited(record31311.implementationStatus) &&
+    !isAdjudicated(record31311) &&
     record31311.sprs31311Condition === "non_fips"
   ) {
     controlDeductionOverrides["3.13.11"] = 3;
@@ -121,33 +137,40 @@ export async function getSprsScore(organizationId: string): Promise<number> {
 export async function getSprsBreakdown(
   organizationId: string
 ): Promise<{ family: string; pointsLost: number }[]> {
-  const records = await db
+  const records = (await db
     .select({
+      id: controlRecords.id,
       controlId: controlRecords.controlId,
       implementationStatus: controlRecords.implementationStatus,
+      technicalStatus: controlRecords.technicalStatus,
+      policyDocRequired: controlRecords.policyDocRequired,
+      policyStatus: controlRecords.policyStatus,
       sprs31311Condition: controlRecords.sprs31311Condition,
     })
     .from(controlRecords)
-    .where(eq(controlRecords.organizationId, organizationId));
+    .where(eq(controlRecords.organizationId, organizationId))) as Array<
+    ControlRecordRow & { sprs31311Condition: string | null }
+  >;
 
-  const isSprsCredited = (s: string | null | undefined) =>
-    s === "implemented" || s === "assessed" || s === "inherited" || s === "not_applicable";
-
-  const implementedIds = new Set(
-    records.filter((r) => isSprsCredited(r.implementationStatus)).map((r) => r.controlId)
+  const ctx = await computeAdjudicationContext(
+    organizationId,
+    records.map((r) => r.id),
+  );
+  const adjudicatedIds = new Set(
+    records.filter((r) => isControlAdjudicated(r, ctx)).map((r) => r.controlId),
   );
 
   const record31311 = records.find((r) => r.controlId === "3.13.11");
   const deduction31311 =
     record31311 &&
-    !isSprsCredited(record31311.implementationStatus) &&
+    !adjudicatedIds.has("3.13.11") &&
     record31311.sprs31311Condition === "non_fips"
       ? 3
       : 5;
 
   const byFamily = new Map<string, number>();
   for (const control of sprsScoringData) {
-    if (implementedIds.has(control.id)) continue;
+    if (adjudicatedIds.has(control.id)) continue;
     const deduction =
       control.id === "3.13.11" ? deduction31311 : control.value;
     byFamily.set(

@@ -248,27 +248,28 @@ export default async function DashboardPage() {
   });
 
   // ── SPRS score computation ──
-  // SPRS credits "implemented" | "assessed" | "inherited" | "not_applicable"
-  // (the latter when properly tailored out via CMMC Scoping Guidance).
-  const isSprsCredited = (s: string | null | undefined) =>
-    s === "implemented" || s === "assessed" || s === "inherited" || s === "not_applicable";
-
+  // SPRS deductions mirror the canonical isControlAdjudicated() helper --
+  // any control NOT canonically adjudicated deducts its weight. The older
+  // raw-status check (status IN ADJUDICATED_STATUSES) gave full credit to
+  // controls that were marked "implemented" upstream but lack the
+  // operational evidence (technical / register / artifact / attestation
+  // lanes) the C3PAO will demand at examination. Aligning here means the
+  // SPRS score reflects what the assessor would actually award credit
+  // for, not what the writer optimistically wrote.
   const recordMap = new Map(records.map((r) => [r.controlId, r]));
-  const implementedIds = new Set(
-    records.filter((r) => isSprsCredited(r.implementationStatus)).map((r) => r.controlId)
-  );
+  const adjudicatedIdSet = new Set(records.filter(isFullyAdjudicated).map((r) => r.controlId));
 
   const record31311 = recordMap.get("3.13.11");
   const isNonFips =
     record31311 &&
-    !implementedIds.has("3.13.11") &&
+    !adjudicatedIdSet.has("3.13.11") &&
     record31311.sprs31311Condition === "non_fips";
 
   let sprsScore = SPRS_MAX;
   const sprsGaps: Array<{ id: string; family: string; abbr: string; deduction: number }> = [];
 
   for (const ctrl of sprsScoringData) {
-    if (!implementedIds.has(ctrl.id)) {
+    if (!adjudicatedIdSet.has(ctrl.id)) {
       const deduction = ctrl.id === "3.13.11" && isNonFips ? 3 : ctrl.value;
       sprsScore -= deduction;
       sprsGaps.push({
