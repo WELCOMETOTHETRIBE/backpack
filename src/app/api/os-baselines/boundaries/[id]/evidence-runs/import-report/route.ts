@@ -5,8 +5,6 @@ import {
   evidenceRuns,
   evidenceFindings,
   controlRecords,
-  poamEntries,
-  poamEntryMilestones,
 } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { resolveOrgFromSessionOrBearer } from "@/lib/auth-bearer";
@@ -18,13 +16,6 @@ import {
 import { controlIdToNist } from "@/lib/compliance/controlId";
 import { syncOrgAzureInheritedControls } from "@/lib/compliance/azure-inherited-controls";
 import { calculateControlStatus } from "@/lib/control-status";
-
-const MFA_ATTESTATION_MILESTONE_TITLE =
-  "Submit MFA-in-path attestation (move from draft to submitted) to close out; or implement MFA in enclave access path. If access is local RDP without MFA, remove draft file or treat run as aspirational.";
-const MFA_ATTESTATION_WEAKNESS =
-  "Control satisfied only by MFA-in-path attestation (draft) or check failed. Submit attestation (draft to submitted) or implement MFA in enclave access path; if access remains local RDP without MFA, remove draft file and treat run as aspirational.";
-const MFA_ATTESTATION_REMEDIATION =
-  "Submit MFA-in-path attestation (draft to submitted) or implement MFA in enclave access path; if access remains local RDP without MFA, remove draft file and treat run as aspirational.";
 
 type ReportBody = {
   run_id: string;
@@ -182,7 +173,15 @@ export async function POST(
   const partialCount = checks.filter((c) => !c.pass && c.partial).length;
   const failedCount = checks.filter((c) => !c.pass && !c.partial).length;
 
-  const controlIdsNeedingPoam = new Set<string>();
+  // Mark cloud-side gaps as in_progress -- the proper close-out path is the
+  // mfa_in_path / mobile_blocked_at_ca attestations (signed via the
+  // Outstanding Wizard), NOT auto-generated POAM stubs. The earlier code
+  // here used to create one boilerplate "Control satisfied only by
+  // MFA-in-path attestation (draft)" POAM per affected control on every
+  // ingest, drowning out the real POAMs the user actually authored. Removed.
+  // If a user wants to track a real remediation plan, they author the POAM
+  // manually with concrete milestones (see the 3.7.5 SSH/RDP example).
+  const controlIdsNeedingProgress = new Set<string>();
   for (const c of checks) {
     const nistId = controlIdToNist(c.control);
     if (!nistId) continue;
@@ -190,87 +189,22 @@ export async function POST(
     const partial = Boolean(c.partial);
     const attestationOnly =
       c.pass && (c.mfa_in_path_source === "attestation");
-    if (failed || attestationOnly || partial) controlIdsNeedingPoam.add(nistId);
+    if (failed || attestationOnly || partial) controlIdsNeedingProgress.add(nistId);
   }
 
-  let poamCreated = 0;
-  for (const controlId of controlIdsNeedingPoam) {
-    let [record] = await db
+  const poamCreated = 0;
+  for (const controlId of controlIdsNeedingProgress) {
+    const [record] = await db
       .select()
       .from(controlRecords)
       .where(
         and(
           eq(controlRecords.organizationId, orgId),
-          eq(controlRecords.controlId, controlId)
-        )
+          eq(controlRecords.controlId, controlId),
+        ),
       )
       .limit(1);
-
-    if (!record) {
-      await db.insert(controlRecords).values({
-        organizationId: orgId,
-        controlId,
-      });
-      [record] = await db
-        .select()
-        .from(controlRecords)
-        .where(
-          and(
-            eq(controlRecords.organizationId, orgId),
-            eq(controlRecords.controlId, controlId)
-          )
-        )
-        .limit(1);
-    }
     if (!record) continue;
-
-    let [entry] = await db
-      .select()
-      .from(poamEntries)
-      .where(
-        and(
-          eq(poamEntries.organizationId, orgId),
-          eq(poamEntries.controlRecordId, record.id)
-        )
-      )
-      .limit(1);
-
-    if (!entry) {
-      const [inserted] = await db
-        .insert(poamEntries)
-        .values({
-          organizationId: orgId,
-          controlRecordId: record.id,
-          weaknessDescription: MFA_ATTESTATION_WEAKNESS,
-          remediationPlan: MFA_ATTESTATION_REMEDIATION,
-          scheduledCompletionDate: null,
-          responsibleRoleId: null,
-        })
-        .returning();
-      if (inserted) {
-        entry = inserted;
-        poamCreated++;
-      }
-    }
-
-    if (entry) {
-      const existingMilestones = await db
-        .select()
-        .from(poamEntryMilestones)
-        .where(eq(poamEntryMilestones.poamEntryId, entry.id));
-      const hasMfaMilestone = existingMilestones.some(
-        (m) => m.title === MFA_ATTESTATION_MILESTONE_TITLE
-      );
-      if (!hasMfaMilestone) {
-        await db.insert(poamEntryMilestones).values({
-          poamEntryId: entry.id,
-          title: MFA_ATTESTATION_MILESTONE_TITLE,
-          dueDate: null,
-          orderIndex: existingMilestones.length,
-        });
-      }
-    }
-
     await db
       .update(controlRecords)
       .set({ implementationStatus: "in_progress", updatedAt: new Date() })
@@ -333,7 +267,7 @@ export async function POST(
     partial_count: partialCount,
     failed_count: failedCount,
     poam_entries_created: poamCreated,
-    controls_marked_partial: controlIdsNeedingPoam.size,
+    controls_marked_partial: controlIdsNeedingProgress.size,
     inherited_flipped: inheritedFlipped,
     recomputed_controls: recomputed,
   });

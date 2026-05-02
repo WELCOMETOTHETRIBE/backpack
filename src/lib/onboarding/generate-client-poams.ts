@@ -111,8 +111,26 @@ export async function generateClientRequiredPoams(
   let totalMilestones = 0;
   let placeholdersCreated = 0;
 
-  // 3. Walk the catalog.
+  // POA&M scope intentionally narrow: we only auto-open POAMs for the
+  // controls where the customer has a real, customer-must-do-themselves
+  // operational obligation that won't surface anywhere else (training
+  // certs for AT family, IR plan + tabletop for IR family). Every other
+  // controls' "client-required artifact" lives on the Artifacts page as
+  // an awaiting_upload row -- that's the punch list. POAMs are reserved
+  // for tracked weaknesses with a remediation plan, not for "the customer
+  // hasn't uploaded the file yet." Without this filter, onboarding
+  // generated 60+ boilerplate POAMs that drowned out the real ones.
+  const POAM_AUTO_GENERATE_CONTROLS = new Set<string>([
+    "3.2.1", "3.2.2", "3.2.3",  // AT — training completions per employee
+    "3.6.1", "3.6.2", "3.6.3",  // IR — plan, reporting, tabletop AAR
+  ]);
+
+  // 3. Walk the catalog (filtered to the scope above).
   for (const entry of POAM_ELIGIBLE_CONTROLS) {
+    if (!POAM_AUTO_GENERATE_CONTROLS.has(entry.controlId)) {
+      skipped++;
+      continue;
+    }
     const record = recordByControlId.get(entry.controlId);
     if (!record) {
       // Control record not seeded for this org — the onboarding route seeds
