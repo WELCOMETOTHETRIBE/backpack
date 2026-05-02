@@ -44,15 +44,6 @@ const AUDIT_SESSION_COOKIE = "mactech_audit_session";
 const AUDIT_SESSION_TTL_SECONDS = 60 * 60 * 8; // 8 hours
 
 export default clerkMiddleware(async (auth, req) => {
-  // Diagnostic probe (TEMP — remove after EnclaveWatch wiring verified).
-  // If this header reaches the browser, the deploy is current.
-  if (req.nextUrl.pathname.startsWith("/api/enclavewatch") || req.nextUrl.pathname.startsWith("/api/evidence/v2/ingest")) {
-    const matched = isPublicRoute(req);
-    console.log(`[middleware-probe] path=${req.nextUrl.pathname} isPublic=${matched}`);
-    const r = NextResponse.next();
-    r.headers.set("x-mw-probe", `path=${req.nextUrl.pathname};public=${matched}`);
-    if (matched) return r;
-  }
   if (isPublicRoute(req)) return;
   await auth.protect();
 
