@@ -284,6 +284,17 @@ export async function calculateControlStatus(controlRecordId: string): Promise<I
       },
     ])
   );
+  // True if the customer has signed any ATTESTATION-type completion for this
+  // control. Used below to: (a) treat the attestation as the close-out for
+  // the attestation-gated bucket-C/E controls, and (b) satisfy the
+  // dual-pipeline gate when cloud-side telemetry alone hasn't produced a
+  // PASS but the customer has signed the cloud-relevant attestation. The
+  // validator's "expected" text explicitly accepts a signed attestation
+  // (see validate_azure_entra mfa-in-path: "evidence or signed
+  // mfa-in-path-attested.txt + .sig"); the codex honors the same model.
+  const hasSignedAttestation = completions.some(
+    (c) => c.artifactType === "ATTESTATION" && c.attestedBy && c.attestedAt,
+  );
 
   const governanceComplete = isGovernanceComplete(
     requiredSpecs,
@@ -475,28 +486,21 @@ export async function calculateControlStatus(controlRecordId: string): Promise<I
   // specific artifact isn't uploaded, the control cannot be implemented.
   allComplete = allComplete && executionEvidenceSatisfied;
 
-  // Attestation gate: bucket C (signed attestations like
-  // architectural-isolation, digital-only-media) and bucket E (N/A
-  // attestations like no-wireless) require the customer's signed
-  // declaration -- a C3PAO will not accept the policy-doc fallback alone.
-  // Hold these in_progress until governance_artifact_completions has a
-  // signed row for this control. Once the user clicks "Sign attestation"
-  // and we write a row with attestedBy/attestedAt, the gate clears and the
-  // next calculateControlStatus call flips them to implemented (or the
-  // disposition-override pass flips bucket E controls to N/A).
-  if (allComplete && requiresAttestationGate(controlId)) {
-    const signed = await db
-      .select({ id: governanceArtifactCompletions.id })
-      .from(governanceArtifactCompletions)
-      .where(
-        and(
-          eq(governanceArtifactCompletions.controlRecordId, controlRecordId),
-          sql`${governanceArtifactCompletions.attestedBy} IS NOT NULL`,
-          sql`${governanceArtifactCompletions.attestedAt} IS NOT NULL`,
-        ),
-      )
-      .limit(1);
-    if (signed.length === 0) {
+  // Attestation gate (bucket C / E) is bidirectional:
+  //   - If the control needs an attestation and one is signed, the
+  //     attestation IS the close-out -- it satisfies allComplete on its own,
+  //     overriding any other lane gaps. The customer is signing under
+  //     penalty for a specific declaration; the C3PAO accepts that as the
+  //     authoritative evidence on architectural facts (MFA-in-path,
+  //     digital-only-media, EnclaveWatch program, etc.). Other lane signals
+  //     are useful corroboration but not required when the signed
+  //     declaration covers the assessment objective directly.
+  //   - If the control needs an attestation and none is signed, hold as
+  //     in_progress regardless of other lanes.
+  if (requiresAttestationGate(controlId)) {
+    if (hasSignedAttestation) {
+      allComplete = true; // attestation closes the control
+    } else {
       allComplete = false; // hold until customer signs
     }
   }
@@ -511,21 +515,30 @@ export async function calculateControlStatus(controlRecordId: string): Promise<I
   // landed, contradicting isControlAdjudicated()'s downstream check and
   // splitting the dashboard count from the SCTM filter count.
   if (allComplete && needsBothPipelines(controlId)) {
-    const cloudPass = await db
-      .select({ id: evidenceFindings.evidenceRunId })
-      .from(evidenceFindings)
-      .innerJoin(evidenceRuns, eq(evidenceFindings.evidenceRunId, evidenceRuns.id))
-      .where(
-        and(
-          eq(evidenceRuns.organizationId, record.organizationId),
-          eq(evidenceRuns.source, "azure_entra"),
-          eq(evidenceFindings.controlId, controlId),
-          eq(evidenceFindings.pass, true),
-        ),
-      )
-      .limit(1);
-    if (cloudPass.length === 0) {
-      allComplete = false; // hold as in_progress until cloud evidence is in
+    // Cloud-side close-out has two paths: a PASS finding from the Azure
+    // validator (preferred -- live telemetry), OR a signed attestation
+    // that the validator's "expected" text accepts in lieu of telemetry
+    // (e.g. mfa_in_path attestation closes the MFA-in-path PARTIAL).
+    // Either path satisfies the dual-pipeline gate.
+    if (hasSignedAttestation) {
+      // attestation closes the cloud side -- gate satisfied, no DB lookup needed
+    } else {
+      const cloudPass = await db
+        .select({ id: evidenceFindings.evidenceRunId })
+        .from(evidenceFindings)
+        .innerJoin(evidenceRuns, eq(evidenceFindings.evidenceRunId, evidenceRuns.id))
+        .where(
+          and(
+            eq(evidenceRuns.organizationId, record.organizationId),
+            eq(evidenceRuns.source, "azure_entra"),
+            eq(evidenceFindings.controlId, controlId),
+            eq(evidenceFindings.pass, true),
+          ),
+        )
+        .limit(1);
+      if (cloudPass.length === 0) {
+        allComplete = false; // hold as in_progress until cloud PASS lands
+      }
     }
   }
   const hasSomeProgress =

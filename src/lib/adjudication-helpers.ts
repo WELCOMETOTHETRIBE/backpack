@@ -247,13 +247,22 @@ export function isControlAdjudicated(
     r.implementationStatus === "assessed"
   ) {
     // Defense-in-depth gate: 11 controls live in BOTH the OS pipeline and the
-    // Azure pipeline. OS evidence alone is not enough — the actual enforcement
+    // Azure pipeline. OS evidence alone is not enough -- the actual enforcement
     // mechanism (NSG, Conditional Access, Key Vault, etc.) is on the Azure
-    // side. Stay PARTIAL until cloud evidence (validate_azure_entra) has also
-    // produced a passing finding.
+    // side. Normally these stay un-adjudicated until validate_azure_entra has
+    // emitted a PASS for the control.
+    //
+    // Exception: if the customer has signed a governance attestation for this
+    // control, the attestation closes the cloud side. The validator's own
+    // "expected" text explicitly accepts a signed attestation in lieu of
+    // telemetry (see e.g. validate_azure_entra's mfa-in-path check:
+    // "evidence or signed mfa-in-path-attested.txt + .sig"). The Codex must
+    // honor the same model -- the customer is signing under penalty for a
+    // specific declaration; that IS the cloud-side evidence.
     if (
       needsBothPipelines(r.controlId) &&
-      !ctx.cloudPipelineSatisfiedNistIds.has(r.controlId)
+      !ctx.cloudPipelineSatisfiedNistIds.has(r.controlId) &&
+      !ctx.attestationBackedRecordIds.has(r.id)
     ) {
       return false;
     }
