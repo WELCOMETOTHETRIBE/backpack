@@ -24,14 +24,11 @@ function ymd(d: Date): string {
  * server immediately recalculates the dependent controls so the
  * dashboard reflects the attestation.
  */
-type AttestResult = { recalculated: number; promoted: number };
-
 export function AttestNoEventsButton({ registerKey, registerName, boundaryId }: Props) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const [result, setResult] = useState<AttestResult | null>(null);
 
   // Default period: the previous 90 days ending today — a sane default for
   // a quarterly attestation cadence. User can widen or narrow.
@@ -44,13 +41,6 @@ export function AttestNoEventsButton({ registerKey, registerName, boundaryId }: 
   const [periodEnd, setPeriodEnd] = useState(defaults.end);
   const [rationale, setRationale] = useState("");
   const [confirmed, setConfirmed] = useState(false);
-
-  function resetForm() {
-    setConfirmed(false);
-    setRationale("");
-    setErr(null);
-    setResult(null);
-  }
 
   async function onSubmit() {
     setBusy(true);
@@ -74,12 +64,8 @@ export function AttestNoEventsButton({ registerKey, registerName, boundaryId }: 
         setErr(body?.error ?? `HTTP ${res.status}`);
         return;
       }
-      setResult({
-        recalculated: typeof body?.recalculated === "number" ? body.recalculated : 0,
-        promoted: typeof body?.promoted === "number" ? body.promoted : 0,
-      });
-      // Refresh underlying data so the new entry shows in the table once
-      // the user dismisses the confirmation.
+      setOpen(false);
+      setConfirmed(false);
       router.refresh();
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Network error");
@@ -105,7 +91,7 @@ export function AttestNoEventsButton({ registerKey, registerName, boundaryId }: 
             <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-5 py-4">
               <div>
                 <h2 className="text-base font-semibold text-slate-900">
-                  {result ? "Attestation signed" : "Attest — no events this period"}
+                  Attest — no events this period
                 </h2>
                 <p className="mt-0.5 text-xs text-slate-500">
                   {registerName}
@@ -113,10 +99,7 @@ export function AttestNoEventsButton({ registerKey, registerName, boundaryId }: 
               </div>
               <button
                 type="button"
-                onClick={() => {
-                  setOpen(false);
-                  resetForm();
-                }}
+                onClick={() => setOpen(false)}
                 className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
                 aria-label="Close"
               >
@@ -124,43 +107,6 @@ export function AttestNoEventsButton({ registerKey, registerName, boundaryId }: 
               </button>
             </div>
 
-            {result ? (
-              <div className="space-y-4 px-5 py-5">
-                <div className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
-                  <CheckCircle2 className="h-5 w-5 shrink-0 mt-0.5 text-emerald-600" />
-                  <div className="space-y-1 text-sm text-emerald-900 leading-relaxed">
-                    <p className="font-semibold">
-                      Signed attestation recorded for {registerName}.
-                    </p>
-                    <p>
-                      Period: <strong>{periodStart}</strong> → <strong>{periodEnd}</strong>.
-                    </p>
-                    <p>
-                      Register lane is now passing on cadence.{" "}
-                      {result.recalculated > 0
-                        ? `Re-evaluated ${result.recalculated} dependent control${result.recalculated === 1 ? "" : "s"}`
-                        : "No dependent controls required re-evaluation"}
-                      {result.promoted > 0
-                        ? ` — ${result.promoted} promoted to Implemented.`
-                        : "."}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center justify-end">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setOpen(false);
-                      resetForm();
-                    }}
-                    className="inline-flex items-center gap-1.5 rounded-md bg-slate-900 px-3 py-1.5 text-sm font-semibold text-white hover:bg-slate-800"
-                  >
-                    Done
-                  </button>
-                </div>
-              </div>
-            ) : (
-            <>
             <div className="space-y-4 px-5 py-4">
               <p className="text-sm text-slate-600 leading-relaxed">
                 A C3PAO examiner will ask how you know no events requiring an entry
@@ -234,10 +180,7 @@ export function AttestNoEventsButton({ registerKey, registerName, boundaryId }: 
             <div className="flex items-center justify-end gap-2 border-t border-slate-200 bg-slate-50 px-5 py-3 rounded-b-2xl">
               <button
                 type="button"
-                onClick={() => {
-                  setOpen(false);
-                  resetForm();
-                }}
+                onClick={() => setOpen(false)}
                 className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100"
               >
                 Cancel
@@ -251,8 +194,6 @@ export function AttestNoEventsButton({ registerKey, registerName, boundaryId }: 
                 {busy ? "Signing…" : (<><CheckCircle2 className="h-3.5 w-3.5" /> Sign attestation</>)}
               </button>
             </div>
-            </>
-            )}
           </div>
         </div>
       )}
