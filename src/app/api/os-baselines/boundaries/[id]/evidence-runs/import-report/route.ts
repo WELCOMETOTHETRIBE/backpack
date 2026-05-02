@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import {
   boundaries,
@@ -10,6 +9,7 @@ import {
   poamEntryMilestones,
 } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
+import { resolveOrgFromSessionOrBearer } from "@/lib/auth-bearer";
 import { isValidatorReport } from "@/lib/evidence/validator-report";
 import {
   computeRunFingerprint,
@@ -42,10 +42,10 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  const user = session?.user as { organizationId?: string } | undefined;
-  const orgId = user?.organizationId;
-  if (!orgId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  // Accept either dashboard session or EnclaveWatch bearer token.
+  const ctx = await resolveOrgFromSessionOrBearer(req);
+  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const orgId = ctx.orgId;
 
   const { id: boundaryId } = await params;
   const [boundary] = await db

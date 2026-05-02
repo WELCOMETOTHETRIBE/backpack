@@ -7,7 +7,7 @@ import {
   boundaries,
 } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
-import { auth } from "@/lib/auth";
+import { resolveOrgFromSessionOrBearer } from "@/lib/auth-bearer";
 import { calculateControlStatus } from "@/lib/control-status";
 import { createHash } from "crypto";
 
@@ -102,11 +102,11 @@ type AckPackage = {
 };
 
 export async function POST(req: Request) {
-  const session = await auth();
-  const orgId = (session?.user as { organizationId?: string })?.organizationId;
-  if (!orgId) {
+  const ctx = await resolveOrgFromSessionOrBearer(req);
+  if (!ctx) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  const orgId = ctx.orgId;
 
   let body: AckPackage;
   try {

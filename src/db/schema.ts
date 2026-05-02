@@ -414,6 +414,15 @@ export const organizations = pgTable("organizations", {
    * Per-exercise override lives on ir_exercises.retention_until.
    */
   defaultIrRetentionYears: integer("default_ir_retention_years").notNull().default(6),
+  /**
+   * Long-lived bearer token for unattended ingest from MacTech EnclaveWatch
+   * (the in-vault audit + cadence service). Set per-org via the issuance
+   * script. EnclaveWatch sends "Authorization: Bearer <token>" on
+   * /api/evidence/v2/ingest, /api/os-baselines/.../import-report, and
+   * /api/enclavewatch/weekly-review/ingest. The token resolves the org
+   * server-side -- EnclaveWatch never has to know the orgId.
+   */
+  enclavewatchApiToken: text("enclavewatch_api_token").unique(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 

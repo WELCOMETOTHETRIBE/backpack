@@ -10,6 +10,7 @@ import {
 } from "@/db/schema";
 import { eq, and, inArray, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
+import { resolveOrgFromSessionOrBearer } from "@/lib/auth-bearer";
 import { calculateControlStatus } from "@/lib/control-status";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { controlIdToNist } from "@/lib/compliance/controlId";
@@ -87,12 +88,17 @@ async function loadControlEvidenceMap(): Promise<Record<string, string[]>> {
  */
 export async function POST(req: Request) {
   try {
-    const session = await auth();
-    const user = session?.user as { organizationId?: string; id?: string } | undefined;
-    const orgId = user?.organizationId;
-    if (!orgId) {
+    // Accept either a logged-in dashboard session OR an EnclaveWatch
+    // bearer token (for unattended cadence pushes from the vault).
+    const ctx = await resolveOrgFromSessionOrBearer(req);
+    if (!ctx) {
       return NextResponse.json({ error: "Unauthorized", code: "UNAUTHORIZED" }, { status: 401 });
     }
+    const orgId = ctx.orgId;
+    // userId is only available in the session path -- bearer pushes
+    // record null linkedBy. Audit log captures the auth path either way.
+    const session = ctx.via === "session" ? await auth() : null;
+    const user = session?.user as { id?: string } | undefined;
 
     const body = await req.json().catch(() => null);
     if (!body || typeof body !== "object") {
