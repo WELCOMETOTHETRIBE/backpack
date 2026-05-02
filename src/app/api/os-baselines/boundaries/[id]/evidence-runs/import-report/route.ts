@@ -175,7 +175,12 @@ export async function POST(
   }
 
   const passedCount = checks.filter((c) => c.pass).length;
-  const failedCount = checks.filter((c) => !c.pass).length;
+  // "Partial" = validator found the technical config but is waiting on a
+  // signed attestation (mfa-in-path, mobile-blocked, etc.). Distinct from
+  // a hard fail where the config itself doesn't exist. Surfacing both
+  // numbers separately so the UI doesn't mislabel partials as failures.
+  const partialCount = checks.filter((c) => !c.pass && c.partial).length;
+  const failedCount = checks.filter((c) => !c.pass && !c.partial).length;
 
   const controlIdsNeedingPoam = new Set<string>();
   for (const c of checks) {
@@ -325,6 +330,7 @@ export async function POST(
     run_id: body.run_id,
     findings_count: checks.length,
     passed_count: passedCount,
+    partial_count: partialCount,
     failed_count: failedCount,
     poam_entries_created: poamCreated,
     controls_marked_partial: controlIdsNeedingPoam.size,

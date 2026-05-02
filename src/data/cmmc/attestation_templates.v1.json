@@ -328,6 +328,30 @@
       "recommendedSignatoryRole": "system_owner",
       "renewalCadenceDays": 365,
       "c3paoExaminerNote": "Examiner will ask: 'Where do users access CUI from? Is everyone in a controlled environment?' Be ready to present: (1) Conditional Access policy requiring compliant devices, (2) Intune compliance reports, (3) signed Remote Work Policy, (4) this attestation, (5) Azure FedRAMP CRM for datacenter."
+    },
+    {
+      "templateId": "audit_log_review_sop",
+      "kind": "implemented_attestation",
+      "title": "Audit Log Review SOP & Failure Response In Place",
+      "summary": "Affirm that we have a written SOP for audit log review (cadence + reviewer) and a documented response when audit logging fails. Required for AU.L2-3.3.5.",
+      "attestationStatement": "I attest, on behalf of our organization, that we maintain a written Standard Operating Procedure for audit log review covering: (1) who is responsible for review (named role or named individual), (2) the cadence of review (at minimum weekly, with SIEM alerting on failure), (3) what evidence/correlation we look for during review (failed logons, privilege use, NSG denies, Defender alerts, audit-policy changes), and (4) the documented response when audit logging fails (CrashOnAuditFail=1 halts the system; on-call is paged; a P1 ticket is opened; the system is not returned to service until logging is verified end-to-end). The SOP is part of our MacTech governance bundle (MAC-SOP-403) and is reviewed annually. We will produce review records on demand for assessor inspection.",
+      "conditions": [
+        "We have a designated audit log reviewer (named role or person)",
+        "Reviews occur at least weekly with SIEM alerting on failure to review",
+        "CrashOnAuditFail is set to 1 (halt on audit failure) and verified by the OS validator",
+        "We retain at least 12 months of review records"
+      ],
+      "fallbackIfConditionFails": {
+        "controlIds": ["3.3.5"],
+        "fallbackDisposition": "partial",
+        "fallbackRegisterSchemaId": "audit_log_review",
+        "actionRequired": "We will activate the Audit Log Review Register and capture per-review records (date, reviewer, anomalies, action taken)."
+      },
+      "evidenceProduced": "governance_artifact_completion (ATTESTATION) on control_records for 3.3.5",
+      "linkedControlIds": ["3.3.5"],
+      "recommendedSignatoryRole": "compliance_owner",
+      "renewalCadenceDays": 365,
+      "c3paoExaminerNote": "Examiner will ask: 'Show me your audit log review SOP and a recent review record.' Be ready to point to: (1) MAC-SOP-403 in the governance bundle, (2) this attestation, (3) the most recent review record from the audit_log_review register, (4) CrashOnAuditFail=1 in the OS validator output."
     }
   ]
 }

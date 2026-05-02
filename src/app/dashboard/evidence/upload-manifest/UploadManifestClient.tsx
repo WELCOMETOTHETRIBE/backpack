@@ -208,8 +208,10 @@ interface IngestResult {
   collection_error_files: string[];
   /** Per-control validator findings written when validation-report.json was bundled. */
   validator_findings?: number;
-  /** Cloud-side: validator PASS / FAIL counts (preferred over collection_errors for cloud results). */
+  /** Cloud-side: validator PASS / PARTIAL / FAIL counts (preferred over collection_errors for cloud results).
+   *  PARTIAL = config exists, awaiting signed attestation. FAIL = config missing entirely. */
   cloud_pass_count?: number;
+  cloud_partial_count?: number;
   cloud_fail_count?: number;
   freshness: "current" | "stale" | "expired";
   age_days: number;
@@ -500,6 +502,7 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
         collection_error_files: [],
         validator_findings: data.findings_count ?? 0,
         cloud_pass_count: data.passed_count ?? 0,
+        cloud_partial_count: data.partial_count ?? 0,
         cloud_fail_count: data.failed_count ?? 0,
         freshness: "current",
         age_days: 0,
@@ -549,9 +552,12 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
             ? [
                 // Cloud: validator-centric stats. "Collection errors" doesn't
                 // apply -- the validator either reaches the Azure API or doesn't,
-                // there's no per-file collection step.
-                { label: "Controls evidenced", value: result.linked_controls, color: "text-slate-900" },
+                // there's no per-file collection step. PARTIAL is shown
+                // separately from FAIL because they mean different things --
+                // PARTIAL = config is there, just need a signed attestation
+                // to flip; FAIL = config missing entirely.
                 { label: "Validator PASS", value: result.cloud_pass_count ?? 0, color: "text-emerald-700" },
+                { label: "Pending attestation", value: result.cloud_partial_count ?? 0, color: (result.cloud_partial_count ?? 0) > 0 ? "text-blue-700" : "text-slate-900" },
                 { label: "Validator FAIL", value: result.cloud_fail_count ?? 0, color: (result.cloud_fail_count ?? 0) > 0 ? "text-amber-700" : "text-slate-900" },
                 { label: "Findings written", value: result.validator_findings ?? 0, color: "text-slate-900" },
               ]
