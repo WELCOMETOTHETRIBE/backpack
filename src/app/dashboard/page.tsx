@@ -208,9 +208,15 @@ export default async function DashboardPage() {
   const adjudicatedCount = records.filter(isFullyAdjudicated).length;
   const outstandingCount = Math.max(0, TOTAL_CONTROLS - adjudicatedCount);
   const implementedPct = TOTAL_CONTROLS ? Math.round((adjudicatedCount / TOTAL_CONTROLS) * 100) : 0;
-  const needingReview = records.filter(
-    (r) => r.implementationStatus === "not_started" || r.implementationStatus === "in_progress"
-  ).length;
+  // "Needing review" mirrors the rigorous outstanding count -- a control is
+  // outstanding for assessor purposes whenever isControlAdjudicated() is
+  // false, regardless of what implementationStatus the writer wrote. The
+  // older raw-status filter (not_started + in_progress) undercounted by
+  // ignoring controls that were marked implemented but failed the
+  // operational-evidence check on at least one lane. Aligning here means
+  // the KPI card, the next-action banner, and the headline outstanding
+  // number all tell the same C3PAO-defensible story.
+  const needingReview = outstandingCount;
 
   // ── Status bin counts (for the clickable breakdown chips) ──
   // Counts against ALL 110 controls; only counts a control if ALL evidence lanes are satisfied
