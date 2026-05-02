@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { governanceRegisters, governanceRegisterEntries, controlRecords } from "@/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
@@ -192,6 +193,12 @@ export async function POST(
         }
       }
     }
+
+    // Invalidate the cached render of the register entries page so
+    // router.refresh() on the client actually shows the new attestation
+    // row instead of a stale server response.
+    revalidatePath(`/dashboard/evidence-engine/registers/${registerKey}`);
+    revalidatePath(`/dashboard/evidence-engine/registers/${register.registerKey}`);
 
     return NextResponse.json({
       entry,
