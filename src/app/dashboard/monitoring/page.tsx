@@ -165,9 +165,18 @@ export default async function MonitoringPage() {
   const cardClass =
     "rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm";
 
-  const cadenceArmed = perSource.every((s) => s.runCount > 0);
-  const allGreen = perSource.every((s) => s.freshness === "green");
-  const anyRed = perSource.some((s) => s.freshness === "red");
+  // Cadence health is judged separately from the ISSO weekly review.
+  // The 3 automated sources (OS bundle, OS validator, Azure validator)
+  // arm via cron on the vault. The ISSO weekly review is a manual
+  // human action and may legitimately not have fired yet on a fresh
+  // deployment -- that's not a "cadence not armed" condition, it's an
+  // "awaiting first signature" condition.
+  const automatedSources = perSource.filter((s) => s.key !== "enclavewatch_weekly_review");
+  const issoSource = perSource.find((s) => s.key === "enclavewatch_weekly_review");
+  const automatedArmed = automatedSources.every((s) => s.runCount > 0);
+  const automatedAllGreen = automatedSources.every((s) => s.freshness === "green");
+  const automatedAnyRed = automatedSources.some((s) => s.freshness === "red");
+  const issoNeverRun = issoSource?.runCount === 0;
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -175,19 +184,24 @@ export default async function MonitoringPage() {
         <div className="flex flex-wrap items-center gap-3">
           <Activity className="h-6 w-6 text-[var(--color-blue-accent)]" aria-hidden />
           <h1 className="text-2xl font-bold text-[var(--color-navy-primary)]">Continuous Monitoring</h1>
-          {!cadenceArmed && (
+          {!automatedArmed && (
             <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
               Cadence not yet armed
             </span>
           )}
-          {cadenceArmed && allGreen && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800">
-              <CheckCircle2 className="h-3 w-3" /> Program healthy
-            </span>
-          )}
-          {cadenceArmed && anyRed && (
+          {automatedArmed && automatedAnyRed && (
             <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
               <AlertTriangle className="h-3 w-3" /> Cadence stale
+            </span>
+          )}
+          {automatedArmed && !automatedAnyRed && automatedAllGreen && issoNeverRun && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
+              <Activity className="h-3 w-3" /> Cadence healthy · awaiting first ISSO sign-off
+            </span>
+          )}
+          {automatedArmed && !automatedAnyRed && automatedAllGreen && !issoNeverRun && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800">
+              <CheckCircle2 className="h-3 w-3" /> Program healthy
             </span>
           )}
         </div>
