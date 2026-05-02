@@ -44,8 +44,8 @@
   ],
   "outstanding_controls": [
     { "controlId": "3.1.4",   "bucket": "B", "title": "Separation of Duties",                  "primaryAction": "Maintain Duties Separation Matrix register",      "registerSchemaId": "sod_matrix",                                     "registerSchemaExists": true,  "effortMinutes": 30 },
-    { "controlId": "3.1.15",  "bucket": "B", "title": "Remote Access Authorization",           "primaryAction": "Authorize and log every remote-access user",      "registerSchemaId": "remote_access_authorization",                    "registerSchemaExists": false, "effortMinutes": 20 },
-    { "controlId": "3.1.20",  "bucket": "B", "title": "External System Connections",           "primaryAction": "Inventory and authorize external system connections", "registerSchemaId": "external_system_connections",                "registerSchemaExists": false, "effortMinutes": 30 },
+    { "controlId": "3.1.15",  "bucket": "B", "title": "Remote Access Authorization",           "primaryAction": "Authorize and log every remote-access user",      "registerSchemaId": "remote_access_authorization",                    "registerSchemaExists": true,  "effortMinutes": 20 },
+    { "controlId": "3.1.20",  "bucket": "B", "title": "External System Connections",           "primaryAction": "Inventory and authorize external system connections", "registerSchemaId": "external_system_connections",                "registerSchemaExists": true,  "effortMinutes": 30 },
     { "controlId": "3.2.1",   "bucket": "A", "title": "Security Awareness Training",           "primaryAction": "Push completions from training.mactechsolutionsllc.com via /api/training/completion", "trainingCourseId": "security_awareness", "effortMinutes": 0 },
     { "controlId": "3.2.2",   "bucket": "A", "title": "Insider Threat Awareness",              "primaryAction": "Push insider-threat completions",                "trainingCourseId": "insider_threat",                                  "effortMinutes": 0 },
     { "controlId": "3.2.3",   "bucket": "A", "title": "Insider Threat Training (Authorized)",  "primaryAction": "Push role-based training completions",            "trainingCourseId": "role_based_authorized_user",                     "effortMinutes": 0 },
@@ -59,7 +59,7 @@
     { "controlId": "3.7.1",   "bucket": "B", "title": "System Maintenance",                    "primaryAction": "Log every maintenance event (per-event)",         "registerSchemaId": "maintenance_log",                                "registerSchemaExists": true,  "effortMinutes": 10 },
     { "controlId": "3.8.1",   "bucket": "C", "title": "Media Protection",                      "primaryAction": "Sign 'all CUI is digital, BitLocker-protected' attestation", "attestationTemplateId": "digital_only_media",                "effortMinutes": 5 },
     { "controlId": "3.8.3",   "bucket": "C", "title": "Media Sanitization",                    "primaryAction": "Sign 'Azure-managed disposal' attestation",        "attestationTemplateId": "azure_managed_disposal",                    "effortMinutes": 5 },
-    { "controlId": "3.8.7",   "bucket": "B", "title": "Removable Media Use",                   "primaryAction": "Authorize each removable storage exception",      "registerSchemaId": "portable_storage_authorization",                 "registerSchemaExists": false, "effortMinutes": 15 },
+    { "controlId": "3.8.7",   "bucket": "B", "title": "Removable Media Use",                   "primaryAction": "Authorize each removable storage exception",      "registerSchemaId": "portable_storage_authorization",                 "registerSchemaExists": true,  "effortMinutes": 15 },
     { "controlId": "3.9.1",   "bucket": "B", "title": "Personnel Screening",                   "primaryAction": "Record screening completion per hire",            "registerSchemaId": "personnel_screening",                            "registerSchemaExists": true,  "effortMinutes": 10 },
     { "controlId": "3.9.2",   "bucket": "B", "title": "Personnel Termination",                 "primaryAction": "Record termination action within 24h",            "registerSchemaId": "termination",                                    "registerSchemaExists": true,  "effortMinutes": 10 },
     { "controlId": "3.11.1",  "bucket": "B", "title": "Risk Assessment",                       "primaryAction": "Annual formal risk assessment + ongoing updates", "registerSchemaId": "risk_register",                                  "registerSchemaExists": true,  "effortMinutes": 60 },
@@ -106,11 +106,7 @@
     { "controlId": "3.10.3",  "intelligenceDisposition": "partial", "snapshotDisposition": "inherited", "attestationTemplateId": "attest_no_onsite_cui_visitors", "fallbackRegisterSchemaId": "visitor_log", "reason": "Inheritance is conditional on customer attestation that no on-site visitors have CUI access at customer offices. If the customer cannot attest, control reverts to PARTIAL with a customer-side visitor log register." },
     { "controlId": "3.10.6",  "intelligenceDisposition": "partial", "snapshotDisposition": "inherited", "attestationTemplateId": "attest_no_alternate_work_sites", "fallbackRegisterSchemaId": "access_authorization", "reason": "Inheritance is conditional on customer attestation that no telework or alternate work sites exist. If the customer cannot attest, control reverts to PARTIAL with a Remote Work Authorization Register." }
   ],
-  "register_schema_gaps": [
-    { "registerSchemaId": "remote_access_authorization",  "neededFor": ["3.1.15"],          "phase": "B" },
-    { "registerSchemaId": "external_system_connections",  "neededFor": ["3.1.20"],          "phase": "B" },
-    { "registerSchemaId": "portable_storage_authorization","neededFor": ["3.8.7"],           "phase": "B" }
-  ],
+  "register_schema_gaps": [],
   "attestation_templates_needed": [
     { "templateId": "digital_only_media",                "neededFor": ["3.8.1"],   "phase": "C" },
     { "templateId": "azure_managed_disposal",            "neededFor": ["3.8.3"],   "phase": "C" },
