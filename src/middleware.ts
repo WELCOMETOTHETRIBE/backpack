@@ -28,6 +28,16 @@ const isPublicRoute = createRouteMatcher([
   // exception, Clerk's protect() rewrites all unauthenticated requests to
   // /clerk_* (404), blocking the bridge entirely.
   "/api/ir-tabletop(.*)",
+  // EnclaveWatch unattended ingest endpoints. The vault service pushes
+  // OS evidence + Azure validator + weekly review acknowledgements
+  // without a Clerk session. Each route uses resolveOrgFromSessionOrBearer
+  // (src/lib/auth-bearer.ts) which accepts EITHER a Clerk session OR an
+  // EnclaveWatch bearer token (organizations.enclavewatch_api_token).
+  // Without these exceptions, Clerk's protect() rewrites to /clerk_*
+  // (404) before the route handler ever sees the bearer header.
+  "/api/evidence/v2/ingest(.*)",
+  "/api/os-baselines/boundaries/:id/evidence-runs/import-report(.*)",
+  "/api/enclavewatch(.*)",
 ]);
 
 const AUDIT_SESSION_COOKIE = "mactech_audit_session";
