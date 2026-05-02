@@ -42,6 +42,7 @@ import {
   computeAdjudicationContext,
   isControlAdjudicated,
 } from "@/lib/adjudication-helpers";
+import { OUTSTANDING_CLOSE_PATHS } from "@/lib/compliance/outstanding-controls";
 import {
   Shield,
   FileStack,
@@ -476,33 +477,114 @@ export default async function DashboardPage() {
     { label: "Training register current", points: 10, earned: trainingCurrent, href: "/dashboard/evidence-engine/registers/training_completion" },
   ];
 
-  // ── Next actions ──
-  const nextActions: Array<{ label: string; href: string; urgent?: boolean }> = [];
-  if (!boundaryComplete)
-    nextActions.push({ label: "Complete system boundary scoping", href: "/dashboard/boundary", urgent: true });
-  if (needingReview > 0)
-    nextActions.push({ label: `Adjudicate ${needingReview} remaining controls`, href: "/dashboard/controls" });
-  if (poamMissingMilestones > 0)
-    nextActions.push({ label: `Add milestones to ${poamMissingMilestones} open POA&M item${poamMissingMilestones !== 1 ? "s" : ""}`, href: "/dashboard/poam", urgent: true });
-  if (totalExpiring > 0)
-    nextActions.push({ label: `Review ${totalExpiring} expiring evidence item${totalExpiring !== 1 ? "s" : ""}`, href: "/dashboard/evidence", urgent: true });
-  // Register alerts — surface the most actionable overdue registers first
-  if (overdueRegisters.length > 0) {
-    const first = overdueRegisters[0];
-    nextActions.push({
-      label: overdueRegisters.length === 1
-        ? `${first.displayName} is overdue — add an entry now`
-        : `${overdueRegisters.length} compliance registers overdue`,
-      href: overdueRegisters.length === 1 ? first.href : "/dashboard/registers",
+  // ── Next actions: impact-sorted worklist ──
+  // Each item names a specific path-to-close with a count, so the user
+  // knows exactly what work moves the needle. Grouped by close-path
+  // (attestation, register, training, cloud) using the OUTSTANDING_36
+  // snapshot's bucket categorization, then truncated to top 5 by SPRS
+  // impact. Vague "adjudicate N controls" is gone -- "sign 4
+  // attestations" or "populate 6 registers" are actually doable.
+  const outstandingClosePaths = records
+    .filter((r) => !isFullyAdjudicated(r))
+    .map((r) => ({ controlId: r.controlId, path: OUTSTANDING_CLOSE_PATHS.get(r.controlId) }))
+    .filter((x): x is { controlId: string; path: NonNullable<typeof x.path> } => Boolean(x.path));
+
+  const bucketA = outstandingClosePaths.filter((x) => x.path.bucket === "A");
+  const bucketB = outstandingClosePaths.filter((x) => x.path.bucket === "B");
+  const bucketC = outstandingClosePaths.filter((x) => x.path.bucket === "C");
+  const bucketE = outstandingClosePaths.filter((x) => x.path.bucket === "E");
+
+  type NextAction = { label: string; href: string; urgent?: boolean; sprsImpact: number };
+  const candidateActions: NextAction[] = [];
+
+  // SPRS impact = sum of control weights this action would close. Drives
+  // sort order so the top action is always the highest-leverage move.
+  const sprsValueByControlId = new Map(sprsScoringData.map((s) => [s.id, s.value]));
+  const sprsImpactFor = (controlIds: string[]) =>
+    controlIds.reduce((sum, id) => sum + (sprsValueByControlId.get(id) ?? 0), 0);
+
+  if (!boundaryComplete) {
+    candidateActions.push({
+      label: "Complete system boundary scoping",
+      href: "/dashboard/boundary",
       urgent: true,
+      sprsImpact: 110,
     });
-  } else if (registerCounts.dueSoon > 0) {
-    nextActions.push({ label: `${registerCounts.dueSoon} register${registerCounts.dueSoon !== 1 ? "s" : ""} due soon`, href: "/dashboard/registers" });
-  } else if (registerCounts.neverUsed > 3) {
-    nextActions.push({ label: `Start your compliance registers — ${registerCounts.neverUsed} never used`, href: "/dashboard/registers" });
   }
-  if (!sspHasContent)
-    nextActions.push({ label: `Author SSP sections (${authoredSections}/3 minimum)`, href: "/dashboard/ssp" });
+  if (bucketC.length > 0) {
+    candidateActions.push({
+      label: `Sign ${bucketC.length} attestation${bucketC.length === 1 ? "" : "s"} (architectural declarations)`,
+      href: "/dashboard/readiness/outstanding",
+      sprsImpact: sprsImpactFor(bucketC.map((x) => x.controlId)),
+    });
+  }
+  if (bucketE.length > 0) {
+    candidateActions.push({
+      label: `Sign ${bucketE.length} N/A attestation${bucketE.length === 1 ? "" : "s"} (controls that don't apply)`,
+      href: "/dashboard/readiness/outstanding",
+      sprsImpact: sprsImpactFor(bucketE.map((x) => x.controlId)),
+    });
+  }
+  if (bucketB.length > 0) {
+    // Surface up to 3 distinct register names so the user sees what
+    // work this represents -- a generic "populate registers" prompt is
+    // less actionable than naming the specific schemas.
+    const registerNames = [
+      ...new Set(
+        bucketB
+          .map((x) => x.path.registerSchemaId)
+          .filter((s): s is string => Boolean(s))
+          .map((s) => s.replace(/_/g, " ")),
+      ),
+    ].slice(0, 3);
+    candidateActions.push({
+      label: `Populate ${bucketB.length} register${bucketB.length === 1 ? "" : "s"}${registerNames.length > 0 ? ` (${registerNames.join(", ")}${bucketB.length > registerNames.length ? "…" : ""})` : ""}`,
+      href: "/dashboard/registers",
+      sprsImpact: sprsImpactFor(bucketB.map((x) => x.controlId)),
+    });
+  }
+  if (bucketA.length > 0) {
+    candidateActions.push({
+      label: `Push ${bucketA.length} training/IR completion${bucketA.length === 1 ? "" : "s"}`,
+      href: "/dashboard/training",
+      sprsImpact: sprsImpactFor(bucketA.map((x) => x.controlId)),
+    });
+  }
+  if (poamMissingMilestones > 0) {
+    candidateActions.push({
+      label: `Add milestones to ${poamMissingMilestones} open POA&M item${poamMissingMilestones !== 1 ? "s" : ""}`,
+      href: "/dashboard/poam",
+      urgent: true,
+      sprsImpact: 0,
+    });
+  }
+  if (overdueRegisters.length > 0) {
+    candidateActions.push({
+      label: overdueRegisters.length === 1
+        ? `${overdueRegisters[0].displayName} is overdue — add an entry now`
+        : `${overdueRegisters.length} compliance registers overdue`,
+      href: overdueRegisters.length === 1 ? overdueRegisters[0].href : "/dashboard/registers",
+      urgent: true,
+      sprsImpact: 0,
+    });
+  }
+  if (!sspHasContent) {
+    candidateActions.push({
+      label: `Author SSP sections (${authoredSections}/3 minimum)`,
+      href: "/dashboard/ssp",
+      sprsImpact: 0,
+    });
+  }
+
+  // Top 5 by impact, urgent items always rise to the top regardless of
+  // SPRS weight. Cap at 5 so the dashboard stays a focused worklist.
+  const nextActions = candidateActions
+    .sort((a, b) => {
+      if ((a.urgent ? 1 : 0) !== (b.urgent ? 1 : 0)) return (b.urgent ? 1 : 0) - (a.urgent ? 1 : 0);
+      return b.sprsImpact - a.sprsImpact;
+    })
+    .slice(0, 5)
+    .map(({ label, href, urgent }) => ({ label, href, urgent }));
 
   const cardClass =
     "rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm";

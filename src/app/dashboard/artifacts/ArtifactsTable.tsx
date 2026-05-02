@@ -308,32 +308,56 @@ function FamilySection({
   );
 }
 
+type DueWindow = "30d" | "90d" | "all";
+const DUE_WINDOW_DAYS: Record<DueWindow, number | null> = {
+  "30d": 30,
+  "90d": 90,
+  all: null,
+};
+
 export function ArtifactsTable({ rows }: { rows: ArtifactRow[] }) {
   const [status, setStatus] = useState("");
   const [family, setFamily] = useState("");
   const [search, setSearch] = useState("");
   const [grouped, setGrouped] = useState(true);
   const [openAttestationId, setOpenAttestationId] = useState<string | null>(null);
+  // Default to a 30-day due window so the page opens as a focused weekly
+  // punch-list rather than a wall of every artifact obligation. The "All"
+  // chip escapes the window if the user wants the full library. Approved
+  // and signed-attestation rows always stay visible regardless of window
+  // -- they're history, not work.
+  const [dueWindow, setDueWindow] = useState<DueWindow>("30d");
 
-  const filtered = useMemo(
-    () =>
-      rows.filter((r) => {
-        if (status && r.status !== status) return false;
-        if (family && r.family !== family) return false;
-        if (search) {
-          const q = search.toLowerCase();
-          if (
-            !r.label.toLowerCase().includes(q) &&
-            !r.controlId.toLowerCase().includes(q) &&
-            !(r.controlTitle ?? "").toLowerCase().includes(q)
-          ) {
-            return false;
-          }
+  const filtered = useMemo(() => {
+    const windowDays = DUE_WINDOW_DAYS[dueWindow];
+    const now = Date.now();
+    const cutoff = windowDays === null ? null : now + windowDays * 24 * 3600 * 1000;
+    return rows.filter((r) => {
+      if (status && r.status !== status) return false;
+      if (family && r.family !== family) return false;
+      if (search) {
+        const q = search.toLowerCase();
+        if (
+          !r.label.toLowerCase().includes(q) &&
+          !r.controlId.toLowerCase().includes(q) &&
+          !(r.controlTitle ?? "").toLowerCase().includes(q)
+        ) {
+          return false;
         }
-        return true;
-      }),
-    [rows, status, family, search]
-  );
+      }
+      // Due-window filter: keep approved + attestation rows always (they're
+      // satisfied, not work). For everything else, keep rows whose due date
+      // falls inside the window. Rows with no due date and a non-final
+      // status get hidden in narrow windows -- they have no urgency signal.
+      if (cutoff !== null) {
+        if (r.status === "approved" || r.isAttestation) return true;
+        if (!r.expectedDueDate) return false;
+        const due = new Date(r.expectedDueDate).getTime();
+        if (Number.isNaN(due) || due > cutoff) return false;
+      }
+      return true;
+    });
+  }, [rows, status, family, search, dueWindow]);
 
   const byFamily = useMemo(() => {
     const groups = new Map<string, ArtifactRow[]>();
@@ -355,8 +379,30 @@ export function ArtifactsTable({ rows }: { rows: ArtifactRow[] }) {
       );
   }, [filtered]);
 
+  const dueWindowLabel = dueWindow === "all"
+    ? `Showing all ${rows.length}`
+    : `Showing ${filtered.length} of ${rows.length} due in next ${dueWindow === "30d" ? "30" : "90"} days (plus approved)`;
+
   return (
     <div className="space-y-3">
+      {/* Due-window chip selector. Default 30d so the page opens as a
+          weekly punch-list, not a wall of every artifact obligation. */}
+      <div className="flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50/50 px-3 py-2 text-xs">
+        <span className="font-medium text-indigo-900">Due window:</span>
+        <div className="flex items-center gap-0.5 rounded border border-indigo-200 bg-white p-0.5">
+          {(["30d", "90d", "all"] as const).map((w) => (
+            <button
+              key={w}
+              type="button"
+              onClick={() => setDueWindow(w)}
+              className={`rounded px-2 py-0.5 font-semibold transition-colors ${dueWindow === w ? "bg-indigo-600 text-white" : "text-slate-600 hover:bg-slate-100"}`}
+            >
+              {w === "30d" ? "Next 30 days" : w === "90d" ? "Next 90 days" : "All"}
+            </button>
+          ))}
+        </div>
+        <span className="text-slate-600">{dueWindowLabel}</span>
+      </div>
       <div className="flex flex-wrap gap-2">
         <input
           value={search}
