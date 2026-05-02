@@ -380,6 +380,57 @@
       "c3paoExaminerNote": "Examiner will ask: 'Walk me through what happens when a user opens the CUI application.' Be ready to point to: (1) the Conditional Access export showing MFA required on Bastion, (2) the PIM activation policy showing MFA at elevation, (3) this attestation, (4) any sample sign-in event from the Entra audit log showing the MFA factor consumed. For 3.7.5 (nonlocal maintenance), point to the open POA&M and the milestone status."
     },
     {
+      "templateId": "enclavewatch_audit_program",
+      "kind": "implemented_attestation",
+      "title": "MacTech EnclaveWatch Is Our Audit, Reduction, and Continuous-Monitoring Program",
+      "summary": "Affirm that MacTech EnclaveWatch -- a local audit/drift-validation/evidence service running inside our CUI Vault -- is our operational tool of record for audit-record content (3.3.2), audit reduction and report generation (3.3.3), and continuous monitoring of our security posture (3.12.3).",
+      "attestationStatement": "I attest, on behalf of our organization, that MacTech EnclaveWatch (the local audit + drift-validation + ISSO-review service deployed inside our CUI Vault) is the operational program by which we satisfy NIST 800-171 §3.3.2, §3.3.3, and §3.12.3 as of the date below. Specifically: (a) EnclaveWatch's Windows Event Log collectors capture authentication, logon, privileged activity, PowerShell, WMI, Task Scheduler, System, Application, WinRM, and Defender events into a tamper-evident SQLite store local to the vault, with daily and weekly canonical-hash manifests so each event in scope carries the user/process/timestamp attribution required by §3.3.2; (b) EnclaveWatch's Technical Checks page and weekly drift-validation runs perform the audit-record reduction and report generation required by §3.3.3 -- raw events stay inside the vault, only finding summaries + manifest hashes leave; (c) the ISSO performs a documented Weekly Review using EnclaveWatch's Weekly Review workflow, dispositioning alerts and confirming or escalating findings into POA&M recommendations, which constitutes our continuous-monitoring program required by §3.12.3 (cadence: weekly). Each completed weekly review writes an immutable weekly_reviews row, and the signed Codex acknowledgement package (weekly_review_acknowledgement.json + manifest_hashes.json + control_mapping_summary.json) is uploaded to the Trust Codex as standing operational evidence -- raw audit logs do not leave the boundary.",
+      "conditions": [
+        "MacTech EnclaveWatch is installed and running on our CUI Vault (Windows service, ProgramData layout, listening on the configured localhost HTTPS port)",
+        "Windows Event Log collectors are active and capturing the audit-event-catalog baseline (Security, PowerShell, WMI, Task Scheduler, System, Application/MacTech-EnclaveWatch, WinRM, Defender)",
+        "Daily and weekly manifests are generated and verifiable via /api/manifests/verify (no manifest-verification failures in the most recent 7-day window)",
+        "An ISSO (or designated Reviewer) completes a Weekly Review at least every 7 days, dispositions any alerts/findings, and signs the weekly_review acknowledgement",
+        "The signed Codex acknowledgement package is uploaded to the Trust Codex following each Weekly Review (raw event payloads are never included -- the package validator enforces this)",
+        "Findings escalated by EnclaveWatch are tracked as POA&M entries in the Trust Codex (closing the loop between EnclaveWatch findings and codex POAM management)"
+      ],
+      "fallbackIfConditionFails": {
+        "controlIds": ["3.3.2", "3.3.3", "3.12.3"],
+        "fallbackDisposition": "partial",
+        "fallbackRegisterSchemaId": "audit_log_review",
+        "actionRequired": "If EnclaveWatch ceases to run, or weekly reviews fall outside the 7-day cadence, or signed acknowledgements stop reaching the codex, we will revert to the Audit Log Review Register and capture per-review records manually until EnclaveWatch operations are restored."
+      },
+      "evidenceProduced": "governance_artifact_completion (ATTESTATION) on control_records for 3.3.2, 3.3.3, 3.12.3. Standing operational evidence: signed weekly_review_acknowledgement.json packages uploaded to the codex via /api/enclavewatch/weekly-review/ingest become evidenceFindings (PASS) on these controls, providing the assessor with concrete artifacts to examine alongside the attestation.",
+      "linkedControlIds": ["3.3.2", "3.3.3", "3.12.3"],
+      "recommendedSignatoryRole": "compliance_owner",
+      "renewalCadenceDays": 365,
+      "c3paoExaminerNote": "Examiner will ask: (1) 'How are you collecting and reducing your audit records?' -- show the EnclaveWatch dashboard, point to the Technical Checks page and the weekly Codex acknowledgement package; (2) 'Show me your continuous monitoring program' -- show the Weekly Review history with signed acknowledgements and the most recent ones uploaded to the codex; (3) 'How do you ensure tamper-evidence on audit data?' -- show the manifest-verification page and explain canonical hash chaining."
+    },
+    {
+      "templateId": "codex_poam_program",
+      "kind": "implemented_attestation",
+      "title": "Trust Codex Is Our POA&M Management Program",
+      "summary": "Affirm that the Trust Codex POA&M module is our system of record for tracking weaknesses, milestones, responsibility assignment, due dates, and closeout sign-off as required by §3.12.2.",
+      "attestationStatement": "I attest, on behalf of our organization, that the Trust Codex POA&M module (/dashboard/poam) is our operational system of record for the Plan of Action and Milestones program required by NIST 800-171 §3.12.2. Each open weakness in our environment -- whether surfaced by self-assessment, by EnclaveWatch findings, by cloud or OS validator runs, or by external review -- is tracked as a POA&M entry in the codex with: weakness description, remediation plan, scheduled completion date, ordered milestones with individual due dates, responsible role assignment, and closure sign-off captured as an immutable approval record. POA&M entries cannot be paper-closed -- closeout requires explicit sign-off and is captured in poam_entry_closure_approvals with attestation timestamp and approver identity. Pre-contract-award gaps are explicitly marked and surface a banner reminding the closer that the gap MUST be remediated before CUI lands.",
+      "conditions": [
+        "All open weaknesses identified in our environment are tracked as POA&M entries in /dashboard/poam (no parallel POAM tracking in spreadsheets or external tools)",
+        "Each POA&M entry has a weakness description, remediation plan, and at least one milestone with a due date",
+        "POA&M closeout requires explicit sign-off captured in poam_entry_closure_approvals -- no entry is closed via direct status edit",
+        "Pre-contract-award gaps are flagged with the 'pre-contract-award' marker so the close-out banner surfaces",
+        "We review the open POA&M list at least monthly as part of our continuous-monitoring program (3.12.3)"
+      ],
+      "fallbackIfConditionFails": {
+        "controlIds": ["3.12.2"],
+        "fallbackDisposition": "partial",
+        "fallbackRegisterSchemaId": "assessment_findings",
+        "actionRequired": "If the Trust Codex POA&M module becomes unavailable or we begin tracking weaknesses outside it, we will revert to the Assessment Findings Register and capture per-finding records there until codex POA&M operations are restored."
+      },
+      "evidenceProduced": "governance_artifact_completion (ATTESTATION) on control_records for 3.12.2. Standing operational evidence: the live POA&M table itself + closure_approvals records constitute the assessable artifacts.",
+      "linkedControlIds": ["3.12.2"],
+      "recommendedSignatoryRole": "compliance_owner",
+      "renewalCadenceDays": 365,
+      "c3paoExaminerNote": "Examiner will ask: 'Show me your POA&M.' Open /dashboard/poam, walk through several open entries (weakness, plan, milestones, due dates, responsible role), then a closed entry to demonstrate the sign-off requirement. Point to the immutable closure_approvals row as proof closeout was attested, not paper-edited."
+    },
+    {
       "templateId": "mobile_blocked_at_ca",
       "kind": "implemented_attestation",
       "title": "Mobile Devices Blocked from CUI by Conditional Access",
