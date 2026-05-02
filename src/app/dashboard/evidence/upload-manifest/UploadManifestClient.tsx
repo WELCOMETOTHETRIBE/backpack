@@ -931,36 +931,86 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
 
       {/* Instructions */}
       {!preview && !cloudReport && (
-        <details className="rounded-lg border p-4">
-          <summary className="cursor-pointer text-sm font-medium">How to get manifest.json from your CUI Vault VM</summary>
-          <ol className="mt-3 space-y-2 text-sm text-gray-500 list-decimal list-inside">
-            <li>
-              RDP or SSH into your Windows Server VM as a local administrator.
-            </li>
-            <li>
-              Open PowerShell 5.1 as administrator and run:{" "}
-              <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-xs">
-                .\Collect-Cui-Evidence-v2.ps1
-              </code>
-            </li>
-            <li>
-              When complete, the script prints the bundle path (e.g.{" "}
-              <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-xs">
-                C:\CUI-Evidence\&lt;run-id&gt;\
-              </code>
-              ).
-            </li>
-            <li>
-              Navigate to the bundle folder, open the{" "}
-              <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-xs">meta\</code> subfolder, and copy{" "}
-              <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-xs">manifest.json</code> to your workstation.
-            </li>
-            <li>Drop the file here to ingest it.</li>
-          </ol>
-          <p className="mt-3 text-xs text-gray-500">
-            The manifest contains only file paths and SHA-256 hashes — no CUI content leaves the VM.
-          </p>
-        </details>
+        <div className="space-y-3">
+          <details className="rounded-lg border p-4">
+            <summary className="cursor-pointer text-sm font-medium">
+              How to get <code className="font-mono text-xs">manifest.json</code> + <code className="font-mono text-xs">validation-report.json</code> (OS evidence — both required)
+            </summary>
+            <ol className="mt-3 space-y-2 text-sm text-gray-500 list-decimal list-inside">
+              <li>
+                RDP or SSH into your Windows Server VM as a local administrator.
+              </li>
+              <li>
+                Open PowerShell 5.1 as administrator and run the collector, then the validator:
+                <pre className="mt-1 overflow-x-auto rounded-md bg-gray-100 px-2 py-1.5 font-mono text-xs text-gray-800">
+{`.\\Collect-Cui-Evidence-v2.ps1 -OutRoot C:\\evidence
+.\\Test-CuiHardening.ps1     -OutRoot C:\\evidence -RunId <run-id>`}
+                </pre>
+              </li>
+              <li>
+                When complete, both scripts print their output paths under{" "}
+                <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-xs">
+                  C:\evidence\&lt;run-id&gt;\
+                </code>
+                .
+              </li>
+              <li>
+                Copy the following two files to your workstation:
+                <ul className="mt-1 ml-5 list-disc space-y-0.5">
+                  <li>
+                    <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-xs">meta\manifest.json</code>{" "}
+                    — file paths + SHA-256 hashes (from{" "}
+                    <code className="font-mono text-[11px]">Collect-Cui-Evidence-v2.ps1</code>)
+                  </li>
+                  <li>
+                    <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-xs">validation-report.json</code>{" "}
+                    — 53 per-check PASS/FAIL findings (from{" "}
+                    <code className="font-mono text-[11px]">Test-CuiHardening.ps1</code>)
+                  </li>
+                </ul>
+              </li>
+              <li>Drop both files here together — order doesn&apos;t matter.</li>
+            </ol>
+            <p className="mt-3 text-xs text-gray-500">
+              Neither file contains CUI: the manifest is paths + hashes; the validation report is per-check booleans.
+            </p>
+          </details>
+
+          <details className="rounded-lg border p-4">
+            <summary className="cursor-pointer text-sm font-medium">
+              How to get <code className="font-mono text-xs">validation-report-azure-entra.json</code> (Cloud evidence — drop alone)
+            </summary>
+            <ol className="mt-3 space-y-2 text-sm text-gray-500 list-decimal list-inside">
+              <li>
+                On any workstation with{" "}
+                <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-xs">az login</code>{" "}
+                authenticated to your tenant, run the Azure/Entra collector + validator (v1.5+):
+                <pre className="mt-1 overflow-x-auto rounded-md bg-gray-100 px-2 py-1.5 font-mono text-xs text-gray-800">
+{`# macOS / Linux
+AZURE_RG=<your-rg> bash TRUST_CODEX/tools/export_azure_evidence.sh
+python3 TRUST_CODEX/tools/validate_azure_entra.py
+
+# Windows / VM
+.\\Run-AzureEntraCollectAndValidate.ps1 -ResourceGroup <your-rg>`}
+                </pre>
+              </li>
+              <li>
+                The validator writes{" "}
+                <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-xs">
+                  CUI-Validation-AzureEntra-&lt;run-id&gt;\validation-report-azure-entra.json
+                </code>
+                .
+              </li>
+              <li>
+                Drop that single file here. It adjudicates all 15 Azure/Entra controls in one ingest;
+                re-uploads of the same run are idempotent.
+              </li>
+            </ol>
+            <p className="mt-3 text-xs text-gray-500">
+              The cloud report contains tenant/subscription IDs and per-check booleans only — no resource secrets.
+            </p>
+          </details>
+        </div>
       )}
 
       <IngestHistory history={history} loading={historyLoading} onRefresh={loadHistory} />

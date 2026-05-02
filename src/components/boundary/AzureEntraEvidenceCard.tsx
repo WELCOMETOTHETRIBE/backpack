@@ -115,8 +115,13 @@ export function AzureEntraEvidenceCard({ boundaryId: _boundaryId }: { boundaryId
                 No cloud evidence ingested yet
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-1 font-medium text-blue-800">
-                {evidencedCount} of {totalControls} cloud controls evidenced
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 font-medium text-amber-800">
+                <AlertCircle className="h-3 w-3" />
+                Partial cloud coverage ({evidencedCount}/{totalControls}) — re-upload the latest{" "}
+                <code className="rounded bg-white/60 px-1 font-mono text-[10px]">
+                  validation-report-azure-entra.json
+                </code>{" "}
+                to refresh
               </span>
             )}
           </div>
