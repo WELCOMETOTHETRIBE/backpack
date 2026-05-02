@@ -14,7 +14,6 @@ import {
 } from "@/lib/evidence-engine/technical-runs";
 import type { TechnicalResultsByControl } from "@/lib/evidence-engine/scoring";
 import { getEvidenceMap } from "@/data/cmmc";
-import { BoundarySelector } from "./BoundarySelector";
 
 const RESPONSIBILITY_LABELS: Record<string, string> = {
   azure_inherited: "Azure inherited",
@@ -40,27 +39,17 @@ export default async function EvidenceEngineDashboardPage({ searchParams }: Page
   const { boundary: boundaryParam, overdue, status: statusFilter, responsibility: responsibilityFilter } = await searchParams;
   const { effectiveBoundaryId, boundaries } = await resolveEffectiveBoundary(orgId, boundaryParam);
 
-  if (boundaries.length === 0) {
+  if (!effectiveBoundaryId) {
     return (
       <div className="space-y-6">
         <h1 className="text-xl font-semibold text-[var(--color-navy-primary)]">Evidence Registers</h1>
-        <p className="text-[var(--color-gray-600)]">Select a system boundary to view evidence.</p>
+        <p className="text-[var(--color-gray-600)]">No system boundary is configured for this organization.</p>
         <p className="text-sm text-[var(--color-gray-500)]">
           <Link href="/dashboard/boundary" className="text-[var(--color-blue-accent)] hover:underline">
             Open System Boundary
           </Link>{" "}
           to get started.
         </p>
-      </div>
-    );
-  }
-
-  if (!effectiveBoundaryId) {
-    return (
-      <div className="space-y-6">
-        <h1 className="text-xl font-semibold text-[var(--color-navy-primary)]">Evidence Registers</h1>
-        <p className="text-[var(--color-gray-600)]">Select a system boundary to view evidence.</p>
-        <BoundarySelector boundaries={boundaries} currentBoundaryId={null} />
       </div>
     );
   }
@@ -137,30 +126,27 @@ export default async function EvidenceEngineDashboardPage({ searchParams }: Page
         </p>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-semibold text-[var(--color-navy-primary)]">
-            Evidence Registers
-          </h1>
-          {effectiveBoundaryName && (
-            <p className="mt-0.5 text-sm font-medium text-[var(--color-gray-700)]">
-              Boundary: {effectiveBoundaryName}
-            </p>
-          )}
-          <p className="mt-0.5 text-sm text-[var(--color-gray-600)]">
-            Operational evidence for all 110 NIST SP 800-171 controls. Readiness is automated from
-            finalized register entries and cadence; do not interpret as &quot;compliant&quot;.
+      <div>
+        <h1 className="text-xl font-semibold text-[var(--color-navy-primary)]">
+          Evidence Registers
+        </h1>
+        {effectiveBoundaryName && (
+          <p className="mt-0.5 text-sm font-medium text-[var(--color-gray-700)]">
+            Boundary: {effectiveBoundaryName}
           </p>
-          <p className="mt-1 text-xs text-[var(--color-gray-500)]">
-            Readiness (automated): {scoring.overallReadinessExcludingNa}% pass (excluding N/A) · {scoring.overallReadiness}% overall
+        )}
+        <p className="mt-0.5 text-sm text-[var(--color-gray-600)]">
+          Operational evidence for all 110 NIST SP 800-171 controls. Readiness is automated from
+          finalized register entries and cadence; do not interpret as &quot;compliant&quot;.
+        </p>
+        <p className="mt-1 text-xs text-[var(--color-gray-500)]">
+          Readiness (automated): {scoring.overallReadinessExcludingNa}% pass (excluding N/A) · {scoring.overallReadiness}% overall
+        </p>
+        {isAdmin && (
+          <p className="mt-1 text-xs text-[var(--color-amber-700)]">
+            Export may contain sensitive data. Only include non-CUI or explicitly exportable items.
           </p>
-          {isAdmin && (
-            <p className="mt-1 text-xs text-[var(--color-amber-700)]">
-              Export may contain sensitive data. Only include non-CUI or explicitly exportable items.
-            </p>
-          )}
-        </div>
-        <BoundarySelector boundaries={boundaries} currentBoundaryId={effectiveBoundaryId} />
+        )}
       </div>
       <div>
         {technicalRuns.length > 0 && (

@@ -7,7 +7,6 @@ import { eq, and, sql } from "drizzle-orm";
 import { getEvidenceMap } from "@/data/cmmc";
 import { ensureEvidenceEngineRegistersForOrg, getRegisterStatsForOrgAndBoundary } from "@/lib/evidence-engine/control-dashboard";
 import { resolveEffectiveBoundary } from "@/lib/evidence-engine/resolve-boundary";
-import { BoundarySelector } from "../BoundarySelector";
 
 type PageProps = { searchParams: Promise<{ boundary?: string; auditor?: string }> };
 
@@ -26,26 +25,15 @@ export default async function EvidenceEngineRegistersPage({ searchParams }: Page
   const { boundary: boundaryParam } = await searchParams;
   const { effectiveBoundaryId, boundaries } = await resolveEffectiveBoundary(orgId, boundaryParam);
 
-  if (boundaries.length === 0) {
-    return (
-      <div className="space-y-6">
-        <Link href="/dashboard/evidence-engine" className="text-sm text-[var(--color-gray-600)] hover:underline">← Evidence Engine</Link>
-        <h2 className="text-xl font-semibold text-[var(--color-navy-primary)]">Registers</h2>
-        <p className="text-[var(--color-gray-600)]">Select a system boundary to view evidence.</p>
-        <p className="text-sm">
-          <Link href="/dashboard/boundary" className="text-[var(--color-blue-accent)] hover:underline">Open System Boundary</Link> to get started.
-        </p>
-      </div>
-    );
-  }
-
   if (!effectiveBoundaryId) {
     return (
       <div className="space-y-6">
         <Link href="/dashboard/evidence-engine" className="text-sm text-[var(--color-gray-600)] hover:underline">← Evidence Engine</Link>
         <h2 className="text-xl font-semibold text-[var(--color-navy-primary)]">Registers</h2>
-        <p className="text-[var(--color-gray-600)]">Select a system boundary to view evidence.</p>
-        <BoundarySelector boundaries={boundaries} currentBoundaryId={null} />
+        <p className="text-[var(--color-gray-600)]">No system boundary is configured for this organization.</p>
+        <p className="text-sm">
+          <Link href="/dashboard/boundary" className="text-[var(--color-blue-accent)] hover:underline">Open System Boundary</Link> to get started.
+        </p>
       </div>
     );
   }
@@ -96,28 +84,25 @@ export default async function EvidenceEngineRegistersPage({ searchParams }: Page
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <Link
-            href={`/dashboard/evidence-engine${buildBaseQuery(effectiveBoundaryId)}`}
-            className="text-sm text-[var(--color-gray-600)] hover:underline"
-          >
-            ← Evidence Engine
-          </Link>
-          <h2 className="mt-1 text-xl font-semibold text-[var(--color-navy-primary)]">
-            Registers
-          </h2>
-          {effectiveBoundaryName && (
-            <p className="mt-0.5 text-sm font-medium text-[var(--color-gray-700)]">
-              Boundary: {effectiveBoundaryName}
-            </p>
-          )}
-          <p className="mt-0.5 text-sm text-[var(--color-gray-600)]">
-            Create and view entries for each register. Entries provide operational evidence for
-            controls.
+      <div>
+        <Link
+          href={`/dashboard/evidence-engine${buildBaseQuery(effectiveBoundaryId)}`}
+          className="text-sm text-[var(--color-gray-600)] hover:underline"
+        >
+          ← Evidence Engine
+        </Link>
+        <h2 className="mt-1 text-xl font-semibold text-[var(--color-navy-primary)]">
+          Registers
+        </h2>
+        {effectiveBoundaryName && (
+          <p className="mt-0.5 text-sm font-medium text-[var(--color-gray-700)]">
+            Boundary: {effectiveBoundaryName}
           </p>
-        </div>
-        <BoundarySelector boundaries={boundaries} currentBoundaryId={effectiveBoundaryId} />
+        )}
+        <p className="mt-0.5 text-sm text-[var(--color-gray-600)]">
+          Create and view entries for each register. Entries provide operational evidence for
+          controls.
+        </p>
       </div>
 
       <div className="overflow-x-auto rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)]">

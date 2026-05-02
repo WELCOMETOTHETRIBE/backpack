@@ -14,7 +14,6 @@ import { ensureEvidenceEngineRegistersForOrg } from "@/lib/evidence-engine/contr
 import { getEvidenceMap } from "@/data/cmmc";
 import { getCadenceRuleByRegisterId } from "@/data/cmmc/register-cadence-rules";
 import { schemaIdForRegisterKey } from "@/data/cmmc/register-key-aliases";
-import { BoundarySelector } from "../../BoundarySelector";
 import { AuditorToggle } from "./AuditorToggle";
 import { CreateEntryLink } from "./CreateEntryLink";
 import { AttestNoEventsButton } from "./AttestNoEventsButton";
@@ -68,24 +67,13 @@ export default async function EvidenceEngineRegisterEntriesPage({ params, search
     );
   }
 
-  if (boundaries.length === 0) {
-    return (
-      <div className="space-y-6">
-        <Link href="/dashboard/evidence-engine/registers" className="text-sm text-[var(--color-gray-600)] hover:underline">← Registers</Link>
-        <h2 className="text-xl font-semibold text-[var(--color-navy-primary)]">{register.name}</h2>
-        <p className="text-[var(--color-gray-600)]">Select a system boundary to view evidence.</p>
-        <Link href="/dashboard/boundary" className="text-sm text-[var(--color-blue-accent)] hover:underline">Open System Boundary</Link>
-      </div>
-    );
-  }
-
   if (!effectiveBoundaryId) {
     return (
       <div className="space-y-6">
         <Link href="/dashboard/evidence-engine/registers" className="text-sm text-[var(--color-gray-600)] hover:underline">← Registers</Link>
         <h2 className="text-xl font-semibold text-[var(--color-navy-primary)]">{register.name}</h2>
-        <p className="text-[var(--color-gray-600)]">Select a system boundary to view evidence.</p>
-        <BoundarySelector boundaries={boundaries} currentBoundaryId={null} />
+        <p className="text-[var(--color-gray-600)]">No system boundary is configured for this organization.</p>
+        <Link href="/dashboard/boundary" className="text-sm text-[var(--color-blue-accent)] hover:underline">Open System Boundary</Link>
       </div>
     );
   }
@@ -127,61 +115,58 @@ export default async function EvidenceEngineRegisterEntriesPage({ params, search
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <Link
-            href={`/dashboard/evidence-engine/registers${buildBaseQuery(effectiveBoundaryId, auditorOnly ? { auditor: "1" } : {})}`}
-            className="text-sm text-[var(--color-gray-600)] hover:underline"
-          >
-            ← Registers
-          </Link>
-          <h2 className="mt-1 text-xl font-semibold text-[var(--color-navy-primary)]">
-            {register.name}
-          </h2>
-          {effectiveBoundaryName && (
-            <p className="mt-0.5 text-sm font-medium text-[var(--color-gray-700)]">
-              Boundary: {effectiveBoundaryName}
-            </p>
-          )}
-          <p className="mt-0.5 font-mono text-sm text-[var(--color-gray-600)]">
-            {register.registerKey}
+      <div>
+        <Link
+          href={`/dashboard/evidence-engine/registers${buildBaseQuery(effectiveBoundaryId, auditorOnly ? { auditor: "1" } : {})}`}
+          className="text-sm text-[var(--color-gray-600)] hover:underline"
+        >
+          ← Registers
+        </Link>
+        <h2 className="mt-1 text-xl font-semibold text-[var(--color-navy-primary)]">
+          {register.name}
+        </h2>
+        {effectiveBoundaryName && (
+          <p className="mt-0.5 text-sm font-medium text-[var(--color-gray-700)]">
+            Boundary: {effectiveBoundaryName}
           </p>
-          {register.description && (
-            <p className="mt-2 text-sm text-[var(--color-gray-600)]">{register.description}</p>
-          )}
-          <div className="mt-2 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-800">
-            <strong>How it works:</strong> New entries start as <span className="rounded bg-gray-200 px-1 font-medium text-gray-700">Draft</span>.
-            An admin reviews and approves them, changing status to <span className="rounded bg-green-200 px-1 font-medium text-green-700">Final</span>.
-            Only finalized entries count toward compliance and are visible in auditor view.
-          </div>
-          <div className="mt-3 flex flex-wrap items-center gap-4">
-            <AuditorToggle registerKey={registerKey} auditorOnly={auditorOnly} />
-            {canCreate && <CreateEntryLink registerKey={registerKey} boundaryId={effectiveBoundaryId} />}
-            {canCreate && (() => {
-              // Offer the "no events this period" attestation only on
-              // event-driven registers (cadence_days=0), excluding the
-              // OS-collector meta-log where empty means a real gap.
-              const schemaId = schemaIdForRegisterKey(registerKey);
-              if (ATTESTATION_EXCLUDED.has(schemaId)) return null;
-              const cadence = getCadenceRuleByRegisterId(schemaId);
-              if (!cadence || cadence.cadence_days !== 0) return null;
-              return (
-                <AttestNoEventsButton
-                  registerKey={registerKey}
-                  registerName={register.name}
-                  boundaryId={effectiveBoundaryId}
-                />
-              );
-            })()}
-            <a
-              href={`/api/governance/registers/${encodeURIComponent(registerKey)}/export`}
-              className="text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
-            >
-              Export CSV
-            </a>
-          </div>
+        )}
+        <p className="mt-0.5 font-mono text-sm text-[var(--color-gray-600)]">
+          {register.registerKey}
+        </p>
+        {register.description && (
+          <p className="mt-2 text-sm text-[var(--color-gray-600)]">{register.description}</p>
+        )}
+        <div className="mt-2 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-800">
+          <strong>How it works:</strong> New entries start as <span className="rounded bg-gray-200 px-1 font-medium text-gray-700">Draft</span>.
+          An admin reviews and approves them, changing status to <span className="rounded bg-green-200 px-1 font-medium text-green-700">Final</span>.
+          Only finalized entries count toward compliance and are visible in auditor view.
         </div>
-        <BoundarySelector boundaries={boundaries} currentBoundaryId={effectiveBoundaryId} />
+        <div className="mt-3 flex flex-wrap items-center gap-4">
+          <AuditorToggle registerKey={registerKey} auditorOnly={auditorOnly} />
+          {canCreate && <CreateEntryLink registerKey={registerKey} boundaryId={effectiveBoundaryId} />}
+          {canCreate && (() => {
+            // Offer the "no events this period" attestation only on
+            // event-driven registers (cadence_days=0), excluding the
+            // OS-collector meta-log where empty means a real gap.
+            const schemaId = schemaIdForRegisterKey(registerKey);
+            if (ATTESTATION_EXCLUDED.has(schemaId)) return null;
+            const cadence = getCadenceRuleByRegisterId(schemaId);
+            if (!cadence || cadence.cadence_days !== 0) return null;
+            return (
+              <AttestNoEventsButton
+                registerKey={registerKey}
+                registerName={register.name}
+                boundaryId={effectiveBoundaryId}
+              />
+            );
+          })()}
+          <a
+            href={`/api/governance/registers/${encodeURIComponent(registerKey)}/export`}
+            className="text-sm font-medium text-[var(--color-blue-accent)] hover:underline"
+          >
+            Export CSV
+          </a>
+        </div>
       </div>
 
       <div className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm">

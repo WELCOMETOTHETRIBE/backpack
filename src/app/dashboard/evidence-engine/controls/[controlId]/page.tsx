@@ -6,7 +6,6 @@ import { getRegisterStatsForOrgAndBoundary } from "@/lib/evidence-engine/control
 import { getResponsibilityForControl } from "@/lib/evidence-engine/responsibilities";
 import { resolveEffectiveBoundary } from "@/lib/evidence-engine/resolve-boundary";
 import { getCombinedTechnicalStatus } from "@/lib/evidence-engine/technical-runs";
-import { BoundarySelector } from "../../BoundarySelector";
 
 type PageProps = { params: Promise<{ controlId: string }>; searchParams: Promise<{ boundary?: string }> };
 
@@ -27,24 +26,13 @@ export default async function EvidenceEngineControlDetailPage({ params, searchPa
   const controlMeta = evidenceMap.controls.find((c) => c.control_id === controlId);
   if (!controlMeta) notFound();
 
-  if (boundaries.length === 0) {
-    return (
-      <div className="space-y-6">
-        <Link href="/dashboard/evidence-engine" className="text-sm text-[var(--color-gray-600)] hover:underline">← Evidence Engine</Link>
-        <h1 className="text-xl font-semibold text-[var(--color-navy-primary)]">Control {controlId}</h1>
-        <p className="text-[var(--color-gray-600)]">Select a system boundary to view evidence.</p>
-        <Link href="/dashboard/boundary" className="text-sm text-[var(--color-blue-accent)] hover:underline">Open System Boundary</Link>
-      </div>
-    );
-  }
-
   if (!effectiveBoundaryId) {
     return (
       <div className="space-y-6">
         <Link href="/dashboard/evidence-engine" className="text-sm text-[var(--color-gray-600)] hover:underline">← Evidence Engine</Link>
         <h1 className="text-xl font-semibold text-[var(--color-navy-primary)]">Control {controlId}</h1>
-        <p className="text-[var(--color-gray-600)]">Select a system boundary to view evidence.</p>
-        <BoundarySelector boundaries={boundaries} currentBoundaryId={null} />
+        <p className="text-[var(--color-gray-600)]">No system boundary is configured for this organization.</p>
+        <Link href="/dashboard/boundary" className="text-sm text-[var(--color-blue-accent)] hover:underline">Open System Boundary</Link>
       </div>
     );
   }
@@ -66,8 +54,7 @@ export default async function EvidenceEngineControlDetailPage({ params, searchPa
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
+      <div>
         <Link
           href={`/dashboard/evidence-engine${baseQuery}`}
           className="text-sm text-[var(--color-gray-600)] hover:underline"
@@ -85,8 +72,6 @@ export default async function EvidenceEngineControlDetailPage({ params, searchPa
         <p className="mt-0.5 text-sm text-[var(--color-gray-600)]">
           {controlMeta.family} · Responsibility: {responsibility?.responsibilityModel ? formatResponsibility(responsibility.responsibilityModel) : "—"}
         </p>
-        </div>
-        <BoundarySelector boundaries={boundaries} currentBoundaryId={effectiveBoundaryId} />
       </div>
 
       <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
