@@ -356,28 +356,28 @@
     {
       "templateId": "mfa_in_path",
       "kind": "implemented_attestation",
-      "title": "MFA Enforced in Our CUI Enclave Access Path",
-      "summary": "Affirm that all access to our CUI enclave (Azure Bastion + managed Windows endpoint) requires phishing-resistant MFA enforced via Entra Conditional Access.",
-      "attestationStatement": "I attest, on behalf of our organization, that as of the date below every interactive session into our CUI Vault is preceded by Entra ID multifactor authentication enforced by Conditional Access. Specifically: (1) sign-in to Azure Bastion targeting our CUI subscription requires MFA every session (no remembered-device exemption); (2) PIM-elevated identities (Owner, Contributor, Storage Blob Data Owner over CUI scopes) require MFA at activation; (3) standing service-principal credentials are scoped to non-CUI resources only — no service principal can read or write CUI without an interactive MFA session in the chain; (4) acceptable second factors are Microsoft Authenticator number-match push, Windows Hello for Business, or FIDO2 hardware keys (no SMS or voice). The MFA-in-path requirement applies equally to local administrators on the Windows endpoint, system maintenance sessions, identifier-management operations, and authenticator-management operations within our CUI boundary.",
+      "title": "MFA Enforced for Interactive User Access to Our CUI Enclave",
+      "summary": "Affirm that interactive user / administrator access to our CUI enclave goes through Azure Bastion with phishing-resistant MFA enforced via Entra Conditional Access. Maintenance access (3.7.5) is governed separately — see the POA&M for any maintenance-path gaps.",
+      "attestationStatement": "I attest, on behalf of our organization, that as of the date below every interactive user and administrator session that accesses CUI in our Vault is preceded by Entra ID multifactor authentication enforced by Conditional Access. Specifically: (1) sign-in to Azure Bastion targeting our CUI subscription requires MFA every session (no remembered-device exemption); (2) PIM-elevated identities (Owner, Contributor, Storage Blob Data Owner over CUI scopes) require MFA at activation; (3) standing service-principal credentials are scoped to non-CUI resources only — no service principal can read or write CUI without an interactive MFA session in the chain; (4) acceptable second factors are Microsoft Authenticator number-match push, Windows Hello for Business, or FIDO2 hardware keys (no SMS or voice). This attestation covers user access to CUI applications (3.5.3, 3.5.4, 3.5.5, 3.5.6); maintenance-session MFA (3.7.5) is tracked separately because direct SSH/RDP access paths used for system administration may not yet be fully gated by MFA — those gaps are documented in our POA&M with concrete remediation milestones before any CUI lands in production.",
       "conditions": [
-        "All access to our CUI enclave goes through Azure Bastion (no public RDP, no jump-host bypass)",
+        "Interactive user access to CUI applications goes through Azure Bastion (or another MFA-gated path)",
         "Conditional Access policy requires MFA on every Bastion sign-in to the CUI subscription",
         "PIM activation for any role with read/write access to CUI requires MFA at activation",
         "We use phishing-resistant factors only (Authenticator number-match, Windows Hello, or FIDO2) — SMS / voice MFA is disabled",
         "Service accounts with standing credentials cannot access CUI — they're scoped to non-CUI resources only",
-        "Maintenance sessions on the CUI VM (PowerShell remoting, RDP, console) inherit the same MFA-in-path requirement"
+        "Any direct SSH / RDP / PowerShell-remoting paths to the CUI VM that bypass Bastion are tracked in the POA&M for 3.7.5 with concrete remediation milestones (we are NOT claiming maintenance MFA via this attestation)"
       ],
       "fallbackIfConditionFails": {
-        "controlIds": ["3.5.3", "3.5.4", "3.5.5", "3.5.6", "3.7.5"],
+        "controlIds": ["3.5.3", "3.5.4", "3.5.5", "3.5.6"],
         "fallbackDisposition": "partial",
         "fallbackRegisterSchemaId": "access_authorization",
         "actionRequired": "We will document the MFA gap, scope the affected access path, and either remediate the path or maintain the Access Authorization Register with per-session MFA proof until remediation."
       },
-      "evidenceProduced": "governance_artifact_completion (ATTESTATION) on control_records for 3.5.3, 3.5.4, 3.5.5, 3.5.6, and 3.7.5; cloud validator's mfa-in-path-attested.txt requirement is satisfied for these controls.",
-      "linkedControlIds": ["3.5.3", "3.5.4", "3.5.5", "3.5.6", "3.7.5"],
+      "evidenceProduced": "governance_artifact_completion (ATTESTATION) on control_records for 3.5.3, 3.5.4, 3.5.5, 3.5.6; cloud validator's mfa-in-path-attested.txt requirement is satisfied for these controls. Note: 3.7.5 is intentionally NOT covered by this attestation — see POA&M.",
+      "linkedControlIds": ["3.5.3", "3.5.4", "3.5.5", "3.5.6"],
       "recommendedSignatoryRole": "system_owner",
       "renewalCadenceDays": 365,
-      "c3paoExaminerNote": "Examiner will ask: 'Walk me through what happens when an admin signs in to do work on the CUI VM.' Be ready to point to: (1) the Conditional Access export showing MFA required on Bastion, (2) the PIM activation policy showing MFA at elevation, (3) this attestation, (4) any sample sign-in event from the Entra audit log showing the MFA factor consumed."
+      "c3paoExaminerNote": "Examiner will ask: 'Walk me through what happens when a user opens the CUI application.' Be ready to point to: (1) the Conditional Access export showing MFA required on Bastion, (2) the PIM activation policy showing MFA at elevation, (3) this attestation, (4) any sample sign-in event from the Entra audit log showing the MFA factor consumed. For 3.7.5 (nonlocal maintenance), point to the open POA&M and the milestone status."
     },
     {
       "templateId": "mobile_blocked_at_ca",
