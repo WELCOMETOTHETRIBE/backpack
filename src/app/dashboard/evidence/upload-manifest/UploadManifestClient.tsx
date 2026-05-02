@@ -8,17 +8,41 @@ interface Boundary {
 }
 
 interface IngestHistoryRow {
+  id: string;
+  /** Pipeline that produced this upload event. Drives icon + label choices. */
+  source:
+    | "cui_evidence_manifest"
+    | "windows_server_hardening"
+    | "azure_entra"
+    | "governance_manifest"
+    | "attestation";
   run_id: string;
   computer_name: string | null;
+  /** On-VM filesystem path for OS bundles ("C:\\evidence\\..."). */
+  bundle_root: string | null;
   collected_at: string | null;
   ingested_at: string;
   expires_at: string | null;
-  links_total: number;
+  freshness: "current" | "stale" | "expired" | "unknown";
+  pass_count: number;
+  partial_count: number;
+  fail_count: number;
+  files_total: number;
   files_ok: number;
   collection_errors: number;
+  doc_count: number;
   controls_linked: number;
-  freshness: "current" | "stale" | "expired" | "unknown";
+  attestation_label: string | null;
+  attestation_control_id: string | null;
 }
+
+const SOURCE_LABELS: Record<IngestHistoryRow["source"], { short: string; long: string; cls: string }> = {
+  cui_evidence_manifest:    { short: "OS bundle",    long: "OS evidence bundle (Collect-Cui-Evidence-v2)", cls: "bg-indigo-100 text-indigo-800 border-indigo-200" },
+  windows_server_hardening: { short: "OS validator", long: "OS validator report (Test-CuiHardening)",      cls: "bg-purple-100 text-purple-800 border-purple-200" },
+  azure_entra:              { short: "Cloud",        long: "Cloud validator report (validate_azure_entra)", cls: "bg-sky-100 text-sky-800 border-sky-200" },
+  governance_manifest:      { short: "Governance",   long: "Signed governance manifest",                    cls: "bg-emerald-100 text-emerald-800 border-emerald-200" },
+  attestation:              { short: "Attestation",  long: "Signed control attestation",                    cls: "bg-amber-100 text-amber-800 border-amber-200" },
+};
 
 function formatRelativeDate(iso: string): string {
   const d = new Date(iso);
@@ -74,38 +98,35 @@ function IngestHistory({
         <ul className="mt-4 space-y-2">
           {history.map((row) => {
             const badge = historyStatusBadge(row);
-            const isOpen = open === row.run_id;
+            const sourceMeta = SOURCE_LABELS[row.source];
+            const isOpen = open === row.id;
+            const headline = headlineFor(row);
+            const subline = sublineFor(row);
             return (
               <li
-                key={row.run_id}
+                key={row.id}
                 className="rounded-2xl border border-gray-200 bg-white"
               >
                 <button
                   type="button"
-                  onClick={() => setOpen(isOpen ? null : row.run_id)}
+                  onClick={() => setOpen(isOpen ? null : row.id)}
                   className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 rounded-2xl"
                 >
-                  <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${badge.cls}`}>
+                  <span className={`inline-flex shrink-0 items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${sourceMeta.cls}`}>
+                    {sourceMeta.short}
+                  </span>
+                  <span className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${badge.cls}`}>
                     <span className={`h-1.5 w-1.5 rounded-full ${badge.dot}`} />
                     {badge.label}
                   </span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-900 truncate">
-                      {row.computer_name ?? "Unknown host"}
+                      {headline}
                       <span className="ml-2 font-mono text-[11px] text-gray-400">
-                        {row.run_id.slice(0, 8)}…
+                        {row.run_id.slice(0, 12)}{row.run_id.length > 12 ? "…" : ""}
                       </span>
                     </p>
-                    <p className="text-xs text-gray-500">
-                      {row.collected_at
-                        ? `Collected ${formatRelativeDate(row.collected_at)}`
-                        : `Ingested ${formatRelativeDate(row.ingested_at)}`}
-                      {" · "}
-                      {row.controls_linked} control{row.controls_linked === 1 ? "" : "s"} · {row.links_total} file{row.links_total === 1 ? "" : "s"}
-                      {row.collection_errors > 0 && (
-                        <span className="ml-1 text-amber-700">({row.collection_errors} error{row.collection_errors === 1 ? "" : "s"})</span>
-                      )}
-                    </p>
+                    <p className="text-xs text-gray-500 truncate">{subline}</p>
                   </div>
                   <span className="shrink-0 text-xs text-gray-400">
                     {isOpen ? "Hide" : "Details"}
@@ -113,6 +134,10 @@ function IngestHistory({
                 </button>
                 {isOpen && (
                   <dl className="border-t border-gray-100 bg-gray-50 px-4 py-3 text-xs grid grid-cols-2 gap-x-4 gap-y-1.5 rounded-b-2xl">
+                    <div className="flex justify-between col-span-2">
+                      <dt className="text-gray-500">Source</dt>
+                      <dd className="font-medium text-gray-800 text-right">{sourceMeta.long}</dd>
+                    </div>
                     <div className="flex justify-between col-span-2">
                       <dt className="text-gray-500">Run ID</dt>
                       <dd className="font-mono text-gray-700 break-all text-right">{row.run_id}</dd>
@@ -127,26 +152,76 @@ function IngestHistory({
                         {row.collected_at ? new Date(row.collected_at).toLocaleString() : "—"}
                       </dd>
                     </div>
-                    <div className="flex justify-between">
-                      <dt className="text-gray-500">Files ok</dt>
-                      <dd className="font-semibold text-emerald-700">{row.files_ok}</dd>
-                    </div>
-                    <div className="flex justify-between">
-                      <dt className="text-gray-500">Collection errors</dt>
-                      <dd className={`font-semibold ${row.collection_errors > 0 ? "text-red-600" : "text-gray-700"}`}>
-                        {row.collection_errors}
-                      </dd>
-                    </div>
-                    <div className="flex justify-between">
-                      <dt className="text-gray-500">Expires</dt>
-                      <dd className="font-medium text-gray-800">
-                        {row.expires_at ? new Date(row.expires_at).toLocaleDateString() : "—"}
-                      </dd>
-                    </div>
-                    <div className="flex justify-between">
-                      <dt className="text-gray-500">Freshness</dt>
-                      <dd className="font-medium text-gray-800 capitalize">{row.freshness}</dd>
-                    </div>
+                    {row.bundle_root && (
+                      <div className="flex justify-between col-span-2">
+                        <dt className="text-gray-500 shrink-0 mr-2">Evidence path on VM</dt>
+                        <dd className="font-mono text-[11px] text-gray-800 break-all text-right">{row.bundle_root}</dd>
+                      </div>
+                    )}
+                    {row.source === "cui_evidence_manifest" && (
+                      <>
+                        <div className="flex justify-between">
+                          <dt className="text-gray-500">Files ok</dt>
+                          <dd className="font-semibold text-emerald-700">{row.files_ok}/{row.files_total}</dd>
+                        </div>
+                        <div className="flex justify-between">
+                          <dt className="text-gray-500">Collection errors</dt>
+                          <dd className={`font-semibold ${row.collection_errors > 0 ? "text-red-600" : "text-gray-700"}`}>
+                            {row.collection_errors}
+                          </dd>
+                        </div>
+                      </>
+                    )}
+                    {(row.source === "windows_server_hardening" || row.source === "azure_entra") && (
+                      <>
+                        <div className="flex justify-between">
+                          <dt className="text-gray-500">PASS</dt>
+                          <dd className="font-semibold text-emerald-700">{row.pass_count}</dd>
+                        </div>
+                        <div className="flex justify-between">
+                          <dt className="text-gray-500">PARTIAL</dt>
+                          <dd className={`font-semibold ${row.partial_count > 0 ? "text-blue-700" : "text-gray-700"}`}>{row.partial_count}</dd>
+                        </div>
+                        <div className="flex justify-between">
+                          <dt className="text-gray-500">FAIL</dt>
+                          <dd className={`font-semibold ${row.fail_count > 0 ? "text-amber-700" : "text-gray-700"}`}>{row.fail_count}</dd>
+                        </div>
+                        <div className="flex justify-between">
+                          <dt className="text-gray-500">Controls covered</dt>
+                          <dd className="font-medium text-gray-800">{row.controls_linked}</dd>
+                        </div>
+                      </>
+                    )}
+                    {row.source === "governance_manifest" && (
+                      <div className="flex justify-between col-span-2">
+                        <dt className="text-gray-500">Documents</dt>
+                        <dd className="font-semibold text-gray-800">{row.doc_count}</dd>
+                      </div>
+                    )}
+                    {row.source === "attestation" && (
+                      <>
+                        <div className="flex justify-between col-span-2">
+                          <dt className="text-gray-500">Control</dt>
+                          <dd className="font-mono text-gray-800">{row.attestation_control_id}</dd>
+                        </div>
+                        <div className="flex justify-between col-span-2">
+                          <dt className="text-gray-500 shrink-0 mr-2">Attestation</dt>
+                          <dd className="font-medium text-gray-800 text-right">{row.attestation_label}</dd>
+                        </div>
+                      </>
+                    )}
+                    {row.expires_at && (
+                      <div className="flex justify-between">
+                        <dt className="text-gray-500">Expires</dt>
+                        <dd className="font-medium text-gray-800">{new Date(row.expires_at).toLocaleDateString()}</dd>
+                      </div>
+                    )}
+                    {row.expires_at && (
+                      <div className="flex justify-between">
+                        <dt className="text-gray-500">Freshness</dt>
+                        <dd className="font-medium text-gray-800 capitalize">{row.freshness}</dd>
+                      </div>
+                    )}
                   </dl>
                 )}
               </li>
@@ -159,11 +234,32 @@ function IngestHistory({
 }
 
 function historyStatusBadge(row: IngestHistoryRow) {
-  if (row.collection_errors > 0 && row.files_ok === 0) {
-    return { label: "Errors", cls: "bg-red-100 text-red-700 border-red-200", dot: "bg-red-500" };
+  // Validator runs: badge reflects PASS/PARTIAL/FAIL counts.
+  if (row.source === "windows_server_hardening" || row.source === "azure_entra") {
+    if (row.fail_count > 0) {
+      return { label: `${row.fail_count} fail`, cls: "bg-red-100 text-red-700 border-red-200", dot: "bg-red-500" };
+    }
+    if (row.partial_count > 0) {
+      return { label: `${row.partial_count} partial`, cls: "bg-blue-100 text-blue-700 border-blue-200", dot: "bg-blue-500" };
+    }
+    if (row.pass_count > 0) {
+      return { label: `${row.pass_count} pass`, cls: "bg-emerald-100 text-emerald-700 border-emerald-200", dot: "bg-emerald-500" };
+    }
   }
-  if (row.collection_errors > 0) {
-    return { label: "Partial", cls: "bg-amber-100 text-amber-800 border-amber-200", dot: "bg-amber-500" };
+  // OS bundle: badge reflects collection errors, then freshness.
+  if (row.source === "cui_evidence_manifest") {
+    if (row.collection_errors > 0 && row.files_ok === 0) {
+      return { label: "Errors", cls: "bg-red-100 text-red-700 border-red-200", dot: "bg-red-500" };
+    }
+    if (row.collection_errors > 0) {
+      return { label: `${row.collection_errors} err`, cls: "bg-amber-100 text-amber-800 border-amber-200", dot: "bg-amber-500" };
+    }
+  }
+  if (row.source === "attestation") {
+    return { label: "Signed", cls: "bg-amber-100 text-amber-800 border-amber-200", dot: "bg-amber-500" };
+  }
+  if (row.source === "governance_manifest") {
+    return { label: `${row.doc_count} docs`, cls: "bg-emerald-100 text-emerald-700 border-emerald-200", dot: "bg-emerald-500" };
   }
   if (row.freshness === "expired") {
     return { label: "Expired", cls: "bg-gray-100 text-gray-600 border-gray-200", dot: "bg-gray-400" };
@@ -171,7 +267,43 @@ function historyStatusBadge(row: IngestHistoryRow) {
   if (row.freshness === "stale") {
     return { label: "Stale", cls: "bg-amber-50 text-amber-700 border-amber-200", dot: "bg-amber-400" };
   }
-  return { label: "Pass", cls: "bg-emerald-100 text-emerald-700 border-emerald-200", dot: "bg-emerald-500" };
+  return { label: "Ok", cls: "bg-emerald-100 text-emerald-700 border-emerald-200", dot: "bg-emerald-500" };
+}
+
+function headlineFor(row: IngestHistoryRow): string {
+  switch (row.source) {
+    case "cui_evidence_manifest":
+      return row.computer_name ?? "OS bundle";
+    case "windows_server_hardening":
+      return row.computer_name ?? "Windows hardening checks";
+    case "azure_entra":
+      return row.computer_name ?? "Azure / Entra checks";
+    case "governance_manifest":
+      return "Signed governance bundle";
+    case "attestation":
+      return row.attestation_label ?? "Signed attestation";
+    default:
+      return row.computer_name ?? "Upload";
+  }
+}
+
+function sublineFor(row: IngestHistoryRow): string {
+  const when = row.collected_at
+    ? `Collected ${formatRelativeDate(row.collected_at)}`
+    : `Ingested ${formatRelativeDate(row.ingested_at)}`;
+  switch (row.source) {
+    case "cui_evidence_manifest":
+      return `${when} · ${row.files_total} file${row.files_total === 1 ? "" : "s"}${row.collection_errors > 0 ? ` · ${row.collection_errors} err` : ""}${row.bundle_root ? " · evidence on VM" : ""}`;
+    case "windows_server_hardening":
+    case "azure_entra":
+      return `${when} · ${row.controls_linked} control${row.controls_linked === 1 ? "" : "s"} · ${row.pass_count}P / ${row.partial_count}∼ / ${row.fail_count}F`;
+    case "governance_manifest":
+      return `${when} · ${row.doc_count} document${row.doc_count === 1 ? "" : "s"}`;
+    case "attestation":
+      return `${when} · control ${row.attestation_control_id ?? "—"}`;
+    default:
+      return when;
+  }
 }
 
 interface ManifestPreview {
@@ -200,6 +332,8 @@ interface IngestResult {
   source: "os" | "cloud";
   run_id: string;
   computer_name: string;
+  /** Where the underlying evidence files live on the VM (OS bundle only). */
+  bundle_root?: string | null;
   collected_at: string;
   links_created: number;
   linked_controls: number;
@@ -596,6 +730,14 @@ export function UploadManifestClient({ boundaries }: { boundaries: Boundary[] })
               <span className="text-gray-500">Bundle validation</span>
               <span className="font-medium">
                 {result.bundle_validation.files_ok}/{result.bundle_validation.files_total} files OK
+              </span>
+            </div>
+          )}
+          {result.bundle_root && (
+            <div className="flex justify-between gap-3">
+              <span className="text-gray-500 shrink-0">Evidence path on VM</span>
+              <span className="font-mono text-[11px] text-gray-800 break-all text-right">
+                {result.bundle_root}
               </span>
             </div>
           )}

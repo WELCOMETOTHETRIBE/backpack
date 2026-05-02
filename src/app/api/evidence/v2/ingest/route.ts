@@ -36,6 +36,12 @@ interface V2Manifest {
   run_id: string;
   collected_at: string;
   computer_name: string;
+  /** On-VM filesystem path where the bundle lives (e.g.
+   *  "C:\\evidence\\CUI-Evidence-20260501-152509"). Captured so the codex
+   *  can show the assessor where the underlying evidence files are
+   *  retained -- the codex itself only stores the manifest + hashes
+   *  (CUI-safe; control plane stays outside the boundary). */
+  bundle_root?: string;
   files: ManifestFile[];
   bundle_validation?: {
     files_ok: number;
@@ -209,6 +215,50 @@ export async function POST(req: Request) {
           tags: ["auto-discovered"],
         }).onConflictDoNothing();
       }
+    }
+
+    // ── Record the manifest itself as an evidenceRuns row ───────────────────
+    // This unifies upload history: every ingest (OS manifest, OS validator,
+    // cloud validator) lives in one table that the history endpoint queries.
+    // bundleRoot here is the on-VM filesystem path -- assessors see exactly
+    // where the underlying evidence files are retained on the customer's VM
+    // even though the codex itself only stores the manifest + hashes.
+    const manifestBoundaryId =
+      boundary_id ??
+      (
+        await db
+          .select({ id: boundaries.id })
+          .from(boundaries)
+          .where(eq(boundaries.organizationId, orgId))
+          .limit(1)
+      )[0]?.id;
+
+    if (manifestBoundaryId) {
+      const manifestFingerprint = createHash("sha256")
+        .update(`cui_evidence_manifest|${runId}|${computerName}`)
+        .digest("hex");
+      await db
+        .delete(evidenceRuns)
+        .where(
+          and(
+            eq(evidenceRuns.organizationId, orgId),
+            eq(evidenceRuns.runFingerprint, manifestFingerprint),
+          ),
+        );
+      await db.insert(evidenceRuns).values({
+        organizationId: orgId,
+        systemId: manifestBoundaryId,
+        runId,
+        collectedAt,
+        collectorName: "collect_cui_evidence_v2",
+        collectorVersion: "2.0",
+        bundleRoot: m.bundle_root ?? "",
+        manifest: m as unknown as Record<string, unknown>,
+        hashAlgorithm: "sha256",
+        source: "cui_evidence_manifest",
+        boundaryId: manifestBoundaryId,
+        runFingerprint: manifestFingerprint,
+      });
     }
 
     // ── Control-evidence mapping ─────────────────────────────────────────────
@@ -392,7 +442,7 @@ export async function POST(req: Request) {
                 collectedAt,
                 collectorName: "test_cui_hardening",
                 collectorVersion: "1.0", // bump as Test-CuiHardening evolves
-                bundleRoot: "",
+                bundleRoot: m.bundle_root ?? "",
                 manifest: vr as unknown as Record<string, unknown>,
                 hashAlgorithm: "sha256",
                 source: "windows_server_hardening",
@@ -456,6 +506,7 @@ export async function POST(req: Request) {
       orgId,
       runId,
       computerName,
+      bundleRoot: m.bundle_root ?? null,
       collectedAt: m.collected_at,
       linksCreated,
       linkedControls: linkedControls.length,
@@ -473,6 +524,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       run_id: runId,
       computer_name: computerName,
+      bundle_root: m.bundle_root ?? null,
       collected_at: m.collected_at,
       links_created: linksCreated,
       linked_controls: linkedControls.length,

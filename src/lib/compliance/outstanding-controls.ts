@@ -210,3 +210,27 @@ export function getOutstandingControlsSorted(): OutstandingControlEntry[] {
     return a.effortMinutes - b.effortMinutes;
   });
 }
+
+/**
+ * Controls that need a signed attestation before they can be considered
+ * adjudicated. Bucket C (signed-attestation-required) is the canonical case:
+ * 3.3.5, 3.8.1, 3.8.3, 3.13.3 -- the technical config exists but a C3PAO
+ * needs the signed declaration that the architectural property holds. Bucket
+ * E (N/A attestations) is also gated -- without the signed N/A attestation,
+ * the assessor has no defensible justification for excluding the control.
+ *
+ * Used by calculateControlStatus to hold these as in_progress until the
+ * customer signs. Without this gate, the governance manifest's policy-doc
+ * fallback was prematurely flipping bucket C controls to "implemented" the
+ * moment the signed bundle landed -- contradicting the assessor's actual
+ * requirement that the customer themselves attest to the condition.
+ */
+const ATTESTATION_GATED_CONTROL_IDS = new Set<string>(
+  raw.outstanding_controls
+    .filter((c) => (c.bucket === "C" || c.bucket === "E") && Boolean(c.attestationTemplateId))
+    .map((c) => c.controlId),
+);
+
+export function requiresAttestationGate(controlId: string): boolean {
+  return ATTESTATION_GATED_CONTROL_IDS.has(controlId);
+}

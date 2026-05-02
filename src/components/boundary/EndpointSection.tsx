@@ -1,20 +1,34 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { Server, Pencil, Save, X } from "lucide-react";
+import Link from "next/link";
+import { Server, Upload, CheckCircle2 } from "lucide-react";
 
 /**
- * EndpointSection — inline single-VM management.
+ * EndpointSection -- single-VM status, sourced from ingested evidence.
  *
- * Every CUI Vault customer runs ONE Win 2025 VM. This component shows that
- * one endpoint and lets the customer set/edit hostname + role + baseline
- * profile assignment without leaving the page. No add-multiple, no delete —
- * the architecture says one VM, so the surface is one VM.
+ * The CUI Vault architecture is one Win 2025 Datacenter VM per customer, and
+ * the codex already learns the hostname (and on-VM bundle path) from
+ * meta/manifest.json on every OS evidence ingest. Asking the user to type
+ * the hostname was redundant -- worse, it diverged when the user typed a
+ * different name from what the VM actually reports. Now the hostname comes
+ * from `evidenceRuns.manifest.computer_name` and the bundle path comes from
+ * `evidenceRuns.bundleRoot`. No user input.
  *
- * Uses existing API routes (/api/os-baselines/* — kept server-side) so the
- * shape of data didn't have to change for this UX consolidation.
+ * If no OS evidence has been ingested yet, we show a CTA to upload a
+ * manifest. Once a manifest lands, the v2/ingest route auto-creates the
+ * `os_asset` row + auto-fills the EndpointSection from the manifest.
  */
+
+type HistoryRow = {
+  id: string;
+  source: string;
+  run_id: string;
+  computer_name: string | null;
+  bundle_root: string | null;
+  collected_at: string | null;
+  ingested_at: string;
+};
 
 type Asset = {
   id: string;
@@ -34,47 +48,60 @@ type BaselineProfile = {
   osVersion: string;
 };
 
-const DEFAULT_OS_FAMILY = "windows_server";
-const DEFAULT_OS_VERSION = "2025";
-const DEFAULT_ROLE = "member_server";
+function formatRelativeDate(iso: string): string {
+  const d = new Date(iso);
+  const diff = Date.now() - d.getTime();
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  if (days <= 0) return d.toLocaleString();
+  if (days === 1) return "yesterday";
+  if (days < 30) return `${days}d ago`;
+  return d.toLocaleDateString();
+}
 
 export function EndpointSection({ boundaryId }: { boundaryId: string }) {
-  const router = useRouter();
+  const [latestRun, setLatestRun] = useState<HistoryRow | null>(null);
   const [asset, setAsset] = useState<Asset | null>(null);
-  const [profiles, setProfiles] = useState<BaselineProfile[]>([]);
+  const [baseline, setBaseline] = useState<BaselineProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Form state
-  const [hostname, setHostname] = useState("");
-  const [role, setRole] = useState(DEFAULT_ROLE);
-  const [baselineProfileId, setBaselineProfileId] = useState("");
 
   const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const [assetsRes, profilesRes] = await Promise.all([
+      const [historyRes, assetsRes, profilesRes] = await Promise.all([
+        fetch("/api/evidence/v2/ingest/history", { cache: "no-store" }),
         fetch(`/api/os-baselines/boundaries/${boundaryId}/assets`),
         fetch(`/api/os-baselines/baseline-profiles`),
       ]);
+
+      if (historyRes.ok) {
+        const rows = (await historyRes.json()) as HistoryRow[];
+        const osManifest = rows.find((r) => r.source === "cui_evidence_manifest");
+        setLatestRun(osManifest ?? null);
+      }
       if (assetsRes.ok) {
         const list = (await assetsRes.json()) as Asset[];
-        const first = Array.isArray(list) ? list[0] : undefined;
-        if (first) {
-          setAsset(first);
-          setHostname(first.hostname);
-          setRole(first.role ?? DEFAULT_ROLE);
-          setBaselineProfileId(first.baselineProfileId ?? "");
-        } else {
-          setAsset(null);
-        }
+        setAsset(Array.isArray(list) ? list[0] ?? null : null);
       }
       if (profilesRes.ok) {
         const list = (await profilesRes.json()) as BaselineProfile[];
-        setProfiles(Array.isArray(list) ? list : []);
+        const canonical =
+          list.find(
+            (p) =>
+              p.osFamily === "windows_server" &&
+              p.osVersion === "2025" &&
+              p.role === "member_server" &&
+              p.name?.toLowerCase().includes("cui baseline"),
+          ) ??
+          list.find(
+            (p) =>
+              p.osFamily === "windows_server" &&
+              p.osVersion === "2025" &&
+              p.role === "member_server",
+          ) ??
+          null;
+        setBaseline(canonical);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load endpoint");
@@ -87,236 +114,98 @@ export function EndpointSection({ boundaryId }: { boundaryId: string }) {
     loadData();
   }, [loadData]);
 
-  const matchingProfiles = profiles.filter(
-    (p) =>
-      p.osFamily === DEFAULT_OS_FAMILY &&
-      p.osVersion === DEFAULT_OS_VERSION &&
-      p.role === role
-  );
-
-  async function handleSave(e: React.FormEvent) {
-    e.preventDefault();
-    if (!hostname.trim()) return;
-    setSaving(true);
-    setError(null);
-    try {
-      // Role + baseline are constants of the Vault architecture -- always
-      // member_server, always the canonical Win 2025 CUI baseline. We pick
-      // the profile by name pattern with version + first-match fallbacks
-      // so we don't break if the profile name evolves.
-      const canonical =
-        profiles.find(
-          (p) =>
-            p.osFamily === DEFAULT_OS_FAMILY &&
-            p.osVersion === DEFAULT_OS_VERSION &&
-            p.role === DEFAULT_ROLE &&
-            p.name?.toLowerCase().includes("cui baseline"),
-        ) ??
-        profiles.find(
-          (p) =>
-            p.osFamily === DEFAULT_OS_FAMILY &&
-            p.osVersion === DEFAULT_OS_VERSION &&
-            p.role === DEFAULT_ROLE,
-        ) ??
-        null;
-      const baselineId = canonical?.id ?? null;
-
-      if (asset) {
-        const res = await fetch(`/api/os-baselines/assets/${asset.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            hostname: hostname.trim(),
-            role: DEFAULT_ROLE,
-            baseline_profile_id: baselineId,
-          }),
-        });
-        if (!res.ok) throw new Error(await res.text());
-      } else {
-        const res = await fetch(
-          `/api/os-baselines/boundaries/${boundaryId}/assets`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              hostname: hostname.trim(),
-              os_family: DEFAULT_OS_FAMILY,
-              os_version: DEFAULT_OS_VERSION,
-              role: DEFAULT_ROLE,
-              baseline_profile_id: baselineId,
-            }),
-          },
-        );
-        if (!res.ok) throw new Error(await res.text());
-      }
-      await loadData();
-      setEditing(false);
-      router.refresh();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to save");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  function cancel() {
-    if (asset) {
-      setHostname(asset.hostname);
-      setRole(asset.role ?? DEFAULT_ROLE);
-      setBaselineProfileId(asset.baselineProfileId ?? "");
-    } else {
-      setHostname("");
-      setRole(DEFAULT_ROLE);
-      setBaselineProfileId("");
-    }
-    setEditing(false);
-    setError(null);
-  }
-
   if (loading) {
-    return (
-      <p className="text-sm text-[var(--color-gray-500)]">Loading endpoint…</p>
-    );
+    return <p className="text-sm text-[var(--color-gray-500)]">Loading endpoint…</p>;
   }
 
-  // No asset yet — show one-time setup form
-  if (!asset && !editing) {
+  if (error) {
+    return <p className="text-sm text-rose-700">{error}</p>;
+  }
+
+  // No OS evidence has been ingested yet AND no asset has been auto-created.
+  // Show the upload CTA -- the EndpointSection now self-populates from the
+  // first manifest the user uploads (no hostname typing required).
+  if (!latestRun && !asset) {
     return (
       <div className="rounded-lg border border-dashed border-[var(--color-border)] bg-[var(--color-gray-50)]/50 p-4">
         <div className="flex items-start gap-3">
           <Server className="mt-0.5 h-5 w-5 shrink-0 text-[var(--color-gray-400)]" />
           <div className="flex-1">
             <p className="text-sm font-medium text-[var(--color-gray-800)]">
-              Register your CUI Vault VM
+              No CUI Vault VM detected yet
             </p>
             <p className="mt-0.5 text-xs text-[var(--color-gray-600)]">
-              Add the hostname of your Windows Server 2025 Datacenter VM so OS
-              evidence runs can be attributed to it.
+              Run{" "}
+              <code className="rounded bg-white px-1 py-0.5 font-mono text-[10px]">
+                Collect-Cui-Evidence-v2.ps1
+              </code>{" "}
+              on your Windows Server 2025 VM and upload{" "}
+              <code className="rounded bg-white px-1 py-0.5 font-mono text-[10px]">
+                meta/manifest.json
+              </code>
+              . The codex will derive the hostname and on-VM evidence path
+              automatically -- no manual entry needed.
             </p>
-            <button
-              type="button"
-              onClick={() => setEditing(true)}
+            <Link
+              href="/dashboard/evidence/upload-manifest"
               className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-[var(--color-blue-accent)] px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90"
             >
-              Register VM
-            </button>
+              <Upload className="h-3.5 w-3.5" />
+              Upload first OS manifest
+            </Link>
           </div>
         </div>
       </div>
     );
   }
 
-  // Editing or creating. Hostname is the only thing that varies per
-  // customer -- role and baseline are constants of the CUI Vault platform.
-  // Auto-pick the canonical Win 2025 baseline if available; fall back to
-  // first match. Role is hard-coded to member_server (the only valid role
-  // for a Vault VM -- Domain Controller / Bastion / App Server are not
-  // part of the Vault architecture).
-  const canonicalProfile =
-    matchingProfiles.find((p) => p.name?.toLowerCase().includes("cui baseline")) ??
-    matchingProfiles.find((p) => p.osVersion === "2025") ??
-    matchingProfiles[0];
-  if (editing) {
-    return (
-      <form onSubmit={handleSave} className="space-y-3">
-        <div>
-          <label className="block text-xs font-medium text-[var(--color-gray-700)]">
-            VM hostname
-          </label>
-          <input
-            type="text"
-            value={hostname}
-            onChange={(e) => setHostname(e.target.value)}
-            placeholder="e.g. cui-win-pilot-0"
-            required
-            className="mt-1 w-full rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm focus:border-[var(--color-blue-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--color-blue-accent)]"
-          />
-          <p className="mt-1 text-[11px] text-[var(--color-gray-500)]">
-            The hostname your Win 2025 VM reports (run{" "}
-            <code className="rounded bg-[var(--color-gray-100)] px-1 py-0.5 font-mono text-[10px]">
-              hostname
-            </code>{" "}
-            on the VM, or check the Azure portal). Used to attribute OS
-            evidence runs to this endpoint.
-          </p>
-        </div>
-        {/* Role + baseline are constants of the Vault architecture. Surface
-            them read-only so the customer sees what's being applied, but
-            don't ask for input. */}
-        <div className="grid gap-3 sm:grid-cols-2 text-xs">
-          <div className="rounded-md border border-[var(--color-border-muted)] bg-[var(--color-gray-50)]/60 px-3 py-2">
-            <div className="font-medium text-[var(--color-gray-500)]">Role</div>
-            <div className="mt-0.5 text-sm text-[var(--color-gray-800)]">Member server</div>
-            <div className="mt-0.5 text-[10px] text-[var(--color-gray-500)]">
-              Fixed for Vault VMs (no DC, no Bastion -- Bastion is Azure-managed)
-            </div>
-          </div>
-          <div className="rounded-md border border-[var(--color-border-muted)] bg-[var(--color-gray-50)]/60 px-3 py-2">
-            <div className="font-medium text-[var(--color-gray-500)]">OS baseline</div>
-            <div className="mt-0.5 text-sm text-[var(--color-gray-800)]">
-              {canonicalProfile
-                ? `${canonicalProfile.name} (v${canonicalProfile.version})`
-                : "Windows Server 2025 CUI Baseline"}
-            </div>
-            <div className="mt-0.5 text-[10px] text-[var(--color-gray-500)]">
-              DISA STIG hardened by MacTech, validated by Test-CuiHardening v2
-            </div>
-          </div>
-        </div>
-        {error && <p className="text-xs text-rose-700">{error}</p>}
-        <div className="flex items-center gap-2">
-          <button
-            type="submit"
-            disabled={saving || !hostname.trim()}
-            className="inline-flex items-center gap-1.5 rounded-md bg-[var(--color-blue-accent)] px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90 disabled:opacity-60"
-          >
-            <Save className="h-3.5 w-3.5" />
-            {saving ? "Saving…" : asset ? "Save changes" : "Register VM"}
-          </button>
-          <button
-            type="button"
-            onClick={cancel}
-            disabled={saving}
-            className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-white px-3 py-1.5 text-xs font-medium text-[var(--color-gray-700)] hover:bg-[var(--color-gray-50)]"
-          >
-            <X className="h-3.5 w-3.5" />
-            Cancel
-          </button>
-        </div>
-      </form>
-    );
-  }
-
-  // Asset exists, read-only view
-  if (!asset) return null;
+  // Prefer the latest manifest's computer_name for the displayed hostname --
+  // it's the source of truth (asset row is just a derived stub the v2/ingest
+  // route writes for FK purposes).
+  const hostname = latestRun?.computer_name ?? asset?.hostname ?? "(unknown)";
+  const bundleRoot = latestRun?.bundle_root ?? null;
 
   return (
-    <div className="flex items-start gap-3 rounded-lg border border-[var(--color-border)] bg-white p-4">
-      <Server className="mt-0.5 h-5 w-5 shrink-0 text-[var(--color-gray-500)]" />
-      <div className="flex-1">
-        <p className="text-sm font-semibold text-[var(--color-gray-900)]">
-          {asset.hostname}
-        </p>
-        <p className="mt-0.5 text-xs text-[var(--color-gray-600)]">
-          {asset.osFamily ?? "windows_server"} {asset.osVersion ?? "2025"} ·{" "}
-          {(asset.role ?? "member_server").replace(/_/g, " ")}
-        </p>
-        {asset.baselineProfileId && (
-          <p className="mt-0.5 text-xs text-[var(--color-gray-500)]">
-            Baseline:{" "}
-            {profiles.find((p) => p.id === asset.baselineProfileId)?.name ??
-              asset.baselineProfileId}
+    <div className="space-y-2">
+      <div className="flex items-start gap-3 rounded-lg border border-[var(--color-border)] bg-white p-4">
+        <Server className="mt-0.5 h-5 w-5 shrink-0 text-[var(--color-gray-500)]" />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-semibold text-[var(--color-gray-900)]">
+              {hostname}
+            </p>
+            {latestRun && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-800">
+                <CheckCircle2 className="h-3 w-3" />
+                Auto-detected from evidence
+              </span>
+            )}
+          </div>
+          <p className="mt-0.5 text-xs text-[var(--color-gray-600)]">
+            Windows Server 2025 · member server · DISA STIG hardened by MacTech
           </p>
-        )}
+          {baseline && (
+            <p className="mt-0.5 text-xs text-[var(--color-gray-500)]">
+              Baseline: {baseline.name} (v{baseline.version})
+            </p>
+          )}
+        </div>
       </div>
-      <button
-        type="button"
-        onClick={() => setEditing(true)}
-        className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-white px-2.5 py-1 text-xs font-medium text-[var(--color-gray-700)] hover:bg-[var(--color-gray-50)]"
-      >
-        <Pencil className="h-3 w-3" />
-        Edit
-      </button>
+
+      {bundleRoot && latestRun && (
+        <div className="rounded-lg border border-[var(--color-border-muted)] bg-[var(--color-gray-50)]/60 p-3 text-xs">
+          <div className="font-medium text-[var(--color-gray-500)]">
+            Evidence files retained on VM
+          </div>
+          <code className="mt-0.5 block break-all font-mono text-[11px] text-[var(--color-gray-800)]">
+            {bundleRoot}
+          </code>
+          <div className="mt-1 text-[10px] text-[var(--color-gray-500)]">
+            From last run {formatRelativeDate(latestRun.collected_at ?? latestRun.ingested_at)}.
+            The codex stores only the manifest + hashes; raw evidence stays on the VM.
+          </div>
+        </div>
+      )}
     </div>
   );
 }

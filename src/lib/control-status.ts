@@ -38,6 +38,7 @@ import {
   PURE_GOVERNANCE_IDS,
 } from "./compliance/control-bins";
 import { needsBothPipelines } from "./adjudication-helpers";
+import { requiresAttestationGate } from "./compliance/outstanding-controls";
 import { evidenceRuns, evidenceFindings } from "@/db/schema";
 import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
 import { getCadenceRuleByRegisterId } from "@/data/cmmc/register-cadence-rules";
@@ -473,6 +474,32 @@ export async function calculateControlStatus(controlRecordId: string): Promise<I
   // Execution evidence gate applies on top of the lane checks -- if the
   // specific artifact isn't uploaded, the control cannot be implemented.
   allComplete = allComplete && executionEvidenceSatisfied;
+
+  // Attestation gate: bucket C (signed attestations like
+  // architectural-isolation, digital-only-media) and bucket E (N/A
+  // attestations like no-wireless) require the customer's signed
+  // declaration -- a C3PAO will not accept the policy-doc fallback alone.
+  // Hold these in_progress until governance_artifact_completions has a
+  // signed row for this control. Once the user clicks "Sign attestation"
+  // and we write a row with attestedBy/attestedAt, the gate clears and the
+  // next calculateControlStatus call flips them to implemented (or the
+  // disposition-override pass flips bucket E controls to N/A).
+  if (allComplete && requiresAttestationGate(controlId)) {
+    const signed = await db
+      .select({ id: governanceArtifactCompletions.id })
+      .from(governanceArtifactCompletions)
+      .where(
+        and(
+          eq(governanceArtifactCompletions.controlRecordId, controlRecordId),
+          sql`${governanceArtifactCompletions.attestedBy} IS NOT NULL`,
+          sql`${governanceArtifactCompletions.attestedAt} IS NOT NULL`,
+        ),
+      )
+      .limit(1);
+    if (signed.length === 0) {
+      allComplete = false; // hold until customer signs
+    }
+  }
 
   // Defense-in-depth gate: 11 controls live in BOTH the OS pipeline and the
   // Azure pipeline (NEEDS_BOTH_PIPELINES_CONTROL_IDS). For these, OS evidence
