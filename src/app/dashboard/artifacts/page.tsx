@@ -8,6 +8,7 @@ import {
   controlFamilies,
   governanceRegisters,
   governanceRegisterEntries,
+  governanceArtifactCompletions,
   boundaries,
 } from "@/db/schema";
 import { eq, desc, and, inArray, sql } from "drizzle-orm";
@@ -140,8 +141,67 @@ export default async function ArtifactsPage() {
     };
   });
 
-  const visibleRows = tableRows.filter((r) => !r.coveredByRegister);
-  const coveredCount = tableRows.length - visibleRows.length;
+  // ── Signed attestations as synthetic artifacts ──────────────────────────
+  // A signed attestation IS the artifact for bucket C/E controls -- the
+  // C3PAO examines the signed declaration the same way they examine an
+  // uploaded SOP. Surfacing them here gives users a single place to see
+  // every piece of evidence they've produced. Status is hard-coded to
+  // "approved" because attestedBy + attestedAt together mean the signing
+  // ceremony has happened; there's no "draft" attestation in this table.
+  const signedAttestations = await db
+    .select({
+      completion: governanceArtifactCompletions,
+      controlId: controls.controlId,
+      controlTitle: controls.title,
+      family: controlFamilies.code,
+      implementationStatus: controlRecords.implementationStatus,
+    })
+    .from(governanceArtifactCompletions)
+    .innerJoin(
+      controlRecords,
+      eq(governanceArtifactCompletions.controlRecordId, controlRecords.id),
+    )
+    .innerJoin(controls, eq(controlRecords.controlId, controls.controlId))
+    .innerJoin(controlFamilies, eq(controls.controlFamilyId, controlFamilies.id))
+    .where(
+      and(
+        eq(governanceArtifactCompletions.organizationId, orgId),
+        eq(governanceArtifactCompletions.artifactType, "ATTESTATION"),
+        sql`${governanceArtifactCompletions.attestedBy} IS NOT NULL`,
+        sql`${governanceArtifactCompletions.attestedAt} IS NOT NULL`,
+      ),
+    )
+    .orderBy(desc(governanceArtifactCompletions.attestedAt));
+
+  const attestationRows: ArtifactRow[] = signedAttestations.map((a) => ({
+    // Prefix the id so the table can route View to the control page (the
+    // artifact-detail route doesn't know about completions). The "att:"
+    // prefix is the discriminator.
+    id: `att:${a.completion.id}`,
+    label: a.completion.artifactLabel,
+    status: "approved",
+    controlId: a.controlId,
+    controlTitle: a.controlTitle ?? a.controlId,
+    family: a.family,
+    expectedClosureType: "attestation",
+    expectedEvidenceType: "ATTESTATION",
+    expectedCadence: "one-time",
+    expectedDueDate: null,
+    fileName: null,
+    fileSize: null,
+    version: null,
+    uploadedAt:
+      (a.completion.attestedAt ?? a.completion.updatedAt).toISOString(),
+    linkCounts: { control: 1, register_entry: 0, poam_entry: 0, poam_milestone: 0 },
+    coveredByRegister: null,
+    coverageReason: null,
+    controlNotApplicable: NON_APPLICABLE.has(a.implementationStatus),
+    controlImplementationStatus: a.implementationStatus,
+    isAttestation: true,
+  }));
+
+  const visibleRows = [...tableRows.filter((r) => !r.coveredByRegister), ...attestationRows];
+  const coveredCount = tableRows.length - tableRows.filter((r) => !r.coveredByRegister).length;
 
   // Counters only include rows with active obligation — both
   // register-covered rows and N/A rows are excluded from the
@@ -181,6 +241,16 @@ export default async function ArtifactsPage() {
             Registers tab
           </a>
           . Those controls are satisfied through register entries (or by an event-driven register that correctly stays empty until a triggering event).
+        </p>
+      )}
+
+      {attestationRows.length > 0 && (
+        <p className="text-xs text-[var(--color-text-muted)]">
+          {attestationRows.length} signed attestation{attestationRows.length === 1 ? "" : "s"} included — one-time architectural declarations (e.g. digital-only media, no wireless) signed via the{" "}
+          <a href="/dashboard/readiness/outstanding" className="font-medium text-indigo-600 hover:underline">
+            Outstanding Controls Wizard
+          </a>
+          . They count as approved evidence for their backing control.
         </p>
       )}
 

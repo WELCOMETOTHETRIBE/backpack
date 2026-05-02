@@ -36,6 +36,13 @@ export type ArtifactRow = {
   controlNotApplicable?: boolean;
   /** Raw implementationStatus of the backing control (for the N/A tooltip). */
   controlImplementationStatus?: string | null;
+  /**
+   * True for synthetic rows backed by a signed attestation (governance
+   * artifact completion), not a real artifact upload. The View link
+   * routes to the control detail page instead of /artifacts/[id] because
+   * there's no artifact record to view.
+   */
+  isAttestation?: boolean;
 };
 
 const FAMILIES = [
@@ -136,9 +143,26 @@ function NotApplicablePill({ reason }: { reason?: string | null }) {
 
 function ArtifactTableRow({ r }: { r: ArtifactRow }) {
   const dimmed = r.controlNotApplicable ? "opacity-70 italic" : "";
+  // Attestation rows have no artifact-detail page -- route to the
+  // control detail where the signed attestation card lives in context.
+  const viewHref = r.isAttestation
+    ? `/dashboard/controls/${encodeURIComponent(r.controlId)}`
+    : `/dashboard/artifacts/${r.id}`;
   return (
     <tr className={`border-b border-[var(--color-border)] last:border-none hover:bg-[var(--color-surface-muted)] ${dimmed}`}>
-      <td className="px-3 py-2 font-medium">{r.label}</td>
+      <td className="px-3 py-2 font-medium">
+        <span className="flex items-center gap-1.5">
+          {r.isAttestation && (
+            <span
+              className="inline-flex shrink-0 rounded-full border border-amber-300 bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800"
+              title="Signed attestation -- one-time architectural declaration"
+            >
+              SIGNED
+            </span>
+          )}
+          {r.label}
+        </span>
+      </td>
       <td className="px-3 py-2 text-[var(--color-text-muted)]">{r.controlId}</td>
       <td className="px-3 py-2 text-xs text-[var(--color-text-muted)]">{r.expectedClosureType ?? "—"}</td>
       <td className="px-3 py-2 text-xs text-[var(--color-text-muted)]">{r.expectedCadence ?? "—"}</td>
@@ -152,10 +176,12 @@ function ArtifactTableRow({ r }: { r: ArtifactRow }) {
       </td>
       <td className="px-3 py-2"><LinkBadges counts={r.linkCounts} /></td>
       <td className="px-3 py-2 text-xs text-[var(--color-text-muted)]">
-        {r.fileName ? `${r.fileName} · ${formatSize(r.fileSize)}` : "—"}
+        {r.isAttestation
+          ? <span className="italic">signed declaration</span>
+          : r.fileName ? `${r.fileName} · ${formatSize(r.fileSize)}` : "—"}
       </td>
       <td className="px-3 py-2 text-right">
-        <Link href={`/dashboard/artifacts/${r.id}`} className="text-sm font-medium text-sky-600 hover:underline">
+        <Link href={viewHref} className="text-sm font-medium text-sky-600 hover:underline">
           View
         </Link>
       </td>
