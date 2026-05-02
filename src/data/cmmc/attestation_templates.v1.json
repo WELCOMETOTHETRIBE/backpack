@@ -352,6 +352,56 @@
       "recommendedSignatoryRole": "compliance_owner",
       "renewalCadenceDays": 365,
       "c3paoExaminerNote": "Examiner will ask: 'Show me your audit log review SOP and a recent review record.' Be ready to point to: (1) MAC-SOP-403 in the governance bundle, (2) this attestation, (3) the most recent review record from the audit_log_review register, (4) CrashOnAuditFail=1 in the OS validator output."
+    },
+    {
+      "templateId": "mfa_in_path",
+      "kind": "implemented_attestation",
+      "title": "MFA Enforced in Our CUI Enclave Access Path",
+      "summary": "Affirm that all access to our CUI enclave (Azure Bastion + managed Windows endpoint) requires phishing-resistant MFA enforced via Entra Conditional Access.",
+      "attestationStatement": "I attest, on behalf of our organization, that as of the date below every interactive session into our CUI Vault is preceded by Entra ID multifactor authentication enforced by Conditional Access. Specifically: (1) sign-in to Azure Bastion targeting our CUI subscription requires MFA every session (no remembered-device exemption); (2) PIM-elevated identities (Owner, Contributor, Storage Blob Data Owner over CUI scopes) require MFA at activation; (3) standing service-principal credentials are scoped to non-CUI resources only — no service principal can read or write CUI without an interactive MFA session in the chain; (4) acceptable second factors are Microsoft Authenticator number-match push, Windows Hello for Business, or FIDO2 hardware keys (no SMS or voice). The MFA-in-path requirement applies equally to local administrators on the Windows endpoint, system maintenance sessions, identifier-management operations, and authenticator-management operations within our CUI boundary.",
+      "conditions": [
+        "All access to our CUI enclave goes through Azure Bastion (no public RDP, no jump-host bypass)",
+        "Conditional Access policy requires MFA on every Bastion sign-in to the CUI subscription",
+        "PIM activation for any role with read/write access to CUI requires MFA at activation",
+        "We use phishing-resistant factors only (Authenticator number-match, Windows Hello, or FIDO2) — SMS / voice MFA is disabled",
+        "Service accounts with standing credentials cannot access CUI — they're scoped to non-CUI resources only",
+        "Maintenance sessions on the CUI VM (PowerShell remoting, RDP, console) inherit the same MFA-in-path requirement"
+      ],
+      "fallbackIfConditionFails": {
+        "controlIds": ["3.5.3", "3.5.4", "3.5.5", "3.5.6", "3.7.5"],
+        "fallbackDisposition": "partial",
+        "fallbackRegisterSchemaId": "access_authorization",
+        "actionRequired": "We will document the MFA gap, scope the affected access path, and either remediate the path or maintain the Access Authorization Register with per-session MFA proof until remediation."
+      },
+      "evidenceProduced": "governance_artifact_completion (ATTESTATION) on control_records for 3.5.3, 3.5.4, 3.5.5, 3.5.6, and 3.7.5; cloud validator's mfa-in-path-attested.txt requirement is satisfied for these controls.",
+      "linkedControlIds": ["3.5.3", "3.5.4", "3.5.5", "3.5.6", "3.7.5"],
+      "recommendedSignatoryRole": "system_owner",
+      "renewalCadenceDays": 365,
+      "c3paoExaminerNote": "Examiner will ask: 'Walk me through what happens when an admin signs in to do work on the CUI VM.' Be ready to point to: (1) the Conditional Access export showing MFA required on Bastion, (2) the PIM activation policy showing MFA at elevation, (3) this attestation, (4) any sample sign-in event from the Entra audit log showing the MFA factor consumed."
+    },
+    {
+      "templateId": "mobile_blocked_at_ca",
+      "kind": "implemented_attestation",
+      "title": "Mobile Devices Blocked from CUI by Conditional Access",
+      "summary": "Affirm that iOS and Android devices cannot reach our CUI applications because Entra Conditional Access excludes mobile platforms (or restricts to Windows-only).",
+      "attestationStatement": "I attest, on behalf of our organization, that as of the date below no iOS or Android device can access our CUI applications because our Entra Conditional Access posture either (a) explicitly excludes the iOS and Android platforms from any CUI-scoped application, or (b) requires `compliantDevice` for CUI applications and we maintain zero iOS/Android devices enrolled as compliant in our Intune tenant. Mobile-device access controls (3.1.18) and mobile-device data protection (3.1.19) are therefore satisfied by exclusion: the access never occurs, so the cryptographic-protection and connection-restriction requirements have no in-scope target. If we ever permit mobile access in the future we will treat that as a control re-trigger requiring an Intune compliance baseline, app-protection policy, and re-adjudication of 3.1.18 and 3.1.19.",
+      "conditions": [
+        "Our Entra Conditional Access for CUI applications either (a) excludes iOS and Android platforms, or (b) requires compliantDevice and zero mobile devices are enrolled compliant",
+        "We have no Intune mobile-app management policy that exposes CUI to iOS/Android",
+        "Our acceptable-use policy prohibits mobile devices from accessing CUI",
+        "If a user attempts CUI access from an iOS or Android browser, Conditional Access denies the session"
+      ],
+      "fallbackIfConditionFails": {
+        "controlIds": ["3.1.18", "3.1.19"],
+        "fallbackDisposition": "partial",
+        "fallbackRegisterSchemaId": "access_authorization",
+        "actionRequired": "We will activate an Intune compliance + app-protection baseline for mobile, document the cryptographic protection in transit and at rest on mobile, and re-adjudicate 3.1.18 and 3.1.19 with the operational evidence."
+      },
+      "evidenceProduced": "governance_artifact_completion (ATTESTATION) on control_records for 3.1.18 and 3.1.19; cloud validator's mobile-blocked attestation requirement is satisfied for these controls.",
+      "linkedControlIds": ["3.1.18", "3.1.19"],
+      "recommendedSignatoryRole": "system_owner",
+      "renewalCadenceDays": 365,
+      "c3paoExaminerNote": "Examiner will ask: 'What happens if I open my phone right now and try to reach your CUI application?' Be ready to point to: (1) the Conditional Access export showing platform exclusion or compliantDevice requirement, (2) the Intune compliant-devices list (empty for mobile), (3) this attestation, (4) the AUP section prohibiting mobile CUI access."
     }
   ]
 }

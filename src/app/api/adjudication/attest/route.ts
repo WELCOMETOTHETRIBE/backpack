@@ -111,37 +111,22 @@ export async function POST(req: Request) {
       );
     }
 
-    // Resolve or lazy-create the control_record for this org+control.
-    let [record] = await db
-      .select()
-      .from(controlRecords)
-      .where(
-        and(
-          eq(controlRecords.organizationId, orgId),
-          eq(controlRecords.controlId, controlId)
-        )
-      )
-      .limit(1);
-
-    if (!record) {
-      [record] = await db
-        .insert(controlRecords)
-        .values({
-          organizationId: orgId,
-          controlId,
-        })
-        .returning();
-    }
-
-    // Compute SHA-256 of the canonical attestation statement so the signature
-    // is bound to the exact legal text the user saw.
+    // Compute SHA-256 of the canonical attestation. The hash binds the
+    // signature to: the template version, the verbatim statement, the
+    // conditions accepted, the FULL linked-control set, the signatory,
+    // and the date. Using the full linkedControlIds set (not just the
+    // single requested controlId) means the same signature legally
+    // covers every control the template applies to -- a customer signing
+    // "MFA in path" once attests to 3.5.3 + 3.5.4 + 3.5.5 + 3.5.6 + 3.7.5
+    // simultaneously, which mirrors how a C3PAO reads the declaration.
+    const linkedIds = [...template.linkedControlIds].sort();
     const dataHash = createHash("sha256")
       .update(
         [
           template.templateId,
           template.attestationStatement,
           template.conditions.join("|"),
-          controlId,
+          linkedIds.join(","),
           signatoryName,
           signatoryTitle,
           new Date().toISOString().slice(0, 10),
@@ -149,53 +134,6 @@ export async function POST(req: Request) {
       )
       .digest("hex");
 
-    // 1) Write governance_artifact_completion (Lane 4 evidence).
-    const [completion] = await db
-      .insert(governanceArtifactCompletions)
-      .values({
-        organizationId: orgId,
-        controlRecordId: record.id,
-        artifactLabel: templateId,
-        artifactType: "ATTESTATION",
-        valueText: template.attestationStatement,
-        attestedBy: user.id!,
-        attestedAt: new Date(),
-      })
-      .onConflictDoUpdate({
-        target: [governanceArtifactCompletions.controlRecordId, governanceArtifactCompletions.artifactLabel],
-        set: {
-          valueText: template.attestationStatement,
-          attestedBy: user.id!,
-          attestedAt: new Date(),
-          updatedAt: new Date(),
-        },
-      })
-      .returning();
-
-    // 2) Write the structured attestations row (separate from artifact completion;
-    //    binds the signature to the data hash).
-    const [attestation] = await db
-      .insert(attestations)
-      .values({
-        organizationId: orgId,
-        attestationType: "control_attestation" as const,
-        resourceType: "control_record",
-        resourceId: record.id,
-        signatoryId: user.id!,
-        dataHash,
-        comment:
-          (typeof comment === "string" && comment.length > 0
-            ? comment + "\n\n"
-            : "") +
-          `Signed by ${signatoryName} (${signatoryTitle}) using template ${templateId} (kind=${template.kind}).`,
-      })
-      .returning();
-
-    // 3) Update control_records implementationStatus to the snapshot disposition.
-    //    The template's `kind` and `fallbackIfConditionFails` define this:
-    //      - na_attestation              → not_applicable
-    //      - customer_attested_inherited → inherited
-    //      - implemented_attestation     → implemented
     let newStatus: "implemented" | "inherited" | "not_applicable";
     let inheritedFrom: string | null = null;
     if (template.kind === "na_attestation") {
@@ -207,20 +145,108 @@ export async function POST(req: Request) {
       newStatus = "implemented";
     }
 
-    await db
-      .update(controlRecords)
-      .set({
-        implementationStatus: newStatus,
-        ...(inheritedFrom ? { inheritedFrom } : {}),
-        lastValidationDate: new Date(),
-        updatedAt: new Date(),
-      })
-      .where(
-        and(
-          eq(controlRecords.id, record.id),
-          eq(controlRecords.organizationId, orgId)
-        )
-      );
+    // Fan out the signature across every control the template legally
+    // covers. Each gets its own governance_artifact_completion (so the
+    // attestation lane is satisfied per-control by hasOperationalEvidence)
+    // plus its own attestations row (so the per-control receipt has a
+    // navigable record). All share the same dataHash -- one signature,
+    // many adjudications.
+    const now = new Date();
+    let primaryRecordId: string | null = null;
+    let primaryCompletionId: string | null = null;
+    let primaryAttestationId: string | null = null;
+    for (const cid of linkedIds) {
+      let [rec] = await db
+        .select()
+        .from(controlRecords)
+        .where(and(eq(controlRecords.organizationId, orgId), eq(controlRecords.controlId, cid)))
+        .limit(1);
+      if (!rec) {
+        [rec] = await db
+          .insert(controlRecords)
+          .values({ organizationId: orgId, controlId: cid })
+          .returning();
+      }
+      if (!rec) continue;
+
+      const [completion] = await db
+        .insert(governanceArtifactCompletions)
+        .values({
+          organizationId: orgId,
+          controlRecordId: rec.id,
+          artifactLabel: templateId,
+          artifactType: "ATTESTATION",
+          valueText: template.attestationStatement,
+          attestedBy: user.id!,
+          attestedAt: now,
+        })
+        .onConflictDoUpdate({
+          target: [governanceArtifactCompletions.controlRecordId, governanceArtifactCompletions.artifactLabel],
+          set: {
+            valueText: template.attestationStatement,
+            attestedBy: user.id!,
+            attestedAt: now,
+            updatedAt: now,
+          },
+        })
+        .returning();
+
+      const [att] = await db
+        .insert(attestations)
+        .values({
+          organizationId: orgId,
+          attestationType: "control_attestation" as const,
+          resourceType: "control_record",
+          resourceId: rec.id,
+          signatoryId: user.id!,
+          attestedAt: now,
+          dataHash,
+          comment:
+            (typeof comment === "string" && comment.length > 0
+              ? comment + "\n\n"
+              : "") +
+            `Signed by ${signatoryName} (${signatoryTitle}) using template ${templateId} (kind=${template.kind}). Covers controls: ${linkedIds.join(", ")}.`,
+        })
+        .returning();
+
+      await db
+        .update(controlRecords)
+        .set({
+          implementationStatus: newStatus,
+          ...(inheritedFrom ? { inheritedFrom } : {}),
+          lastValidationDate: now,
+          updatedAt: now,
+        })
+        .where(
+          and(
+            eq(controlRecords.id, rec.id),
+            eq(controlRecords.organizationId, orgId)
+          )
+        );
+
+      // Track the requested controlId's record for the response payload --
+      // the wizard expects that one back to update its UI.
+      if (cid === controlId) {
+        primaryRecordId = rec.id;
+        primaryCompletionId = completion?.id ?? null;
+        primaryAttestationId = att?.id ?? null;
+      }
+    }
+
+    // The values the response/audit log reference. Fall back to the first
+    // linked control if the requested controlId somehow wasn't in the
+    // linked set (validated above, but defensive).
+    if (!primaryRecordId) {
+      const [r] = await db
+        .select({ id: controlRecords.id })
+        .from(controlRecords)
+        .where(and(eq(controlRecords.organizationId, orgId), eq(controlRecords.controlId, linkedIds[0])))
+        .limit(1);
+      primaryRecordId = r?.id ?? null;
+    }
+    const record = { id: primaryRecordId } as { id: string };
+    const completion = primaryCompletionId ? { id: primaryCompletionId } : undefined;
+    const attestation = primaryAttestationId ? { id: primaryAttestationId } : undefined;
 
     // 4) Audit log.
     await writeAuditLog({
@@ -253,7 +279,9 @@ export async function POST(req: Request) {
     revalidatePath("/dashboard/readiness");
     revalidatePath("/dashboard/readiness/outstanding");
     revalidatePath("/dashboard/controls");
-    revalidatePath(`/dashboard/controls/${controlId}`);
+    for (const cid of linkedIds) {
+      revalidatePath(`/dashboard/controls/${cid}`);
+    }
 
     return NextResponse.json({
       ok: true,
