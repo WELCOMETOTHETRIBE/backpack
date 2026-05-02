@@ -148,13 +148,24 @@ export function AttestationModal({
             </div>
           ) : (
             <form id="attestation-form" onSubmit={handleSubmit} className="space-y-5">
-              {/* The statement */}
+              {/* The statement. The canonical text refers to "the date below"
+                  — surface today's date so the assertion is truthful at the
+                  moment of signing. The same date is bound into the receipt
+                  hash server-side. */}
               <section className="rounded-lg border border-slate-200 bg-slate-50 p-4">
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Attestation Statement (verbatim)
                 </h3>
                 <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-slate-800">
                   {template.attestationStatement}
+                </p>
+                <p className="mt-3 text-sm text-slate-700">
+                  <span className="font-semibold text-slate-900">Date:</span>{" "}
+                  {new Date().toLocaleDateString(undefined, {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
                 </p>
               </section>
 

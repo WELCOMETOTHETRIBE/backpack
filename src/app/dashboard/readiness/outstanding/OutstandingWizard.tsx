@@ -18,25 +18,7 @@ import type {
 } from "@/lib/compliance/outstanding-controls";
 import type { AttestationTemplate } from "@/lib/compliance/attestation-templates";
 import { AttestationModal } from "@/components/adjudication/AttestationModal";
-import {
-  CONTROL_FAMILIES,
-  getControlFamilyPrefix,
-} from "@/components/governance-wizard/constants";
-
-// Map control prefix → family code so the "View control" deep-link can route
-// to /dashboard/controls?family=XX&control=YYY (the SCTM detail route). The
-// /dashboard/controls/[id] route expects a UUID, not a NIST id, so linking
-// directly there 404s — that was the broken-link bug from feedback.
-const FAMILY_CODE_BY_PREFIX: Record<string, string> = Object.fromEntries(
-  CONTROL_FAMILIES.map((f) => [f.controlPrefix, f.code])
-);
-
-function controlDetailHref(controlId: string): string {
-  const code = FAMILY_CODE_BY_PREFIX[getControlFamilyPrefix(controlId)];
-  return code
-    ? `/dashboard/controls?family=${code}&control=${controlId}`
-    : `/dashboard/controls?control=${controlId}`;
-}
+import { controlDetailHref } from "@/lib/compliance/control-detail-href";
 
 export type WizardLiveStatus = "closed" | "in_progress" | "not_started";
 
@@ -373,9 +355,13 @@ function CloseControlCard({
       </button>
     );
   } else if (card.bucket === "B" && card.registerSchemaId) {
+    // Deep-link straight to the register's own page rather than the
+    // /dashboard/registers index — the index ignored ?schema=… and dumped
+    // the user back at the full list, which they had to scan to find the
+    // right register.
     actionEl = (
       <Link
-        href={`/dashboard/registers?schema=${card.registerSchemaId}`}
+        href={`/dashboard/evidence-engine/registers/${card.registerSchemaId}`}
         className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
       >
         Open register

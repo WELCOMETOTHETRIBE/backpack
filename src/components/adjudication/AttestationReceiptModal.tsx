@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { X, FileSignature, Hash, Calendar, User, Shield, Loader2, ExternalLink } from "lucide-react";
 import Link from "next/link";
+import { controlDetailHref } from "@/lib/compliance/control-detail-href";
 
 /**
  * AttestationReceiptModal -- read-only inspection of a signed attestation.
@@ -245,7 +246,7 @@ export function AttestationReceiptModal({
         <footer className="flex items-center justify-between gap-3 border-t border-slate-200 px-6 py-3">
           {receipt && (
             <Link
-              href={`/dashboard/controls/${encodeURIComponent(receipt.controlId)}`}
+              href={controlDetailHref(receipt.controlId)}
               className="inline-flex items-center gap-1 text-xs font-medium text-sky-600 hover:underline"
             >
               View control {receipt.controlId}
