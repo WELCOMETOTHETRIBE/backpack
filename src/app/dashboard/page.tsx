@@ -16,7 +16,6 @@ import { DashboardSetupWidget, VaultSetupCTA } from "./DashboardSetupWidget";
 import { PathTo110Widget } from "./PathTo110Widget";
 import {
   controlRecords,
-  poamItems,
   poamEntries,
   poamEntryMilestones,
   evidenceMetadata,
@@ -299,12 +298,12 @@ export default async function DashboardPage() {
   const sprsPointsLost = SPRS_MAX - sprsScore;
 
   // ── POA&M ──
-  const openPoam = await db
-    .select({ status: poamItems.status })
-    .from(poamItems)
-    .where(eq(poamItems.organizationId, orgId));
-  const openPoamCount = openPoam.filter((p) => p.status !== "Closed").length;
-
+  // Source of truth is the new poamEntries table (UI + auto-generation
+  // both write here). The legacy poam_items table is no longer
+  // populated -- it was the v1 model, replaced by poam_entries +
+  // poam_entry_milestones. Reading openPoamCount from the legacy table
+  // showed 0 on the dashboard tile even when the user could see 7
+  // entries in /dashboard/poam. Source of truth aligned now.
   const openPoamList = await db
     .select({ id: poamEntries.id })
     .from(poamEntries)
@@ -318,8 +317,8 @@ export default async function DashboardPage() {
       .limit(1);
     if (ms) poamWithMilestones++;
   }
-  const newModelOpenCount = openPoamList.length;
-  const poamMissingMilestones = newModelOpenCount - poamWithMilestones;
+  const openPoamCount = openPoamList.length;
+  const poamMissingMilestones = openPoamCount - poamWithMilestones;
 
   // ── Evidence expiry ──
   const in30Days = new Date();
@@ -452,7 +451,7 @@ export default async function DashboardPage() {
   //   Training register current:      10 pts  (NEW)
   const sspHasContent = authoredSections >= 3;
   const controlsAt80pct = implementedPct >= 80;
-  const poamHasMilestones = newModelOpenCount === 0 || poamMissingMilestones === 0;
+  const poamHasMilestones = openPoamCount === 0 || poamMissingMilestones === 0;
   const noExpiredEvidence = totalExpiring === 0;
 
   const readinessScore =
