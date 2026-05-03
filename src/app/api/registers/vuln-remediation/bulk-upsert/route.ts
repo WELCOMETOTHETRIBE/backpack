@@ -157,25 +157,51 @@ export async function POST(req: Request) {
 
   // Pull existing entries for this register so we can dedupe by
   // (machine_id, cve_id) instead of inserting duplicates per cadence run.
+  // We also carry the previous entryData so the upsert path can detect
+  // regressions (resolved -> open flips) and preserve the
+  // first_detected_utc the original detection captured.
   const existing = await db
-    .select({ id: governanceRegisterEntries.id, entryData: governanceRegisterEntries.entryData })
+    .select({
+      id: governanceRegisterEntries.id,
+      entryData: governanceRegisterEntries.entryData,
+      status: governanceRegisterEntries.status,
+    })
     .from(governanceRegisterEntries)
     .where(eq(governanceRegisterEntries.registerId, register.id));
-  const byKey = new Map<string, string>();
+  type PriorRow = { id: string; data: Record<string, unknown>; status: string };
+  const byKey = new Map<string, PriorRow>();
   for (const e of existing) {
     const d = (e.entryData ?? {}) as Record<string, unknown>;
     const key = `${d.machine_id ?? ""}|${d.cve_id ?? ""}`;
-    if (key !== "|") byKey.set(key, e.id);
+    if (key !== "|") byKey.set(key, { id: e.id, data: d, status: e.status });
   }
 
   const now = new Date();
   let inserted = 0;
   let updated = 0;
+  let regressed = 0;
   for (const f of body.findings) {
     if (!f.cve_id) continue;
     const key = `${body.machine_id}|${f.cve_id}`;
     const isResolved = f.remediation_status === "resolved" || Boolean(f.fixed_utc);
     const status: "draft" | "final" = isResolved ? "final" : "draft";
+
+    const prior = byKey.get(key);
+    const priorData = prior?.data ?? {};
+    // Regression: prior was final (resolved), new payload is open. EnclaveWatch's
+    // VulnFindingTracker emits this when the same (machine_id, cve_id) returns;
+    // we record it independently here so the codex carries an auditable signal
+    // even if the EnclaveWatch trace is lost.
+    const isRegression = prior?.status === "final" && status === "draft";
+    const priorRegressionCount = Number(priorData.regression_count ?? 0);
+
+    // Preserve the original first_detected_utc on update so re-uploads don't
+    // overwrite the historical timestamp with the current scan's collected_at.
+    const preservedFirstDetected =
+      typeof priorData.first_detected_utc === "string"
+        ? priorData.first_detected_utc
+        : f.first_detected_utc ?? body.collected_at;
+
     const entryData: Record<string, unknown> = {
       source: body.source,
       machine_id: body.machine_id,
@@ -184,17 +210,20 @@ export async function POST(req: Request) {
       severity: f.severity ?? "unknown",
       description: f.description ?? null,
       affected_component: f.affected_component ?? null,
-      first_detected_utc: f.first_detected_utc ?? body.collected_at,
+      first_detected_utc: f.first_detected_utc ?? preservedFirstDetected,
       fixed_utc: f.fixed_utc ?? null,
       remediation_status: f.remediation_status ?? (isResolved ? "resolved" : "open"),
       remediation_action: f.remediation_action ?? null,
       responsible_role: f.responsible_role ?? null,
       target_resolution_date: f.target_resolution_date ?? null,
       last_seen_utc: body.collected_at,
+      // Regression bookkeeping. regressed_at is the most recent flip time;
+      // regression_count is the running tally across the entry's lifetime.
+      regression_count: isRegression ? priorRegressionCount + 1 : priorRegressionCount,
+      regressed_at: isRegression ? now.toISOString() : (priorData.regressed_at ?? null),
     };
 
-    const existingId = byKey.get(key);
-    if (existingId) {
+    if (prior) {
       await db
         .update(governanceRegisterEntries)
         .set({
@@ -203,8 +232,9 @@ export async function POST(req: Request) {
           finalizedAt: status === "final" ? now : null,
           updatedAt: now,
         })
-        .where(eq(governanceRegisterEntries.id, existingId));
+        .where(eq(governanceRegisterEntries.id, prior.id));
       updated++;
+      if (isRegression) regressed++;
     } else {
       await db.insert(governanceRegisterEntries).values({
         registerId: register.id,
@@ -288,6 +318,7 @@ export async function POST(req: Request) {
       findings: body.findings.length,
       inserted,
       updated,
+      regressed,
       recomputed,
     }),
   );
@@ -297,6 +328,7 @@ export async function POST(req: Request) {
     register_id: register.id,
     inserted,
     updated,
+    regressed,
     total_findings: body.findings.length,
     recomputed_controls: recomputed,
   });

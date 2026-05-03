@@ -423,6 +423,14 @@ export const organizations = pgTable("organizations", {
    * server-side -- EnclaveWatch never has to know the orgId.
    */
   enclavewatchApiToken: text("enclavewatch_api_token").unique(),
+  /**
+   * Optional base URL for the EnclaveWatch in-vault UI (e.g.
+   * "https://VAULT-001:9443"). When set, vuln_remediation register
+   * entries render a per-machine "View on EnclaveWatch" deep-link to
+   * <base_url>/Vulnerabilities. NULL when the vault is network-isolated
+   * from auditor workstations or no UI is published.
+   */
+  enclavewatchBaseUrl: text("enclavewatch_base_url"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 

@@ -6,6 +6,7 @@ import { getRegisterStatsForOrgAndBoundary } from "@/lib/evidence-engine/control
 import { getResponsibilityForControl } from "@/lib/evidence-engine/responsibilities";
 import { resolveEffectiveBoundary } from "@/lib/evidence-engine/resolve-boundary";
 import { getCombinedTechnicalStatus } from "@/lib/evidence-engine/technical-runs";
+import { getVulnStatsForOrg, ttrBreachLevel, type VulnStats } from "@/lib/sctm/vuln-stats";
 
 type PageProps = { params: Promise<{ controlId: string }>; searchParams: Promise<{ boundary?: string }> };
 
@@ -37,9 +38,11 @@ export default async function EvidenceEngineControlDetailPage({ params, searchPa
     );
   }
 
-  const [responsibility, statsByRegister] = await Promise.all([
+  const isVulnControl = controlId === "3.11.2" || controlId === "3.11.3";
+  const [responsibility, statsByRegister, vulnStats] = await Promise.all([
     getResponsibilityForControl(orgId, controlId, effectiveBoundaryId),
     getRegisterStatsForOrgAndBoundary(orgId, effectiveBoundaryId),
+    isVulnControl ? getVulnStatsForOrg(orgId) : Promise.resolve(null),
   ]);
   const technicalStatus = await getCombinedTechnicalStatus(
     effectiveBoundaryId,
@@ -159,6 +162,9 @@ export default async function EvidenceEngineControlDetailPage({ params, searchPa
         )}
       </section>
 
+      {controlId === "3.11.2" && vulnStats && <ScanCadenceFreshness stats={vulnStats} />}
+      {controlId === "3.11.3" && vulnStats && <TimeToRemediate stats={vulnStats} />}
+
       <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
         <h2 className="text-sm font-semibold text-[var(--color-gray-700)]">Mapped registers & evidence</h2>
         {registers.length === 0 ? (
@@ -236,4 +242,126 @@ function formatResponsibility(model: string): string {
     shared: "Shared",
   };
   return labels[model] ?? model;
+}
+
+function ScanCadenceFreshness({ stats }: { stats: VulnStats }) {
+  const a = stats.scanAttestation;
+  const tone =
+    a.status === "current"
+      ? { wrap: "border-green-200 bg-green-50", pill: "bg-green-100 text-green-800", icon: "✓", title: "Scan cadence current" }
+      : a.status === "stale"
+        ? { wrap: "border-amber-200 bg-amber-50", pill: "bg-amber-100 text-amber-800", icon: "⚠", title: "Scan cadence stale" }
+        : { wrap: "border-red-200 bg-red-50", pill: "bg-red-100 text-red-800", icon: "✕", title: "Scan attestation missing" };
+  return (
+    <section className={`rounded-[var(--radius-lg)] border ${tone.wrap} p-4`}>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-semibold text-[var(--color-gray-700)]">
+            MDVM scan cadence
+          </h2>
+          <p className="mt-1 text-xs text-[var(--color-gray-600)]">
+            EnclaveWatch writes a <code className="rounded bg-white px-1 py-0.5 font-mono text-[10px]">MDVM-SCAN-ATTESTATION-YYYYMM</code>
+            {" "}row to the vuln_remediation register monthly. After the 5th of each
+            month, the prior month's row must be present.
+          </p>
+        </div>
+        <span className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${tone.pill}`}>
+          <span aria-hidden>{tone.icon}</span> {tone.title}
+        </span>
+      </div>
+      <dl className="mt-3 grid gap-2 text-xs sm:grid-cols-3">
+        <div className="rounded border border-[var(--color-border-muted)] bg-white px-2 py-1.5">
+          <dt className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">Latest period</dt>
+          <dd className="mt-0.5 font-mono text-sm text-[var(--color-navy-primary)]">{a.latestPeriod ?? "—"}</dd>
+        </div>
+        <div className="rounded border border-[var(--color-border-muted)] bg-white px-2 py-1.5">
+          <dt className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">Expected period</dt>
+          <dd className="mt-0.5 font-mono text-sm text-[var(--color-navy-primary)]">{a.expectedPeriod}</dd>
+        </div>
+        <div className="rounded border border-[var(--color-border-muted)] bg-white px-2 py-1.5">
+          <dt className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">Total attestation rows</dt>
+          <dd className="mt-0.5 font-mono text-sm text-[var(--color-navy-primary)]">{a.totalAttestationRows}</dd>
+        </div>
+      </dl>
+    </section>
+  );
+}
+
+function TimeToRemediate({ stats }: { stats: VulnStats }) {
+  const hasAnyResolved = stats.ttrBySeverity.some((s) => s.resolvedCount > 0);
+  return (
+    <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-semibold text-[var(--color-gray-700)]">Time-to-remediate</h2>
+          <p className="mt-1 text-xs text-[var(--color-gray-600)]">
+            Distance between <code className="rounded bg-[var(--color-gray-100)] px-1 py-0.5 font-mono text-[10px]">first_detected_utc</code>
+            {" "}and <code className="rounded bg-[var(--color-gray-100)] px-1 py-0.5 font-mono text-[10px]">fixed_utc</code> per
+            EnclaveWatch lifecycle-tracked finding. Color-coded against org SLA.
+          </p>
+        </div>
+        {stats.regressionCount > 0 && (
+          <span
+            className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800"
+            title={stats.latestRegressionAt ? `Latest regression: ${stats.latestRegressionAt}` : undefined}
+          >
+            ↺ {stats.regressionCount} regression{stats.regressionCount === 1 ? "" : "s"}
+          </span>
+        )}
+      </div>
+
+      {!hasAnyResolved ? (
+        <p className="mt-3 text-xs italic text-[var(--color-gray-500)]">
+          No resolved findings yet — TTR distribution is empty. Once EnclaveWatch
+          confirms a fix on a CVE, the row will populate here.
+        </p>
+      ) : (
+        <table className="mt-3 min-w-full text-left text-xs">
+          <thead>
+            <tr className="border-b border-[var(--color-border-muted)] text-[10px] uppercase tracking-wide text-[var(--color-gray-500)]">
+              <th className="py-1 font-semibold">Severity</th>
+              <th className="py-1 font-semibold text-right">Resolved</th>
+              <th className="py-1 font-semibold text-right">Median (d)</th>
+              <th className="py-1 font-semibold text-right">P95 (d)</th>
+              <th className="py-1 font-semibold text-right">SLA target</th>
+              <th className="py-1 font-semibold text-right">Breaches</th>
+            </tr>
+          </thead>
+          <tbody>
+            {stats.ttrBySeverity.map((s) => {
+              const medBreach = s.medianDays !== null ? ttrBreachLevel(s.severity, s.medianDays) : "ok";
+              const p95Breach = s.p95Days !== null ? ttrBreachLevel(s.severity, s.p95Days) : "ok";
+              return (
+                <tr key={s.severity} className="border-b border-[var(--color-border-muted)]">
+                  <td className="py-1.5 font-medium capitalize text-[var(--color-navy-primary)]">{s.severity}</td>
+                  <td className="py-1.5 text-right tabular-nums text-[var(--color-gray-700)]">{s.resolvedCount}</td>
+                  <td className={`py-1.5 text-right tabular-nums font-medium ${ttrTone(medBreach)}`}>
+                    {s.medianDays === null ? "—" : s.medianDays.toFixed(1)}
+                  </td>
+                  <td className={`py-1.5 text-right tabular-nums font-medium ${ttrTone(p95Breach)}`}>
+                    {s.p95Days === null ? "—" : s.p95Days.toFixed(1)}
+                  </td>
+                  <td className="py-1.5 text-right tabular-nums text-[var(--color-gray-500)]">{s.slaDays}</td>
+                  <td className={`py-1.5 text-right tabular-nums font-semibold ${s.slaBreachCount > 0 ? "text-red-700" : "text-[var(--color-gray-500)]"}`}>
+                    {s.slaBreachCount}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
+
+      <p className="mt-3 text-[10px] italic text-[var(--color-gray-500)]">
+        SLA targets: critical 30d · high 90d · medium 180d · low 365d. Color
+        thresholds: green ≤75% of SLA, amber 75–100%, red &gt; SLA.
+      </p>
+    </section>
+  );
+}
+
+function ttrTone(level: "ok" | "approaching" | "breach"): string {
+  if (level === "breach") return "text-red-700";
+  if (level === "approaching") return "text-amber-700";
+  return "text-[var(--color-gray-700)]";
 }

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
-import { governanceRegisters, governanceRegisterEntries } from "@/db/schema";
+import { governanceRegisters, governanceRegisterEntries, organizations } from "@/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import {
   getSummaryTemplate,
@@ -14,6 +14,7 @@ import { ensureEvidenceEngineRegistersForOrg } from "@/lib/evidence-engine/contr
 import { getEvidenceMap } from "@/data/cmmc";
 import { getCadenceRuleByRegisterId } from "@/data/cmmc/register-cadence-rules";
 import { schemaIdForRegisterKey } from "@/data/cmmc/register-key-aliases";
+import { sourceMeta } from "@/lib/sctm/vuln-stats";
 import { AuditorToggle } from "./AuditorToggle";
 import { CreateEntryLink } from "./CreateEntryLink";
 import { AttestNoEventsButton } from "./AttestNoEventsButton";
@@ -94,6 +95,23 @@ export default async function EvidenceEngineRegisterEntriesPage({ params, search
     .limit(100);
 
   const effectiveBoundaryName = boundaries.find((b) => b.id === effectiveBoundaryId)?.name ?? null;
+
+  // ── Vuln-register-specific augmentation ──
+  // When the register is vuln_remediation, surface per-row provenance
+  // (source), regression badges, and a deep-link to EnclaveWatch's
+  // per-machine timeline view. The deep-link only renders when the
+  // org has published enclavewatch_base_url.
+  const isVulnRegister = schemaIdForRegisterKey(registerKey) === "vuln_remediation";
+  let enclavewatchBaseUrl: string | null = null;
+  if (isVulnRegister) {
+    const [org] = await db
+      .select({ url: organizations.enclavewatchBaseUrl })
+      .from(organizations)
+      .where(eq(organizations.id, orgId))
+      .limit(1);
+    enclavewatchBaseUrl = org?.url?.replace(/\/+$/, "") ?? null;
+  }
+
   const entriesWithSummary = entries.map((e) => {
     const data = (e.entryData ?? {}) as Record<string, unknown>;
     const entryType = e.entryType ?? "unknown";
@@ -108,6 +126,13 @@ export default async function EvidenceEngineRegisterEntriesPage({ params, search
       entryType: e.entryType,
       finalizedAt: e.finalizedAt,
       createdAt: e.createdAt,
+      // Vuln-register-only fields. Strings or null on every row to keep
+      // typing tight at the JSX layer.
+      source: typeof data.source === "string" ? data.source : null,
+      machineId: typeof data.machine_id === "string" ? data.machine_id : null,
+      cveId: typeof data.cve_id === "string" ? data.cve_id : null,
+      regressedAt: typeof data.regressed_at === "string" ? data.regressed_at : null,
+      regressionCount: Number(data.regression_count ?? 0),
     };
   });
 
@@ -177,6 +202,9 @@ export default async function EvidenceEngineRegisterEntriesPage({ params, search
               <tr className="border-b border-[var(--color-border)]">
                 <th className="py-2 font-semibold text-[var(--color-gray-700)]">Summary</th>
                 <th className="py-2 font-semibold text-[var(--color-gray-700)]">Type</th>
+                {isVulnRegister && (
+                  <th className="py-2 font-semibold text-[var(--color-gray-700)]">Source</th>
+                )}
                 <th className="py-2 font-semibold text-[var(--color-gray-700)]">Status</th>
                 <th className="py-2 font-semibold text-[var(--color-gray-700)]">Approved On</th>
                 <th className="py-2 font-semibold text-[var(--color-gray-700)]">Created</th>
@@ -197,9 +225,46 @@ export default async function EvidenceEngineRegisterEntriesPage({ params, search
                         No-events attestation
                       </span>
                     ) : (
-                      e.entryType ?? "—"
+                      <span className="inline-flex items-center gap-1.5">
+                        <span>{e.entryType ?? "—"}</span>
+                        {isVulnRegister && e.regressedAt && (
+                          <span
+                            className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-800"
+                            title={`Last regressed ${e.regressedAt}${e.regressionCount > 1 ? ` (${e.regressionCount}× total)` : ""}`}
+                          >
+                            ↺ Regressed
+                          </span>
+                        )}
+                      </span>
                     )}
                   </td>
+                  {isVulnRegister && (
+                    <td className="py-2 text-[var(--color-gray-600)]">
+                      {e.source ? (
+                        (() => {
+                          const meta = sourceMeta(e.source);
+                          const tone =
+                            meta.tone === "blue"
+                              ? "bg-blue-50 border-blue-200 text-blue-800"
+                              : meta.tone === "purple"
+                                ? "bg-purple-50 border-purple-200 text-purple-800"
+                                : meta.tone === "amber"
+                                  ? "bg-amber-50 border-amber-200 text-amber-800"
+                                  : "bg-gray-50 border-gray-200 text-gray-700";
+                          return (
+                            <span
+                              className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${tone}`}
+                              title={meta.description}
+                            >
+                              {meta.label}
+                            </span>
+                          );
+                        })()
+                      ) : (
+                        <span className="text-[var(--color-gray-400)]">—</span>
+                      )}
+                    </td>
+                  )}
                   <td className="py-2">
                     <span
                       className={
@@ -219,13 +284,26 @@ export default async function EvidenceEngineRegisterEntriesPage({ params, search
                   <td className="py-2 text-[var(--color-gray-600)]">
                     {new Date(e.createdAt).toLocaleDateString()}
                   </td>
-                  <td className="py-2 flex items-center gap-2">
-                    <Link
-                      href={`/dashboard/evidence-engine/entries/${e.id}${buildBaseQuery(effectiveBoundaryId)}`}
-                      className="font-medium text-[var(--color-blue-accent)] hover:underline"
-                    >
-                      {e.status === "draft" && canCreate ? "Review & Approve" : "View"}
-                    </Link>
+                  <td className="py-2">
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/dashboard/evidence-engine/entries/${e.id}${buildBaseQuery(effectiveBoundaryId)}`}
+                        className="font-medium text-[var(--color-blue-accent)] hover:underline"
+                      >
+                        {e.status === "draft" && canCreate ? "Review & Approve" : "View"}
+                      </Link>
+                      {isVulnRegister && enclavewatchBaseUrl && e.machineId && (
+                        <a
+                          href={`${enclavewatchBaseUrl}/Vulnerabilities?machine=${encodeURIComponent(e.machineId)}`}
+                          target="_blank"
+                          rel="noreferrer noopener"
+                          className="inline-flex items-center gap-1 rounded border border-[var(--color-border)] bg-white px-2 py-0.5 text-[10px] font-medium text-[var(--color-gray-700)] hover:bg-[var(--color-gray-50)]"
+                          title={`Open the per-machine timeline for ${e.machineId} on ${enclavewatchBaseUrl}. Requires reachability from your network.`}
+                        >
+                          ↗ EnclaveWatch
+                        </a>
+                      )}
+                    </div>
                   </td>
                 </tr>
               );

@@ -351,6 +351,20 @@
       "when": 1777000000000,
       "tag": "0049_ir_scenarios_org_scope",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1777100000000,
+      "tag": "0050_enclavewatch_api_token",
+      "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "7",
+      "when": 1777200000000,
+      "tag": "0051_enclavewatch_base_url",
+      "breakpoints": true
     }
   ]
 }
