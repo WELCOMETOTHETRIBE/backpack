@@ -40,6 +40,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/enclavewatch(.*)",
   "/api/registers/vuln-remediation(.*)",
   "/api/registers/identity-inventory(.*)",
+  "/api/registers/access-authorizations(.*)",
 ]);
 
 const AUDIT_SESSION_COOKIE = "mactech_audit_session";

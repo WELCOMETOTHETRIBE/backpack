@@ -30,6 +30,8 @@
   "summary_templates": {
     "access_authorization": {
       "grant_access": "Access granted to {{subject_user}} on {{system}} as {{requested_role}} approved by {{approver}}.",
+      "modify_access": "Access modified for {{subject_user}} on {{system}}: {{change_summary}} (approved by {{approver}}).",
+      "remove_access": "Access removed from {{subject_user}} on {{system}} by {{removed_by}} ({{reason}}).",
       "access_review": "Access review for {{system}} conducted by {{reviewer}} covering {{review_period_start}} to {{review_period_end}}."
     },
     "vuln_remediation": {
