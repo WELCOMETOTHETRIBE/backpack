@@ -302,7 +302,7 @@ export default function IncorporateFeedbackPanel({ pendingCount }: { pendingCoun
           />
 
           {/* Panel */}
-          <div className="relative pointer-events-auto w-full max-w-2xl h-[80vh] flex flex-col rounded-2xl bg-neutral-950 border border-neutral-800 shadow-2xl overflow-hidden">
+          <div className="relative pointer-events-auto w-full max-w-2xl h-[40vh] flex flex-col rounded-2xl bg-neutral-950 border border-neutral-800 shadow-2xl overflow-hidden">
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-3 border-b border-neutral-800 shrink-0">
               <div className="flex items-center gap-2">

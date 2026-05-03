@@ -339,9 +339,17 @@ export default async function OutstandingPage() {
           Outstanding Controls
         </h1>
         <p className="mt-1.5 max-w-3xl text-sm text-slate-600">
-          {OUTSTANDING_TOTALS.outstanding} controls remain to reach 110/110 adjudicated. Each one has
-          a defined close-path with a C3PAO-defensible attestation, register entry, or evidence
-          ingest. Most are 5-minute one-time actions.
+          {totalRemaining === 0 ? (
+            <>All outstanding controls are closed — you&apos;re at {OUTSTANDING_TOTALS.adjudicated + totalClosed}/{OUTSTANDING_TOTALS.total} adjudicated.</>
+          ) : (
+            <>
+              {totalRemaining} {totalRemaining === 1 ? "control" : "controls"} remaining to reach{" "}
+              {OUTSTANDING_TOTALS.total}/{OUTSTANDING_TOTALS.total} adjudicated
+              {" "}({OUTSTANDING_TOTALS.adjudicated + totalClosed}/{OUTSTANDING_TOTALS.total} closed today).
+              Each one has a defined close-path with a C3PAO-defensible attestation, register entry,
+              or evidence ingest.
+            </>
+          )}
         </p>
         <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
           <span className="rounded-full bg-emerald-100 px-2.5 py-1 font-medium text-emerald-800">
