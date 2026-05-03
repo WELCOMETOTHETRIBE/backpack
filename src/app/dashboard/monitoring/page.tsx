@@ -6,6 +6,9 @@ import {
   evidenceFindings,
   governanceRegisterEntries,
   governanceRegisters,
+  governanceArtifactCompletions,
+  controlRecords,
+  poamEntries,
   boundaries,
 } from "@/db/schema";
 import { eq, sql, desc, and, inArray } from "drizzle-orm";
@@ -23,9 +26,12 @@ import {
   Shield,
   Bug,
   Wrench,
-  ListChecks,
+  Zap,
+  FileWarning,
+  Inbox,
 } from "lucide-react";
 import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
+import { getVulnStatsForOrg } from "@/lib/sctm/vuln-stats";
 
 /**
  * Continuous Monitoring (3.12.3) — operational dashboard for the
@@ -45,11 +51,14 @@ import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
  * comparing the latest run's findings against the prior run.
  */
 
+// Source subtitles describe the collector script only. Check counts are
+// computed dynamically from each run's actual evidence_findings rows so
+// we never lie about how many checks ran.
 const SOURCES = [
-  { key: "cui_evidence_manifest", label: "OS Evidence Bundle", subtitle: "Collect-Cui-Evidence-v2", icon: HardDrive },
-  { key: "windows_server_hardening", label: "OS Validator", subtitle: "Test-CuiHardening (53 checks)", icon: ShieldCheck },
-  { key: "azure_entra", label: "Azure Validator", subtitle: "validate_azure_entra (15 controls)", icon: Cloud },
-  { key: "enclavewatch_weekly_review", label: "ISSO Weekly Review", subtitle: "Signed acknowledgement", icon: Activity },
+  { key: "cui_evidence_manifest", label: "OS Evidence Bundle", subtitle: "Collect-Cui-Evidence-v2 (manifest, no checks)", icon: HardDrive, kind: "manifest" as const },
+  { key: "windows_server_hardening", label: "OS Validator", subtitle: "Test-CuiHardening", icon: ShieldCheck, kind: "validator" as const },
+  { key: "azure_entra", label: "Azure Validator", subtitle: "validate_azure_entra", icon: Cloud, kind: "validator" as const },
+  { key: "enclavewatch_weekly_review", label: "ISSO Weekly Review", subtitle: "Signed acknowledgement", icon: Activity, kind: "signoff" as const },
 ] as const;
 
 const FRESHNESS_GREEN_DAYS = 8;
@@ -223,11 +232,52 @@ export default async function MonitoringPage() {
     }
   }
 
-  // 4. Hardening baseline — pass count / total for the latest OS validator run
-  const hardeningPass = latestOsValidatorRun?.pass ?? 0;
-  const hardeningTotal = latestOsValidatorRun
-    ? latestOsValidatorRun.pass + latestOsValidatorRun.partial + latestOsValidatorRun.fail
-    : 0;
+  // 4. TTR snapshot — median time-to-remediate for criticals + recent
+  // regressions. Reuses the same vuln-stats helper that powers the 3.11.3
+  // SCTM widget; we just take the critical slice for a single number.
+  const vulnStats = await getVulnStatsForOrg(orgId);
+  const criticalSlice = vulnStats?.ttrBySeverity.find((s) => s.severity === "critical");
+  const ttrMedian = criticalSlice?.medianDays ?? null;
+  const slaBreaches =
+    vulnStats?.ttrBySeverity.reduce((acc, s) => acc + s.slaBreachCount, 0) ?? 0;
+
+  // 5. Open POA&M items (org-wide) — count of poam_entries with status=open.
+  // This is operational evidence the program is producing remediation plans
+  // when controls fail, not a "fluctuating signal" — but it's useful at a
+  // glance to know the open-plan backlog.
+  const [poamCounts] = await db
+    .select({
+      open: sql<number>`count(*) filter (where ${poamEntries.status} = 'open')::int`,
+      overdue: sql<number>`count(*) filter (where ${poamEntries.status} = 'open' AND ${poamEntries.scheduledCompletionDate} < CURRENT_DATE)::int`,
+    })
+    .from(poamEntries)
+    .where(eq(poamEntries.organizationId, orgId));
+  const openPoams = poamCounts?.open ?? 0;
+  const overduePoams = poamCounts?.overdue ?? 0;
+
+  // 6. Recent attestation activity — last 5 signed completions for the
+  // "Recent activity" feed; also flag any that are renewal-due (signed
+  // > 365 days ago) for the "What needs attention" list.
+  const ATTESTATION_RENEWAL_DAYS = 365;
+  const renewalCutoff = new Date(now - ATTESTATION_RENEWAL_DAYS * MS_PER_DAY);
+  const expiredAttestations = await db
+    .select({
+      label: governanceArtifactCompletions.artifactLabel,
+      attestedAt: governanceArtifactCompletions.attestedAt,
+      controlId: controlRecords.controlId,
+    })
+    .from(governanceArtifactCompletions)
+    .innerJoin(controlRecords, eq(governanceArtifactCompletions.controlRecordId, controlRecords.id))
+    .where(
+      and(
+        eq(controlRecords.organizationId, orgId),
+        sql`${governanceArtifactCompletions.attestedAt} IS NOT NULL`,
+        sql`${governanceArtifactCompletions.attestedAt} < ${renewalCutoff}`,
+      ),
+    )
+    .limit(20);
+  // Dedupe by label (same template can fan out across multiple control records).
+  const expiredAttestationLabels = new Set(expiredAttestations.map((a) => a.label));
 
   // Drift signal: prefer Azure validator (most change-prone surface);
   // fall back to OS validator. OS bundle has 0 findings on its own runs
@@ -251,9 +301,6 @@ export default async function MonitoringPage() {
   const recentRuns = runs.slice(0, 15);
   const totalRuns = runs.length;
 
-  const cardClass =
-    "rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm";
-
   // Cadence health is judged separately from the ISSO weekly review.
   // The 3 automated sources (OS bundle, OS validator, Azure validator)
   // arm via cron on the vault. The ISSO weekly review is a manual
@@ -266,6 +313,104 @@ export default async function MonitoringPage() {
   const automatedAllGreen = automatedSources.every((s) => s.freshness === "green");
   const automatedAnyRed = automatedSources.some((s) => s.freshness === "red");
   const issoNeverRun = issoSource?.runCount === 0;
+
+  // ── What Needs Attention ────────────────────────────────────────────
+  // Aggregate operational signals into a single actionable list. Each
+  // item is a row the operator can act on, ranked by urgency. Empty
+  // list = "all clear, nothing in your queue today" which is itself
+  // a defensible cadence statement.
+  type Attn = {
+    severity: "critical" | "warning" | "info";
+    label: string;
+    detail: string;
+    href?: string;
+  };
+  const attention: Attn[] = [];
+
+  // Stale cadence sources (red = >21 days)
+  for (const s of perSource) {
+    if (s.freshness === "red" && s.runCount > 0) {
+      attention.push({
+        severity: "critical",
+        label: `${s.label} cadence stale`,
+        detail: `Last run ${freshnessLabel(s.daysSince)}. EnclaveWatch may have stopped pushing — verify the vault service.`,
+        href: "/dashboard/monitoring",
+      });
+    }
+  }
+
+  // Open critical/high CVEs
+  if (openCriticalHigh > 0) {
+    attention.push({
+      severity: "critical",
+      label: `${openCriticalHigh} open critical/high CVE${openCriticalHigh === 1 ? "" : "s"}`,
+      detail: "From vuln_remediation register. Patch or document risk acceptance to satisfy 3.11.3 SLA.",
+      href: "/dashboard/evidence-engine/registers/vuln_remediation",
+    });
+  }
+
+  // Recent regressions (regressed_at within last 30 days)
+  if (vulnStats?.regressionCount && vulnStats.regressionCount > 0 && vulnStats.latestRegressionAt) {
+    const daysAgoRegressed = Math.floor(
+      (now - new Date(vulnStats.latestRegressionAt).getTime()) / MS_PER_DAY,
+    );
+    if (daysAgoRegressed <= 30) {
+      attention.push({
+        severity: "warning",
+        label: `${vulnStats.regressionCount} CVE regression${vulnStats.regressionCount === 1 ? "" : "s"} this cycle`,
+        detail: `A previously-resolved CVE flipped back to open (most recent ${daysAgoRegressed}d ago). Investigate why the fix didn't hold.`,
+        href: "/dashboard/evidence-engine/registers/vuln_remediation",
+      });
+    }
+  }
+
+  // SLA breaches (any severity)
+  if (slaBreaches > 0) {
+    attention.push({
+      severity: "warning",
+      label: `${slaBreaches} CVE SLA breach${slaBreaches === 1 ? "" : "es"}`,
+      detail: "Findings whose fix time exceeded the org SLA target (30d/90d/180d/365d by severity). Document acceptance or escalate.",
+      href: "/dashboard/evidence-engine/controls/3.11.3",
+    });
+  }
+
+  // Expired attestations
+  if (expiredAttestationLabels.size > 0) {
+    attention.push({
+      severity: "warning",
+      label: `${expiredAttestationLabels.size} attestation${expiredAttestationLabels.size === 1 ? "" : "s"} due for renewal`,
+      detail: `Signed > ${ATTESTATION_RENEWAL_DAYS} days ago. Re-sign on the readiness page to keep the program current.`,
+      href: "/dashboard/readiness/outstanding",
+    });
+  }
+
+  // Overdue POA&Ms
+  if (overduePoams > 0) {
+    attention.push({
+      severity: "warning",
+      label: `${overduePoams} POA&M item${overduePoams === 1 ? "" : "s"} past target date`,
+      detail: "Scheduled completion date has passed. Revise the date or close the item with closeout evidence.",
+      href: "/dashboard/poam",
+    });
+  }
+
+  // ISSO sign-off awaiting
+  if (automatedAllGreen && issoNeverRun) {
+    attention.push({
+      severity: "info",
+      label: "First ISSO weekly review pending",
+      detail: "Automated cadence is healthy. Sign the first weekly review packet to complete the program loop.",
+      href: "/dashboard/monitoring",
+    });
+  }
+
+  attention.sort((a, b) => {
+    const order = { critical: 0, warning: 1, info: 2 };
+    return order[a.severity] - order[b.severity];
+  });
+
+  const cardClass =
+    "rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm";
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -303,6 +448,69 @@ export default async function MonitoringPage() {
         </p>
       </header>
 
+      {/* ── Section 0: What needs attention ─────────────────────────── */}
+      {attention.length > 0 ? (
+        <section>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">
+              What needs attention
+            </h2>
+            <span className="inline-flex items-center gap-1 rounded-full bg-[var(--color-gray-100)] px-2 py-0.5 text-[10px] font-medium text-[var(--color-gray-700)]">
+              {attention.length} item{attention.length === 1 ? "" : "s"}
+            </span>
+          </div>
+          <div className={`${cardClass} space-y-2 p-4`}>
+            {attention.map((a, i) => {
+              const tone =
+                a.severity === "critical"
+                  ? { wrap: "border-red-200 bg-red-50/60", icon: "text-red-700", iconBg: "bg-red-100" }
+                  : a.severity === "warning"
+                    ? { wrap: "border-amber-200 bg-amber-50/60", icon: "text-amber-700", iconBg: "bg-amber-100" }
+                    : { wrap: "border-blue-200 bg-blue-50/40", icon: "text-blue-700", iconBg: "bg-blue-100" };
+              const Icon =
+                a.severity === "critical" ? AlertTriangle : a.severity === "warning" ? FileWarning : Inbox;
+              return (
+                <div key={i} className={`rounded-md border ${tone.wrap} px-3 py-2.5`}>
+                  <div className="flex items-start gap-2.5">
+                    <span className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${tone.iconBg}`}>
+                      <Icon className={`h-3.5 w-3.5 ${tone.icon}`} aria-hidden />
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-[var(--color-navy-primary)]">
+                        {a.label}
+                      </p>
+                      <p className="mt-0.5 text-xs text-[var(--color-gray-600)]">{a.detail}</p>
+                    </div>
+                    {a.href && (
+                      <Link
+                        href={a.href}
+                        className="shrink-0 inline-flex items-center gap-1 rounded border border-[var(--color-border)] bg-white px-2 py-0.5 text-[11px] font-medium text-[var(--color-gray-700)] hover:bg-[var(--color-gray-50)]"
+                      >
+                        Open <ExternalLink className="h-3 w-3" />
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      ) : (
+        <section>
+          <div className={`${cardClass} flex items-center gap-3 bg-emerald-50/30 p-4`}>
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100">
+              <CheckCircle2 className="h-4 w-4 text-emerald-700" aria-hidden />
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-emerald-900">All clear</p>
+              <p className="text-xs text-emerald-800">
+                No stale cadences, no open critical/high CVEs, no SLA breaches, no expired attestations, no overdue POA&amp;Ms.
+              </p>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ── Section 1: Program health (4 source pills) ─────────────── */}
       <section>
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">
@@ -329,24 +537,42 @@ export default async function MonitoringPage() {
                 </p>
                 <p className="mt-0.5 text-[11px] text-[var(--color-gray-500)]">{s.subtitle}</p>
                 {s.latest ? (
-                  <div className="mt-3 flex items-center gap-3 text-xs text-[var(--color-gray-600)]">
-                    <span>
-                      <span className="font-semibold text-emerald-700">{s.latest.pass}</span>{" "}
-                      <span className="text-[var(--color-gray-500)]">pass</span>
-                    </span>
-                    {s.latest.partial > 0 && (
-                      <span>
-                        <span className="font-semibold text-blue-700">{s.latest.partial}</span>{" "}
-                        <span className="text-[var(--color-gray-500)]">partial</span>
-                      </span>
-                    )}
-                    {s.latest.fail > 0 && (
-                      <span>
-                        <span className="font-semibold text-amber-700">{s.latest.fail}</span>{" "}
-                        <span className="text-[var(--color-gray-500)]">fail</span>
-                      </span>
-                    )}
-                  </div>
+                  s.kind === "manifest" ? (
+                    <div className="mt-3 text-xs text-[var(--color-gray-600)]">
+                      <span className="font-semibold text-[var(--color-navy-primary)]">{s.latest.runId.slice(0, 28)}…</span>
+                      <p className="mt-0.5 text-[10px] text-[var(--color-gray-500)] italic">
+                        Manifest collector — captures evidence files, no per-control checks.
+                      </p>
+                    </div>
+                  ) : s.kind === "signoff" ? (
+                    <div className="mt-3 text-xs text-[var(--color-gray-600)]">
+                      <span className="font-semibold text-emerald-700">Signed</span>
+                      <p className="mt-0.5 text-[10px] text-[var(--color-gray-500)]">
+                        Latest acknowledgement {freshnessLabel(s.daysSince)}.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="mt-3 space-y-1">
+                      <div className="flex items-baseline gap-1.5">
+                        <span className="text-2xl font-bold tabular-nums text-[var(--color-navy-primary)]">
+                          {s.latest.pass + s.latest.partial + s.latest.fail}
+                        </span>
+                        <span className="text-[10px] uppercase tracking-wide text-[var(--color-gray-500)]">checks ran</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-[11px] text-[var(--color-gray-600)]">
+                        <span><span className="font-semibold text-emerald-700">{s.latest.pass}</span> pass</span>
+                        {s.latest.partial > 0 && (
+                          <span><span className="font-semibold text-blue-700">{s.latest.partial}</span> partial</span>
+                        )}
+                        {s.latest.fail > 0 && (
+                          <span><span className="font-semibold text-amber-700">{s.latest.fail}</span> fail</span>
+                        )}
+                        {s.latest.partial === 0 && s.latest.fail === 0 && (
+                          <span className="text-[var(--color-gray-400)]">all clean</span>
+                        )}
+                      </div>
+                    </div>
+                  )
                 ) : (
                   <p className="mt-3 text-xs italic text-[var(--color-gray-500)]">
                     Awaiting first cadence run
@@ -396,13 +622,27 @@ export default async function MonitoringPage() {
               hint="Defender Vulnerability Management feed via EnclaveWatch — count of unresolved CVEs at severity ≥ high"
             />
             <VitalCard
-              icon={ListChecks}
-              label="Hardening baseline"
-              control="composite"
-              value={hardeningTotal === 0 ? "—" : `${hardeningPass}/${hardeningTotal}`}
-              valueLabel={hardeningTotal === 0 ? "No validator run yet" : hardeningPass === hardeningTotal ? "all checks pass" : `${hardeningTotal - hardeningPass} not passing`}
-              tone={hardeningTotal === 0 ? "neutral" : hardeningPass === hardeningTotal ? "good" : "warn"}
-              hint="Test-CuiHardening per-check PASS / total — single-glance baseline integrity"
+              icon={Zap}
+              label="Critical CVE TTR (median)"
+              control="3.11.3"
+              value={ttrMedian === null ? "—" : `${ttrMedian.toFixed(1)}d`}
+              valueLabel={
+                ttrMedian === null
+                  ? "no resolved criticals yet"
+                  : slaBreaches > 0
+                    ? `${slaBreaches} SLA breach${slaBreaches === 1 ? "" : "es"}`
+                    : "within 30d SLA"
+              }
+              tone={
+                ttrMedian === null
+                  ? "neutral"
+                  : ttrMedian > 30
+                    ? "bad"
+                    : ttrMedian > 22
+                      ? "warn"
+                      : "good"
+              }
+              hint="Median time-to-remediate for resolved critical-severity CVEs (first_detected_utc → fixed_utc). 30d SLA target."
             />
           </div>
         </section>
