@@ -425,10 +425,18 @@ export const organizations = pgTable("organizations", {
   enclavewatchApiToken: text("enclavewatch_api_token").unique(),
   /**
    * Optional base URL for the EnclaveWatch in-vault UI (e.g.
-   * "https://VAULT-001:9443"). When set, vuln_remediation register
-   * entries render a per-machine "View on EnclaveWatch" deep-link to
-   * <base_url>/Vulnerabilities. NULL when the vault is network-isolated
-   * from auditor workstations or no UI is published.
+   * "https://cui-win-pilot-01.westus2.cloudapp.azure.com"). When set,
+   * vuln_remediation register entries render a per-machine "View on
+   * EnclaveWatch" deep-link to <base_url>/Vulnerabilities?machine=<id>.
+   *
+   * Setting this assumes the customer has Caddy (or equivalent reverse
+   * proxy) in front of EnclaveWatch with a basic-auth + IP-allowlist
+   * gate, and EnclaveWatch's ReverseProxy auth scheme enabled.
+   * Operational contract documented in
+   * docs/EnclaveWatch-Reverse-Proxy-Runbook.md.
+   *
+   * NULL when the vault is network-isolated from auditor workstations
+   * or no reverse proxy is published.
    */
   enclavewatchBaseUrl: text("enclavewatch_base_url"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
