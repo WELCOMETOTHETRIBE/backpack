@@ -124,8 +124,15 @@ export const CONTROL_INTELLIGENCE: ControlIntelligence[] = [
     evidenceLanes: ["lane_1_technical"],
     cadenceType: "continuous",
     registerRequired: true,
-    registerKey: "Privileged Access Register",
-    registerSchemaId: "privileged_user_list",
+    registerKey: "Access Authorization Register",
+    // Repointed from privileged_user_list (which was never populated and
+    // covered the same ground less precisely) to access_authorization,
+    // where EnclaveWatch's azure_role_assignment_events collector now
+    // posts every role grant/revoke from Azure Activity Log. That data
+    // includes role name + scope + actor — which IS the least-privilege
+    // evidence this control wants. Cross-corroborated by identity_inventory
+    // snapshots that show the current full assignment graph.
+    registerSchemaId: "access_authorization",
     policyDocRequired: false,
     c3paoExaminerNote: "Examiner will ask for evidence of least privilege. Will check: do standard users have local admin? Is there a process to request elevated access? Are PIM audit logs reviewed?",
     conmonTrigger: "PIM audit log shows elevated access not reviewed within 30 days",
@@ -137,8 +144,14 @@ export const CONTROL_INTELLIGENCE: ControlIntelligence[] = [
     evidenceLanes: ["lane_1_technical", "lane_3_governance"],
     cadenceType: "annual",
     registerRequired: true,
-    registerKey: "Privileged User Register",
-    registerSchemaId: "privileged_user_list",
+    registerKey: "Access Authorization Register",
+    // Same as 3.1.5: repointed from privileged_user_list to
+    // access_authorization. The Activity-Log-fed grant/revoke history
+    // is the operational record of which non-privileged accounts hold
+    // privileged scope; combined with identity_inventory's per-user
+    // role_assignments, this is materially stronger than the empty
+    // legacy register would have been.
+    registerSchemaId: "access_authorization",
     policyDocRequired: true,
     c3paoExaminerNote: "Examiner will check: does the admin user also have a standard account? Are admin accounts used for email? Will ask admins directly.",
     conmonTrigger: "Admin found using privileged account for standard tasks",
