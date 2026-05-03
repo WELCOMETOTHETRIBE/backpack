@@ -146,6 +146,8 @@ export const REGISTER_KEYS = [
   // Finding/remediation registers (referenced by CONTROL_INTELLIGENCE):
   "vuln_remediation",
   "assessment_findings",
+  // EnclaveWatch-collected identity inventory snapshots (3.5.1 primary):
+  "identity_inventory",
 ] as const;
 
 export type RegisterColumn = { key: string; label: string; type: string };
@@ -183,4 +185,5 @@ export const REGISTER_DEFINITIONS: { registerKey: string; name: string; descript
   // assessment findings rather than a simple roster.
   { registerKey: "vuln_remediation", name: "Vulnerability Remediation Register", description: "Tracks vulnerabilities and remediation status with SLAs (CM 3.4.4 security impact analysis, SI 3.14.1 flaw remediation, RA 3.11.3 scan findings).", requiredColumns: [{ key: "finding", label: "Finding", type: "string" }, { key: "source", label: "Source", type: "string" }, { key: "severity", label: "Severity", type: "string" }, { key: "identified_date", label: "Identified Date", type: "date" }, { key: "target_date", label: "Target Resolution Date", type: "date" }, { key: "remediation", label: "Remediation", type: "string" }, { key: "resolved_date", label: "Resolved Date", type: "date" }], retainForDays: 365 * 3 },
   { registerKey: "assessment_findings", name: "Assessment Findings Register", description: "Records self-assessment and assessor findings per control (CA 3.12.1).", requiredColumns: [{ key: "control_id", label: "Control ID", type: "string" }, { key: "finding", label: "Finding", type: "string" }, { key: "status", label: "Status", type: "string" }, { key: "assessment_date", label: "Assessment Date", type: "date" }, { key: "assessor", label: "Assessor", type: "string" }, { key: "remediation", label: "Remediation", type: "string" }], retainForDays: 365 * 3 },
+  { registerKey: "identity_inventory", name: "Identity Inventory Snapshots", description: "Weekly EnclaveWatch-collected snapshot of every user, service principal/managed identity, and device with vault scope. Each entry is a full point-in-time inventory; diffs between consecutive entries surface adds/removes for review. Primary evidence for §3.5.1 (identify users, processes, devices); incidental for §3.5.6 / §3.1.5 / §3.1.6.", requiredColumns: [{ key: "snapshot_id", label: "Snapshot ID", type: "string" }, { key: "collected_at", label: "Collected At", type: "date" }, { key: "user_count", label: "User Count", type: "number" }, { key: "service_principal_count", label: "Service Principal Count", type: "number" }, { key: "device_count", label: "Device Count", type: "number" }], retainForDays: 365 * 3 },
 ];

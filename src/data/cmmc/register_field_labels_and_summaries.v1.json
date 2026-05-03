@@ -41,6 +41,9 @@
     },
     "incident_log": {
       "incident_recorded": "Security incident recorded affecting {{system}} with notes: {{notes}}."
+    },
+    "identity_inventory": {
+      "inventory_snapshot": "Inventory snapshot {{snapshot_id}} collected {{collected_at}} — vault scope contains identities and devices (totals on the entry detail)."
     }
   }
 }

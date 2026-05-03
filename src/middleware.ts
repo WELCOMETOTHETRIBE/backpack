@@ -39,6 +39,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/os-baselines/boundaries/:id/evidence-runs/import-report(.*)",
   "/api/enclavewatch(.*)",
   "/api/registers/vuln-remediation(.*)",
+  "/api/registers/identity-inventory(.*)",
 ]);
 
 const AUDIT_SESSION_COOKIE = "mactech_audit_session";
