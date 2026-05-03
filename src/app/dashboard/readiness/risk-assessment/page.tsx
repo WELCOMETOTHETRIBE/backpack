@@ -224,23 +224,38 @@ export default async function RiskAssessmentPage() {
     );
   }
 
-  // Latest signal — the more recent of attestation / report
-  const lastActivityAt =
-    signedAttestationAt && reportUploadedAt
-      ? signedAttestationAt > reportUploadedAt
-        ? signedAttestationAt
-        : reportUploadedAt
-      : signedAttestationAt ?? reportUploadedAt;
+  // ── Evidence sources ──
+  // §3.11.1 evidence can come from EITHER (a) a completed wizard run that
+  // produced final risk_register entries, OR (b) an externally-authored
+  // report uploaded to Artifacts. Both shapes corroborate the program
+  // attestation. The wizard is the primary path; upload is supplemental.
+  const latestWizardAt = pastAssessments.reduce<Date | null>((acc, a) => {
+    const at = a.signOffDate ?? a.earliestAt;
+    if (!at) return acc;
+    const d = new Date(at);
+    if (Number.isNaN(d.getTime())) return acc;
+    if (!acc || d > acc) return d;
+    return acc;
+  }, null);
+  const hasEvidence = pastAssessments.length > 0 || reportUploadedAt !== null;
+
+  // Latest signal across all evidence shapes.
+  const activityDates = [signedAttestationAt, reportUploadedAt, latestWizardAt].filter(
+    (d): d is Date => d instanceof Date,
+  );
+  const lastActivityAt = activityDates.length > 0
+    ? activityDates.reduce((a, b) => (a > b ? a : b))
+    : null;
   const daysSinceLast = daysAgo(lastActivityAt);
   const overall = freshnessLabel(daysSinceLast, 365);
 
   const programState =
-    signedAttestationAt && reportUploadedAt
+    signedAttestationAt && hasEvidence
       ? "complete"
       : signedAttestationAt
-        ? "signed_no_report"
-        : reportUploadedAt
-          ? "report_no_signature"
+        ? "signed_no_evidence"
+        : hasEvidence
+          ? "evidence_no_signature"
           : "not_started";
 
   return (
@@ -259,8 +274,10 @@ export default async function RiskAssessmentPage() {
         </div>
         <p className="mt-2 text-sm text-[var(--color-gray-600)]">
           NIST SP 800-171 §3.11.1 requires a periodic risk assessment of CUI operations.
-          This page tracks the program: the signed customer attestation, the most recent
-          assessment report on file, and the live Risk Register that feeds POA&M creation.
+          This page tracks the program: the signed customer attestation and at least
+          one completed assessment cycle — either authored here in the guided wizard
+          (recommended) or uploaded as an external report. Both feed the live Risk
+          Register that drives POA&M creation.
         </p>
       </header>
 
@@ -271,25 +288,25 @@ export default async function RiskAssessmentPage() {
           <div className="flex-1 min-w-0">
             <h2 className="text-base font-semibold text-[var(--color-navy-primary)]">
               {programState === "complete" && "Program complete"}
-              {programState === "signed_no_report" && "Attestation signed — report missing"}
-              {programState === "report_no_signature" && "Report on file — attestation missing"}
+              {programState === "signed_no_evidence" && "Attestation signed — assessment cycle missing"}
+              {programState === "evidence_no_signature" && "Assessment on file — attestation missing"}
               {programState === "not_started" && "No risk assessment on file"}
             </h2>
             <p className="mt-1 text-sm text-[var(--color-gray-600)]">
               {programState === "complete" &&
                 `Last activity ${overall.label}. Renew the cycle within 365 days of the most recent signed attestation.`}
-              {programState === "signed_no_report" &&
-                "The customer signed the program attestation but no annual report PDF has been uploaded. The C3PAO will ask for the report directly."}
-              {programState === "report_no_signature" &&
-                "A report is on file but the customer hasn't signed the program attestation yet — the report needs an explicit declaration that this is the org's risk-assessment program of record."}
+              {programState === "signed_no_evidence" &&
+                "The customer signed the program attestation but no assessment cycle has been completed yet. Run the guided wizard or upload an external report to satisfy 3.11.1."}
+              {programState === "evidence_no_signature" &&
+                "An assessment is on file but the customer hasn't signed the program attestation yet — the assessment needs an explicit declaration that this is the org's risk-assessment program of record."}
               {programState === "not_started" &&
-                "Sign the program attestation AND upload the most recent annual risk-assessment report to satisfy 3.11.1."}
+                "Sign the program attestation AND complete at least one assessment cycle (via the guided wizard) to satisfy 3.11.1."}
             </p>
           </div>
         </div>
       </section>
 
-      {/* ── Two CTA cards ─────────────────────────────────────────── */}
+      {/* ── Two primary actions: attestation + wizard ──────────────── */}
       <div className="grid gap-4 md:grid-cols-2">
         {/* Attestation */}
         <div className={cardClass}>
@@ -330,33 +347,33 @@ export default async function RiskAssessmentPage() {
           )}
         </div>
 
-        {/* Report upload */}
-        <div className={cardClass}>
+        {/* Guided wizard — primary path for authoring the assessment */}
+        <div className={`${cardClass} bg-gradient-to-br from-[var(--color-surface)] to-blue-50/30`}>
           <div className="flex items-start justify-between gap-3">
-            <Upload className="h-5 w-5 text-[var(--color-gray-500)]" aria-hidden />
-            {reportUploadedAt ? (
+            <Sparkles className="h-5 w-5 text-[var(--color-blue-accent)]" aria-hidden />
+            {pastAssessments.length > 0 ? (
               <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
-                <CheckCircle2 className="h-3 w-3" /> Uploaded
+                <CheckCircle2 className="h-3 w-3" /> {pastAssessments.length} on file
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
-                <AlertTriangle className="h-3 w-3" /> Required
+              <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-900">
+                Recommended
               </span>
             )}
           </div>
           <p className="mt-3 text-sm font-semibold text-[var(--color-navy-primary)]">
-            Annual assessment report
+            Guided assessment wizard
           </p>
           <p className="mt-0.5 text-xs text-[var(--color-gray-500)]">
-            {reportUploadedAt
-              ? `${reportFileName ?? "Report"} uploaded ${daysAgo(reportUploadedAt)}d ago. C3PAO will examine this directly.`
-              : "Upload the formal annual report (PDF or DOCX). Should cover scope, threat sources, vulnerabilities, likelihood/impact, and treatment per NIST SP 800-30."}
+            {pastAssessments.length > 0
+              ? `Last assessment ${latestWizardAt ? daysAgo(latestWizardAt) + "d ago" : "—"}. Run a new cycle when scope changes or annually at minimum.`
+              : "Walks through scope, applicable threat scenarios (~20 CUI-Vault-relevant risks), treatment decisions, and management sign-off. Generates a complete C3PAO-reviewable evidence bundle."}
           </p>
           <Link
-            href="/dashboard/artifacts"
-            className={`mt-4 inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold ${reportUploadedAt ? "border border-[var(--color-border)] text-[var(--color-gray-700)] hover:bg-[var(--color-gray-50)]" : "bg-[var(--color-blue-accent)] text-white hover:opacity-90"}`}
+            href="/dashboard/readiness/risk-assessment/wizard"
+            className="mt-4 inline-flex items-center gap-1.5 rounded-md bg-[var(--color-blue-accent)] px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90"
           >
-            {reportUploadedAt ? "View artifact" : "Upload report"} <ArrowRight className="h-3 w-3" />
+            {pastAssessments.length > 0 ? "Run new cycle" : "Start guided assessment"} <ArrowRight className="h-3 w-3" />
           </Link>
         </div>
       </div>
@@ -410,46 +427,6 @@ export default async function RiskAssessmentPage() {
             signed off on the treatment decision).
           </p>
         )}
-      </section>
-
-      {/* ── Guided wizard CTA ──────────────────────────────────────── */}
-      <section className="rounded-xl border border-[var(--color-border)] bg-gradient-to-br from-[var(--color-surface)] to-blue-50/30 p-6 shadow-sm">
-        <div className="flex flex-wrap items-start gap-4">
-          <Sparkles className="mt-0.5 h-6 w-6 shrink-0 text-[var(--color-blue-accent)]" aria-hidden />
-          <div className="flex-1 min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <p className="text-sm font-semibold text-[var(--color-navy-primary)]">
-                Guided risk assessment wizard
-              </p>
-              <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-900">
-                NEW · Phase 1
-              </span>
-            </div>
-            <p className="mt-1 text-xs text-[var(--color-gray-600)]">
-              Walk through scope, applicable threat scenarios (preloaded with
-              ~20 CUI-Vault-relevant risks), treatment decisions, and management
-              sign-off. Each completed assessment writes final entries to the
-              live risk_register — operational evidence for 3.11.1 alongside the
-              signed attestation and uploaded report.
-            </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <Link
-                href="/dashboard/readiness/risk-assessment/wizard"
-                className="inline-flex items-center gap-1.5 rounded-md bg-[var(--color-blue-accent)] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
-              >
-                Start guided assessment <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-              {riskRegisterId && (
-                <Link
-                  href={`/dashboard/evidence-engine/registers/${riskRegisterId}`}
-                  className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--color-gray-700)] hover:bg-[var(--color-gray-50)]"
-                >
-                  View live register
-                </Link>
-              )}
-            </div>
-          </div>
-        </div>
       </section>
 
       {/* ── Past assessments (Phase 3) ────────────────────────────── */}
@@ -516,21 +493,48 @@ export default async function RiskAssessmentPage() {
         </section>
       )}
 
+      {/* ── Supplemental external-report upload (deprecated path) ──── */}
+      <section className="rounded-lg border border-dashed border-[var(--color-border)] bg-[var(--color-surface-muted)]/30 p-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex items-start gap-2">
+            <Upload className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-gray-500)]" aria-hidden />
+            <div>
+              <p className="text-xs font-semibold text-[var(--color-gray-700)]">
+                Already have a report from an external tool?
+              </p>
+              <p className="mt-0.5 text-[11px] text-[var(--color-gray-500)]">
+                {reportUploadedAt
+                  ? `External report ${reportFileName ?? ""} on file (uploaded ${daysAgo(reportUploadedAt)}d ago). Counts as supplemental evidence alongside any wizard runs.`
+                  : "Upload a consultant-authored or third-party-generated PDF/DOCX as supplemental evidence. The wizard above is the recommended path; this is for customers who already produced a report elsewhere."}
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/dashboard/artifacts"
+            className="shrink-0 inline-flex items-center gap-1 rounded border border-[var(--color-border)] bg-white px-2.5 py-1 text-[11px] font-medium text-[var(--color-gray-700)] hover:bg-[var(--color-gray-50)]"
+          >
+            {reportUploadedAt ? "View artifact" : "Upload external report"}
+            <ArrowRight className="h-3 w-3" />
+          </Link>
+        </div>
+      </section>
+
       {/* ── Footer note ───────────────────────────────────────────── */}
       <p className="text-xs text-[var(--color-gray-500)]">
         For the C3PAO assessor: the signed{" "}
         <code className="rounded bg-[var(--color-gray-100)] px-1 py-0.5 font-mono text-[10px]">
           risk_assessment_program
         </code>{" "}
-        attestation is the customer&apos;s declaration; the uploaded report is the
-        examined artifact; the Risk Register is the operational record of identified
-        and treated risks. Together they satisfy 3.11.1.
+        attestation is the customer&apos;s declaration; the wizard-generated bundle
+        (or any uploaded external report) is the examined artifact; the Risk
+        Register is the operational record of identified and treated risks.
+        Together they satisfy 3.11.1.
       </p>
     </div>
   );
 }
 
-function StatusIcon({ state }: { state: "complete" | "signed_no_report" | "report_no_signature" | "not_started" }) {
+function StatusIcon({ state }: { state: "complete" | "signed_no_evidence" | "evidence_no_signature" | "not_started" }) {
   if (state === "complete") {
     return (
       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100">
