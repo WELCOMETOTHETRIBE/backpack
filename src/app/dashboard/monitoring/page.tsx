@@ -1,8 +1,14 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
-import { evidenceRuns, evidenceFindings } from "@/db/schema";
-import { eq, sql, desc } from "drizzle-orm";
+import {
+  evidenceRuns,
+  evidenceFindings,
+  governanceRegisterEntries,
+  governanceRegisters,
+  boundaries,
+} from "@/db/schema";
+import { eq, sql, desc, and, inArray } from "drizzle-orm";
 import Link from "next/link";
 import {
   Activity,
@@ -14,7 +20,12 @@ import {
   CircleSlash,
   ClockAlert,
   ExternalLink,
+  Shield,
+  Bug,
+  Wrench,
+  ListChecks,
 } from "lucide-react";
+import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
 
 /**
  * Continuous Monitoring (3.12.3) — operational dashboard for the
@@ -139,6 +150,84 @@ export default async function MonitoringPage() {
       runCount: sourceRuns.length,
     };
   });
+
+  // ── Host vitals (parsed from latest OS validator findings + vuln register) ──
+  // Each card's source: see comment per metric. All data is already in the
+  // codex (no new collectors). Parsed live on every page render so the
+  // numbers always reflect the latest cadence run.
+  const latestOsValidatorRun = perSource.find((s) => s.key === "windows_server_hardening")?.latest;
+  let osValidatorFindings: { controlId: string; pass: boolean; observed: string }[] = [];
+  if (latestOsValidatorRun) {
+    osValidatorFindings = await db
+      .select({ controlId: evidenceFindings.controlId, pass: evidenceFindings.pass, observed: evidenceFindings.observed })
+      .from(evidenceFindings)
+      .where(eq(evidenceFindings.evidenceRunId, latestOsValidatorRun.id));
+  }
+  const findingByControl = new Map(osValidatorFindings.map((f) => [f.controlId, f]));
+
+  // 1. AV signature age — parse `AntivirusSignatureAge=N` from 3.14.4
+  const avFinding = findingByControl.get("3.14.4");
+  const avAgeMatch = avFinding?.observed.match(/AntivirusSignatureAge=(\d+)/i);
+  const avAgeDays = avAgeMatch ? parseInt(avAgeMatch[1], 10) : null;
+
+  // 2. OS patch state — proxy via 3.14.1 update-services check until we
+  // capture actual "days since last successful WU install" in the
+  // canonical evidence bundle. PASS = update services healthy, can patch.
+  const wuFinding = findingByControl.get("3.14.1");
+  const wuPass = wuFinding?.pass ?? null;
+
+  // 3. Open critical + high CVEs — count vuln_remediation register entries
+  // with status=draft AND severity ∈ (critical, high). Will be 0 until
+  // EnclaveWatch's MDVM collector starts pushing.
+  const orgBoundaryRows = await db
+    .select({ id: boundaries.id })
+    .from(boundaries)
+    .where(eq(boundaries.organizationId, orgId));
+  const vulnRegCandidates = resolveRegisterKeyCandidates("vuln_remediation");
+  let openCriticalHigh = 0;
+  let totalVulnEntries = 0;
+  if (orgBoundaryRows.length > 0 && vulnRegCandidates.length > 0) {
+    const [vulnReg] = await db
+      .select({ id: governanceRegisters.id })
+      .from(governanceRegisters)
+      .where(
+        and(
+          eq(governanceRegisters.organizationId, orgId),
+          sql`${governanceRegisters.registerKey} IN (${sql.join(
+            vulnRegCandidates.map((k) => sql`${k}`),
+            sql`, `,
+          )})`,
+        ),
+      )
+      .limit(1);
+    if (vulnReg) {
+      const entries = await db
+        .select({ entryData: governanceRegisterEntries.entryData, status: governanceRegisterEntries.status })
+        .from(governanceRegisterEntries)
+        .where(
+          and(
+            eq(governanceRegisterEntries.registerId, vulnReg.id),
+            inArray(
+              governanceRegisterEntries.boundaryId,
+              orgBoundaryRows.map((b) => b.id),
+            ),
+          ),
+        );
+      totalVulnEntries = entries.length;
+      for (const e of entries) {
+        if (e.status === "draft") {
+          const sev = ((e.entryData ?? {}) as { severity?: string }).severity?.toLowerCase();
+          if (sev === "critical" || sev === "high") openCriticalHigh++;
+        }
+      }
+    }
+  }
+
+  // 4. Hardening baseline — pass count / total for the latest OS validator run
+  const hardeningPass = latestOsValidatorRun?.pass ?? 0;
+  const hardeningTotal = latestOsValidatorRun
+    ? latestOsValidatorRun.pass + latestOsValidatorRun.partial + latestOsValidatorRun.fail
+    : 0;
 
   // Drift signal: prefer Azure validator (most change-prone surface);
   // fall back to OS validator. OS bundle has 0 findings on its own runs
@@ -272,7 +361,54 @@ export default async function MonitoringPage() {
         </div>
       </section>
 
-      {/* ── Section 2: Drift signal ───────────────────────────────── */}
+      {/* ── Section 2: Host vitals (live signals an assessor opens with) ── */}
+      {latestOsValidatorRun && (
+        <section>
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">
+            Host vitals
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <VitalCard
+              icon={Shield}
+              label="AV definitions"
+              control="SI 3.14.4"
+              value={avAgeDays === null ? "—" : `${avAgeDays}d`}
+              valueLabel={avAgeDays === null ? "Not captured" : avAgeDays === 0 ? "current today" : avAgeDays === 1 ? "1 day old" : `${avAgeDays} days old`}
+              tone={avAgeDays === null ? "neutral" : avAgeDays <= 7 ? "good" : avAgeDays <= 14 ? "warn" : "bad"}
+              hint="Microsoft Defender signature age — assessor-relevant for malicious code protection"
+            />
+            <VitalCard
+              icon={Wrench}
+              label="OS patch posture"
+              control="SI 3.14.1"
+              value={wuPass === null ? "—" : wuPass ? "Healthy" : "Stalled"}
+              valueLabel={wuPass === null ? "No data yet" : wuPass ? "wuauserv + bits ready" : "Update services not running"}
+              tone={wuPass === null ? "neutral" : wuPass ? "good" : "bad"}
+              hint="Windows Update services state — proxy for flaw remediation cadence (real day-count comes when EnclaveWatch captures WU history)"
+            />
+            <VitalCard
+              icon={Bug}
+              label="Open Critical+High CVEs"
+              control="3.11.2 / 3.11.3"
+              value={totalVulnEntries === 0 ? "—" : String(openCriticalHigh)}
+              valueLabel={totalVulnEntries === 0 ? "Awaiting first MDVM cadence" : openCriticalHigh === 0 ? "no high-severity open" : "needs remediation"}
+              tone={totalVulnEntries === 0 ? "neutral" : openCriticalHigh === 0 ? "good" : openCriticalHigh <= 3 ? "warn" : "bad"}
+              hint="Defender Vulnerability Management feed via EnclaveWatch — count of unresolved CVEs at severity ≥ high"
+            />
+            <VitalCard
+              icon={ListChecks}
+              label="Hardening baseline"
+              control="composite"
+              value={hardeningTotal === 0 ? "—" : `${hardeningPass}/${hardeningTotal}`}
+              valueLabel={hardeningTotal === 0 ? "No validator run yet" : hardeningPass === hardeningTotal ? "all checks pass" : `${hardeningTotal - hardeningPass} not passing`}
+              tone={hardeningTotal === 0 ? "neutral" : hardeningPass === hardeningTotal ? "good" : "warn"}
+              hint="Test-CuiHardening per-check PASS / total — single-glance baseline integrity"
+            />
+          </div>
+        </section>
+      )}
+
+      {/* ── Section 3: Drift signal ───────────────────────────────── */}
       {drift && (
         <section>
           <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">
@@ -421,6 +557,50 @@ export default async function MonitoringPage() {
         ) is the customer&apos;s declaration; the rows above are the operational evidence that
         the program actually ran.
       </p>
+    </div>
+  );
+}
+
+function VitalCard({
+  icon: Icon,
+  label,
+  control,
+  value,
+  valueLabel,
+  tone,
+  hint,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  control: string;
+  value: string;
+  valueLabel: string;
+  tone: "good" | "warn" | "bad" | "neutral";
+  hint: string;
+}) {
+  const toneClass =
+    tone === "good"
+      ? { ring: "ring-emerald-200", value: "text-emerald-700", dot: "bg-emerald-500" }
+      : tone === "warn"
+        ? { ring: "ring-amber-200", value: "text-amber-700", dot: "bg-amber-500" }
+        : tone === "bad"
+          ? { ring: "ring-red-200", value: "text-red-700", dot: "bg-red-500" }
+          : { ring: "ring-slate-200", value: "text-slate-500", dot: "bg-slate-400" };
+  return (
+    <div
+      className={`rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-sm ring-2 ring-offset-2 ring-offset-[var(--color-bg)] ${toneClass.ring}`}
+      title={hint}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <Icon className="h-5 w-5 text-[var(--color-gray-500)]" aria-hidden />
+        <span className="inline-flex items-center gap-1 rounded-full bg-[var(--color-gray-100)] px-2 py-0.5 text-[10px] font-medium text-[var(--color-gray-600)]">
+          <span className={`h-1.5 w-1.5 rounded-full ${toneClass.dot}`} />
+          {control}
+        </span>
+      </div>
+      <p className={`mt-3 text-3xl font-bold tabular-nums ${toneClass.value}`}>{value}</p>
+      <p className="mt-1 text-sm font-semibold text-[var(--color-navy-primary)]">{label}</p>
+      <p className="mt-0.5 text-[11px] text-[var(--color-gray-500)]">{valueLabel}</p>
     </div>
   );
 }
