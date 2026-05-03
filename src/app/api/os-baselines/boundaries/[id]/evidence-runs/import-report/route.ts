@@ -130,6 +130,13 @@ export async function POST(
 
   const checks = report.checks as Array<{
     control: string;
+    /**
+     * Optional per-check identity. Required when a single (run, control)
+     * carries more than one finding (e.g. Conditional Access policy state
+     * — 5 checks against §3.5.3). Defaults to the resolved control NIST id
+     * for backward compatibility with single-check-per-control collectors.
+     */
+    check_id?: string;
     pass: boolean;
     partial?: boolean;
     observed: string;
@@ -143,10 +150,19 @@ export async function POST(
   }>;
 
   if (checks.length > 0) {
-    await db.insert(evidenceFindings).values(
-      checks.map((c) => ({
+    // De-duplicate within the batch: if two rows share (control_id, check_id),
+    // keep FAIL over PASS. This handles collectors that legitimately emit
+    // duplicate rows (e.g. the same check returning the same control twice
+    // because of a configuration glitch) without trapping the whole upload
+    // on a PK violation. Distinct check_ids on the same control_id pass
+    // through as separate rows.
+    const byPk = new Map<string, ReturnType<typeof toFindingRow>>();
+    function toFindingRow(c: (typeof checks)[number]) {
+      const nistControl = controlIdToNist(c.control);
+      return {
         evidenceRunId: run.id,
-        controlId: controlIdToNist(c.control),
+        controlId: nistControl,
+        checkId: c.check_id?.trim() || nistControl,
         pass: c.pass,
         observed: c.observed ?? "",
         expected: c.expected ?? "",
@@ -161,8 +177,19 @@ export async function POST(
         layer: c.layer ?? null,
         details: c.details ?? null,
         partial: Boolean(c.partial),
-      }))
-    );
+      };
+    }
+    for (const c of checks) {
+      const row = toFindingRow(c);
+      const key = `${row.controlId}|${row.checkId}`;
+      const existing = byPk.get(key);
+      if (!existing) {
+        byPk.set(key, row);
+      } else if (existing.pass && !row.pass) {
+        byPk.set(key, row); // FAIL takes precedence over PASS for the same (control, check)
+      }
+    }
+    await db.insert(evidenceFindings).values([...byPk.values()]);
   }
 
   const passedCount = checks.filter((c) => c.pass).length;

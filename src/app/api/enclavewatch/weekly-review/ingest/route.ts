@@ -241,6 +241,7 @@ export async function POST(req: Request) {
   const findings = coveredControls.map((controlId) => ({
     evidenceRunId: run.id,
     controlId,
+    checkId: controlId, // weekly-review emits one finding per control; check_id mirrors control_id
     pass: true,
     observed: `Weekly review ${ack.review_period_start.slice(0, 10)} -> ${ack.review_period_end.slice(0, 10)} completed by ISSO. Result: ${ack.review_result}. Events covered: ${ack.event_count ?? "n/a"}.`,
     expected: "Weekly ISSO review completed within the 7-day cadence per EnclaveWatch program.",

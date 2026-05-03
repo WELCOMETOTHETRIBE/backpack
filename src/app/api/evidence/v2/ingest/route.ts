@@ -462,9 +462,16 @@ export async function POST(req: Request) {
                 .map((c) => {
                   const nist = c.control ? controlIdToNist(c.control) : null;
                   if (!nist) return null;
+                  // Honor per-check identity if the validator supplied one
+                  // (e.g. Conditional Access checks where multiple distinct
+                  // checks back the same control). Default to the control
+                  // NIST id so old single-check-per-control collectors keep
+                  // their PK uniqueness.
+                  const checkId = (c as { check_id?: string }).check_id?.trim() || nist;
                   return {
                     evidenceRunId: vrun.id,
                     controlId: nist,
+                    checkId,
                     pass: Boolean(c.pass),
                     observed: c.observed ?? "",
                     expected: c.expected ?? "",
@@ -479,18 +486,19 @@ export async function POST(req: Request) {
                 .filter((r): r is NonNullable<typeof r> => r !== null);
 
               if (findingRows.length > 0) {
-                // Per-control: collapse multiple checks per control to a single
-                // row. The PK is (evidenceRunId, controlId) so dupes break.
-                // Strategy: keep the last FAIL if any, else PASS. This mirrors
-                // assessor logic: any failing check on a control fails the
-                // control overall.
+                // De-duplicate within the batch on (controlId, checkId).
+                // FAIL takes precedence over PASS for the same (control,
+                // check) pair (assessor logic: any failing check fails the
+                // control). Distinct check_ids land as separate rows now
+                // that the PK is (run, control, check_id).
                 const collapsed = new Map<string, (typeof findingRows)[number]>();
                 for (const r of findingRows) {
-                  const existing = collapsed.get(r.controlId);
+                  const key = `${r.controlId}|${r.checkId}`;
+                  const existing = collapsed.get(key);
                   if (!existing) {
-                    collapsed.set(r.controlId, r);
+                    collapsed.set(key, r);
                   } else if (existing.pass && !r.pass) {
-                    collapsed.set(r.controlId, r); // FAIL takes precedence
+                    collapsed.set(key, r);
                   }
                 }
                 await db.insert(evidenceFindings).values([...collapsed.values()]);
