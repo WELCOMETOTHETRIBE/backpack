@@ -257,9 +257,11 @@ export default async function MonitoringPage() {
 
   // 6. Recent attestation activity — last 5 signed completions for the
   // "Recent activity" feed; also flag any that are renewal-due (signed
-  // > 365 days ago) for the "What needs attention" list.
+  // > 365 days ago) for the "What needs attention" list. We pass the
+  // cutoff as an ISO string because drizzle's sql`` template can't
+  // serialize a Date directly.
   const ATTESTATION_RENEWAL_DAYS = 365;
-  const renewalCutoff = new Date(now - ATTESTATION_RENEWAL_DAYS * MS_PER_DAY);
+  const renewalCutoffIso = new Date(now - ATTESTATION_RENEWAL_DAYS * MS_PER_DAY).toISOString();
   const expiredAttestations = await db
     .select({
       label: governanceArtifactCompletions.artifactLabel,
@@ -272,7 +274,7 @@ export default async function MonitoringPage() {
       and(
         eq(controlRecords.organizationId, orgId),
         sql`${governanceArtifactCompletions.attestedAt} IS NOT NULL`,
-        sql`${governanceArtifactCompletions.attestedAt} < ${renewalCutoff}`,
+        sql`${governanceArtifactCompletions.attestedAt} < ${renewalCutoffIso}::timestamptz`,
       ),
     )
     .limit(20);
