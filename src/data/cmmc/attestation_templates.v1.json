@@ -354,6 +354,32 @@
       "c3paoExaminerNote": "Examiner will ask: 'Show me your audit log review SOP and a recent review record.' Be ready to point to: (1) MAC-SOP-403 in the governance bundle, (2) this attestation, (3) the most recent review record from the audit_log_review register, (4) CrashOnAuditFail=1 in the OS validator output."
     },
     {
+      "templateId": "risk_assessment_program",
+      "kind": "implemented_attestation",
+      "title": "Annual Risk Assessment Program In Place",
+      "summary": "Affirm that we operate an annual risk-assessment program per NIST SP 800-30 covering the CUI boundary. The most recent year's report is retained on the vault; ongoing risks track via the Risk Register and feed POA&M closure milestones.",
+      "attestationStatement": "I attest, on behalf of our organization, that we operate an annual organizational risk assessment program for the CUI Vault boundary, conducted per NIST SP 800-30 methodology. Each cycle: (1) identifies threat sources, vulnerabilities (sourced from Microsoft Defender Vulnerability Management + Azure Defender for Cloud + EnclaveWatch validator findings), and impact / likelihood ratings; (2) is conducted by a designated assessor outside the development team (compliance owner, vCISO, or third-party engagement); (3) produces a formal report retained at `docs/risk-assessments/YYYY.md` on the vault with executive sign-off; (4) feeds the Risk Register with prioritized findings; (5) drives POA&M creation for any finding scored Medium or higher that cannot be remediated within 30 days. The assessment cycle is annual at minimum and re-fired ad hoc when material change events occur (new external connection, new boundary component, new CUI data type).",
+      "conditions": [
+        "An annual risk-assessment cycle is documented and on calendar (next due before [date])",
+        "The most recent assessment report is retained on the vault (path: docs/risk-assessments/YYYY.md)",
+        "The assessor is identified by name / role and is independent of the development team",
+        "Findings are tracked in the Risk Register and feed POA&M creation for Medium+ items",
+        "Vulnerability scanning input feeds the assessment (Defender Vulnerability Management active on the vault VM)",
+        "The cycle re-fires on material changes, not only annually"
+      ],
+      "fallbackIfConditionFails": {
+        "controlIds": ["3.11.1"],
+        "fallbackDisposition": "partial",
+        "fallbackRegisterSchemaId": "risk_register",
+        "actionRequired": "If the annual cycle slips beyond 13 months without a fresh report, the attestation reverts to PARTIAL and the customer must complete a fresh assessment within 90 days or document the deferral cause in the Risk Register."
+      },
+      "evidenceProduced": "governance_artifact_completion (ATTESTATION) on control_records for 3.11.1; corroborating evidence via the Risk Register entries and the uploaded annual report artifact.",
+      "linkedControlIds": ["3.11.1"],
+      "recommendedSignatoryRole": "compliance_owner",
+      "renewalCadenceDays": 365,
+      "c3paoExaminerNote": "Examiner will ask: 'Show me your most recent risk assessment.' Be ready to point to: (1) the latest docs/risk-assessments/YYYY.md report with executive sign-off, (2) the Risk Register entries derived from that report, (3) any POA&Ms opened from Medium+ findings, (4) Defender Vulnerability Management output that fed the assessment."
+    },
+    {
       "templateId": "mfa_in_path",
       "kind": "implemented_attestation",
       "title": "MFA Enforced for Interactive User Access to Our CUI Enclave",
