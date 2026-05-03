@@ -1,6 +1,7 @@
 # EnclaveWatch UI Reverse-Proxy Auth — Runbook
 
 **Status:** Live for MacTech (`cui-win-pilot-01`) as of 2026-05-03.
+**Canonical URL:** `https://vault-001.mactechsolutionsllc.com` (Azure DNS name `cui-win-pilot-01.westus2.cloudapp.azure.com` continues to resolve as a fallback; both names are served by Caddy and covered by separate auto-renewing Let's Encrypt certs).
 **Purpose:** Document the trust contract that lets a C3PAO assessor click
 "View on EnclaveWatch" from a codex vuln_remediation register row and
 land directly on the per-machine timeline view, without holding
