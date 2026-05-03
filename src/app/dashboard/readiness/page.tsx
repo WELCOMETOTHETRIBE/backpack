@@ -7,7 +7,8 @@ import Link from "next/link";
 // any attestation, register entry, or IR bundle archive.
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
-import { FileText, Calculator } from "lucide-react";
+
+import { ListChecks, ShieldAlert, FileText, ArrowRight, ClipboardCheck } from "lucide-react";
 import { db } from "@/db";
 import {
   getSprsScore,
@@ -16,7 +17,14 @@ import {
   SPRS_MAX,
   SPRS_RANGE,
 } from "@/lib/sprs";
-import { controlRecords, governanceRegisters, governanceRegisterEntries, boundaries } from "@/db/schema";
+import {
+  controlRecords,
+  governanceRegisters,
+  governanceRegisterEntries,
+  boundaries,
+  governanceArtifactCompletions,
+  artifacts,
+} from "@/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
@@ -25,11 +33,10 @@ import {
   finalCountForSchemaId,
   isProvisionedForSchemaId,
 } from "@/lib/registers/compliance-health";
-import { buildReadinessChecklist } from "@/lib/readiness/checklist";
-import { ReadinessChecklist } from "./ReadinessChecklist";
 import { RecalculateControlsButton } from "./RecalculateControlsButton";
 
-const cardClass = "rounded-xl border border-slate-200 bg-white p-6 shadow-sm";
+const cardClass =
+  "rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm";
 
 const TOTAL_CONTROLS = ALL_CONTROL_IDS.length;
 const ADJUDICATED_STATUSES = ["implemented", "assessed", "inherited", "not_applicable"] as const;
@@ -38,16 +45,10 @@ const sprs5 = sprsScoringData.filter((c) => c.value === 5).length;
 const sprs3 = sprsScoringData.filter((c) => c.value === 3).length;
 const sprs1 = sprsScoringData.filter((c) => c.value === 1).length;
 
-function ProgressBar({
-  pct,
-  className = "bg-[#3B82F6]",
-}: {
-  pct: number;
-  className?: string;
-}) {
+function ProgressBar({ pct, className = "bg-[var(--color-blue-accent)]" }: { pct: number; className?: string }) {
   const width = Math.max(0, Math.min(100, pct));
   return (
-    <div className="h-2.5 w-full overflow-hidden rounded-full bg-gray-100">
+    <div className="h-2.5 w-full overflow-hidden rounded-full bg-[var(--color-gray-100)]">
       <div
         className={`h-full rounded-full transition-all duration-500 ${className}`}
         style={{ width: `${width}%` }}
@@ -58,15 +59,14 @@ function ProgressBar({
 
 export default async function ReadinessPage() {
   const session = await auth();
-  const user = session?.user as { organizationId?: string } | undefined;
-  const orgId = user?.organizationId;
+  const orgId = (session?.user as { organizationId?: string } | undefined)?.organizationId;
   if (!orgId) redirect("/auth/signin");
 
   const sprsScore = await getSprsScore(orgId);
-  const checklist = await buildReadinessChecklist(orgId);
 
   const records = await db
     .select({
+      id: controlRecords.id,
       controlId: controlRecords.controlId,
       implementationStatus: controlRecords.implementationStatus,
       technicalStatus: controlRecords.technicalStatus,
@@ -76,7 +76,7 @@ export default async function ReadinessPage() {
     .from(controlRecords)
     .where(eq(controlRecords.organizationId, orgId));
 
-  // ── Register satisfaction ──
+  // ── Register satisfaction (drives the implemented count) ──
   const intelMap = new Map(CONTROL_INTELLIGENCE.map((c) => [c.controlId, c]));
   const orgRegisters = await db
     .select({ id: governanceRegisters.id, registerKey: governanceRegisters.registerKey })
@@ -100,14 +100,13 @@ export default async function ReadinessPage() {
             eq(governanceRegisterEntries.status, "final"),
             sql`${governanceRegisterEntries.boundaryId} IN (${sql.join(
               boundaryIds.map((id) => sql`${id}`),
-              sql`, `
-            )})`
-          )
+              sql`, `,
+            )})`,
+          ),
         );
       registerFinalCounts.set(reg.registerKey, row?.cnt ?? 0);
     }
   }
-
   const orgProvisionedRegisterKeys = new Set(orgRegisters.map((r) => r.registerKey));
   const registerSatisfiedMap = new Map<string, boolean>();
   for (const [controlId, intel] of intelMap) {
@@ -121,7 +120,7 @@ export default async function ReadinessPage() {
         registerSchemaId: intel.registerSchemaId,
         finalEntryCount: finalCountForSchemaId(registerFinalCounts, intel.registerSchemaId),
         orgProvisioned: isProvisionedForSchemaId(orgProvisionedRegisterKeys, intel.registerSchemaId),
-      })
+      }),
     );
   }
 
@@ -134,131 +133,216 @@ export default async function ReadinessPage() {
   }).length;
   const total = records.length || TOTAL_CONTROLS;
   const compliancePct = total > 0 ? Math.round((implemented / total) * 100) : 0;
-  const controlsImplementedPct =
-    TOTAL_CONTROLS > 0 ? Math.round((implemented / TOTAL_CONTROLS) * 100) : 0;
+  const controlsImplementedPct = TOTAL_CONTROLS > 0 ? Math.round((implemented / TOTAL_CONTROLS) * 100) : 0;
+  const sprsPct = SPRS_RANGE > 0 ? Math.round(((sprsScore - SPRS_MIN) / SPRS_RANGE) * 100) : 0;
 
-  // Map SPRS score from [SPRS_MIN, SPRS_MAX] to 0–100% for progress bar
-  const sprsPct =
-    SPRS_RANGE > 0
-      ? Math.round(((sprsScore - SPRS_MIN) / SPRS_RANGE) * 100)
-      : 0;
+  // ── Annual workflow status: outstanding count + risk-assessment state ──
+  const outstandingCount = records.filter((r) => {
+    const registerOk = registerSatisfiedMap.get(r.controlId) !== false;
+    if (r.policyDocRequired) {
+      return !(r.technicalStatus === "satisfied" && r.policyStatus === "satisfied" && registerOk);
+    }
+    return !(ADJUDICATED_STATUSES.includes(r.implementationStatus as (typeof ADJUDICATED_STATUSES)[number]) && registerOk);
+  }).length;
+
+  // Risk assessment program state (used to color the workflow card)
+  let raSigned = false;
+  let raReportUploaded = false;
+  const ra311Record = records.find((r) => r.controlId === "3.11.1");
+  if (ra311Record) {
+    const [sig] = await db
+      .select({ id: governanceArtifactCompletions.id })
+      .from(governanceArtifactCompletions)
+      .where(
+        and(
+          eq(governanceArtifactCompletions.controlRecordId, ra311Record.id),
+          eq(governanceArtifactCompletions.artifactLabel, "risk_assessment_program"),
+          sql`${governanceArtifactCompletions.attestedBy} IS NOT NULL`,
+        ),
+      )
+      .limit(1);
+    raSigned = Boolean(sig);
+    const [report] = await db
+      .select({ id: artifacts.id })
+      .from(artifacts)
+      .where(
+        and(
+          eq(artifacts.controlRecordId, ra311Record.id),
+          eq(artifacts.milestoneKey, "RA.3.11.1.annual_risk_assessment"),
+          sql`${artifacts.fileUrl} IS NOT NULL`,
+        ),
+      )
+      .limit(1);
+    raReportUploaded = Boolean(report);
+  }
+  const raComplete = raSigned && raReportUploaded;
+  const raStatus: "complete" | "partial" | "not_started" = raComplete
+    ? "complete"
+    : raSigned || raReportUploaded
+      ? "partial"
+      : "not_started";
 
   return (
-    <div>
-      <div className="mb-8 flex items-start justify-between gap-4">
+    <div className="mx-auto max-w-6xl space-y-6">
+      {/* ── Header ──────────────────────────────────────────────── */}
+      <header className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-[#0F172A]">Readiness & Audit</h1>
-          <p className="mt-2 text-gray-600">
-            Prepare for C3PAO assessment with mock assessments and readiness tools.
+          <h1 className="text-2xl font-bold text-[var(--color-navy-primary)]">Readiness &amp; Audit</h1>
+          <p className="mt-1.5 text-sm text-[var(--color-gray-600)]">
+            Annual and periodic governance work that produces assessor-facing artifacts.
+            The sidebar surfaces the daily / weekly operational pages — this page is the
+            home for cyclical workflows.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Link
-            href="/dashboard/readiness/outstanding"
-            className="inline-flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
-          >
-            Outstanding Controls
-          </Link>
-          <RecalculateControlsButton />
-        </div>
-      </div>
+        <RecalculateControlsButton />
+      </header>
 
-      <div className="mb-6">
-        <ReadinessChecklist data={checklist} />
-      </div>
-
-      {/* SPRS scoring: progress bar + score + range + priority distribution */}
-      <div className={`mb-6 ${cardClass}`}>
-        <h2 className="mb-4 text-sm font-semibold text-slate-800">SPRS Score</h2>
-        <p className="mb-4 text-sm text-gray-600">
-          Supplier Performance Risk System score from NIST SP 800-171 DoD Assessment Methodology. Each unimplemented control deducts its point value (1, 3, or 5).
-        </p>
-        <p className="mb-3 text-xs font-medium text-slate-500">
-          SPRS range (CMMC 800-171, 110 controls): <span className="tabular-nums text-slate-700">{SPRS_MIN} to {SPRS_MAX}</span>
-        </p>
-        <div className="mb-4">
-          <ProgressBar pct={sprsPct} />
-          <div className="mt-2 flex justify-between text-sm">
-            <span className="font-semibold text-[#0F172A]">{sprsPct}% of range</span>
-            <span className="tabular-nums text-gray-600">
-              {sprsScore} of 110 (range {SPRS_MIN}–{SPRS_MAX})
-            </span>
+      {/* ── Readiness summary: 3 stats ───────────────────────────── */}
+      <section className={cardClass}>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">
+          Current readiness
+        </h2>
+        <div className="mt-4 grid gap-5 sm:grid-cols-3">
+          <div>
+            <p className="text-xs text-[var(--color-gray-500)]">Compliance</p>
+            <p className="mt-1 text-2xl font-bold text-[var(--color-navy-primary)]">{compliancePct}%</p>
+            <div className="mt-2">
+              <ProgressBar pct={compliancePct} />
+            </div>
+            <p className="mt-1 text-[11px] text-[var(--color-gray-500)]">
+              {implemented} / {TOTAL_CONTROLS} controls adjudicated
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-[var(--color-gray-500)]">SPRS Score</p>
+            <p className="mt-1 text-2xl font-bold text-[var(--color-blue-accent)]">{sprsScore}</p>
+            <div className="mt-2">
+              <ProgressBar pct={sprsPct} />
+            </div>
+            <p className="mt-1 text-[11px] text-[var(--color-gray-500)]">
+              Range {SPRS_MIN} to {SPRS_MAX} · DoD Assessment Methodology
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-[var(--color-gray-500)]">Controls implemented</p>
+            <p className="mt-1 text-2xl font-bold text-[var(--color-navy-primary)]">
+              {implemented}<span className="text-base font-normal text-[var(--color-gray-400)]"> / {TOTAL_CONTROLS}</span>
+            </p>
+            <div className="mt-2">
+              <ProgressBar pct={controlsImplementedPct} className="bg-emerald-600" />
+            </div>
+            <p className="mt-1 text-[11px] text-[var(--color-gray-500)]">
+              {outstandingCount} still outstanding
+            </p>
           </div>
         </div>
-        <div className="flex flex-wrap gap-3">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-3 py-1.5 text-sm font-medium text-red-800">
+        <div className="mt-4 flex flex-wrap gap-2 text-xs">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-2.5 py-1 font-medium text-red-800">
             <span className="tabular-nums font-bold">{sprs5}</span> High (5)
           </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1.5 text-sm font-medium text-amber-800">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-1 font-medium text-amber-800">
             <span className="tabular-nums font-bold">{sprs3}</span> Medium (3)
           </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-3 py-1.5 text-sm font-medium text-blue-800">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-2.5 py-1 font-medium text-blue-800">
             <span className="tabular-nums font-bold">{sprs1}</span> Basic (1)
           </span>
         </div>
-      </div>
+      </section>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-
-        <div className={`lg:col-span-6 ${cardClass}`}>
-          <h2 className="mb-4 text-sm font-semibold text-slate-800">Readiness Summary</h2>
-          <div className="grid gap-5 sm:grid-cols-3">
-            <div>
-              <p className="text-sm text-gray-600">Compliance Score</p>
-              <p className="mt-1 text-2xl font-bold text-[#0F172A]">{compliancePct}%</p>
-              <div className="mt-2">
-                <ProgressBar pct={compliancePct} />
-              </div>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">SPRS Score</p>
-              <p className="mt-1 text-2xl font-bold text-[#3B82F6]">{sprsScore}</p>
-              <div className="mt-2">
-                <ProgressBar pct={sprsPct} className="bg-[#3B82F6]" />
-              </div>
-              <p className="mt-1 text-xs text-gray-500">Range: {SPRS_MIN} to {SPRS_MAX}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Controls Implemented</p>
-              <p className="mt-1 text-2xl font-bold text-[#0F172A]">
-                {implemented} / {TOTAL_CONTROLS}
-              </p>
-              <div className="mt-2">
-                <ProgressBar pct={controlsImplementedPct} className="bg-emerald-600" />
-              </div>
-              <p className="mt-1 text-xs text-gray-500">{TOTAL_CONTROLS} total (CMMC 800-171)</p>
-            </div>
-          </div>
-        </div>
-
-        <div className={`lg:col-span-6 ${cardClass}`}>
-          <Link
+      {/* ── Annual workflows hub ─────────────────────────────────── */}
+      <section>
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">
+          Annual workflows
+        </h2>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <WorkflowCard
+            href="/dashboard/readiness/outstanding"
+            icon={ListChecks}
+            title="Outstanding Controls Wizard"
+            subtitle="Close the remaining controls grouped by effort"
+            statusLabel={
+              outstandingCount === 0
+                ? "All controls adjudicated"
+                : `${outstandingCount} outstanding`
+            }
+            tone={outstandingCount === 0 ? "good" : "warn"}
+            ctaLabel={outstandingCount === 0 ? "Review" : "Continue"}
+          />
+          <WorkflowCard
+            href="/dashboard/readiness/risk-assessment"
+            icon={ShieldAlert}
+            title="Annual Risk Assessment"
+            subtitle="3.11.1 — sign program attestation + upload report"
+            statusLabel={
+              raStatus === "complete"
+                ? "Complete"
+                : raStatus === "partial"
+                  ? "In progress"
+                  : "Not started"
+            }
+            tone={raStatus === "complete" ? "good" : raStatus === "partial" ? "warn" : "bad"}
+            ctaLabel={raStatus === "complete" ? "Review" : "Open workflow"}
+          />
+          <WorkflowCard
             href="/dashboard/readiness/mock-assessment"
-            className="group block"
-          >
-            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-[#3B82F6]/10">
-              <FileText className="h-6 w-6 text-[#3B82F6]" />
-            </div>
-            <h3 className="mb-2 text-lg font-semibold text-[#0F172A] group-hover:text-[#3B82F6]">
-              Mock Assessment Simulator
-            </h3>
-            <p className="text-sm text-gray-600">
-              Practice the C3PAO audit process with a guided workflow. Test your readiness with Examine, Test, and Interview scenarios.
-            </p>
-          </Link>
+            icon={ClipboardCheck}
+            title="Mock Assessment Simulator"
+            subtitle="Practice the C3PAO Examine / Test / Interview flow"
+            statusLabel="Self-paced"
+            tone="neutral"
+            ctaLabel="Run a mock"
+          />
         </div>
-
-        <div className={`lg:col-span-6 ${cardClass}`}>
-          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-[#10B981]/10">
-            <Calculator className="h-6 w-6 text-[#10B981]" />
-          </div>
-          <h3 className="mb-2 text-lg font-semibold text-[#0F172A]">SPRS Score Modeler</h3>
-          <p className="mb-4 text-sm text-gray-600">
-            Model the impact of control status changes on your SPRS score. See how closing POA&Ms affects your score.
-          </p>
-          <p className="text-xs text-gray-500 italic">Coming soon</p>
-        </div>
-      </div>
+      </section>
     </div>
+  );
+}
+
+function WorkflowCard({
+  href,
+  icon: Icon,
+  title,
+  subtitle,
+  statusLabel,
+  tone,
+  ctaLabel,
+}: {
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  subtitle: string;
+  statusLabel: string;
+  tone: "good" | "warn" | "bad" | "neutral";
+  ctaLabel: string;
+}) {
+  const toneClass =
+    tone === "good"
+      ? "bg-emerald-100 text-emerald-800"
+      : tone === "warn"
+        ? "bg-amber-100 text-amber-800"
+        : tone === "bad"
+          ? "bg-red-100 text-red-800"
+          : "bg-slate-100 text-slate-700";
+  return (
+    <Link
+      href={href}
+      className="group block rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm transition hover:border-[var(--color-blue-accent)]/40 hover:shadow-md"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--color-blue-accent)]/10">
+          <Icon className="h-5 w-5 text-[var(--color-blue-accent)]" />
+        </div>
+        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${toneClass}`}>
+          {statusLabel}
+        </span>
+      </div>
+      <h3 className="mt-4 text-base font-semibold text-[var(--color-navy-primary)] group-hover:text-[var(--color-blue-accent)]">
+        {title}
+      </h3>
+      <p className="mt-1 text-sm text-[var(--color-gray-600)]">{subtitle}</p>
+      <p className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-[var(--color-blue-accent)]">
+        {ctaLabel} <ArrowRight className="h-3 w-3" />
+      </p>
+    </Link>
   );
 }
