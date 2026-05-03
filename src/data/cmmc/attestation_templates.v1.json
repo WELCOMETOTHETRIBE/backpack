@@ -354,6 +354,32 @@
       "c3paoExaminerNote": "Examiner will ask: 'Show me your audit log review SOP and a recent review record.' Be ready to point to: (1) MAC-SOP-403 in the governance bundle, (2) this attestation, (3) the most recent review record from the audit_log_review register, (4) CrashOnAuditFail=1 in the OS validator output."
     },
     {
+      "templateId": "vulnerability_scanning_program",
+      "kind": "implemented_attestation",
+      "title": "Vulnerability Scanning + Remediation Program In Place",
+      "summary": "Affirm that we operate Microsoft Defender Vulnerability Management (MDVM) on the CUI Vault VM and that EnclaveWatch's weekly cadence enumerates CVEs and posts them to the Trust Codex's vuln_remediation register, with remediation tracked through closure.",
+      "attestationStatement": "I attest, on behalf of our organization, that we operate a continuous vulnerability scanning + remediation program for the CUI Vault. Microsoft Defender Vulnerability Management (MDVM) runs on each in-scope endpoint, enumerating CVEs at the OS, application, and configuration layers. EnclaveWatch's weekly canonical cadence (Sundays 02:00 vault-local) collects the latest MDVM finding set via the Defender XDR API and pushes it to the Trust Codex via /api/registers/vuln-remediation/bulk-upsert, idempotent on (machine_id, cve_id). Findings with severity Critical or High get a remediation owner + target resolution date; resolved findings transition to status=final automatically when MDVM no longer reports them. A 0-finding scan result is preserved as an evidenceRuns row (source=mdvm_scan) so each weekly cycle proves the scan happened even when no CVEs are found. The program covers NIST SP 800-171 §3.11.2 (Vulnerability Scanning) and §3.11.3 (Vulnerability Remediation) end-to-end.",
+      "conditions": [
+        "Microsoft Defender Vulnerability Management is enabled on the CUI Vault VM(s)",
+        "EnclaveWatch's vuln cadence leg is enabled and running on weekly cadence (Cadence:VulnLeg.Enabled = true)",
+        "The Defender XDR API resolves successfully via the VM's MSI (WindowsDefenderATP / Vulnerability.Read.All scope)",
+        "Each weekly cadence run posts a scan record to the Trust Codex (visible in /dashboard/monitoring)",
+        "Critical or High findings carry a target resolution date and a responsible owner before the next cadence cycle",
+        "Resolved findings transition to status=final automatically when MDVM stops reporting them"
+      ],
+      "fallbackIfConditionFails": {
+        "controlIds": ["3.11.2", "3.11.3"],
+        "fallbackDisposition": "partial",
+        "fallbackRegisterSchemaId": "vuln_remediation",
+        "actionRequired": "If MDVM ceases to run, the scan cadence falls outside its 7-day window, or unresolved Critical/High findings exceed 30 days without a target date, the attestation reverts to PARTIAL and the customer must restore scan operations or document the gap in a POA&M before the next cycle."
+      },
+      "evidenceProduced": "governance_artifact_completion (ATTESTATION) on control_records for 3.11.2 and 3.11.3; standing operational evidence via evidenceRuns rows (source=mdvm_scan) and per-CVE entries in the vuln_remediation register.",
+      "linkedControlIds": ["3.11.2", "3.11.3"],
+      "recommendedSignatoryRole": "system_owner",
+      "renewalCadenceDays": 365,
+      "c3paoExaminerNote": "Examiner will ask: (1) 'How are you scanning for vulnerabilities?' -- show the EnclaveWatch Monitoring page Host vitals card for AV/CVE counts, point to the weekly mdvm_scan evidenceRuns rows, demo a manual POST /api/cadence/run leg=vuln from the vault. (2) 'How are you remediating findings?' -- open /dashboard/registers, walk the vuln_remediation register, show resolved findings with status=final and any open Critical/High items with target dates."
+    },
+    {
       "templateId": "risk_assessment_program",
       "kind": "implemented_attestation",
       "title": "Annual Risk Assessment Program In Place",

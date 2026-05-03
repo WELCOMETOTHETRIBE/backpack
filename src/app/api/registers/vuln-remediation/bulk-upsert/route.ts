@@ -5,11 +5,13 @@ import {
   governanceRegisters,
   governanceRegisterEntries,
   controlRecords,
+  evidenceRuns,
 } from "@/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { resolveOrgFromSessionOrBearer } from "@/lib/auth-bearer";
 import { calculateControlStatus } from "@/lib/control-status";
 import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
+import { createHash } from "crypto";
 
 /**
  * POST /api/registers/vuln-remediation/bulk-upsert
@@ -215,6 +217,53 @@ export async function POST(req: Request) {
       inserted++;
     }
   }
+
+  // Always write an evidenceRuns row for the scan event itself, regardless
+  // of finding count. A 0-finding MDVM scan IS evidence -- it proves
+  // scanning happened that week. Without this row, a clean host (no CVEs)
+  // looks indistinguishable from a host where MDVM never ran. The codex
+  // adjudication helper picks up these rows as operational evidence for
+  // 3.11.2 / 3.11.3 even when the register is empty.
+  // Idempotent on the run_id pattern: if EnclaveWatch retries the same
+  // cadence run, we overwrite rather than duplicate.
+  const scanRunId = `MDVM-${body.collected_at?.slice(0, 10) ?? new Date().toISOString().slice(0, 10)}-${body.machine_id ?? "unknown"}`;
+  const scanFingerprint = createHash("sha256")
+    .update(`mdvm_scan|${body.vault_id ?? ""}|${body.machine_id ?? ""}|${body.collected_at ?? ""}`)
+    .digest("hex");
+  await db
+    .delete(evidenceRuns)
+    .where(
+      and(
+        eq(evidenceRuns.organizationId, orgId),
+        eq(evidenceRuns.runFingerprint, scanFingerprint),
+      ),
+    );
+  await db.insert(evidenceRuns).values({
+    organizationId: orgId,
+    systemId: boundary.id,
+    runId: scanRunId,
+    collectedAt: new Date(body.collected_at ?? new Date().toISOString()),
+    collectorName: "mdvm",
+    collectorVersion: body.source ?? "mdvm",
+    bundleRoot: `mdvm://${body.machine_id ?? ""}`,
+    manifest: {
+      source: body.source,
+      machine_id: body.machine_id,
+      vault_id: body.vault_id ?? null,
+      finding_count: body.findings.length,
+      open_critical_high: body.findings.filter(
+        (f) =>
+          (f.severity?.toLowerCase() === "critical" ||
+            f.severity?.toLowerCase() === "high") &&
+          f.remediation_status !== "resolved" &&
+          !f.fixed_utc,
+      ).length,
+    } as Record<string, unknown>,
+    hashAlgorithm: "sha256",
+    source: "mdvm_scan",
+    boundaryId: boundary.id,
+    runFingerprint: scanFingerprint,
+  });
 
   // Recompute 3.11.2 + 3.11.3 status so the new evidence flows through.
   let recomputed = 0;
