@@ -352,22 +352,42 @@ export default async function RiskAssessmentPage() {
         )}
       </section>
 
-      {/* ── Phase 1 placeholder ────────────────────────────────────── */}
-      <section className="rounded-xl border border-dashed border-[var(--color-border)] bg-[var(--color-surface-muted)]/30 p-5">
-        <div className="flex items-start gap-3">
-          <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-[var(--color-blue-accent)]" aria-hidden />
-          <div>
-            <p className="text-sm font-semibold text-[var(--color-navy-primary)]">
-              Coming next: guided assessment wizard
-            </p>
+      {/* ── Guided wizard CTA ──────────────────────────────────────── */}
+      <section className="rounded-xl border border-[var(--color-border)] bg-gradient-to-br from-[var(--color-surface)] to-blue-50/30 p-6 shadow-sm">
+        <div className="flex flex-wrap items-start gap-4">
+          <Sparkles className="mt-0.5 h-6 w-6 shrink-0 text-[var(--color-blue-accent)]" aria-hidden />
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-sm font-semibold text-[var(--color-navy-primary)]">
+                Guided risk assessment wizard
+              </p>
+              <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-900">
+                NEW · Phase 1
+              </span>
+            </div>
             <p className="mt-1 text-xs text-[var(--color-gray-600)]">
-              The next phase brings boundary intake, threat scenario library
-              (preloaded with CUI-Vault-relevant scenarios), AI-assisted scoring
-              suggestions with mandatory human approval, treatment workflow, and
-              an assessor-ready evidence-bundle export. Until then, this page
-              tracks the existing program and makes your real risk-assessment
-              report easy to attach.
+              Walk through scope, applicable threat scenarios (preloaded with
+              ~20 CUI-Vault-relevant risks), treatment decisions, and management
+              sign-off. Each completed assessment writes final entries to the
+              live risk_register — operational evidence for 3.11.1 alongside the
+              signed attestation and uploaded report.
             </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Link
+                href="/dashboard/readiness/risk-assessment/wizard"
+                className="inline-flex items-center gap-1.5 rounded-md bg-[var(--color-blue-accent)] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+              >
+                Start guided assessment <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+              {riskRegisterId && (
+                <Link
+                  href={`/dashboard/evidence-engine/registers/${riskRegisterId}`}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--color-gray-700)] hover:bg-[var(--color-gray-50)]"
+                >
+                  View live register
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       </section>
