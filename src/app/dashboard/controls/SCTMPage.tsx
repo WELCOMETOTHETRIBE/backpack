@@ -633,6 +633,38 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
                   const nist = nistByControlId[r.controlId];
                   const title = opt?.title ?? nist?.title ?? r.controlId;
                   const summary = opt?.summary ?? "";
+                  const family = r.controlId.startsWith("3.1") ? "AC"
+                    : r.controlId.startsWith("3.2") ? "AT"
+                    : r.controlId.startsWith("3.3") ? "AU"
+                    : r.controlId.startsWith("3.4") ? "CM"
+                    : r.controlId.startsWith("3.5") ? "IA"
+                    : r.controlId.startsWith("3.6") ? "IR"
+                    : r.controlId.startsWith("3.7") ? "MA"
+                    : r.controlId.startsWith("3.8") ? "MP"
+                    : r.controlId.startsWith("3.9") ? "PS"
+                    : r.controlId.startsWith("3.10") ? "PE"
+                    : r.controlId.startsWith("3.11") ? "RA"
+                    : r.controlId.startsWith("3.12") ? "CA"
+                    : r.controlId.startsWith("3.13") ? "SC"
+                    : r.controlId.startsWith("3.14") ? "SI"
+                    : "—";
+                  const validatedDays = r.lastValidationDate
+                    ? Math.floor(
+                        (Date.now() - new Date(r.lastValidationDate).getTime()) /
+                          (1000 * 60 * 60 * 24),
+                      )
+                    : null;
+                  const validatedLabel = validatedDays === null
+                    ? null
+                    : validatedDays === 0
+                      ? "today"
+                      : validatedDays === 1
+                        ? "yesterday"
+                        : validatedDays < 30
+                          ? `${validatedDays}d ago`
+                          : validatedDays < 365
+                            ? `${Math.floor(validatedDays / 30)}mo ago`
+                            : `${Math.floor(validatedDays / 365)}y ago`;
                   return (
                     <li key={r.controlId}>
                       <button
@@ -641,56 +673,124 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
                         className={
                           viewMode === "grid"
                             ? "w-full text-left rounded-xl border border-[var(--color-border)] bg-white px-3 py-2.5 hover:border-[var(--color-primary)]/40 hover:shadow-md hover:shadow-black/[0.04] transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2"
-                            : "w-full text-left px-4 py-2.5 hover:bg-[var(--color-gray-50)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--color-blue-accent)]"
+                            : "group w-full text-left px-4 py-3 hover:bg-[var(--color-gray-50)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--color-blue-accent)]"
                         }
                       >
-                        <div className="flex items-center gap-2 min-w-0 flex-wrap mb-1">
-                          <span className="font-mono text-sm font-bold text-[var(--color-navy-primary)] shrink-0">
-                            {r.controlId}
-                          </span>
-                          {r.evidencePartial ? (
-                            <>
-                              <StatusBadge status="in_progress" />
-                              <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-800">
-                                Partial
+                        {viewMode === "grid" ? (
+                          // Grid card: vertical stack (unchanged)
+                          <>
+                            <div className="flex items-center gap-2 min-w-0 flex-wrap mb-1">
+                              <span className="font-mono text-sm font-bold text-[var(--color-navy-primary)] shrink-0">
+                                {r.controlId}
                               </span>
-                            </>
-                          ) : (
-                            <StatusBadge status={r.implementationStatus} />
-                          )}
-                          {r.satisfiedByHybrid ? (
-                            <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-teal-100 text-teal-800">H</span>
-                          ) : (
-                            <>
-                              {r.satisfiedByOs && <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-slate-100 text-slate-700">OS</span>}
-                              {r.satisfiedByCloud && <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-sky-100 text-sky-800">CL</span>}
-                              {r.satisfiedByGovernance && <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-violet-100 text-violet-800">GV</span>}
-                            </>
-                          )}
-                          {r.registerRequired && (
-                            <span
-                              title={
-                                r.registerSatisfied
-                                  ? "Register requirement satisfied"
-                                  : "Register requirement missing"
-                              }
-                              className={`inline-flex items-center whitespace-nowrap shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${
-                                r.registerSatisfied
-                                  ? "bg-emerald-100 text-emerald-800"
-                                  : "bg-amber-100 text-amber-800"
-                              }`}
-                            >
-                              {r.registerSatisfied ? "Reg ✓" : "Reg Missing"}
-                            </span>
-                          )}
-                        </div>
-                        <p className="font-medium text-[var(--color-gray-900)] leading-snug text-[13px] line-clamp-2">
-                          {title}
-                        </p>
-                        {summary && viewMode === "grid" && (
-                          <p className="mt-1 text-[11px] text-[var(--color-gray-500)] line-clamp-2 leading-snug">
-                            {summary}
-                          </p>
+                              {r.evidencePartial ? (
+                                <>
+                                  <StatusBadge status="in_progress" />
+                                  <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-800">Partial</span>
+                                </>
+                              ) : (
+                                <StatusBadge status={r.implementationStatus} />
+                              )}
+                              {r.satisfiedByHybrid ? (
+                                <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-teal-100 text-teal-800">H</span>
+                              ) : (
+                                <>
+                                  {r.satisfiedByOs && <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-slate-100 text-slate-700">OS</span>}
+                                  {r.satisfiedByCloud && <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-sky-100 text-sky-800">CL</span>}
+                                  {r.satisfiedByGovernance && <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-violet-100 text-violet-800">GV</span>}
+                                </>
+                              )}
+                              {r.registerRequired && (
+                                <span
+                                  title={r.registerSatisfied ? "Register requirement satisfied" : "Register requirement missing"}
+                                  className={`inline-flex items-center whitespace-nowrap shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${r.registerSatisfied ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}
+                                >
+                                  {r.registerSatisfied ? "Reg ✓" : "Reg Missing"}
+                                </span>
+                              )}
+                            </div>
+                            <p className="font-medium text-[var(--color-gray-900)] leading-snug text-[13px] line-clamp-2">{title}</p>
+                            {summary && (
+                              <p className="mt-1 text-[11px] text-[var(--color-gray-500)] line-clamp-2 leading-snug">{summary}</p>
+                            )}
+                          </>
+                        ) : (
+                          // List row: horizontal flex with three regions so the
+                          // full screen width earns its keep -- ID/badges left,
+                          // title + summary middle (grows), meta right.
+                          <div className="flex items-start gap-4 min-w-0">
+                            {/* Left: ID + family + status pills */}
+                            <div className="flex flex-col gap-1 shrink-0 min-w-[140px]">
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-mono text-sm font-bold text-[var(--color-navy-primary)]">{r.controlId}</span>
+                                <span className="inline-flex items-center rounded bg-[var(--color-gray-100)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--color-gray-600)]">
+                                  {family}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1 flex-wrap">
+                                {r.evidencePartial ? (
+                                  <>
+                                    <StatusBadge status="in_progress" />
+                                    <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-800">Partial</span>
+                                  </>
+                                ) : (
+                                  <StatusBadge status={r.implementationStatus} />
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Middle: title + summary (grows) */}
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-[var(--color-gray-900)] leading-snug text-[13px] truncate">
+                                {title}
+                              </p>
+                              {summary && (
+                                <p className="mt-0.5 text-[11px] text-[var(--color-gray-500)] line-clamp-1 leading-snug">
+                                  {summary}
+                                </p>
+                              )}
+                            </div>
+
+                            {/* Right: source + register + meta */}
+                            <div className="flex flex-col items-end gap-1 shrink-0 hidden md:flex">
+                              <div className="flex items-center gap-1">
+                                {r.satisfiedByHybrid ? (
+                                  <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-teal-100 text-teal-800">Hybrid</span>
+                                ) : (
+                                  <>
+                                    {r.satisfiedByOs && <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-slate-100 text-slate-700">OS</span>}
+                                    {r.satisfiedByCloud && <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-sky-100 text-sky-800">Cloud</span>}
+                                    {r.satisfiedByGovernance && <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-violet-100 text-violet-800">Gov</span>}
+                                  </>
+                                )}
+                                {r.registerRequired && (
+                                  <span
+                                    title={r.registerSatisfied ? "Register requirement satisfied" : "Register requirement missing"}
+                                    className={`inline-flex items-center whitespace-nowrap rounded px-1.5 py-0.5 text-[10px] font-medium ${r.registerSatisfied ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}
+                                  >
+                                    {r.registerSatisfied ? "Reg ✓" : "Reg !"}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 text-[11px] text-[var(--color-gray-500)]">
+                                {r.artifactCount > 0 && (
+                                  <span title="Artifacts attached to this control">
+                                    {r.artifactCount} artifact{r.artifactCount === 1 ? "" : "s"}
+                                  </span>
+                                )}
+                                {r.roleName && (
+                                  <span className="truncate max-w-[140px]" title={`Responsible: ${r.roleName}`}>
+                                    {r.roleName}
+                                  </span>
+                                )}
+                                {validatedLabel && (
+                                  <span title={`Last validated ${new Date(r.lastValidationDate!).toLocaleDateString()}`}>
+                                    validated {validatedLabel}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
                         )}
                       </button>
                     </li>
