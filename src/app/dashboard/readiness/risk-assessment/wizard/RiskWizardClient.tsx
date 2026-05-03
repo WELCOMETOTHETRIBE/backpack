@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -10,6 +10,10 @@ import {
   AlertTriangle,
   ShieldCheck,
   Loader2,
+  Sparkles,
+  Info,
+  X,
+  Check,
 } from "lucide-react";
 import type {
   ThreatScenario,
@@ -19,6 +23,39 @@ import type {
 } from "../threat-scenarios";
 
 type Category = ThreatScenario["category"];
+
+type AdjustmentTrace = {
+  signal: string;
+  effect: "lower_likelihood" | "raise_likelihood" | "raise_impact" | "lower_impact" | "control_added";
+  reason: string;
+};
+
+type ScenarioSuggestion = {
+  scenarioId: string;
+  likelihood: Likelihood;
+  impact: Impact;
+  existingControls: string[];
+  trace: AdjustmentTrace[];
+};
+
+type PostureSnapshot = {
+  boundaryName: string;
+  implementedControlCount: number;
+  atRiskControlCount: number;
+  signedAttestations: { label: string; signedAt: string; controlIds: string[] }[];
+  cadenceByName: Record<
+    string,
+    { source: string; lastSeenAt: string | null; daysSinceLast: number | null; status: "green" | "amber" | "red" | "never" }
+  >;
+  vulnerability: { openCritical: number; openHigh: number; resolved: number; totalEntries: number };
+};
+
+type AiDraft = {
+  section: "risk_statement" | "treatment_notes";
+  proposed: string;
+  loading: boolean;
+  error?: string;
+};
 
 type Selection = {
   scenarioId: string;
@@ -30,6 +67,7 @@ type Selection = {
   owner: string;
   targetDate: string;
   notes: string;
+  trace: AdjustmentTrace[];
 };
 
 type Props = {
@@ -97,6 +135,39 @@ export default function RiskWizardClient({
   const [methodology, setMethodology] = useState("NIST SP 800-30 Rev 1");
 
   const [selections, setSelections] = useState<Map<string, Selection>>(new Map());
+  const [posture, setPosture] = useState<PostureSnapshot | null>(null);
+  const [postureLoading, setPostureLoading] = useState(true);
+  const [postureError, setPostureError] = useState<string | null>(null);
+  const [suggestionsById, setSuggestionsById] = useState<Map<string, ScenarioSuggestion>>(new Map());
+  const [aiDrafts, setAiDrafts] = useState<Map<string, AiDraft>>(new Map());
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/risk-assessment/posture");
+        const json = (await res.json()) as
+          | { posture: PostureSnapshot; suggestions: ScenarioSuggestion[] }
+          | { error: string };
+        if (cancelled) return;
+        if (!res.ok || "error" in json) {
+          setPostureError("error" in json ? json.error : "Failed to load posture");
+          return;
+        }
+        setPosture(json.posture);
+        const map = new Map<string, ScenarioSuggestion>();
+        for (const s of json.suggestions) map.set(s.scenarioId, s);
+        setSuggestionsById(map);
+      } catch (err) {
+        if (!cancelled) setPostureError(err instanceof Error ? err.message : "Network error");
+      } finally {
+        if (!cancelled) setPostureLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const [preparer, setPreparer] = useState("");
   const [reviewer, setReviewer] = useState("");
@@ -122,18 +193,87 @@ export default function RiskWizardClient({
       if (next.has(s.id)) {
         next.delete(s.id);
       } else {
+        const adj = suggestionsById.get(s.id);
         next.set(s.id, {
           scenarioId: s.id,
           riskStatement: s.riskStatement,
-          likelihood: s.suggestedLikelihood,
-          impact: s.suggestedImpact,
-          existingControls: s.existingControls.join("\n"),
+          likelihood: adj?.likelihood ?? s.suggestedLikelihood,
+          impact: adj?.impact ?? s.suggestedImpact,
+          existingControls: (adj?.existingControls ?? s.existingControls).join("\n"),
           treatment: s.suggestedTreatment,
           owner: "",
           targetDate: oneYearFromNow,
           notes: "",
+          trace: adj?.trace ?? [],
         });
       }
+      return next;
+    });
+  }
+
+  async function requestAiRewrite(scenarioId: string, section: "risk_statement" | "treatment_notes") {
+    const sel = selections.get(scenarioId);
+    if (!sel) return;
+    setAiDrafts((prev) => {
+      const next = new Map(prev);
+      next.set(scenarioId, { section, proposed: "", loading: true });
+      return next;
+    });
+    try {
+      const res = await fetch("/api/risk-assessment/ai-rewrite", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          scenarioId,
+          section,
+          currentDraft: section === "risk_statement" ? sel.riskStatement : sel.notes,
+          treatment: section === "treatment_notes" ? sel.treatment : undefined,
+        }),
+      });
+      const json = (await res.json()) as { text?: string; error?: string };
+      setAiDrafts((prev) => {
+        const next = new Map(prev);
+        if (!res.ok || !json.text) {
+          next.set(scenarioId, {
+            section,
+            proposed: "",
+            loading: false,
+            error: json.error ?? "AI rewrite failed",
+          });
+        } else {
+          next.set(scenarioId, { section, proposed: json.text, loading: false });
+        }
+        return next;
+      });
+    } catch (err) {
+      setAiDrafts((prev) => {
+        const next = new Map(prev);
+        next.set(scenarioId, {
+          section,
+          proposed: "",
+          loading: false,
+          error: err instanceof Error ? err.message : "Network error",
+        });
+        return next;
+      });
+    }
+  }
+
+  function acceptAiDraft(scenarioId: string) {
+    const draft = aiDrafts.get(scenarioId);
+    if (!draft || !draft.proposed) return;
+    if (draft.section === "risk_statement") {
+      updateSelection(scenarioId, { riskStatement: draft.proposed });
+    } else {
+      updateSelection(scenarioId, { notes: draft.proposed });
+    }
+    discardAiDraft(scenarioId);
+  }
+
+  function discardAiDraft(scenarioId: string) {
+    setAiDrafts((prev) => {
+      const next = new Map(prev);
+      next.delete(scenarioId);
       return next;
     });
   }
@@ -310,11 +450,26 @@ export default function RiskWizardClient({
             selections={selections}
             toggleScenario={toggleScenario}
             updateSelection={updateSelection}
+            posture={posture}
+            postureLoading={postureLoading}
+            postureError={postureError}
+            suggestionsById={suggestionsById}
+            aiDrafts={aiDrafts}
+            requestAiRewrite={requestAiRewrite}
+            acceptAiDraft={acceptAiDraft}
+            discardAiDraft={discardAiDraft}
           />
         )}
 
         {step === "Treatment" && (
-          <TreatmentStep selections={selections} updateSelection={updateSelection} />
+          <TreatmentStep
+            selections={selections}
+            updateSelection={updateSelection}
+            aiDrafts={aiDrafts}
+            requestAiRewrite={requestAiRewrite}
+            acceptAiDraft={acceptAiDraft}
+            discardAiDraft={discardAiDraft}
+          />
         )}
 
         {step === "Approve" && (
@@ -488,6 +643,14 @@ function ThreatsStep(props: {
   selections: Map<string, Selection>;
   toggleScenario: (s: ThreatScenario) => void;
   updateSelection: (id: string, patch: Partial<Selection>) => void;
+  posture: PostureSnapshot | null;
+  postureLoading: boolean;
+  postureError: string | null;
+  suggestionsById: Map<string, ScenarioSuggestion>;
+  aiDrafts: Map<string, AiDraft>;
+  requestAiRewrite: (scenarioId: string, section: "risk_statement" | "treatment_notes") => void;
+  acceptAiDraft: (scenarioId: string) => void;
+  discardAiDraft: (scenarioId: string) => void;
 }) {
   return (
     <div className="space-y-5">
@@ -498,14 +661,17 @@ function ThreatsStep(props: {
           </h2>
           <p className="mt-1 text-xs text-[var(--color-gray-600)]">
             Select scenarios that apply to your environment. Each selection becomes a
-            risk register entry. You can edit the suggested likelihood/impact and risk
-            statement.
+            risk register entry. Suggested scoring is adjusted from your real posture
+            (signed attestations, cadence health, open CVEs); click "Why this score?"
+            to see the trace.
           </p>
         </div>
         <span className="shrink-0 inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-900">
           {props.selections.size} selected
         </span>
       </div>
+
+      <PostureBanner posture={props.posture} loading={props.postureLoading} error={props.postureError} />
 
       {props.categories.map((cat) => {
         const list = props.scenariosByCategory.get(cat.id) ?? [];
@@ -522,6 +688,17 @@ function ThreatsStep(props: {
               {list.map((s) => {
                 const sel = props.selections.get(s.id);
                 const checked = !!sel;
+                const adj = props.suggestionsById.get(s.id);
+                const headerL = adj?.likelihood ?? s.suggestedLikelihood;
+                const headerI = adj?.impact ?? s.suggestedImpact;
+                const adjusted =
+                  adj &&
+                  (adj.likelihood !== s.suggestedLikelihood ||
+                    adj.impact !== s.suggestedImpact ||
+                    adj.trace.length > 0);
+                const draft = sel ? props.aiDrafts.get(s.id) : undefined;
+                const draftForRiskStmt =
+                  draft?.section === "risk_statement" ? draft : undefined;
                 return (
                   <div key={s.id} className="px-3 py-3">
                     <label className="flex cursor-pointer items-start gap-2">
@@ -541,11 +718,16 @@ function ThreatsStep(props: {
                           </span>
                           <span
                             className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${riskTone(
-                              inherentRisk(s.suggestedLikelihood, s.suggestedImpact),
+                              inherentRisk(headerL, headerI),
                             )}`}
                           >
-                            suggested: {s.suggestedLikelihood} × {s.suggestedImpact}
+                            {adjusted ? "posture-adjusted" : "suggested"}: {headerL} × {headerI}
                           </span>
+                          {adjusted && (
+                            <span className="inline-flex items-center gap-0.5 rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-medium text-blue-800">
+                              <Sparkles className="h-2.5 w-2.5" /> evidence-driven
+                            </span>
+                          )}
                         </div>
                         <p className="mt-1 text-xs text-[var(--color-gray-600)]">
                           {s.riskStatement}
@@ -560,7 +742,25 @@ function ThreatsStep(props: {
 
                     {sel && (
                       <div className="mt-3 ml-6 space-y-3 rounded-md border border-[var(--color-border-muted)] bg-[var(--color-gray-50)]/40 p-3">
-                        <Field label="Risk statement (edit if needed)">
+                        {sel.trace.length > 0 && <WhyTraceReveal trace={sel.trace} />}
+                        <Field
+                          label="Risk statement (edit if needed)"
+                          actions={
+                            <button
+                              type="button"
+                              onClick={() => props.requestAiRewrite(s.id, "risk_statement")}
+                              disabled={draftForRiskStmt?.loading}
+                              className="inline-flex items-center gap-1 rounded border border-[var(--color-border)] bg-white px-1.5 py-0.5 text-[10px] font-medium text-[var(--color-gray-700)] hover:bg-[var(--color-gray-50)] disabled:opacity-50"
+                            >
+                              {draftForRiskStmt?.loading ? (
+                                <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                              ) : (
+                                <Sparkles className="h-2.5 w-2.5" />
+                              )}
+                              Tailor with AI
+                            </button>
+                          }
+                        >
                           <textarea
                             value={sel.riskStatement}
                             onChange={(e) =>
@@ -570,6 +770,14 @@ function ThreatsStep(props: {
                             className="w-full rounded-md border border-[var(--color-border)] bg-white px-3 py-1.5 text-xs"
                           />
                         </Field>
+                        {draftForRiskStmt && (draftForRiskStmt.proposed || draftForRiskStmt.error) && (
+                          <AiDiffCard
+                            current={sel.riskStatement}
+                            draft={draftForRiskStmt}
+                            onAccept={() => props.acceptAiDraft(s.id)}
+                            onDiscard={() => props.discardAiDraft(s.id)}
+                          />
+                        )}
                         <div className="grid gap-3 md:grid-cols-2">
                           <Field label="Likelihood">
                             <select
@@ -640,6 +848,10 @@ function ThreatsStep(props: {
 function TreatmentStep(props: {
   selections: Map<string, Selection>;
   updateSelection: (id: string, patch: Partial<Selection>) => void;
+  aiDrafts: Map<string, AiDraft>;
+  requestAiRewrite: (scenarioId: string, section: "risk_statement" | "treatment_notes") => void;
+  acceptAiDraft: (scenarioId: string) => void;
+  discardAiDraft: (scenarioId: string) => void;
 }) {
   const items = Array.from(props.selections.values());
 
@@ -733,7 +945,28 @@ function TreatmentStep(props: {
                 </Field>
               </div>
 
-              <Field label="Notes (optional)">
+              <Field
+                label="Notes (optional)"
+                actions={
+                  <button
+                    type="button"
+                    onClick={() => props.requestAiRewrite(sel.scenarioId, "treatment_notes")}
+                    disabled={
+                      props.aiDrafts.get(sel.scenarioId)?.section === "treatment_notes" &&
+                      props.aiDrafts.get(sel.scenarioId)?.loading
+                    }
+                    className="inline-flex items-center gap-1 rounded border border-[var(--color-border)] bg-white px-1.5 py-0.5 text-[10px] font-medium text-[var(--color-gray-700)] hover:bg-[var(--color-gray-50)] disabled:opacity-50"
+                  >
+                    {props.aiDrafts.get(sel.scenarioId)?.section === "treatment_notes" &&
+                    props.aiDrafts.get(sel.scenarioId)?.loading ? (
+                      <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-2.5 w-2.5" />
+                    )}
+                    Draft with AI
+                  </button>
+                }
+              >
                 <textarea
                   value={sel.notes}
                   onChange={(e) =>
@@ -744,6 +977,19 @@ function TreatmentStep(props: {
                   className="w-full rounded-md border border-[var(--color-border)] bg-white px-3 py-1.5 text-xs"
                 />
               </Field>
+              {(() => {
+                const draft = props.aiDrafts.get(sel.scenarioId);
+                if (!draft || draft.section !== "treatment_notes") return null;
+                if (!draft.proposed && !draft.error) return null;
+                return (
+                  <AiDiffCard
+                    current={sel.notes}
+                    draft={draft}
+                    onAccept={() => props.acceptAiDraft(sel.scenarioId)}
+                    onDiscard={() => props.discardAiDraft(sel.scenarioId)}
+                  />
+                );
+              })()}
             </div>
           </div>
         ))}
@@ -917,22 +1163,225 @@ function Field({
   label,
   required,
   hint,
+  actions,
   children,
 }: {
   label: string;
   required?: boolean;
   hint?: string;
+  actions?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <label className="block">
-      <span className="text-[11px] font-semibold uppercase tracking-wide text-[var(--color-gray-600)]">
-        {label}
-        {required && <span className="ml-0.5 text-red-600">*</span>}
+      <span className="flex items-center justify-between gap-2">
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-[var(--color-gray-600)]">
+          {label}
+          {required && <span className="ml-0.5 text-red-600">*</span>}
+        </span>
+        {actions}
       </span>
       <div className="mt-1">{children}</div>
       {hint && <span className="mt-1 block text-[10px] text-[var(--color-gray-500)]">{hint}</span>}
     </label>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// Posture banner (top of Threats step)
+// ─────────────────────────────────────────────────────────────────────
+function PostureBanner({
+  posture,
+  loading,
+  error,
+}: {
+  posture: PostureSnapshot | null;
+  loading: boolean;
+  error: string | null;
+}) {
+  if (loading) {
+    return (
+      <div className="flex items-center gap-2 rounded-md border border-[var(--color-border-muted)] bg-[var(--color-gray-50)]/50 p-3 text-xs text-[var(--color-gray-600)]">
+        <Loader2 className="h-3 w-3 animate-spin" /> Reading your org's posture from
+        signed attestations, cadence health, and the live registers…
+      </div>
+    );
+  }
+  if (error || !posture) {
+    return (
+      <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+        <AlertTriangle className="mr-1 inline-block h-3 w-3" />
+        Posture unavailable — using static curated suggestions only. {error}
+      </div>
+    );
+  }
+
+  const cadenceList = Object.values(posture.cadenceByName);
+  const greenCount = cadenceList.filter((c) => c.status === "green").length;
+  const amberCount = cadenceList.filter((c) => c.status === "amber").length;
+  const redCount = cadenceList.filter((c) => c.status === "red" || c.status === "never").length;
+
+  return (
+    <div className="rounded-md border border-blue-200 bg-blue-50/50 p-3 text-xs">
+      <div className="flex flex-wrap items-center gap-2">
+        <Sparkles className="h-3.5 w-3.5 text-blue-700" />
+        <span className="font-semibold text-blue-900">Posture-aware suggestions enabled</span>
+        <span className="text-blue-800">
+          for boundary <strong>{posture.boundaryName}</strong>.
+        </span>
+      </div>
+      <div className="mt-2 grid gap-1.5 sm:grid-cols-2 lg:grid-cols-4">
+        <PostureStat
+          label="Signed attestations"
+          value={posture.signedAttestations.length}
+        />
+        <PostureStat
+          label="Implemented controls"
+          value={posture.implementedControlCount}
+          subValue={posture.atRiskControlCount > 0 ? `${posture.atRiskControlCount} at-risk` : undefined}
+        />
+        <PostureStat
+          label="Cadence health"
+          value={`${greenCount} green`}
+          subValue={
+            amberCount + redCount > 0
+              ? `${amberCount} amber · ${redCount} red`
+              : "all sources fresh"
+          }
+        />
+        <PostureStat
+          label="Open CVEs"
+          value={`${posture.vulnerability.openCritical} critical`}
+          subValue={`${posture.vulnerability.openHigh} high · ${posture.vulnerability.resolved} resolved`}
+        />
+      </div>
+      <p className="mt-2 text-[10px] italic text-blue-800">
+        Likelihood/impact below has been adjusted from the curated baseline using these
+        signals. You can override any value before saving.
+      </p>
+    </div>
+  );
+}
+
+function PostureStat({ label, value, subValue }: { label: string; value: string | number; subValue?: string }) {
+  return (
+    <div className="rounded border border-blue-100 bg-white px-2 py-1.5">
+      <p className="text-[9px] font-semibold uppercase tracking-wide text-blue-700">{label}</p>
+      <p className="text-sm font-semibold tabular-nums text-blue-900">{value}</p>
+      {subValue && <p className="text-[9px] text-blue-700">{subValue}</p>}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// Why-this-score reveal (per scenario)
+// ─────────────────────────────────────────────────────────────────────
+function WhyTraceReveal({ trace }: { trace: AdjustmentTrace[] }) {
+  const [open, setOpen] = useState(false);
+  if (trace.length === 0) return null;
+  return (
+    <details open={open} onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open)}>
+      <summary className="inline-flex cursor-pointer list-none items-center gap-1 text-[10px] font-medium text-blue-800 hover:underline">
+        <Info className="h-2.5 w-2.5" /> Why this score? ({trace.length} signal{trace.length === 1 ? "" : "s"})
+      </summary>
+      <ul className="mt-1.5 space-y-0.5 rounded border border-blue-100 bg-blue-50/30 p-2 text-[10px]">
+        {trace.map((t, i) => (
+          <li key={i} className="flex items-start gap-1.5">
+            <span
+              className={`mt-0.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full ${
+                t.effect.startsWith("raise")
+                  ? "bg-red-500"
+                  : t.effect === "control_added"
+                    ? "bg-blue-500"
+                    : "bg-emerald-500"
+              }`}
+            />
+            <span className="text-blue-900">
+              <span className="font-mono text-[9px] text-blue-700">{t.effect}</span> · {t.reason}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </details>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// AI diff card — shown when Claude returns a draft
+// ─────────────────────────────────────────────────────────────────────
+function AiDiffCard({
+  current,
+  draft,
+  onAccept,
+  onDiscard,
+}: {
+  current: string;
+  draft: AiDraft;
+  onAccept: () => void;
+  onDiscard: () => void;
+}) {
+  if (draft.error) {
+    return (
+      <div className="flex items-start justify-between gap-2 rounded-md border border-red-200 bg-red-50 p-2 text-[11px] text-red-800">
+        <div className="flex-1">
+          <p className="font-semibold">AI tailoring failed</p>
+          <p className="mt-0.5">{draft.error}</p>
+        </div>
+        <button
+          type="button"
+          onClick={onDiscard}
+          className="shrink-0 rounded p-1 hover:bg-red-100"
+          aria-label="Dismiss"
+        >
+          <X className="h-3 w-3" />
+        </button>
+      </div>
+    );
+  }
+  return (
+    <div className="rounded-md border border-blue-200 bg-blue-50/40 p-2.5">
+      <div className="flex items-center gap-1.5">
+        <Sparkles className="h-3 w-3 text-blue-700" />
+        <span className="text-[10px] font-semibold uppercase tracking-wide text-blue-900">
+          AI suggested rewrite
+        </span>
+        <span className="text-[10px] text-blue-700">claude-haiku-4-5</span>
+      </div>
+      <div className="mt-2 grid gap-2 md:grid-cols-2">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">
+            Current
+          </p>
+          <p className="mt-0.5 rounded bg-white p-2 text-[11px] text-[var(--color-gray-700)]">
+            {current.trim() || <span className="italic text-[var(--color-gray-400)]">(empty)</span>}
+          </p>
+        </div>
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-blue-700">
+            Proposed
+          </p>
+          <p className="mt-0.5 rounded border border-blue-200 bg-white p-2 text-[11px] text-blue-900">
+            {draft.proposed}
+          </p>
+        </div>
+      </div>
+      <div className="mt-2 flex justify-end gap-2">
+        <button
+          type="button"
+          onClick={onDiscard}
+          className="inline-flex items-center gap-1 rounded border border-[var(--color-border)] bg-white px-2 py-1 text-[11px] font-medium text-[var(--color-gray-700)] hover:bg-[var(--color-gray-50)]"
+        >
+          <X className="h-3 w-3" /> Discard
+        </button>
+        <button
+          type="button"
+          onClick={onAccept}
+          className="inline-flex items-center gap-1 rounded bg-[var(--color-blue-accent)] px-2 py-1 text-[11px] font-semibold text-white hover:opacity-90"
+        >
+          <Check className="h-3 w-3" /> Use this
+        </button>
+      </div>
+    </div>
   );
 }
 
