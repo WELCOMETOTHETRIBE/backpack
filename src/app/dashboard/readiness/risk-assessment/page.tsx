@@ -22,6 +22,8 @@ import {
   ListPlus,
   ArrowRight,
   Sparkles,
+  Download,
+  FileArchive,
 } from "lucide-react";
 
 /**
@@ -162,6 +164,64 @@ export default async function RiskAssessmentPage() {
       riskRegisterEntryCount = counts?.total ?? 0;
       riskRegisterFinalCount = counts?.finals ?? 0;
     }
+  }
+
+  // ── Past assessments (Phase 3) ──
+  // Query risk_register entries that carry an assessment_id in entryData
+  // and group client-side. Mirrors what /api/risk-assessment/list does so
+  // the page renders without an extra fetch hop.
+  type PastAssessment = {
+    assessmentId: string;
+    riskCount: number;
+    reviewPeriodEnd: string | null;
+    preparer: string | null;
+    approver: string | null;
+    signOffDate: string | null;
+    earliestAt: string | null;
+  };
+  const pastAssessments: PastAssessment[] = [];
+  if (riskRegisterId) {
+    const rows = await db
+      .select({
+        entryData: governanceRegisterEntries.entryData,
+        finalizedAt: governanceRegisterEntries.finalizedAt,
+      })
+      .from(governanceRegisterEntries)
+      .where(
+        and(
+          eq(governanceRegisterEntries.registerId, riskRegisterId),
+          sql`${governanceRegisterEntries.entryData} ? 'assessment_id'`,
+        ),
+      );
+    const map = new Map<string, PastAssessment>();
+    for (const r of rows) {
+      const d = (r.entryData ?? {}) as Record<string, unknown>;
+      const id = String(d.assessment_id ?? "");
+      if (!id) continue;
+      const at = r.finalizedAt instanceof Date ? r.finalizedAt.toISOString() : null;
+      const existing = map.get(id);
+      if (existing) {
+        existing.riskCount++;
+        if (at && (!existing.earliestAt || at < existing.earliestAt)) existing.earliestAt = at;
+      } else {
+        map.set(id, {
+          assessmentId: id,
+          riskCount: 1,
+          reviewPeriodEnd: d.review_period_end ? String(d.review_period_end) : null,
+          preparer: d.preparer ? String(d.preparer) : null,
+          approver: d.approver ? String(d.approver) : null,
+          signOffDate: d.sign_off_date ? String(d.sign_off_date) : null,
+          earliestAt: at,
+        });
+      }
+    }
+    pastAssessments.push(
+      ...Array.from(map.values()).sort((a, b) => {
+        const aDate = a.signOffDate ?? a.earliestAt ?? "";
+        const bDate = b.signOffDate ?? b.earliestAt ?? "";
+        return bDate.localeCompare(aDate);
+      }),
+    );
   }
 
   // Latest signal — the more recent of attestation / report
@@ -391,6 +451,70 @@ export default async function RiskAssessmentPage() {
           </div>
         </div>
       </section>
+
+      {/* ── Past assessments (Phase 3) ────────────────────────────── */}
+      {pastAssessments.length > 0 && (
+        <section className={cardClass}>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <FileArchive className="h-5 w-5 text-[var(--color-gray-500)]" aria-hidden />
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">
+                  Past assessments
+                </h2>
+              </div>
+              <p className="mt-1 text-sm text-[var(--color-gray-600)]">
+                Each completed assessment can be downloaded as a single ZIP
+                evidence bundle (cover PDF, CSV, JSON, posture snapshot) for
+                offline C3PAO review.
+              </p>
+            </div>
+            <span className="shrink-0 inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-900">
+              {pastAssessments.length}
+            </span>
+          </div>
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-[var(--color-border-muted)] text-[10px] uppercase tracking-wide text-[var(--color-gray-500)]">
+                  <th className="px-2 py-1.5 text-left font-semibold">Sign-off date</th>
+                  <th className="px-2 py-1.5 text-left font-semibold">Period end</th>
+                  <th className="px-2 py-1.5 text-left font-semibold">Risks</th>
+                  <th className="px-2 py-1.5 text-left font-semibold">Preparer</th>
+                  <th className="px-2 py-1.5 text-left font-semibold">Approver</th>
+                  <th className="px-2 py-1.5 text-right font-semibold">Bundle</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--color-border-muted)]">
+                {pastAssessments.map((a) => (
+                  <tr key={a.assessmentId} className="text-[var(--color-gray-700)]">
+                    <td className="px-2 py-1.5 font-medium text-[var(--color-navy-primary)]">
+                      {a.signOffDate ?? "—"}
+                    </td>
+                    <td className="px-2 py-1.5">{a.reviewPeriodEnd ?? "—"}</td>
+                    <td className="px-2 py-1.5 tabular-nums">{a.riskCount}</td>
+                    <td className="px-2 py-1.5">{a.preparer ?? "—"}</td>
+                    <td className="px-2 py-1.5">{a.approver ?? "—"}</td>
+                    <td className="px-2 py-1.5 text-right">
+                      <a
+                        href={`/api/risk-assessment/bundle/${a.assessmentId}`}
+                        className="inline-flex items-center gap-1 rounded border border-[var(--color-border)] bg-white px-2 py-1 text-[11px] font-medium text-[var(--color-gray-700)] hover:bg-[var(--color-gray-50)]"
+                      >
+                        <Download className="h-3 w-3" /> ZIP
+                      </a>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-3 text-[10px] italic text-[var(--color-gray-500)]">
+            Bundles are generated on demand and include the current org posture
+            (signed attestations, cadence health, vuln counts) at the time of
+            download.
+          </p>
+        </section>
+      )}
 
       {/* ── Footer note ───────────────────────────────────────────── */}
       <p className="text-xs text-[var(--color-gray-500)]">

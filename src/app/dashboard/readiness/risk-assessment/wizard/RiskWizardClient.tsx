@@ -14,6 +14,7 @@ import {
   Info,
   X,
   Check,
+  Download,
 } from "lucide-react";
 import type {
   ThreatScenario,
@@ -371,9 +372,17 @@ export default function RiskWizardClient({
           to the live risk_register. Approved sign-off recorded.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
+          {submitResult.assessmentId && (
+            <a
+              href={`/api/risk-assessment/bundle/${submitResult.assessmentId}`}
+              className="inline-flex items-center gap-1.5 rounded-md bg-[var(--color-blue-accent)] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+            >
+              <Download className="h-3.5 w-3.5" /> Download evidence bundle
+            </a>
+          )}
           <Link
             href={`/dashboard/evidence-engine/registers/${registerId}`}
-            className="inline-flex items-center gap-1.5 rounded-md bg-[var(--color-blue-accent)] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+            className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--color-gray-700)] hover:bg-[var(--color-gray-50)]"
           >
             Open risk_register <ArrowRight className="h-3.5 w-3.5" />
           </Link>
@@ -384,6 +393,12 @@ export default function RiskWizardClient({
             Back to Risk Assessment
           </Link>
         </div>
+        {submitResult.assessmentId && (
+          <p className="mt-3 text-[11px] text-emerald-800">
+            Bundle includes a PDF cover sheet, risks.csv/json, posture snapshot,
+            and a SHA-256 fingerprint.
+          </p>
+        )}
       </div>
     );
   }
