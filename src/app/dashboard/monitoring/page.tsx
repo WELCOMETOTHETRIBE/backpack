@@ -10,6 +10,7 @@ import {
   controlRecords,
   poamEntries,
   boundaries,
+  organizations,
 } from "@/db/schema";
 import { eq, sql, desc, and, inArray } from "drizzle-orm";
 import Link from "next/link";
@@ -113,6 +114,17 @@ export default async function MonitoringPage() {
     .from(evidenceRuns)
     .where(eq(evidenceRuns.organizationId, orgId))
     .orderBy(desc(evidenceRuns.collectedAt));
+
+  // EnclaveWatch UI deep-link base. When the org has published its
+  // reverse-proxied EnclaveWatch URL, each Program health pill below
+  // becomes a click-through into the boundary VM's EnclaveWatch UI,
+  // mirroring the per-machine vuln deep-link the auditor view uses.
+  const [orgRow] = await db
+    .select({ enclavewatchBaseUrl: organizations.enclavewatchBaseUrl })
+    .from(organizations)
+    .where(eq(organizations.id, orgId))
+    .limit(1);
+  const enclavewatchBaseUrl = orgRow?.enclavewatchBaseUrl?.replace(/\/+$/, "") ?? null;
 
   const findingCounts = await db
     .select({
@@ -522,11 +534,21 @@ export default async function MonitoringPage() {
           {perSource.map((s) => {
             const cls = freshnessClasses(s.freshness);
             const Icon = s.icon;
-            return (
-              <div
-                key={s.key}
-                className={`${cardClass} relative ring-2 ring-offset-2 ring-offset-[var(--color-bg)] ${cls.ring}`}
-              >
+            const deepLink = enclavewatchBaseUrl
+              ? `${enclavewatchBaseUrl}/?source=${encodeURIComponent(s.key)}`
+              : null;
+            const cardCommonCls = `${cardClass} relative ring-2 ring-offset-2 ring-offset-[var(--color-bg)] ${cls.ring}`;
+            const wrapperProps = deepLink
+              ? {
+                  href: deepLink,
+                  target: "_blank" as const,
+                  rel: "noreferrer noopener",
+                  title: `Open ${s.label} in EnclaveWatch (${enclavewatchBaseUrl}). Requires reachability from your network.`,
+                  className: `${cardCommonCls} block transition hover:bg-[var(--color-gray-50)] hover:ring-offset-4 focus:outline-none focus-visible:ring-4 focus-visible:ring-[var(--color-blue-accent)]/30`,
+                }
+              : { className: cardCommonCls };
+            const inner = (
+              <>
                 <div className="flex items-start justify-between gap-2">
                   <Icon className="h-5 w-5 text-[var(--color-gray-500)]" aria-hidden />
                   <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${cls.pill}`}>
@@ -534,8 +556,11 @@ export default async function MonitoringPage() {
                     {freshnessLabel(s.daysSince)}
                   </span>
                 </div>
-                <p className="mt-3 text-sm font-semibold text-[var(--color-navy-primary)]">
-                  {s.label}
+                <p className="mt-3 flex items-center gap-1 text-sm font-semibold text-[var(--color-navy-primary)]">
+                  <span>{s.label}</span>
+                  {deepLink && (
+                    <ExternalLink className="h-3 w-3 text-[var(--color-gray-400)]" aria-hidden />
+                  )}
                 </p>
                 <p className="mt-0.5 text-[11px] text-[var(--color-gray-500)]">{s.subtitle}</p>
                 {s.latest ? (
@@ -583,7 +608,12 @@ export default async function MonitoringPage() {
                 <p className="mt-3 text-[11px] text-[var(--color-gray-400)]">
                   {s.runCount} run{s.runCount === 1 ? "" : "s"} on file
                 </p>
-              </div>
+              </>
+            );
+            return deepLink ? (
+              <a key={s.key} {...wrapperProps}>{inner}</a>
+            ) : (
+              <div key={s.key} {...wrapperProps}>{inner}</div>
             );
           })}
         </div>
