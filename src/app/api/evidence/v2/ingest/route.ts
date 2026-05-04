@@ -526,9 +526,12 @@ export async function POST(req: Request) {
     // requiring a parallel manual log. Idempotent on (control_id, checked_at).
     let monitoringEntriesWritten = 0;
     try {
+      // Match either the schema id or the canonical seed key. When both
+      // exist (data drift), prefer whichever already has entries so we keep
+      // writing to the same row going forward.
       const cmCandidates = resolveRegisterKeyCandidates("control_monitoring");
-      const [cmRegister] = await db
-        .select({ id: governanceRegisters.id })
+      const cmMatching = await db
+        .select({ id: governanceRegisters.id, registerKey: governanceRegisters.registerKey })
         .from(governanceRegisters)
         .where(
           and(
@@ -538,8 +541,18 @@ export async function POST(req: Request) {
               sql`, `,
             )})`,
           ),
-        )
-        .limit(1);
+        );
+      let cmRegister: { id: string } | undefined;
+      if (cmMatching.length === 1) {
+        cmRegister = cmMatching[0];
+      } else if (cmMatching.length > 1) {
+        const counts = await Promise.all(cmMatching.map(async (r) => {
+          const [c] = await db.select({ n: sql<number>`count(*)::int` }).from(governanceRegisterEntries).where(eq(governanceRegisterEntries.registerId, r.id));
+          return { reg: r, n: c?.n ?? 0 };
+        }));
+        counts.sort((a, b) => b.n - a.n);
+        cmRegister = counts[0].reg;
+      }
       const monitoringBoundaryId =
         boundary_id ??
         (
