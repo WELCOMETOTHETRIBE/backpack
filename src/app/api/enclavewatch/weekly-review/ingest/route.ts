@@ -5,10 +5,13 @@ import {
   evidenceFindings,
   controlRecords,
   boundaries,
+  governanceRegisters,
+  governanceRegisterEntries,
 } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { resolveOrgFromSessionOrBearer } from "@/lib/auth-bearer";
 import { calculateControlStatus } from "@/lib/control-status";
+import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
 import { createHash } from "crypto";
 
 /**
@@ -72,7 +75,12 @@ function toNistShort(controlRef: string): string | null {
   return m ? m[1] : null;
 }
 
-const DEFAULT_COVERED_CONTROLS = ["3.3.2", "3.3.3", "3.3.5", "3.12.3"];
+// Controls whose register lane is satisfied by an audit_log_review entry.
+// 3.1.7 (audit privileged functions) was added once the ingest handler began
+// writing audit_log_review register entries on every weekly packet; without
+// 3.1.7 in this list the recompute path skipped it and the codex held it
+// stuck at in_progress despite the register now being populated.
+const DEFAULT_COVERED_CONTROLS = ["3.1.7", "3.3.2", "3.3.3", "3.3.5", "3.12.3"];
 
 type AckPackage = {
   acknowledgement: {
@@ -88,6 +96,11 @@ type AckPackage = {
     evidence_bundle_hash?: string;
     weekly_manifest_hash?: string;
     export_signature?: string;
+    signatory?: {
+      name?: string;
+      role?: string;
+      signed_at?: string;
+    };
   };
   control_mapping_summary?: {
     controls?: Array<{ control_ref: string; status?: string }>;
@@ -260,6 +273,91 @@ export async function POST(req: Request) {
   }));
   if (findings.length > 0) {
     await db.insert(evidenceFindings).values(findings);
+  }
+
+  // ── Write a register entry on audit_log_review ──
+  // The ISSO weekly review packet is the operational record of "audit
+  // logs were reviewed and signed off this week." That's exactly what
+  // §3.1.7 / §3.3.5 / §3.3.6 / §3.3.8 want as register evidence. Without
+  // this write the cadence row above is the only signal, and the codex
+  // adjudication helper looks specifically at register entries when
+  // evaluating registerRequired controls — leaving 3.1.7 stuck at
+  // in_progress despite the program operating correctly.
+  // Idempotent on (organization, review_period_end). Re-uploading the
+  // same packet replaces in place rather than duplicating.
+  const [primaryBoundary] = await db
+    .select({ id: boundaries.id })
+    .from(boundaries)
+    .where(eq(boundaries.organizationId, orgId))
+    .limit(1);
+  const auditCandidates = resolveRegisterKeyCandidates("audit_log_review");
+  const [auditReg] = await db
+    .select({ id: governanceRegisters.id })
+    .from(governanceRegisters)
+    .where(
+      and(
+        eq(governanceRegisters.organizationId, orgId),
+        sql`${governanceRegisters.registerKey} IN (${sql.join(
+          auditCandidates.map((k) => sql`${k}`),
+          sql`, `,
+        )})`,
+      ),
+    )
+    .limit(1);
+  if (primaryBoundary && auditReg) {
+    const reviewPeriodEndIso = ack.review_period_end;
+    const reviewerName = ack.signatory?.name ?? ack.signatory?.role ?? "ISSO";
+    const reviewedAtIso =
+      ack.signatory?.signed_at ?? ack.review_period_end ?? new Date().toISOString();
+    const findingCount = body.finding_summary?.findings?.length ?? 0;
+    const auditEntryData: Record<string, unknown> = {
+      review_period_start: ack.review_period_start,
+      review_period_end: ack.review_period_end,
+      reviewed_at: reviewedAtIso,
+      reviewed_by: reviewerName,
+      summary: `EnclaveWatch weekly review ${ack.review_period_start.slice(0, 10)} → ${ack.review_period_end.slice(0, 10)}: ${ack.review_result}. ${ack.event_count ?? 0} audit events covered, ${findingCount} finding(s) recorded.`,
+      findings: findingCount > 0 ? `${findingCount} item(s) — see EnclaveWatch finding_summary` : "no findings",
+      tickets_created: null,
+      // Codex extension fields preserving the ack provenance
+      enclavewatch_run_id: runId,
+      vault_id: ack.vault_id,
+      review_result: ack.review_result,
+      evidence_bundle_hash: ack.evidence_bundle_hash ?? null,
+      weekly_manifest_hash: ack.weekly_manifest_hash ?? null,
+      source: "enclavewatch_weekly_review",
+    };
+
+    const [existingAudit] = await db
+      .select({ id: governanceRegisterEntries.id })
+      .from(governanceRegisterEntries)
+      .where(
+        and(
+          eq(governanceRegisterEntries.registerId, auditReg.id),
+          eq(governanceRegisterEntries.entryType, "weekly_review"),
+          sql`${governanceRegisterEntries.entryData} ->> 'review_period_end' = ${reviewPeriodEndIso}`,
+        ),
+      )
+      .limit(1);
+    if (existingAudit) {
+      await db
+        .update(governanceRegisterEntries)
+        .set({
+          entryData: auditEntryData,
+          status: "final",
+          finalizedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(governanceRegisterEntries.id, existingAudit.id));
+    } else {
+      await db.insert(governanceRegisterEntries).values({
+        registerId: auditReg.id,
+        boundaryId: primaryBoundary.id,
+        entryData: auditEntryData,
+        entryType: "weekly_review",
+        status: "final",
+        finalizedAt: new Date(),
+      });
+    }
   }
 
   // Recompute affected control statuses so the dashboard reflects the

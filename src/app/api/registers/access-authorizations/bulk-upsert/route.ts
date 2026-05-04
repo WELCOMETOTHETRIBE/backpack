@@ -201,6 +201,46 @@ export async function POST(req: Request) {
     if (typeof d.event_id === "string" && d.event_id) byEventId.set(d.event_id, e.id);
   }
 
+  // ── Resolve the remote_access_authorization register for synthesis ──
+  // Every grant on access_authorization is also semantically a remote-
+  // access authorization (in an Azure-VM deployment, the only way to use
+  // an RBAC role is remotely — there's no on-prem path). Mirroring
+  // grant_access entries into remote_access_authorization is the cleanest
+  // way to satisfy 3.1.12 / 3.1.13 / 3.1.14 / 3.1.15's register lane
+  // without forcing the operator to maintain a parallel register by hand.
+  // Idempotent on event_id (same as access_authorization).
+  const raCandidates = resolveRegisterKeyCandidates("remote_access_authorization");
+  const [remoteRegister] = await db
+    .select({ id: governanceRegisters.id })
+    .from(governanceRegisters)
+    .where(
+      and(
+        eq(governanceRegisters.organizationId, orgId),
+        sql`${governanceRegisters.registerKey} IN (${sql.join(
+          raCandidates.map((k) => sql`${k}`),
+          sql`, `,
+        )})`,
+      ),
+    )
+    .limit(1);
+  const raByEventId = new Map<string, string>();
+  if (remoteRegister) {
+    const raExisting = await db
+      .select({ id: governanceRegisterEntries.id, entryData: governanceRegisterEntries.entryData })
+      .from(governanceRegisterEntries)
+      .where(
+        and(
+          eq(governanceRegisterEntries.registerId, remoteRegister.id),
+          sql`${governanceRegisterEntries.entryData} ? 'event_id'`,
+        ),
+      );
+    for (const e of raExisting) {
+      const d = (e.entryData ?? {}) as Record<string, unknown>;
+      if (typeof d.event_id === "string" && d.event_id) raByEventId.set(d.event_id, e.id);
+    }
+  }
+  let remoteSynthesized = 0;
+
   const now = new Date();
   let inserted = 0;
   let updated = 0;
@@ -302,6 +342,63 @@ export async function POST(req: Request) {
     }
   }
 
+  // ── Synthesize remote_access_authorization entries from grant_access ──
+  // Run AFTER the events loop so it handles both newly inserted grants and
+  // any older grant_access rows that pre-date this synthesis logic. Empty
+  // POSTs (cadence-only batches) still trigger this backfill, which is how
+  // we promote 3.1.12–3.1.15 on orgs that have existing access_authorization
+  // history but no remote_access_authorization entries yet.
+  if (remoteRegister) {
+    const allGrants = await db
+      .select({
+        id: governanceRegisterEntries.id,
+        entryData: governanceRegisterEntries.entryData,
+      })
+      .from(governanceRegisterEntries)
+      .where(
+        and(
+          eq(governanceRegisterEntries.registerId, register.id),
+          eq(governanceRegisterEntries.entryType, "grant_access"),
+          sql`${governanceRegisterEntries.entryData} ? 'event_id'`,
+        ),
+      );
+    for (const g of allGrants) {
+      const d = (g.entryData ?? {}) as Record<string, unknown>;
+      const eventId = typeof d.event_id === "string" ? d.event_id : "";
+      if (!eventId || raByEventId.has(eventId)) continue;
+      const occurredAt =
+        (typeof d.approved_at === "string" && d.approved_at) || new Date().toISOString();
+      const reviewDue = new Date(new Date(occurredAt).getTime() + 365 * 24 * 60 * 60 * 1000);
+      const azureRoleName = (d.azure_role_name as string | null) ?? "(unknown role)";
+      const systemDisplay = (d.system as string | null) ?? "(unknown scope)";
+      const raEntryData: Record<string, unknown> = {
+        subject_user: d.subject_user ?? "(unknown)",
+        remote_access_method: "azure_bastion",
+        approved_by: d.approver ?? "(unknown)",
+        approved_at: occurredAt,
+        business_justification: `Azure RBAC role grant: ${azureRoleName} on ${systemDisplay}. The Azure VM hosting the vault has no on-prem path, so RBAC roles are intrinsically remote-access authorizations.`,
+        review_due_at: reviewDue.toISOString(),
+        event_id: eventId,
+        azure_role_name: d.azure_role_name ?? null,
+        azure_role_id: d.azure_role_id ?? null,
+        scope_arm: d.scope_arm ?? null,
+        source: d.source ?? body.source,
+        vault_id: d.vault_id ?? body.vault_id,
+        synthesized_from: "access_authorization.grant_access",
+      };
+      await db.insert(governanceRegisterEntries).values({
+        registerId: remoteRegister.id,
+        boundaryId: boundary.id,
+        entryData: raEntryData,
+        entryType: "authorize_remote_access",
+        status: "final",
+        finalizedAt: now,
+      });
+      raByEventId.set(eventId, "synthesized");
+      remoteSynthesized++;
+    }
+  }
+
   // Cadence evidence run — one row per batch, regardless of event count.
   // A 0-event batch IS evidence: it proves the collector ran and there
   // were no role changes that cycle.
@@ -344,9 +441,11 @@ export async function POST(req: Request) {
     runFingerprint: fingerprint,
   });
 
-  // Recompute the three controls this register backs.
+  // Recompute every control this register pair backs:
+  //   access_authorization        → 3.5.1, 3.1.5, 3.1.6
+  //   remote_access_authorization → 3.1.12, 3.1.13, 3.1.14, 3.1.15
   let recomputed = 0;
-  for (const cid of ["3.5.1", "3.1.5", "3.1.6"]) {
+  for (const cid of ["3.5.1", "3.1.5", "3.1.6", "3.1.12", "3.1.13", "3.1.14", "3.1.15"]) {
     const [rec] = await db
       .select({ id: controlRecords.id })
       .from(controlRecords)
@@ -369,6 +468,7 @@ export async function POST(req: Request) {
       revoked,
       inserted,
       updated,
+      remoteSynthesized,
       recomputed,
     }),
   );
@@ -376,12 +476,14 @@ export async function POST(req: Request) {
   return NextResponse.json({
     ok: true,
     register_id: register.id,
+    remote_register_id: remoteRegister?.id ?? null,
     fingerprint,
     events_processed: body.events.length,
     granted,
     revoked,
     inserted,
     updated,
+    remote_access_synthesized: remoteSynthesized,
     recomputed_controls: recomputed,
   });
 }
