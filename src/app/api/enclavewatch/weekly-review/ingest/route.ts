@@ -80,7 +80,19 @@ function toNistShort(controlRef: string): string | null {
 // writing audit_log_review register entries on every weekly packet; without
 // 3.1.7 in this list the recompute path skipped it and the codex held it
 // stuck at in_progress despite the register now being populated.
-const DEFAULT_COVERED_CONTROLS = ["3.1.7", "3.3.2", "3.3.3", "3.3.5", "3.12.3"];
+//
+// 3.14.3 (security alerts & advisories) and 3.14.7 (identify unauthorized
+// use) sit on the same audit_log_review register: an EnclaveWatch weekly
+// review IS the human-signed review of those alert/usage logs.
+const DEFAULT_COVERED_CONTROLS = [
+  "3.1.7",
+  "3.3.2",
+  "3.3.3",
+  "3.3.5",
+  "3.12.3",
+  "3.14.3",
+  "3.14.7",
+];
 
 type AckPackage = {
   acknowledgement: {

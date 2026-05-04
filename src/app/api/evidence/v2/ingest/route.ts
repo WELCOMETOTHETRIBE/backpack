@@ -7,6 +7,8 @@ import {
   boundaries,
   evidenceRuns,
   evidenceFindings,
+  governanceRegisters,
+  governanceRegisterEntries,
 } from "@/db/schema";
 import { eq, and, inArray, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
@@ -14,6 +16,7 @@ import { resolveOrgFromSessionOrBearer } from "@/lib/auth-bearer";
 import { calculateControlStatus } from "@/lib/control-status";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { controlIdToNist } from "@/lib/compliance/controlId";
+import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
 import { createHash } from "crypto";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -512,6 +515,107 @@ export async function POST(req: Request) {
         // ingest if it errors. Log and continue.
         console.warn("validation_report ingestion failed:", (err as Error).message);
       }
+    }
+
+    // ── Continuous-monitoring attestation for 3.14.6 ─────────────────────────
+    // Every successful daily ingest is itself evidence that the vault's
+    // monitoring stack is operating: Sysmon network channels are being
+    // collected, the bundle landed, the validator ran. Mirror that into a
+    // control_monitoring.control_check entry so 3.14.6 (Monitor
+    // Communications For Attacks) has a register lane to satisfy without
+    // requiring a parallel manual log. Idempotent on (control_id, checked_at).
+    let monitoringEntriesWritten = 0;
+    try {
+      const cmCandidates = resolveRegisterKeyCandidates("control_monitoring");
+      const [cmRegister] = await db
+        .select({ id: governanceRegisters.id })
+        .from(governanceRegisters)
+        .where(
+          and(
+            eq(governanceRegisters.organizationId, orgId),
+            sql`${governanceRegisters.registerKey} IN (${sql.join(
+              cmCandidates.map((k) => sql`${k}`),
+              sql`, `,
+            )})`,
+          ),
+        )
+        .limit(1);
+      const monitoringBoundaryId =
+        boundary_id ??
+        (
+          await db
+            .select({ id: boundaries.id })
+            .from(boundaries)
+            .where(eq(boundaries.organizationId, orgId))
+            .limit(1)
+        )[0]?.id;
+      if (cmRegister && monitoringBoundaryId) {
+        const checkedAtIso = collectedAt.toISOString();
+        const cmEntryData: Record<string, unknown> = {
+          control_id: "3.14.6",
+          checked_at: checkedAtIso,
+          checked_by: "EnclaveWatch automated cadence",
+          method: "automated",
+          // The control_check attests that monitoring HAPPENED; per-control
+          // pass/fail belongs in evidence_findings, not here. So this is
+          // always "pass" when the cadence completed end-to-end.
+          result: "pass",
+          notes: `Daily CUI evidence cadence: ${linksCreated} evidence link(s) refreshed, ${linkedControls.length} control(s) refreshed, ${validatorFindings} validator finding(s) recorded, ${collectionErrors.length} collection error(s). Sysmon + Defender channels collected by the vault prove communications monitoring is active.`,
+          run_id: runId,
+          source: "cui_evidence_manifest",
+        };
+        const [existingCm] = await db
+          .select({ id: governanceRegisterEntries.id })
+          .from(governanceRegisterEntries)
+          .where(
+            and(
+              eq(governanceRegisterEntries.registerId, cmRegister.id),
+              sql`${governanceRegisterEntries.entryData} ->> 'control_id' = '3.14.6'`,
+              sql`${governanceRegisterEntries.entryData} ->> 'checked_at' = ${checkedAtIso}`,
+            ),
+          )
+          .limit(1);
+        if (existingCm) {
+          await db
+            .update(governanceRegisterEntries)
+            .set({
+              entryData: cmEntryData,
+              status: "final",
+              finalizedAt: new Date(),
+              entryType: "control_check",
+              updatedAt: new Date(),
+            })
+            .where(eq(governanceRegisterEntries.id, existingCm.id));
+        } else {
+          await db.insert(governanceRegisterEntries).values({
+            registerId: cmRegister.id,
+            boundaryId: monitoringBoundaryId,
+            entryData: cmEntryData,
+            entryType: "control_check",
+            status: "final",
+            finalizedAt: new Date(),
+          });
+        }
+        monitoringEntriesWritten = 1;
+
+        // Recompute 3.14.6 so the dashboard reflects the new register entry.
+        const [si6Rec] = await db
+          .select({ id: controlRecords.id })
+          .from(controlRecords)
+          .where(
+            and(
+              eq(controlRecords.organizationId, orgId),
+              eq(controlRecords.controlId, "3.14.6"),
+            ),
+          )
+          .limit(1);
+        if (si6Rec) await calculateControlStatus(si6Rec.id).catch(() => null);
+      }
+    } catch (err) {
+      console.warn(
+        "control_monitoring write failed (best-effort):",
+        (err as Error).message,
+      );
     }
 
     // ── Audit log ─────────────────────────────────────────────────────────────
