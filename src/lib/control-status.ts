@@ -154,8 +154,12 @@ async function isRegisterSatisfied(
 
   const candidates = resolveRegisterKeyCandidates(intel.registerSchemaId);
 
-  // Find the register for this org matching any alias vocabulary.
-  const [register] = await db
+  // Find ALL registers for this org matching any alias vocabulary. Aggregate
+  // across them so a duplicate row (e.g. one provisioned under the singular
+  // schema id, one under the plural seed key) doesn't shadow the canonical
+  // populated row. Without aggregation the prior `.limit(1)` could pick the
+  // empty duplicate and falsely report the register lane as unsatisfied.
+  const matchingRegisters = await db
     .select({ id: governanceRegisters.id })
     .from(governanceRegisters)
     .where(
@@ -166,10 +170,9 @@ async function isRegisterSatisfied(
           sql`, `
         )})`
       )
-    )
-    .limit(1);
+    );
 
-  if (!register) return false; // register not provisioned
+  if (matchingRegisters.length === 0) return false; // register not provisioned
 
   // Event-driven registers: provisioned with zero entries is the correct
   // steady state — no events means nothing to log. Auto-satisfy.
@@ -180,7 +183,7 @@ async function isRegisterSatisfied(
   }
 
   // Scheduled register: require at least one finalized entry within the
-  // org's boundaries.
+  // org's boundaries, counted across every candidate-keyed register row.
   const orgBoundaries = await db
     .select({ id: boundaries.id })
     .from(boundaries)
@@ -193,7 +196,10 @@ async function isRegisterSatisfied(
     .from(governanceRegisterEntries)
     .where(
       and(
-        eq(governanceRegisterEntries.registerId, register.id),
+        sql`${governanceRegisterEntries.registerId} IN (${sql.join(
+          matchingRegisters.map((r) => sql`${r.id}`),
+          sql`, `
+        )})`,
         eq(governanceRegisterEntries.status, "final"),
         sql`${governanceRegisterEntries.boundaryId} IN (${sql.join(
           orgBoundaries.map((b) => sql`${b.id}`),
