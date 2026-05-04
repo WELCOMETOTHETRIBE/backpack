@@ -125,6 +125,15 @@ export default async function ReadinessPage() {
   }
 
   const implemented = records.filter((r) => {
+    // Match the Overview page (isControlAdjudicated): inherited / not_applicable
+    // short-circuit to true. The register lane doesn't gate their adjudication
+    // — vendor SRM (inherited) or rationale (N/A) is the evidence. Without
+    // this short-circuit, Readiness undercounts inherited controls whose
+    // mapped register isn't fully populated (e.g. 3.10.1–3.10.5 mapped to
+    // control_monitoring), splitting from Overview's count.
+    if (r.implementationStatus === "inherited" || r.implementationStatus === "not_applicable") {
+      return true;
+    }
     const registerOk = registerSatisfiedMap.get(r.controlId) !== false;
     if (r.policyDocRequired) {
       return r.technicalStatus === "satisfied" && r.policyStatus === "satisfied" && registerOk;
@@ -137,7 +146,14 @@ export default async function ReadinessPage() {
   const sprsPct = SPRS_RANGE > 0 ? Math.round(((sprsScore - SPRS_MIN) / SPRS_RANGE) * 100) : 0;
 
   // ── Annual workflow status: outstanding count + risk-assessment state ──
+  // Mirror the implemented-count logic so the two numbers are exact
+  // complements (implemented + outstanding == total). Without the
+  // inherited/N/A short-circuit, outstanding overcounts the same controls
+  // that implemented undercounts.
   const outstandingCount = records.filter((r) => {
+    if (r.implementationStatus === "inherited" || r.implementationStatus === "not_applicable") {
+      return false;
+    }
     const registerOk = registerSatisfiedMap.get(r.controlId) !== false;
     if (r.policyDocRequired) {
       return !(r.technicalStatus === "satisfied" && r.policyStatus === "satisfied" && registerOk);
