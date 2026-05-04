@@ -8,6 +8,7 @@ import { eq, and, sql, asc } from "drizzle-orm";
 import { getEvidenceMap } from "@/data/cmmc";
 import { getRegisterSchemaByRegisterId } from "@/data/cmmc/register-schemas";
 import { getRegisterCadenceRules, getCadenceRuleByRegisterId } from "@/data/cmmc/register-cadence-rules";
+import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
 
 export type RegisterHealth = "healthy" | "due" | "overdue" | "event_driven";
 
@@ -101,23 +102,39 @@ export async function ensureEvidenceEngineRegistersForOrg(orgId: string): Promis
     .where(eq(governanceRegisters.organizationId, orgId));
 
   const existingKeys = new Set(orgRegisters.map((r) => r.registerKey));
+  // Templates are keyed by the seed-data registerKey (plural form for the
+  // ones that diverge). Look templates up under both vocabularies so we can
+  // resolve from a schema id (e.g. "access_authorization") to the canonical
+  // template (e.g. "access_authorizations").
   const templateByKey = new Map(templates.map((t) => [t.registerKey, t]));
 
   for (const reg of registers) {
-    if (existingKeys.has(reg.id)) continue;
-    const template = templateByKey.get(reg.id);
+    // The evidence-map id is the schema id (singular). The seed registerKey
+    // is sometimes plural ("access_authorizations"). Without aliasing both
+    // vocabularies, this loop inserts a duplicate row keyed by the schema
+    // id when the canonical plural row already exists, shadowing the
+    // populated register and breaking lane satisfaction for every control
+    // that maps to it (3.5.1, 3.1.5, 3.1.6, etc.).
+    const candidates = resolveRegisterKeyCandidates(reg.id);
+    if (candidates.some((k) => existingKeys.has(k))) continue;
+
+    // Prefer the canonical seed registerKey when inserting so the new row
+    // matches REGISTER_DEFINITIONS (and any future seed-driven backfill).
+    // Falls back to the schema id when no template alias is registered.
+    const canonicalKey = candidates.find((k) => templateByKey.has(k)) ?? reg.id;
+    const template = templateByKey.get(canonicalKey);
     const schema = getRegisterSchemaByRegisterId(reg.id);
     await db.insert(governanceRegisters).values({
       organizationId: orgId,
       projectId: null,
-      registerKey: reg.id,
+      registerKey: canonicalKey,
       name: template?.name ?? reg.name,
       description: template?.description ?? schema?.description ?? null,
       requiredColumns: template?.requiredColumns ?? [],
       retainForDays: template?.retainForDays ?? null,
       defaultCadenceDays: template?.defaultCadenceDays ?? schema?.default_cadence_days ?? null,
     });
-    existingKeys.add(reg.id);
+    existingKeys.add(canonicalKey);
   }
 }
 
