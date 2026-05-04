@@ -127,8 +127,8 @@ export default async function EvidenceEngineEntryDetailPage({ params }: PageProp
               <dt className="w-48 shrink-0 text-sm font-medium text-[var(--color-gray-700)]">
                 {getFieldLabel(key)}
               </dt>
-              <dd className="text-sm text-[var(--color-gray-900)]">
-                {data[key] != null && data[key] !== "" ? String(data[key]) : "—"}
+              <dd className="flex-1 min-w-0 text-sm text-[var(--color-gray-900)]">
+                <FieldValue value={data[key]} />
               </dd>
             </div>
           ))}
@@ -174,4 +174,87 @@ export default async function EvidenceEngineEntryDetailPage({ params }: PageProp
       </div>
     </div>
   );
+}
+
+/**
+ * Render a single entryData field value. Handles the four shapes that
+ * actually show up in the codex's register entries:
+ *   - primitives (string/number/bool/null) -> plain text
+ *   - empty string / null / undefined        -> em dash
+ *   - array of primitives                    -> joined with commas
+ *   - array of objects / nested object       -> collapsible pretty-printed JSON
+ *
+ * Without this, the page renders nested objects via String(value), which
+ * yields the famously useless "[object Object]". For inventory_snapshot
+ * entries (users / service_principals / devices / scope / totals / diff_
+ * from_previous) every meaningful field is nested -- the old rendering
+ * meant the page surfaced literally none of the snapshot data.
+ */
+function FieldValue({ value }: { value: unknown }) {
+  if (value === null || value === undefined || value === "") {
+    return <span className="text-[var(--color-gray-400)]">—</span>;
+  }
+  // Primitives
+  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+    return <span className="break-words">{String(value)}</span>;
+  }
+  // Array of primitives -> comma-joined
+  if (Array.isArray(value) && value.every((v) => v === null || ["string", "number", "boolean"].includes(typeof v))) {
+    if (value.length === 0) {
+      return <span className="text-[var(--color-gray-400)] italic">empty list</span>;
+    }
+    return <span className="break-words">{value.map((v) => String(v)).join(", ")}</span>;
+  }
+  // Array of objects -> count + collapsible JSON
+  if (Array.isArray(value)) {
+    return (
+      <details className="group">
+        <summary className="cursor-pointer text-xs text-[var(--color-blue-accent)] hover:underline">
+          {value.length} item{value.length === 1 ? "" : "s"} (click to expand)
+        </summary>
+        <pre className="mt-2 max-h-96 overflow-auto rounded-md border border-[var(--color-border-muted)] bg-[var(--color-gray-50)]/50 p-3 font-mono text-[11px] leading-relaxed text-[var(--color-gray-800)]">
+          {JSON.stringify(value, null, 2)}
+        </pre>
+      </details>
+    );
+  }
+  // Plain object -> compact key:value list, with deep nesting fall-through to JSON
+  if (typeof value === "object") {
+    const obj = value as Record<string, unknown>;
+    const keys = Object.keys(obj);
+    if (keys.length === 0) {
+      return <span className="text-[var(--color-gray-400)] italic">empty</span>;
+    }
+    // Shallow object with all-primitive values -> inline list
+    const allPrimitive = keys.every((k) => {
+      const v = obj[k];
+      return v === null || ["string", "number", "boolean"].includes(typeof v);
+    });
+    if (allPrimitive) {
+      return (
+        <ul className="space-y-0.5">
+          {keys.map((k) => (
+            <li key={k} className="text-xs">
+              <span className="font-medium text-[var(--color-gray-600)]">{k}:</span>{" "}
+              <span className="text-[var(--color-gray-900)]">
+                {obj[k] === null || obj[k] === "" ? "—" : String(obj[k])}
+              </span>
+            </li>
+          ))}
+        </ul>
+      );
+    }
+    // Otherwise fall back to JSON (collapsed)
+    return (
+      <details className="group">
+        <summary className="cursor-pointer text-xs text-[var(--color-blue-accent)] hover:underline">
+          object ({keys.length} field{keys.length === 1 ? "" : "s"} — click to expand)
+        </summary>
+        <pre className="mt-2 max-h-96 overflow-auto rounded-md border border-[var(--color-border-muted)] bg-[var(--color-gray-50)]/50 p-3 font-mono text-[11px] leading-relaxed text-[var(--color-gray-800)]">
+          {JSON.stringify(value, null, 2)}
+        </pre>
+      </details>
+    );
+  }
+  return <span className="break-words">{String(value)}</span>;
 }
