@@ -149,8 +149,24 @@ export default async function PoamPage() {
     const registerRequired = intel?.registerRequired ?? false;
     const registerOk = !registerRequired || (registerSatisfiedByControl.get(e.controlId ?? "") ?? false);
 
-    // Only flag as ready to close when implementation status AND live evidence all check out
-    const controlNowImplemented = implDone && techOk && policyOk && registerOk;
+    // Underlying control is implemented via lane evidence (technical + policy
+    // + register, plus the implementationStatus field on the control_records
+    // row). Independent of whether THIS POA&M's specific milestones are done.
+    const controlImplemented = implDone && techOk && policyOk && registerOk;
+
+    // Milestone gate: a POA&M committed to specific actions; closing it
+    // before those actions are done is bad audit hygiene even if the
+    // underlying control got promoted via other evidence (e.g. an approved
+    // governance doc landed). Empty milestone list = vacuously satisfied.
+    const milestoneRows = milestonesByEntry.get(e.id) ?? [];
+    const allMilestonesComplete =
+      milestoneRows.length === 0 || milestoneRows.every((m) => m.completedAt !== null);
+    const openMilestoneCount = milestoneRows.filter((m) => m.completedAt === null).length;
+
+    // True "ready to close" requires BOTH the lane evidence AND the POA&M's
+    // own milestone commitments. Backward-compat: callers that read
+    // controlNowImplemented get the strict gate.
+    const controlNowImplemented = controlImplemented && allMilestonesComplete;
 
     return {
       id: e.id,
@@ -180,6 +196,8 @@ export default async function PoamPage() {
       isOverdue,
       sprsImpact,
       controlNowImplemented,
+      controlImplemented,
+      openMilestoneCount,
       c3paoNote: intel?.c3paoExaminerNote ?? null,
       disposition: intel?.disposition ?? null,
     };

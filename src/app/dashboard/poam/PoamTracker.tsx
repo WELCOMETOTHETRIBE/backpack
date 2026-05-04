@@ -51,7 +51,12 @@ export type PoamEntry = {
   daysOpen: number;
   isOverdue: boolean;
   sprsImpact: number;
+  /** True when both lane evidence AND every milestone are satisfied. Drives the "Close now" button. */
   controlNowImplemented: boolean;
+  /** True when underlying control is implemented via lane evidence, regardless of milestone state. */
+  controlImplemented: boolean;
+  /** Count of incomplete milestones on this POA&M (0 when all done or none defined). */
+  openMilestoneCount: number;
   c3paoNote: string | null;
   disposition: string | null;
 };
@@ -312,16 +317,16 @@ function EntryCard({
             </div>
           )}
 
-          {/* Control now implemented — suggest close */}
+          {/* Control now implemented + all milestones complete — suggest close */}
           {entry.controlNowImplemented && entry.status === "open" && (
             <div className="flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3.5 py-3">
               <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 mt-0.5" />
               <div className="flex-1">
                 <p className="text-xs font-semibold text-emerald-800">
-                  All evidence lanes satisfied — this control is ready to close.
+                  All evidence lanes satisfied and every milestone complete — this POA&amp;M is ready to close.
                 </p>
                 <p className="text-xs text-emerald-700 mt-0.5">
-                  Implementation status: "{entry.implementationStatus}". Technical, governance, and register evidence verified.
+                  Implementation status: &quot;{entry.implementationStatus}&quot;. Technical, governance, and register evidence verified.
                 </p>
               </div>
               <button
@@ -332,6 +337,25 @@ function EntryCard({
               >
                 {closing ? "Closing…" : "Close now"}
               </button>
+            </div>
+          )}
+
+          {/* Underlying control is implemented via lane evidence, but this
+              POA&M still has outstanding milestone commitments. The C3PAO
+              audit trail is "we said we'd do these specific things" — the
+              user must either complete them or document why they're moot
+              before closing. */}
+          {entry.controlImplemented && !entry.controlNowImplemented && entry.status === "open" && (
+            <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3">
+              <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-xs font-semibold text-amber-800">
+                  Control is implemented via lane evidence, but {entry.openMilestoneCount} milestone{entry.openMilestoneCount === 1 ? "" : "s"} on this POA&amp;M {entry.openMilestoneCount === 1 ? "is" : "are"} still open.
+                </p>
+                <p className="text-xs text-amber-700 mt-0.5">
+                  This POA&amp;M committed to specific actions (uploads, reviews, etc.). Complete the remaining milestone{entry.openMilestoneCount === 1 ? "" : "s"} below — or, if they&apos;re no longer required because the control was satisfied via other evidence, document that in the closeout note when you close manually.
+                </p>
+              </div>
             </div>
           )}
 
