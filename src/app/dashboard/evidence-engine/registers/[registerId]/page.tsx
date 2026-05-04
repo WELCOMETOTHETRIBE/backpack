@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { governanceRegisters, governanceRegisterEntries, organizations } from "@/db/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, sql } from "drizzle-orm";
 import {
   getSummaryTemplate,
   renderSummary,
@@ -13,7 +13,7 @@ import { resolveEffectiveBoundary } from "@/lib/evidence-engine/resolve-boundary
 import { ensureEvidenceEngineRegistersForOrg } from "@/lib/evidence-engine/control-dashboard";
 import { getEvidenceMap } from "@/data/cmmc";
 import { getCadenceRuleByRegisterId } from "@/data/cmmc/register-cadence-rules";
-import { schemaIdForRegisterKey } from "@/data/cmmc/register-key-aliases";
+import { schemaIdForRegisterKey, resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
 import { sourceMeta } from "@/lib/sctm/vuln-stats";
 import { AuditorToggle } from "./AuditorToggle";
 import { CreateEntryLink } from "./CreateEntryLink";
@@ -47,15 +47,43 @@ export default async function EvidenceEngineRegisterEntriesPage({ params, search
     await ensureEvidenceEngineRegistersForOrg(orgId);
   }
 
-  const [register] = await db
+  // Accept either vocabulary in the URL (singular schema id or plural seed
+  // key). Without alias resolution, links from CONTROL_INTELLIGENCE that
+  // reference the schema id (e.g. "access_authorization") would 404 on
+  // orgs whose register row was provisioned under the canonical seed key
+  // (e.g. "access_authorizations"). Pick the populated row by ordering
+  // entry-bearing rows first.
+  const candidates = resolveRegisterKeyCandidates(registerKey);
+  const matchingRegisters = await db
     .select()
     .from(governanceRegisters)
     .where(
       and(
         eq(governanceRegisters.organizationId, orgId),
-        eq(governanceRegisters.registerKey, registerKey)
+        sql`${governanceRegisters.registerKey} IN (${sql.join(
+          candidates.map((k) => sql`${k}`),
+          sql`, `
+        )})`
       )
     );
+
+  let register: (typeof matchingRegisters)[number] | undefined;
+  if (matchingRegisters.length === 1) {
+    register = matchingRegisters[0];
+  } else if (matchingRegisters.length > 1) {
+    // Multiple rows matched (data drift): prefer the one with entries.
+    const counts = await Promise.all(
+      matchingRegisters.map(async (r) => {
+        const [c] = await db
+          .select({ n: sql<number>`count(*)::int` })
+          .from(governanceRegisterEntries)
+          .where(eq(governanceRegisterEntries.registerId, r.id));
+        return { reg: r, n: c?.n ?? 0 };
+      })
+    );
+    counts.sort((a, b) => b.n - a.n);
+    register = counts[0].reg;
+  }
 
   if (!register) {
     return (

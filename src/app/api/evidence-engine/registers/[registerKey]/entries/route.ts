@@ -4,6 +4,7 @@ import { governanceRegisters, governanceRegisterEntries } from "@/db/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { requireOrg, requireRole } from "@/lib/auth";
 import { getRegisterSchemaByRegisterId } from "@/data/cmmc/register-schemas";
+import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
 import { logGovernanceAudit } from "@/lib/governance/audit";
 import { errorResponse } from "@/lib/evidence-engine/api-errors";
 import { validateEntryData } from "@/lib/evidence-engine/validate-entry-data";
@@ -30,15 +31,29 @@ export async function GET(
     if (boundaryResult instanceof NextResponse) return boundaryResult;
     const { boundary: _boundary } = boundaryResult;
 
-    const [register] = await db
+    // Accept either vocabulary in the URL (singular schema id or plural seed
+    // key); pick the row with the most entries when more than one matches.
+    const cands = resolveRegisterKeyCandidates(registerKey);
+    const matching = await db
       .select()
       .from(governanceRegisters)
       .where(
         and(
           eq(governanceRegisters.organizationId, orgId),
-          eq(governanceRegisters.registerKey, registerKey)
+          sql`${governanceRegisters.registerKey} IN (${sql.join(cands.map((k) => sql`${k}`), sql`, `)})`
         )
       );
+    let register: (typeof matching)[number] | undefined;
+    if (matching.length === 1) {
+      register = matching[0];
+    } else if (matching.length > 1) {
+      const counts = await Promise.all(matching.map(async (r) => {
+        const [c] = await db.select({ n: sql<number>`count(*)::int` }).from(governanceRegisterEntries).where(eq(governanceRegisterEntries.registerId, r.id));
+        return { reg: r, n: c?.n ?? 0 };
+      }));
+      counts.sort((a, b) => b.n - a.n);
+      register = counts[0].reg;
+    }
 
     if (!register) return errorResponse("Register not found", 404);
 
@@ -110,15 +125,28 @@ export async function POST(
     const schema = getRegisterSchemaByRegisterId(registerKey);
     if (!schema) return errorResponse("Register schema not found", 404);
 
-    const [register] = await db
+    // Accept either vocabulary; prefer the row with most entries on collision.
+    const postCands = resolveRegisterKeyCandidates(registerKey);
+    const postMatching = await db
       .select()
       .from(governanceRegisters)
       .where(
         and(
           eq(governanceRegisters.organizationId, orgId),
-          eq(governanceRegisters.registerKey, registerKey)
+          sql`${governanceRegisters.registerKey} IN (${sql.join(postCands.map((k) => sql`${k}`), sql`, `)})`
         )
       );
+    let register: (typeof postMatching)[number] | undefined;
+    if (postMatching.length === 1) {
+      register = postMatching[0];
+    } else if (postMatching.length > 1) {
+      const counts = await Promise.all(postMatching.map(async (r) => {
+        const [c] = await db.select({ n: sql<number>`count(*)::int` }).from(governanceRegisterEntries).where(eq(governanceRegisterEntries.registerId, r.id));
+        return { reg: r, n: c?.n ?? 0 };
+      }));
+      counts.sort((a, b) => b.n - a.n);
+      register = counts[0].reg;
+    }
     if (!register) return errorResponse("Register not found", 404);
 
     const entryType = (body.entry_type ?? body.entryType) as string | undefined;
