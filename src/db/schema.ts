@@ -1757,6 +1757,31 @@ export {
   evidenceFindings,
 } from "../../drizzle/schema.evidence";
 
+// ============== ISSO Export Manifest dedupe / replay-safety ==============
+/**
+ * Records every signed ISSO export the codex has ingested. Primary key is
+ * the manifest_id (sha256 of canonical body computed by EnclaveWatch).
+ * Re-ingesting the same manifest_id is a no-op that returns the cached
+ * response. See docs/specs/isso-export-manifest-v1.1.md §7.
+ */
+export const issoExportManifests = pgTable(
+  "isso_export_manifests",
+  {
+    manifestId: text("manifest_id").primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    vaultId: text("vault_id"),
+    manifestVersion: text("manifest_version").notNull().default("1.1"),
+    reviewPeriodStart: timestamp("review_period_start", { withTimezone: true }),
+    reviewPeriodEnd: timestamp("review_period_end", { withTimezone: true }).notNull(),
+    receivedAt: timestamp("received_at", { withTimezone: true }).notNull().defaultNow(),
+    responsePayload: jsonb("response_payload"),
+    controlsTouched: jsonb("controls_touched"),
+    sectionsProcessed: jsonb("sections_processed"),
+  },
+);
+
 // ============== IR Tabletop & AAR Evidence Kit ==============
 export {
   irExerciseStatusEnum,
