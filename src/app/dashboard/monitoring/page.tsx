@@ -11,6 +11,7 @@ import {
   poamEntries,
   boundaries,
   organizations,
+  issoExportManifests,
 } from "@/db/schema";
 import { eq, sql, desc, and, inArray } from "drizzle-orm";
 import Link from "next/link";
@@ -30,6 +31,9 @@ import {
   Zap,
   FileWarning,
   Inbox,
+  ScrollText,
+  Eye,
+  Flame,
 } from "lucide-react";
 import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
 import { getVulnStatsForOrg } from "@/lib/sctm/vuln-stats";
@@ -359,6 +363,118 @@ export default async function MonitoringPage() {
       .sort((a, b) => b.ageHours - a.ageHours);
   }
 
+  // ── Recent ISSO manifest receipts ──────────────────────────────────────
+  // Last 5 manifests the codex ingested. Proves the ISSO weekly cadence
+  // is firing and gives the assessor an "audit trail of audit trails."
+  const recentManifests = await db
+    .select({
+      manifestId: issoExportManifests.manifestId,
+      manifestVersion: issoExportManifests.manifestVersion,
+      reviewPeriodEnd: issoExportManifests.reviewPeriodEnd,
+      receivedAt: issoExportManifests.receivedAt,
+      controlsTouched: issoExportManifests.controlsTouched,
+      sectionsProcessed: issoExportManifests.sectionsProcessed,
+    })
+    .from(issoExportManifests)
+    .where(eq(issoExportManifests.organizationId, orgId))
+    .orderBy(desc(issoExportManifests.receivedAt))
+    .limit(5);
+
+  // ── ISSO observations rollup ───────────────────────────────────────────
+  // Sums high+critical entries written by ISSO weekly review across three
+  // registers in the last 14 days. Drives the admin "what did ISSO flag"
+  // surface.
+  const OBSERVATION_LOOKBACK_DAYS = 14;
+  const obsCutoff = new Date(now - OBSERVATION_LOOKBACK_DAYS * MS_PER_DAY);
+
+  // Resolve the three register sets we care about (alias-aware).
+  const aaCandidates = resolveRegisterKeyCandidates("access_authorization");
+  const afCandidates = resolveRegisterKeyCandidates("assessment_findings");
+  const prCandidates = resolveRegisterKeyCandidates("policy_review");
+  const allCandidates = [...aaCandidates, ...afCandidates, ...prCandidates];
+
+  let issoObservations = {
+    weeklyReviewFindings: 0,
+    reviewObservations: 0,
+    staleDocs: 0,
+    breakGlassEscalated: 0,
+    total: 0,
+  };
+  if (allCandidates.length > 0) {
+    const obsRegisters = await db
+      .select({ id: governanceRegisters.id, registerKey: governanceRegisters.registerKey })
+      .from(governanceRegisters)
+      .where(
+        and(
+          eq(governanceRegisters.organizationId, orgId),
+          sql`${governanceRegisters.registerKey} IN (${sql.join(
+            allCandidates.map((k) => sql`${k}`),
+            sql`, `,
+          )})`,
+        ),
+      );
+
+    if (obsRegisters.length > 0) {
+      const obsRows = await db
+        .select({
+          entryType: governanceRegisterEntries.entryType,
+          entryData: governanceRegisterEntries.entryData,
+        })
+        .from(governanceRegisterEntries)
+        .where(
+          and(
+            sql`${governanceRegisterEntries.registerId} IN (${sql.join(
+              obsRegisters.map((r) => sql`${r.id}`),
+              sql`, `,
+            )})`,
+            inArray(governanceRegisterEntries.entryType, [
+              "weekly_review_finding",
+              "review_observation",
+              "stale_document_flag",
+            ]),
+            sql`${governanceRegisterEntries.createdAt} >= ${obsCutoff.toISOString()}::timestamptz`,
+          ),
+        );
+
+      for (const r of obsRows) {
+        const sev = (
+          (r.entryData as { severity?: string } | null)?.severity ?? ""
+        ).toLowerCase();
+        const isHighOrCritical =
+          sev === "critical" || sev === "high" || r.entryType === "stale_document_flag";
+        if (!isHighOrCritical) continue;
+        if (r.entryType === "weekly_review_finding") issoObservations.weeklyReviewFindings++;
+        if (r.entryType === "review_observation") issoObservations.reviewObservations++;
+        if (r.entryType === "stale_document_flag") issoObservations.staleDocs++;
+      }
+    }
+  }
+
+  // Break-glass escalations (entries with escalated_at set in last 14d).
+  if (mlRegisters.length > 0) {
+    const escalatedRows = await db
+      .select({ entryData: governanceRegisterEntries.entryData })
+      .from(governanceRegisterEntries)
+      .where(
+        and(
+          sql`${governanceRegisterEntries.registerId} IN (${sql.join(
+            mlRegisters.map((r) => sql`${r.id}`),
+            sql`, `,
+          )})`,
+          eq(governanceRegisterEntries.entryType, "break_glass_acknowledgment"),
+          sql`${governanceRegisterEntries.entryData} ? 'escalated_at'`,
+          sql`${governanceRegisterEntries.createdAt} >= ${obsCutoff.toISOString()}::timestamptz`,
+        ),
+      );
+    issoObservations.breakGlassEscalated = escalatedRows.length;
+  }
+
+  issoObservations.total =
+    issoObservations.weeklyReviewFindings +
+    issoObservations.reviewObservations +
+    issoObservations.staleDocs +
+    issoObservations.breakGlassEscalated;
+
   // Drift signal: prefer Azure validator (most change-prone surface);
   // fall back to OS validator. OS bundle has 0 findings on its own runs
   // (it's a manifest, not a check) so it can't drive drift.
@@ -436,6 +552,26 @@ export default async function MonitoringPage() {
       label: `${pendingAcks.length} break-glass sign-in${pendingAcks.length === 1 ? "" : "s"} awaiting acknowledgment`,
       detail: `File the maintenance log within 72h of detection or the alert escalates.`,
       href: "/dashboard/monitoring",
+    });
+  }
+
+  // ISSO open observations (high/critical severity flagged in last 14d)
+  if (issoObservations.total > 0) {
+    const parts: string[] = [];
+    if (issoObservations.weeklyReviewFindings > 0)
+      parts.push(`${issoObservations.weeklyReviewFindings} access-review finding(s)`);
+    if (issoObservations.reviewObservations > 0)
+      parts.push(`${issoObservations.reviewObservations} review observation(s)`);
+    if (issoObservations.staleDocs > 0)
+      parts.push(`${issoObservations.staleDocs} stale policy document(s)`);
+    if (issoObservations.breakGlassEscalated > 0)
+      parts.push(`${issoObservations.breakGlassEscalated} escalated break-glass alert(s)`);
+
+    attention.push({
+      severity: issoObservations.breakGlassEscalated > 0 ? "critical" : "warning",
+      label: `ISSO flagged ${issoObservations.total} item${issoObservations.total === 1 ? "" : "s"} this period`,
+      detail: parts.join(" · "),
+      href: "/dashboard/registers",
     });
   }
 
@@ -674,6 +810,109 @@ export default async function MonitoringPage() {
                 );
               })}
             </ul>
+          </div>
+        </section>
+      )}
+
+      {/* ── Section 0c: Recent ISSO weekly exports ─────────────────── */}
+      {recentManifests.length > 0 && (
+        <section>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">
+              Recent ISSO weekly exports
+            </h2>
+            <span className="inline-flex items-center gap-1 rounded-full bg-[var(--color-gray-100)] px-2 py-0.5 text-[10px] font-medium text-[var(--color-gray-700)]">
+              last {recentManifests.length}
+            </span>
+          </div>
+          <div className={`${cardClass} p-4`}>
+            <p className="text-xs text-[var(--color-gray-600)]">
+              Each row is a signed weekly export from EnclaveWatch. The
+              ISSO&apos;s signature on the manifest is the attestation that
+              the listed controls were observed operating during the review
+              window — replaces individual cadenced attestations.
+            </p>
+            <ul className="mt-3 divide-y divide-[var(--color-border-muted)]">
+              {recentManifests.map((m) => {
+                const controlsTouched = Array.isArray(m.controlsTouched)
+                  ? (m.controlsTouched as string[])
+                  : [];
+                const sectionsProcessed = Array.isArray(m.sectionsProcessed)
+                  ? (m.sectionsProcessed as string[])
+                  : [];
+                return (
+                  <li key={m.manifestId} className="flex flex-wrap items-center gap-3 py-2.5 text-sm">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-gray-100)]">
+                      <ScrollText className="h-3.5 w-3.5 text-[var(--color-gray-700)]" aria-hidden />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-baseline gap-2">
+                        <span className="font-medium text-[var(--color-navy-primary)]">
+                          {new Date(m.reviewPeriodEnd).toLocaleDateString()}
+                        </span>
+                        <span className="text-[11px] uppercase tracking-wide text-[var(--color-gray-500)]">
+                          v{m.manifestVersion}
+                        </span>
+                        <span className="text-[11px] text-[var(--color-gray-500)]">
+                          ingested {new Date(m.receivedAt).toLocaleString()}
+                        </span>
+                      </div>
+                      <p className="mt-0.5 text-xs text-[var(--color-gray-600)]">
+                        {controlsTouched.length} control{controlsTouched.length === 1 ? "" : "s"} refreshed ·{" "}
+                        {sectionsProcessed.length} section{sectionsProcessed.length === 1 ? "" : "s"} ({sectionsProcessed.join(", ")})
+                      </p>
+                      <p className="mt-0.5 font-mono text-[10px] text-[var(--color-gray-400)] break-words">
+                        {m.manifestId}
+                      </p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </section>
+      )}
+
+      {/* ── Section 0d: ISSO observations rollup ───────────────────── */}
+      {issoObservations.total > 0 && (
+        <section>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">
+              ISSO observations (last 14 days)
+            </h2>
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-800">
+              {issoObservations.total} flagged
+            </span>
+          </div>
+          <div className={`${cardClass} grid grid-cols-2 gap-3 p-4 sm:grid-cols-4`}>
+            <ObservationTile
+              icon={Eye}
+              label="Access-review findings"
+              count={issoObservations.weeklyReviewFindings}
+              href="/dashboard/evidence-engine/registers/access_authorization"
+              tone="amber"
+            />
+            <ObservationTile
+              icon={FileWarning}
+              label="Review observations"
+              count={issoObservations.reviewObservations}
+              href="/dashboard/evidence-engine/registers/assessment_findings"
+              tone="amber"
+            />
+            <ObservationTile
+              icon={ScrollText}
+              label="Stale policy docs"
+              count={issoObservations.staleDocs}
+              href="/dashboard/evidence-engine/registers/policy_review"
+              tone="amber"
+            />
+            <ObservationTile
+              icon={Flame}
+              label="Escalated break-glass"
+              count={issoObservations.breakGlassEscalated}
+              href="/dashboard/evidence-engine/registers/maintenance_log"
+              tone={issoObservations.breakGlassEscalated > 0 ? "red" : "gray"}
+            />
           </div>
         </section>
       )}
@@ -1057,5 +1296,44 @@ function DriftCell({
         {delta}
       </p>
     </div>
+  );
+}
+
+// ── Helper: ObservationTile (Sprint 6.2) ──────────────────────────────────
+// Renders one of the four counters in the ISSO observations rollup card.
+// Tone "red" reserved for escalations; "amber" for warnings; "gray" for
+// zero-state.
+function ObservationTile({
+  icon: Icon,
+  label,
+  count,
+  href,
+  tone,
+}: {
+  icon: React.ElementType;
+  label: string;
+  count: number;
+  href: string;
+  tone: "red" | "amber" | "gray";
+}) {
+  const toneClass =
+    tone === "red"
+      ? "border-red-200 bg-red-50/60 text-red-900"
+      : tone === "amber" && count > 0
+        ? "border-amber-200 bg-amber-50/60 text-amber-900"
+        : "border-[var(--color-border-muted)] bg-[var(--color-gray-50)]/50 text-[var(--color-gray-700)]";
+  return (
+    <Link
+      href={href}
+      className={`block rounded-md border ${toneClass} px-3 py-2.5 transition hover:opacity-90`}
+    >
+      <div className="flex items-center gap-2">
+        <Icon className="h-3.5 w-3.5 opacity-80" aria-hidden />
+        <span className="text-[10px] font-semibold uppercase tracking-wide">
+          {label}
+        </span>
+      </div>
+      <p className="mt-1 text-2xl font-bold tabular-nums">{count}</p>
+    </Link>
   );
 }
