@@ -24,6 +24,9 @@ import { audit_log_reviewHandler } from "./handlers/audit-log-review";
 import { maintenance_logHandler } from "./handlers/maintenance-log";
 import { previous_period_acknowledgments_reviewHandler } from "./handlers/ack-review";
 import { control_freshnessHandler } from "./handlers/control-freshness";
+import { incident_logHandler } from "./handlers/incident-log";
+import { vuln_remediationHandler } from "./handlers/vuln-remediation";
+import { access_authorizationsHandler } from "./handlers/access-authorizations";
 import { noopHandler } from "./handlers/noop";
 import type {
   DispatcherResult,
@@ -48,9 +51,10 @@ const SECTION_HANDLERS: Record<string, RegisterHandler> = {
   // Sprint 2: ships break_glass_signins[]. scheduled_maintenance[] +
   // remote_maintenance[] still warn-and-no-op until Sprint 5.
   maintenance_log: maintenance_logHandler,
-  incident_log: noopHandler("incident_log"),
-  access_authorizations: noopHandler("access_authorizations"),
-  vuln_remediation: noopHandler("vuln_remediation"),
+  // Sprint 5 batch 1:
+  incident_log: incident_logHandler,
+  access_authorizations: access_authorizationsHandler,
+  vuln_remediation: vuln_remediationHandler,
   training_completion: noopHandler("training_completion"),
   policy_review: noopHandler("policy_review"),
   assessment_findings: noopHandler("assessment_findings"),

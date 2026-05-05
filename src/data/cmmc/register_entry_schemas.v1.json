@@ -137,6 +137,45 @@
             "access_list_export",
             "signoff"
           ]
+        },
+        {
+          "type": "weekly_review_finding",
+          "short_help": "ISSO-flagged anomaly during weekly review of access authorizations (dormant account, unjustified grant, missing approval, etc.).",
+          "required": [
+            "subject_user",
+            "finding_type",
+            "severity",
+            "recommended_action",
+            "observed_at",
+            "observed_by"
+          ],
+          "optional": [
+            "notes",
+            "ticket",
+            "manifest_id",
+            "vault_id"
+          ],
+          "enums": {
+            "finding_type": [
+              "dormant_account",
+              "unjustified_grant",
+              "missing_approval",
+              "stale_role",
+              "unauthorized_change",
+              "other"
+            ],
+            "severity": [
+              "critical",
+              "high",
+              "medium",
+              "low",
+              "informational"
+            ]
+          },
+          "recommended_attachments": [
+            "evidence_screenshot",
+            "ticket_link"
+          ]
         }
       ],
       "control_ids": [
@@ -1989,6 +2028,35 @@
           "recommended_attachments": [
             "risk_acceptance_form",
             "approval_record"
+          ]
+        },
+        {
+          "type": "verification_observed",
+          "short_help": "ISSO confirms the verification status of a previously detected vulnerability during weekly review.",
+          "required": [
+            "vuln_id",
+            "asset",
+            "status_observed",
+            "observed_at",
+            "observed_by"
+          ],
+          "optional": [
+            "notes",
+            "ticket",
+            "manifest_id",
+            "vault_id"
+          ],
+          "enums": {
+            "status_observed": [
+              "remediated",
+              "in_progress",
+              "risk_accepted",
+              "regressed"
+            ]
+          },
+          "recommended_attachments": [
+            "scanner_output",
+            "ticket_link"
           ]
         }
       ],
