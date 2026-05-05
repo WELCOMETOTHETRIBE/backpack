@@ -20,6 +20,7 @@ import { db } from "@/db";
 import { issoExportManifests, controlRecords } from "@/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { calculateControlStatus } from "@/lib/control-status";
+import { writeAuditLog } from "@/lib/audit";
 import { audit_log_reviewHandler } from "./handlers/audit-log-review";
 import { maintenance_logHandler } from "./handlers/maintenance-log";
 import { previous_period_acknowledgments_reviewHandler } from "./handlers/ack-review";
@@ -185,6 +186,27 @@ export async function dispatchIssoExport(
     controlsTouched: controlsTouched as unknown as Record<string, unknown>,
     sectionsProcessed: sectionsProcessed as unknown as Record<string, unknown>,
   });
+
+  // Audit-log the ingest so /admin/audit-logs surfaces it for assessors.
+  // Best-effort — don't roll back ingest if the audit write fails.
+  try {
+    await writeAuditLog({
+      organizationId: ctx.orgId,
+      action: "enclavewatch.isso_export.ingested",
+      resourceType: "isso_export_manifest",
+      resourceId: ctx.manifestId,
+      details: {
+        manifest_version: ctx.manifestVersion,
+        vault_id: ctx.vaultId,
+        review_period_end: ctx.reviewPeriodEnd.toISOString(),
+        sections_processed: sectionsProcessed,
+        controls_touched: controlsTouched,
+        warnings_count: warnings.length,
+      },
+    });
+  } catch {
+    // No-op; stdout already captured the event.
+  }
 
   return responsePayload;
 }

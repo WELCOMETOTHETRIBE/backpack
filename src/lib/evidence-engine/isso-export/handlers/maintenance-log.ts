@@ -23,6 +23,7 @@ import {
 } from "@/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
+import { writeAuditLog } from "@/lib/audit";
 import type { HandlerResult, IngestContext, RegisterHandler } from "../types";
 
 const COVERED_BY_BREAK_GLASS = ["3.1.7", "3.7.1", "3.7.2", "3.7.5"] as const;
@@ -205,6 +206,29 @@ export const maintenance_logHandler: RegisterHandler = async (
         status: "draft",
       });
       result.entries_inserted++;
+
+      // First time we've seen this alert. Audit-log the detection so
+      // assessors can reconstruct the chain from /admin/audit-logs.
+      try {
+        await writeAuditLog({
+          organizationId: ctx.orgId,
+          action: "enclavewatch.break_glass.signin_detected",
+          resourceType: "break_glass_alert",
+          resourceId: signin.alert_id,
+          details: {
+            upn: signin.upn,
+            source: signin.source ?? "unknown",
+            detected_at: signin.detected_at,
+            client_ip: signin.client_ip ?? null,
+            app_or_resource: signin.app_or_resource ?? null,
+            ip_classification: signin.ip_classification ?? "unknown",
+            manifest_id: ctx.manifestId,
+            vault_id: ctx.vaultId,
+          },
+        });
+      } catch {
+        // No-op
+      }
     }
   }
 

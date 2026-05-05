@@ -33,6 +33,7 @@
 import { db } from "@/db";
 import { controlRecords, controlAttentionItems } from "@/db/schema";
 import { eq, and, inArray, isNull, sql } from "drizzle-orm";
+import { writeAuditLog } from "@/lib/audit";
 import type { HandlerResult, IngestContext, RegisterHandler } from "../types";
 
 interface NeedingAttentionItem {
@@ -108,7 +109,9 @@ export const control_freshnessHandler: RegisterHandler = async (
       result.controls_touched = recs.map((r) => r.controlId);
 
       // Per-control audit event so /admin/audit-logs has a defensible
-      // record. Single-line JSON so log-parsing infra picks it up.
+      // record. Writes to both stdout (log-parsing infra) AND the
+      // audit_logs table (UI-queryable). Best-effort — single-control
+      // failure doesn't roll back the rest.
       for (const r of recs) {
         console.log(
           JSON.stringify({
@@ -120,6 +123,21 @@ export const control_freshnessHandler: RegisterHandler = async (
             vaultId: ctx.vaultId,
           }),
         );
+        try {
+          await writeAuditLog({
+            organizationId: ctx.orgId,
+            action: "enclavewatch.control.freshly_observed",
+            resourceType: "control",
+            resourceId: r.controlId,
+            details: {
+              manifest_id: ctx.manifestId,
+              vault_id: ctx.vaultId,
+              review_period_end: ctx.reviewPeriodEnd.toISOString(),
+            },
+          });
+        } catch {
+          // No-op
+        }
       }
     }
   }
@@ -145,6 +163,22 @@ export const control_freshnessHandler: RegisterHandler = async (
           manifestId: ctx.manifestId,
         }),
       );
+      try {
+        await writeAuditLog({
+          organizationId: ctx.orgId,
+          action: "enclavewatch.control.needing_attention",
+          resourceType: "control",
+          resourceId: n.control_id,
+          details: {
+            reason: n.reason ?? "(no reason given)",
+            severity: n.severity ?? "warning",
+            manifest_id: ctx.manifestId,
+            vault_id: ctx.vaultId,
+          },
+        });
+      } catch {
+        // No-op
+      }
 
       // Don't insert if a row for this manifest+control already exists.
       const [existing] = await db

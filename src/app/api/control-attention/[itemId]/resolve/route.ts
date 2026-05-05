@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { controlAttentionItems } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { auth } from "@/lib/auth";
+import { writeAuditLog } from "@/lib/audit";
 
 /**
  * POST /api/control-attention/[itemId]/resolve
@@ -86,6 +87,21 @@ export async function POST(
       resolvedBy: userId,
     }),
   );
+
+  try {
+    await writeAuditLog({
+      organizationId: orgId,
+      userId,
+      action: "enclavewatch.control.attention_resolved",
+      resourceType: "control_attention_item",
+      resourceId: itemId,
+      details: {
+        resolution_note: body.resolution_note ?? null,
+      },
+    });
+  } catch {
+    // No-op
+  }
 
   return NextResponse.json({
     ok: true,

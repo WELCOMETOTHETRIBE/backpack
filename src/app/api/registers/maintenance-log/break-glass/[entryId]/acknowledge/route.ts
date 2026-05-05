@@ -6,6 +6,7 @@ import {
 } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { auth } from "@/lib/auth";
+import { writeAuditLog } from "@/lib/audit";
 
 /**
  * POST /api/registers/maintenance-log/break-glass/[entryId]/acknowledge
@@ -180,6 +181,26 @@ export async function POST(
       acknowledgedBy: userId,
     }),
   );
+
+  try {
+    await writeAuditLog({
+      organizationId: orgId,
+      userId,
+      action: "enclavewatch.break_glass.admin_acknowledged",
+      resourceType: "break_glass_alert",
+      resourceId: (detectionData.alert_id as string | undefined) ?? entryId,
+      details: {
+        entry_id: entryId,
+        acknowledged_by: body.acknowledged_by,
+        purpose_of_session: body.purpose_of_session,
+        affected_systems: body.affected_systems,
+        signed_at: body.signed_at,
+        ticket: body.ticket ?? null,
+      },
+    });
+  } catch {
+    // No-op
+  }
 
   return NextResponse.json({
     ok: true,

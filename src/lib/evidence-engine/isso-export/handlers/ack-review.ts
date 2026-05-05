@@ -23,6 +23,7 @@ import {
 } from "@/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
+import { writeAuditLog } from "@/lib/audit";
 import type { HandlerResult, IngestContext, RegisterHandler } from "../types";
 
 interface AckReviewItem {
@@ -161,6 +162,22 @@ export const previous_period_acknowledgments_reviewHandler: RegisterHandler = as
         manifestId: ctx.manifestId,
       }),
     );
+    try {
+      await writeAuditLog({
+        organizationId: ctx.orgId,
+        action: "enclavewatch.break_glass.ack_review_applied",
+        resourceType: "break_glass_alert",
+        resourceId: item.alert_id,
+        details: {
+          outcome,
+          isso_note: item.isso_note ?? null,
+          manifest_id: ctx.manifestId,
+          entry_id: existing.id,
+        },
+      });
+    } catch {
+      // No-op
+    }
   }
 
   return result;
