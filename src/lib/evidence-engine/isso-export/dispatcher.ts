@@ -23,6 +23,7 @@ import { calculateControlStatus } from "@/lib/control-status";
 import { audit_log_reviewHandler } from "./handlers/audit-log-review";
 import { maintenance_logHandler } from "./handlers/maintenance-log";
 import { previous_period_acknowledgments_reviewHandler } from "./handlers/ack-review";
+import { control_freshnessHandler } from "./handlers/control-freshness";
 import { noopHandler } from "./handlers/noop";
 import type {
   DispatcherResult,
@@ -53,8 +54,10 @@ const SECTION_HANDLERS: Record<string, RegisterHandler> = {
   training_completion: noopHandler("training_completion"),
   policy_review: noopHandler("policy_review"),
   assessment_findings: noopHandler("assessment_findings"),
-  // Sprint 3 swaps in the freshness handler that bumps last_evaluated_at.
-  control_freshness: noopHandler("control_freshness"),
+  // Sprint 3: bumps control_records.updated_at for each freshly_observed
+  // control + emits per-control audit events. needing_attention[] currently
+  // logs only; Sprint 6 wires it into the dashboard.
+  control_freshness: control_freshnessHandler,
   // Sprint 2: closes the loop by applying ISSO outcomes to the entries
   // created by the maintenance_log handler.
   previous_period_acknowledgments_review:
