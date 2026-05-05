@@ -12,8 +12,9 @@ import {
   boundaries,
   organizations,
   issoExportManifests,
+  controlAttentionItems,
 } from "@/db/schema";
-import { eq, sql, desc, and, inArray } from "drizzle-orm";
+import { eq, sql, desc, and, inArray, isNull } from "drizzle-orm";
 import Link from "next/link";
 import {
   Activity,
@@ -37,6 +38,7 @@ import {
 } from "lucide-react";
 import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
 import { getVulnStatsForOrg } from "@/lib/sctm/vuln-stats";
+import { AttentionResolveButton } from "./AttentionResolveButton";
 
 /**
  * Continuous Monitoring (3.12.3) — operational dashboard for the
@@ -474,6 +476,27 @@ export default async function MonitoringPage() {
     issoObservations.reviewObservations +
     issoObservations.staleDocs +
     issoObservations.breakGlassEscalated;
+
+  // ── Open control_attention_items (Sprint 6.5) ──────────────────────────
+  // Items the ISSO flagged via control_freshness.needing_attention[]. Admin
+  // marks resolved via the small client component on this page.
+  const openAttentionItems = await db
+    .select({
+      id: controlAttentionItems.id,
+      controlId: controlAttentionItems.controlId,
+      reason: controlAttentionItems.reason,
+      severity: controlAttentionItems.severity,
+      flaggedAt: controlAttentionItems.flaggedAt,
+      flaggedByManifestId: controlAttentionItems.flaggedByManifestId,
+    })
+    .from(controlAttentionItems)
+    .where(
+      and(
+        eq(controlAttentionItems.organizationId, orgId),
+        isNull(controlAttentionItems.resolvedAt),
+      ),
+    )
+    .orderBy(desc(controlAttentionItems.flaggedAt));
 
   // Drift signal: prefer Azure validator (most change-prone surface);
   // fall back to OS validator. OS bundle has 0 findings on its own runs
@@ -913,6 +936,66 @@ export default async function MonitoringPage() {
               href="/dashboard/evidence-engine/registers/maintenance_log"
               tone={issoObservations.breakGlassEscalated > 0 ? "red" : "gray"}
             />
+          </div>
+        </section>
+      )}
+
+      {/* ── Section 0e: Open admin actions (control_freshness.needing_attention) ── */}
+      {openAttentionItems.length > 0 && (
+        <section>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">
+              Open admin actions
+            </h2>
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-800">
+              {openAttentionItems.length} flagged by ISSO
+            </span>
+          </div>
+          <div className={`${cardClass} p-4`}>
+            <p className="text-xs text-[var(--color-gray-600)]">
+              The ISSO flagged these controls during weekly review. Each row
+              represents a control whose evidence freshness, posture, or
+              process needs admin follow-up. Click <strong>Mark resolved</strong>{" "}
+              once the underlying issue is addressed.
+            </p>
+            <ul className="mt-3 space-y-1.5">
+              {openAttentionItems.map((item) => {
+                const tone =
+                  item.severity === "critical"
+                    ? "border-red-200 bg-red-50/60 text-red-900"
+                    : item.severity === "warning"
+                      ? "border-amber-200 bg-amber-50/60 text-amber-900"
+                      : "border-blue-200 bg-blue-50/40 text-blue-900";
+                return (
+                  <li
+                    key={item.id}
+                    className={`flex items-start gap-3 rounded-md border ${tone} px-3 py-2 text-sm`}
+                  >
+                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white">
+                      <FileWarning className="h-3.5 w-3.5" aria-hidden />
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-baseline gap-2">
+                        <Link
+                          href={`/dashboard/sctm/${encodeURIComponent(item.controlId)}`}
+                          className="font-medium underline decoration-dotted hover:no-underline"
+                        >
+                          {item.controlId}
+                        </Link>
+                        <span className="text-[11px] uppercase tracking-wide opacity-80">
+                          {item.severity}
+                        </span>
+                        <span className="text-[11px] opacity-70">
+                          flagged {new Date(item.flaggedAt).toLocaleString()}
+                        </span>
+                      </div>
+                      <p className="mt-0.5 text-xs opacity-90">{item.reason}</p>
+                    </div>
+                    <AttentionResolveButton itemId={item.id} />
+                  </li>
+                );
+              })}
+            </ul>
           </div>
         </section>
       )}

@@ -31,8 +31,8 @@
  */
 
 import { db } from "@/db";
-import { controlRecords } from "@/db/schema";
-import { eq, and, inArray } from "drizzle-orm";
+import { controlRecords, controlAttentionItems } from "@/db/schema";
+import { eq, and, inArray, isNull, sql } from "drizzle-orm";
 import type { HandlerResult, IngestContext, RegisterHandler } from "../types";
 
 interface NeedingAttentionItem {
@@ -125,8 +125,10 @@ export const control_freshnessHandler: RegisterHandler = async (
   }
 
   // ── needing_attention[] ─────────────────────────────────────────────────
-  // Sprint 3 logs only. Sprint 6's UI will wire these into the dashboard's
-  // "what needs attention" feed and the readiness page.
+  // Sprint 6.5: persist to control_attention_items so the Monitoring tab
+  // can render open items and admins can mark them resolved. Idempotent
+  // on (organization_id, control_id, flagged_by_manifest_id) — re-ingest
+  // of the same manifest doesn't duplicate.
   const needing = (section.needing_attention ?? []).filter(
     (n): n is NeedingAttentionItem =>
       typeof n === "object" && n !== null && typeof n.control_id === "string",
@@ -143,9 +145,62 @@ export const control_freshnessHandler: RegisterHandler = async (
           manifestId: ctx.manifestId,
         }),
       );
+
+      // Don't insert if a row for this manifest+control already exists.
+      const [existing] = await db
+        .select({ id: controlAttentionItems.id })
+        .from(controlAttentionItems)
+        .where(
+          and(
+            eq(controlAttentionItems.organizationId, ctx.orgId),
+            eq(controlAttentionItems.controlId, n.control_id ?? ""),
+            n.control_id
+              ? sql`${controlAttentionItems.flaggedByManifestId} = ${ctx.manifestId}`
+              : sql`false`,
+          ),
+        )
+        .limit(1);
+      if (existing) continue;
+
+      // Don't insert if there's already an OPEN row for this control —
+      // ISSO re-flagging on a different manifest is the same item, not a
+      // new one. Update reason/severity in place instead.
+      const [existingOpen] = await db
+        .select({ id: controlAttentionItems.id })
+        .from(controlAttentionItems)
+        .where(
+          and(
+            eq(controlAttentionItems.organizationId, ctx.orgId),
+            eq(controlAttentionItems.controlId, n.control_id ?? ""),
+            isNull(controlAttentionItems.resolvedAt),
+          ),
+        )
+        .limit(1);
+
+      if (existingOpen) {
+        await db
+          .update(controlAttentionItems)
+          .set({
+            reason: n.reason ?? "(no reason given)",
+            severity: n.severity ?? "warning",
+            flaggedByManifestId: ctx.manifestId,
+            vaultId: ctx.vaultId,
+          })
+          .where(eq(controlAttentionItems.id, existingOpen.id));
+      } else {
+        await db.insert(controlAttentionItems).values({
+          organizationId: ctx.orgId,
+          controlId: n.control_id ?? "",
+          reason: n.reason ?? "(no reason given)",
+          severity: n.severity ?? "warning",
+          flaggedByManifestId: ctx.manifestId,
+          vaultId: ctx.vaultId,
+          flaggedAt: ctx.reviewPeriodEnd,
+        });
+      }
     }
     result.warnings.push(
-      `${needing.length} control(s) flagged needing_attention by ISSO — surfaced via audit log; UI integration pending Sprint 6`,
+      `${needing.length} control(s) flagged needing_attention by ISSO — surfaced in /dashboard/monitoring`,
     );
   }
 

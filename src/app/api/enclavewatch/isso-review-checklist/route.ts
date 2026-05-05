@@ -132,7 +132,7 @@ export async function GET(req: Request) {
       if (!r) return null;
       const lastEval = r.updatedAt;
       const days = lastEval
-        ? Math.floor((now - new Date(lastEval).getTime()) / MS_PER_DAY)
+        ? Math.max(0, Math.floor((now - new Date(lastEval).getTime()) / MS_PER_DAY))
         : Number.MAX_SAFE_INTEGER;
       return {
         control_id: cid,

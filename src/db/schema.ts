@@ -1782,6 +1782,38 @@ export const issoExportManifests = pgTable(
   },
 );
 
+// ============== Control Attention Items (Sprint 6.5) ==============
+/**
+ * Persistent record of every control_freshness.needing_attention[] item the
+ * ISSO flags during weekly review. Sprint 3 logged these to /admin/audit-logs
+ * only; Sprint 6.5 makes them queryable so the Monitoring tab can surface
+ * them as actionable rows that admins can mark resolved.
+ *
+ * Idempotent on (organization_id, control_id, flagged_by_manifest_id) —
+ * re-ingesting the same manifest doesn't duplicate the row. Resolution
+ * is admin-driven for now (manual click in Monitoring); future sprint can
+ * auto-resolve when ISSO stops flagging the same control on subsequent
+ * manifests.
+ */
+export const controlAttentionItems = pgTable(
+  "control_attention_items",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    controlId: text("control_id").notNull(),
+    reason: text("reason").notNull(),
+    severity: text("severity").notNull().default("warning"),
+    flaggedByManifestId: text("flagged_by_manifest_id"),
+    vaultId: text("vault_id"),
+    flaggedAt: timestamp("flagged_at", { withTimezone: true }).notNull().defaultNow(),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+    resolvedByUserId: uuid("resolved_by_user_id"),
+    resolutionNote: text("resolution_note"),
+  },
+);
+
 // ============== IR Tabletop & AAR Evidence Kit ==============
 export {
   irExerciseStatusEnum,
