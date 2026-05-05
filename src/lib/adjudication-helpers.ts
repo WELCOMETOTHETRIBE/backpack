@@ -16,6 +16,7 @@ import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
 import { ENCLAVE_73_NIST_IDS } from "@/lib/compliance/os-evidence-manifest";
 import { AZURE_ENTRA_15_CONTROL_IDS } from "@/lib/compliance/azure-entra-controls";
 import { controlIdToNist } from "@/lib/compliance/controlId";
+import { getSatisfactionSources } from "@/lib/compliance/satisfaction-sources";
 
 /**
  * Controls that BOTH the OS pipeline and the Azure/Entra pipeline have a
@@ -235,7 +236,64 @@ export function hasOperationalEvidence(
   return false;
 }
 
-/** CMMC-rigorous adjudication check — use everywhere. */
+/**
+ * Does this control have ≥1 form of GOVERNANCE evidence?
+ *
+ * Same as hasOperationalEvidence but DELIBERATELY excludes the technical
+ * lane. Used for Governance-only (PURE_GOV) controls where the C3PAO
+ * assessment is Examine-policy/procedure or Examine-attestation, not
+ * Test-running-config. A passing OS/Azure scan does not satisfy a
+ * governance-only assessment objective.
+ */
+export function hasGovernanceEvidence(
+  r: ControlRecordRow,
+  ctx: AdjudicationContext
+): boolean {
+  // Register lane
+  const intel = ctx.intelMap.get(r.controlId);
+  if (intel?.registerSchemaId) {
+    const candidates = resolveRegisterKeyCandidates(intel.registerSchemaId);
+    for (const k of candidates) {
+      if ((ctx.registerFinalCounts.get(k) ?? 0) > 0) return true;
+    }
+    const cadence = getCadenceRuleByRegisterId(intel.registerSchemaId);
+    if (cadence?.cadence_days === 0) {
+      const provisioned = candidates.some((k) => ctx.provisionedRegisterKeys.has(k));
+      if (provisioned) return true;
+    }
+  }
+  // Artifact lane
+  if (ctx.artifactBackedRecordIds.has(r.id)) return true;
+  // Attestation lane
+  if (ctx.attestationBackedRecordIds.has(r.id)) return true;
+  return false;
+}
+
+/**
+ * CMMC-rigorous adjudication check — use everywhere.
+ *
+ * Bin-specific lane requirements (matches the satisfaction-source bins in
+ * src/lib/compliance/satisfaction-sources.ts and the C3PAO 800-171A
+ * assessment objectives — Examine vs Test methods):
+ *
+ *   Hybrid       (45 controls, policyDocRequired=true)
+ *                  → technical satisfied AND policy satisfied AND ops evidence
+ *   OS / Cloud   (technical config IS what the assessor Tests)
+ *                  → technicalStatus = "satisfied"
+ *   Governance   (17 PURE_GOV — assessor Examines policy/procedure/attestation)
+ *                  → governance evidence (artifact / register / attestation)
+ *                    -- explicitly NOT satisfiable by a passing technical scan
+ *   inherited / not_applicable
+ *                  → face value
+ *
+ * Previously the non-hybrid path accepted evidence in any lane via
+ * hasOperationalEvidence(). That was too lenient: a Governance-only control
+ * could pass on a stale technicalStatus without any policy artifact (not
+ * C3PAO defensible), and an OS-only control could pass on a register entry
+ * without a real config (also not defensible). Now each control's
+ * adjudication lane comes from the bin classification, not the writer's
+ * choice of evidence type.
+ */
 export function isControlAdjudicated(
   r: ControlRecordRow,
   ctx: AdjudicationContext
@@ -266,6 +324,8 @@ export function isControlAdjudicated(
     ) {
       return false;
     }
+
+    // Hybrid (45 controls): both lanes must be satisfied.
     if (r.policyDocRequired) {
       return (
         r.technicalStatus === "satisfied" &&
@@ -273,6 +333,26 @@ export function isControlAdjudicated(
         hasOperationalEvidence(r, ctx)
       );
     }
+
+    // Bin-specific lane requirements for non-hybrid controls.
+    const sources = getSatisfactionSources(r.controlId);
+
+    // Governance-only: documentation lane is the evidence the C3PAO will
+    // Examine. Reject technical-only passes — a running config doesn't
+    // substitute for a signed policy or completed register entry.
+    if (sources.governance && !sources.os && !sources.cloud) {
+      return hasGovernanceEvidence(r, ctx);
+    }
+
+    // OS / Cloud: technical configuration is what the C3PAO will Test.
+    // A register entry without a passing technical scan isn't sufficient.
+    if (sources.os || sources.cloud) {
+      return r.technicalStatus === "satisfied";
+    }
+
+    // Fallback for any unclassified control (runC3PAOValidation flags
+    // these as errors). Keep the legacy "any lane" check so we don't
+    // accidentally fail an unbinned control before the bin map is fixed.
     return hasOperationalEvidence(r, ctx);
   }
   return false;

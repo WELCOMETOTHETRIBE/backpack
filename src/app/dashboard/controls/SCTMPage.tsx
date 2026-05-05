@@ -280,13 +280,20 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
   }, [adjudicatedSet]);
 
   const adjudicatedControlIds = adjudicatedSet;
+  // `partialControlIds` is informational metadata (amber badge on the row)
+  // signalling "OS hardening run produced a partial finding here". It does
+  // NOT participate in the headline math — the canonical truth is binary:
+  // a control is either in `adjudicatedSet` (canonical helper says closed
+  // via at least one operational lane) or it's outstanding. Same formula
+  // the dashboard Overview uses; both surfaces now derive from
+  // `/api/control-records/adjudicated-ids` with no local overrides.
   const partialControlIds = useMemo(
     () => new Set(records.filter((r) => r.evidencePartial === true).map((r) => r.controlId)),
     [records]
   );
   const adjudicatedCount = adjudicatedControlIds.size;
   const partialCount = partialControlIds.size;
-  const outstandingCount = Math.max(0, 110 - adjudicatedCount - partialCount);
+  const outstandingCount = Math.max(0, 110 - adjudicatedCount);
 
   function setFamily(code: string | null) {
     const u = new URLSearchParams(searchParams.toString());

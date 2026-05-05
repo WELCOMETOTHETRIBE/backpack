@@ -135,3 +135,83 @@ describe("isControlAdjudicated — dual-pipeline gate", () => {
     expect(isControlAdjudicated(r, emptyCtx())).toBe(true);
   });
 });
+
+describe("isControlAdjudicated — bin-specific lane requirements", () => {
+  // Governance-only controls (PURE_GOV) — assessor's 800-171A objectives
+  // require Examine of policy/procedure/attestation. A passing OS scan is
+  // not C3PAO-defensible evidence for these.
+  it("Governance-only (3.2.1 training policy) does NOT adjudicate on technical alone", () => {
+    const r: ControlRecordRow = {
+      id: "rec-3.2.1",
+      controlId: "3.2.1",
+      implementationStatus: "implemented",
+      technicalStatus: "satisfied", // stale or wrong-lane evidence
+      policyDocRequired: false,
+      policyStatus: "not_required",
+    };
+    // No artifact, register entry, or attestation → must NOT adjudicate
+    expect(isControlAdjudicated(r, emptyCtx())).toBe(false);
+  });
+
+  it("Governance-only (3.2.1) adjudicates with an artifact-backed record", () => {
+    const r: ControlRecordRow = {
+      id: "rec-3.2.1",
+      controlId: "3.2.1",
+      implementationStatus: "implemented",
+      technicalStatus: "not_required",
+      policyDocRequired: false,
+      policyStatus: "not_required",
+    };
+    const ctx = emptyCtx();
+    ctx.artifactBackedRecordIds.add("rec-3.2.1");
+    expect(isControlAdjudicated(r, ctx)).toBe(true);
+  });
+
+  it("Governance-only (3.2.1) adjudicates with a signed attestation", () => {
+    const r: ControlRecordRow = {
+      id: "rec-3.2.1",
+      controlId: "3.2.1",
+      implementationStatus: "implemented",
+      technicalStatus: "not_required",
+      policyDocRequired: false,
+      policyStatus: "not_required",
+    };
+    const ctx = emptyCtx();
+    ctx.attestationBackedRecordIds.add("rec-3.2.1");
+    expect(isControlAdjudicated(r, ctx)).toBe(true);
+  });
+
+  it("Governance-only (3.6.1 IR) does NOT adjudicate on a stale technicalStatus", () => {
+    const r: ControlRecordRow = {
+      id: "rec-3.6.1",
+      controlId: "3.6.1",
+      implementationStatus: "implemented",
+      technicalStatus: "satisfied",
+      policyDocRequired: false,
+      policyStatus: "not_required",
+    };
+    expect(isControlAdjudicated(r, emptyCtx())).toBe(false);
+  });
+
+  // OS / Cloud controls — technical config is the C3PAO Test artifact.
+  // A register entry without a passing technical scan is insufficient.
+  it("OS-only (3.1.1) does NOT adjudicate without technicalStatus=satisfied", () => {
+    const r: ControlRecordRow = {
+      id: "rec-3.1.1",
+      controlId: "3.1.1",
+      implementationStatus: "implemented",
+      technicalStatus: "not_started",
+      policyDocRequired: false,
+      policyStatus: "not_required",
+    };
+    const ctx = emptyCtx();
+    // Even with an artifact, OS-only requires the technical lane
+    ctx.artifactBackedRecordIds.add("rec-3.1.1");
+    expect(isControlAdjudicated(r, ctx)).toBe(false);
+  });
+
+  it("OS-only (3.1.1) adjudicates on technicalStatus=satisfied alone", () => {
+    const r = osStrongImplemented("3.1.1");
+    expect(isControlAdjudicated(r, emptyCtx())).toBe(true);
+  });
+});
