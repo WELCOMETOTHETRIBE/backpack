@@ -176,6 +176,123 @@
             "evidence_screenshot",
             "ticket_link"
           ]
+        },
+        {
+          "type": "privileged_grant_acknowledgment",
+          "short_help": "Auto-detected privileged role grant (Owner / Contributor / User Access Administrator) awaiting admin justification. Pattern A — admin justifies within 72h with intended business purpose, expected duration, and sunset plan, or the alert escalates to ISSO. Cross-references the underlying grant_access entry via evidence_refs[].",
+          "required": [
+            "actor_user",
+            "actor_user_id",
+            "event_type",
+            "event_classification",
+            "detected_at",
+            "occurred_at",
+            "signed_at",
+            "system",
+            "scope_arm",
+            "vault_id",
+            "boundary_id",
+            "business_justification",
+            "detection_method",
+            "outcome",
+            "actions_taken",
+            "evidence_refs",
+            "lifecycle_state",
+            "provenance"
+          ],
+          "required_at_finalize": [
+            "actor_user",
+            "actor_user_id",
+            "event_type",
+            "event_classification",
+            "detected_at",
+            "occurred_at",
+            "signed_at",
+            "system",
+            "scope_arm",
+            "vault_id",
+            "boundary_id",
+            "business_justification",
+            "detection_method",
+            "outcome",
+            "actions_taken",
+            "evidence_refs",
+            "lifecycle_state",
+            "provenance"
+          ],
+          "required_at_isso_verified": [
+            "verified_by",
+            "verified_at",
+            "verification_note"
+          ],
+          "optional": [
+            "expected_duration_days",
+            "sunset_plan",
+            "ticket_url",
+            "notes",
+            "detection_source",
+            "azure_role_name",
+            "azure_role_id",
+            "principal_id",
+            "principal_type",
+            "actor_id",
+            "actor_type",
+            "raw_correlation_id",
+            "alert_id",
+            "manifest_id",
+            "isso_outcome",
+            "isso_note",
+            "verified_by",
+            "verified_at",
+            "verification_note",
+            "dispute_filed",
+            "dispute_status",
+            "escalated_at",
+            "related_grant_entry_id"
+          ],
+          "enums": {
+            "event_type": [
+              "role_grant",
+              "role_modify",
+              "role_extend"
+            ],
+            "event_classification": [
+              "privileged_admin",
+              "privileged_security",
+              "privileged_billing"
+            ],
+            "detection_method": [
+              "azure_activity_log",
+              "manual_attestation"
+            ],
+            "outcome": [
+              "approved",
+              "approved_with_conditions",
+              "rolled_back",
+              "investigating"
+            ],
+            "lifecycle_state": [
+              "draft",
+              "admin_signed",
+              "isso_verified",
+              "escalated",
+              "disputed",
+              "resolved",
+              "void",
+              "auto_recorded",
+              "auto_recorded_legacy"
+            ],
+            "isso_outcome": [
+              "verified_timely",
+              "overdue_escalated",
+              "dispute_pending"
+            ]
+          },
+          "recommended_attachments": [
+            "ticket_link",
+            "approval_record",
+            "iam_export_or_screenshot"
+          ]
         }
       ],
       "control_ids": [

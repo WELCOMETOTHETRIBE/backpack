@@ -13,6 +13,7 @@ import {
 import { FinalizeButton } from "./FinalizeButton";
 import { EntryAttachments } from "./EntryAttachments";
 import { BreakGlassAckForm } from "./BreakGlassAckForm";
+import { PrivilegedGrantJustifyForm } from "./PrivilegedGrantJustifyForm";
 
 type PageProps = { params: Promise<{ entryId: string }> };
 
@@ -122,6 +123,28 @@ export default async function EvidenceEngineEntryDetailPage({ params }: PageProp
             client_ip: (data.client_ip as string | null | undefined) ?? null,
             app_or_resource: (data.app_or_resource as string | null | undefined) ?? null,
             actions_observed: (data.actions_observed as string[] | null | undefined) ?? null,
+          }}
+        />
+      )}
+
+      {entryType === "privileged_grant_acknowledgment" && isDraft && canFinalize && (
+        <PrivilegedGrantJustifyForm
+          entryId={entryId}
+          detection={{
+            alert_id: data.alert_id as string | undefined,
+            actor_user: (data.actor_user as string | undefined) ?? (data.subject_user as string | undefined),
+            actor_user_id: (data.actor_user_id as string | null | undefined) ?? null,
+            azure_role_name: (data.azure_role_name as string | null | undefined) ?? null,
+            scope_arm: (data.scope_arm as string | null | undefined) ?? null,
+            system: (data.system as string | null | undefined) ?? null,
+            occurred_at: data.occurred_at as string | undefined,
+            detected_at: data.detected_at as string | undefined,
+            approver:
+              (data.approver as string | null | undefined) ??
+              (data.actor_display_name as string | null | undefined) ??
+              null,
+            related_grant_entry_id:
+              (data.related_grant_entry_id as string | null | undefined) ?? null,
           }}
         />
       )}

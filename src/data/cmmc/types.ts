@@ -44,6 +44,15 @@ export interface RegisterEntryType {
   optional: string[];
   enums: Record<string, string[]>;
   recommended_attachments: string[];
+  /**
+   * Optional auditor-defensible verbosity hooks introduced by the
+   * Register-Automation v1.1 brief (§1). Most existing entry types
+   * leave these undefined and rely on `required` alone; new entry
+   * types (e.g. privileged_grant_acknowledgment) declare both the
+   * finalize-time field set and the ISSO-verify-time field set.
+   */
+  required_at_finalize?: string[];
+  required_at_isso_verified?: string[];
 }
 
 export interface RegisterSchema {

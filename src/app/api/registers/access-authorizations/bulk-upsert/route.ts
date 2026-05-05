@@ -11,6 +11,7 @@ import { eq, and, sql } from "drizzle-orm";
 import { resolveOrgFromSessionOrBearer } from "@/lib/auth-bearer";
 import { calculateControlStatus } from "@/lib/control-status";
 import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
+import { writeAuditLog } from "@/lib/audit";
 import { createHash } from "crypto";
 
 /**
@@ -241,11 +242,44 @@ export async function POST(req: Request) {
   }
   let remoteSynthesized = 0;
 
+  // Index existing privileged_grant_acknowledgment entries by their
+  // alert_id so we don't duplicate the acknowledgment-loop entry on
+  // collector retries. Alert ID is deterministic from the source
+  // event (see `pgaAlertId()` below) so retries hit the same row.
+  const pgaCandidates = await db
+    .select({
+      id: governanceRegisterEntries.id,
+      entryData: governanceRegisterEntries.entryData,
+    })
+    .from(governanceRegisterEntries)
+    .where(
+      and(
+        eq(governanceRegisterEntries.registerId, register.id),
+        eq(governanceRegisterEntries.entryType, "privileged_grant_acknowledgment"),
+      ),
+    );
+  const pgaByAlertId = new Map<string, string>();
+  for (const e of pgaCandidates) {
+    const d = (e.entryData ?? {}) as Record<string, unknown>;
+    if (typeof d.alert_id === "string" && d.alert_id) pgaByAlertId.set(d.alert_id, e.id);
+  }
+
+  /**
+   * Deterministic alert_id for a privileged_grant_acknowledgment entry.
+   * Mirrors the break-glass `bg-azure-{eventId}` convention so the same
+   * Azure Activity Log event always lands on the same ack row.
+   */
+  function pgaAlertId(eventId: string): string {
+    return `pga-azure-${eventId}`;
+  }
+
   const now = new Date();
   let inserted = 0;
   let updated = 0;
   let granted = 0;
   let revoked = 0;
+  let privilegedAcksInserted = 0;
+  let privilegedAcksUpdated = 0;
 
   for (const ev of body.events) {
     if (!ev.event_id || !ev.occurred_at) continue;
@@ -317,6 +351,7 @@ export async function POST(req: Request) {
     }
 
     const existingId = byEventId.get(ev.event_id);
+    let grantEntryId: string | null = null;
     if (existingId) {
       await db
         .update(governanceRegisterEntries)
@@ -329,16 +364,165 @@ export async function POST(req: Request) {
         })
         .where(eq(governanceRegisterEntries.id, existingId));
       updated++;
+      grantEntryId = existingId;
     } else {
-      await db.insert(governanceRegisterEntries).values({
-        registerId: register.id,
-        boundaryId: boundary.id,
-        entryData,
-        entryType,
-        status: "final",
-        finalizedAt: now,
-      });
+      const [insertedRow] = await db
+        .insert(governanceRegisterEntries)
+        .values({
+          registerId: register.id,
+          boundaryId: boundary.id,
+          entryData,
+          entryType,
+          status: "final",
+          finalizedAt: now,
+        })
+        .returning({ id: governanceRegisterEntries.id });
       inserted++;
+      grantEntryId = insertedRow?.id ?? null;
+    }
+
+    // ── Phase 1: privileged-grant acknowledgment loop ──
+    // For privileged_admin grants only, additionally insert (or refresh)
+    // a draft `privileged_grant_acknowledgment` entry that captures the
+    // §1 auditor-defensible field set. The grant_access entry above is
+    // the factual access record; this sibling entry is the acknowledgment-
+    // loop record that an admin must sign within 72h.
+    //
+    // Cross-referenced via evidence_refs[] (related_entry_id pointing at
+    // the grant_access row). Lifecycle: draft → admin_signed (form POST)
+    // → isso_verified (next weekly export). Non-privileged grants and
+    // revoke operations skip this block.
+    if (ev.operation === "grant" && schemaRole === "privileged_admin") {
+      const alertId = pgaAlertId(ev.event_id);
+      const evidenceRefs: Array<Record<string, unknown>> = [
+        {
+          type: "related_entry_id",
+          value: grantEntryId,
+          label: "Underlying grant_access entry",
+        },
+      ];
+      if (ev.raw_correlation_id) {
+        evidenceRefs.push({
+          type: "azure_correlation_id",
+          value: ev.raw_correlation_id,
+          label: "Azure Activity Log correlation ID",
+        });
+      }
+
+      const pgaEntryData: Record<string, unknown> = {
+        // §1 actor_*
+        actor_user: principalDisplay,
+        actor_user_id: ev.principal?.id ?? null,
+        actor_user_type: ev.principal?.type ?? null,
+        // §1 event_type + event_classification
+        event_type: "role_grant",
+        event_classification: "privileged_admin",
+        // §1 time anchors (only detected_at + occurred_at populated; signed_at + verified_at fill in later)
+        detected_at: now.toISOString(),
+        occurred_at: ev.occurred_at,
+        signed_at: null,
+        verified_at: null,
+        // §1 location
+        system: systemDisplay,
+        scope_arm: ev.scope ?? null,
+        vault_id: body.vault_id,
+        boundary_id: boundary.id,
+        // §1 detection_method + detection_source
+        detection_method: "azure_activity_log",
+        detection_source: "azure_role_assignment_events",
+        // §1 lifecycle_state
+        lifecycle_state: "draft",
+        // §1 evidence_refs
+        evidence_refs: evidenceRefs,
+        // §1 provenance — manifest_id is null until the next ISSO export carries this entry; run_id is the cadence run we just wrote
+        provenance: {
+          manifest_id: null,
+          run_id: `RoleEvents-${(body.collected_at ?? now.toISOString()).slice(0, 10)}-${(body.vault_id ?? "unknown").slice(0, 24)}`,
+          ingested_at: now.toISOString(),
+        },
+        // To-be-filled-by-admin fields (left unset until justify form runs)
+        business_justification: null,
+        outcome: null,
+        actions_taken: null,
+        // ISSO-verify-time fields (filled by ack-review handler)
+        verified_by: null,
+        verification_note: null,
+        // Optional / context fields
+        alert_id: alertId,
+        azure_role_name: azureRoleName,
+        azure_role_id: ev.role?.id ?? null,
+        principal_id: ev.principal?.id ?? null,
+        principal_type: ev.principal?.type ?? null,
+        actor_id: ev.actor?.id ?? null,
+        actor_type: ev.actor?.type ?? null,
+        actor_display_name: actorDisplay,
+        raw_correlation_id: ev.raw_correlation_id ?? null,
+        source: body.source,
+        related_grant_entry_id: grantEntryId,
+        manifest_id: null,
+        // Helpers
+        approver: actorDisplay,
+        approved_at: ev.occurred_at,
+      };
+
+      const existingPgaId = pgaByAlertId.get(alertId);
+      if (existingPgaId) {
+        // Refresh the detection-side fields without clobbering admin-
+        // submitted fields if an ack is already in flight. Only fields
+        // that are inherently "from the source event" get re-merged.
+        const [existingPgaRow] = await db
+          .select({
+            id: governanceRegisterEntries.id,
+            entryData: governanceRegisterEntries.entryData,
+            status: governanceRegisterEntries.status,
+          })
+          .from(governanceRegisterEntries)
+          .where(eq(governanceRegisterEntries.id, existingPgaId))
+          .limit(1);
+        if (existingPgaRow) {
+          const existingData = (existingPgaRow.entryData ?? {}) as Record<string, unknown>;
+          // If admin has already signed, leave it final. Otherwise refresh detection fields.
+          if (existingPgaRow.status === "draft") {
+            const merged: Record<string, unknown> = {
+              ...existingData,
+              actor_user: principalDisplay,
+              system: systemDisplay,
+              scope_arm: ev.scope ?? null,
+              azure_role_name: azureRoleName,
+              azure_role_id: ev.role?.id ?? null,
+              principal_id: ev.principal?.id ?? null,
+              principal_type: ev.principal?.type ?? null,
+              actor_id: ev.actor?.id ?? null,
+              actor_type: ev.actor?.type ?? null,
+              actor_display_name: actorDisplay,
+              raw_correlation_id: ev.raw_correlation_id ?? null,
+              source: body.source,
+              vault_id: body.vault_id,
+              boundary_id: boundary.id,
+              evidence_refs: evidenceRefs,
+              related_grant_entry_id: grantEntryId,
+              occurred_at: ev.occurred_at,
+            };
+            await db
+              .update(governanceRegisterEntries)
+              .set({
+                entryData: merged,
+                updatedAt: now,
+              })
+              .where(eq(governanceRegisterEntries.id, existingPgaId));
+            privilegedAcksUpdated++;
+          }
+        }
+      } else {
+        await db.insert(governanceRegisterEntries).values({
+          registerId: register.id,
+          boundaryId: boundary.id,
+          entryData: pgaEntryData,
+          entryType: "privileged_grant_acknowledgment",
+          status: "draft",
+        });
+        privilegedAcksInserted++;
+      }
     }
   }
 
@@ -469,9 +653,61 @@ export async function POST(req: Request) {
       inserted,
       updated,
       remoteSynthesized,
+      privilegedAcksInserted,
+      privilegedAcksUpdated,
       recomputed,
     }),
   );
+
+  // Detection-side audit log for any newly opened privileged-grant
+  // acknowledgment loops. One row per event ID so the audit trail can
+  // reconstruct exactly which detection opened which draft entry.
+  if (privilegedAcksInserted > 0) {
+    try {
+      // Reload the just-inserted PGA rows so we can emit one audit
+      // row per alert. Using a fresh select keeps this resilient if
+      // the loop above gets re-ordered later.
+      const fresh = await db
+        .select({
+          id: governanceRegisterEntries.id,
+          entryData: governanceRegisterEntries.entryData,
+          createdAt: governanceRegisterEntries.createdAt,
+        })
+        .from(governanceRegisterEntries)
+        .where(
+          and(
+            eq(governanceRegisterEntries.registerId, register.id),
+            eq(governanceRegisterEntries.entryType, "privileged_grant_acknowledgment"),
+          ),
+        );
+      const cutoff = now.getTime() - 60_000; // 1 minute back-window for "newly opened"
+      for (const r of fresh) {
+        if (!r.createdAt) continue;
+        const created = new Date(r.createdAt).getTime();
+        if (created < cutoff) continue;
+        const d = (r.entryData ?? {}) as Record<string, unknown>;
+        if (d.lifecycle_state !== "draft") continue;
+        await writeAuditLog({
+          organizationId: orgId,
+          userId: null,
+          action: "enclavewatch.privileged_grant.detected",
+          resourceType: "privileged_grant_alert",
+          resourceId: (d.alert_id as string | undefined) ?? r.id,
+          details: {
+            entry_id: r.id,
+            actor_user: d.actor_user ?? null,
+            azure_role_name: d.azure_role_name ?? null,
+            scope_arm: d.scope_arm ?? null,
+            occurred_at: d.occurred_at ?? null,
+            related_grant_entry_id: d.related_grant_entry_id ?? null,
+            vault_id: d.vault_id ?? null,
+          },
+        }).catch(() => null);
+      }
+    } catch {
+      // Audit-log write is best-effort — never block the upsert response on it.
+    }
+  }
 
   return NextResponse.json({
     ok: true,
@@ -484,6 +720,8 @@ export async function POST(req: Request) {
     inserted,
     updated,
     remote_access_synthesized: remoteSynthesized,
+    privileged_acks_inserted: privilegedAcksInserted,
+    privileged_acks_updated: privilegedAcksUpdated,
     recomputed_controls: recomputed,
   });
 }
