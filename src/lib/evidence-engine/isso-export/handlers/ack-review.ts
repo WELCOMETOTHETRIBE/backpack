@@ -131,7 +131,21 @@ export const previous_period_acknowledgments_reviewHandler: RegisterHandler = as
     let newStatus: "draft" | "final" = existing.status as "draft" | "final";
     if (outcome === "verified_timely") {
       // ISSO is satisfied — finalize even if admin didn't fill all
-      // acknowledgment fields. ISSO judgment is the authoritative close.
+      // acknowledgment fields. ISSO judgment is the authoritative close
+      // per spec §5. Defensive surface: when ISSO closes a draft entry
+      // without any admin-filled fields, emit a warning so the unusual
+      // path is visible. Doesn't block — the spec-permitted override
+      // remains; this just makes "ISSO closed without admin ack"
+      // patterns easy to spot in /admin/audit-logs and the Monitoring
+      // tab's warnings surface.
+      const adminFieldsPresent =
+        typeof data.acknowledged_by === "string" && (data.acknowledged_by as string).trim().length > 0;
+      if (existing.status === "draft" && !adminFieldsPresent) {
+        result.warnings.push(
+          `ISSO closed alert_id=${item.alert_id} as verified_timely while still in draft (no admin acknowledgment recorded). Spec-permitted override; surface for operator visibility.`,
+        );
+        updated.isso_closed_without_admin_ack = true;
+      }
       newStatus = "final";
     } else if (outcome === "overdue_escalated") {
       updated.escalated_at = now.toISOString();
