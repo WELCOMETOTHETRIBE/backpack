@@ -42,6 +42,12 @@ const isPublicRoute = createRouteMatcher([
   "/api/registers/vuln-remediation(.*)",
   "/api/registers/identity-inventory(.*)",
   "/api/registers/access-authorizations(.*)",
+  // Phase 2 (Register-Automation v1.1) — vault-facing read endpoint that
+  // EnclaveWatch's ConfigurationDriftCollector calls to correlate Sysmon
+  // events against logged change_log entries. Bearer-or-session auth via
+  // resolveOrgFromSessionOrBearer; without this exception Clerk rewrites
+  // to /clerk_* (404) before the handler ever sees the bearer.
+  "/api/registers/change-log(.*)",
 ]);
 
 const AUDIT_SESSION_COOKIE = "mactech_audit_session";
