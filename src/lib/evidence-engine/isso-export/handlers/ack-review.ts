@@ -8,6 +8,9 @@
  *     register & §1 verbosity fields)
  *   - change_drift_log.change_drift_acknowledgment      (Phase 2 of
  *     Register-Automation v1.1 brief; Pattern A again)
+ *   - incident_log.defender_alert_acknowledgment        (Phase 3 of
+ *     Register-Automation v1.1 brief; Pattern A — high/critical Defender
+ *     for Endpoint alerts with 24h admin SLA)
  *
  *   verified_timely    → entry is marked ISSO-verified; if still draft and
  *                        admin acknowledged in time, finalize. If admin
@@ -23,7 +26,7 @@
  * register sets and dispatches on entryType. Alert IDs are deterministic
  * by source so they don't collide across surfaces (`bg-azure-*` for
  * break-glass, `pga-azure-*` for privileged grants, `cd-sysmon-*` for
- * configuration drift).
+ * configuration drift, `defender-*` for Defender for Endpoint alerts).
  *
  * Per spec §11.
  */
@@ -115,13 +118,29 @@ export const previous_period_acknowledgments_reviewHandler: RegisterHandler = as
       ),
     );
 
+  // Resolve all candidate incident_log register rows (Defender for Endpoint, Phase 3).
+  const ilCandidates = resolveRegisterKeyCandidates("incident_log");
+  const ilRegisters = await db
+    .select({ id: governanceRegisters.id })
+    .from(governanceRegisters)
+    .where(
+      and(
+        eq(governanceRegisters.organizationId, ctx.orgId),
+        sql`${governanceRegisters.registerKey} IN (${sql.join(
+          ilCandidates.map((k) => sql`${k}`),
+          sql`, `,
+        )})`,
+      ),
+    );
+
   if (
     mlRegisters.length === 0 &&
     aaRegisters.length === 0 &&
-    cdlRegisters.length === 0
+    cdlRegisters.length === 0 &&
+    ilRegisters.length === 0
   ) {
     result.warnings.push(
-      "no candidate registers (maintenance_log / access_authorization / change_drift_log) provisioned for org — ack outcomes not applied",
+      "no candidate registers (maintenance_log / access_authorization / change_drift_log / incident_log) provisioned for org — ack outcomes not applied",
     );
     return result;
   }
@@ -129,6 +148,7 @@ export const previous_period_acknowledgments_reviewHandler: RegisterHandler = as
   const mlRegisterIds = mlRegisters.map((r) => r.id);
   const aaRegisterIds = aaRegisters.map((r) => r.id);
   const cdlRegisterIds = cdlRegisters.map((r) => r.id);
+  const ilRegisterIds = ilRegisters.map((r) => r.id);
   const now = new Date();
 
   /**
@@ -142,7 +162,11 @@ export const previous_period_acknowledgments_reviewHandler: RegisterHandler = as
         entryData: Record<string, unknown> | null;
         status: string;
         entryType: string;
-        surface: "break_glass" | "privileged_grant" | "config_drift";
+        surface:
+          | "break_glass"
+          | "privileged_grant"
+          | "config_drift"
+          | "defender_alert";
       }
     | null
   > {
@@ -174,6 +198,40 @@ export const previous_period_acknowledgments_reviewHandler: RegisterHandler = as
           status: hit.status,
           entryType: hit.entryType ?? "privileged_grant_acknowledgment",
           surface: "privileged_grant",
+        };
+      }
+    }
+    // Defender for Endpoint critical alerts (Phase 3 — uses defender-* prefix).
+    if (ilRegisterIds.length > 0) {
+      const [hit] = await db
+        .select({
+          id: governanceRegisterEntries.id,
+          entryData: governanceRegisterEntries.entryData,
+          status: governanceRegisterEntries.status,
+          entryType: governanceRegisterEntries.entryType,
+        })
+        .from(governanceRegisterEntries)
+        .where(
+          and(
+            sql`${governanceRegisterEntries.registerId} IN (${sql.join(
+              ilRegisterIds.map((id) => sql`${id}`),
+              sql`, `,
+            )})`,
+            eq(
+              governanceRegisterEntries.entryType,
+              "defender_alert_acknowledgment",
+            ),
+            sql`${governanceRegisterEntries.entryData} ->> 'alert_id' = ${alertId}`,
+          ),
+        )
+        .limit(1);
+      if (hit) {
+        return {
+          id: hit.id,
+          entryData: (hit.entryData ?? null) as Record<string, unknown> | null,
+          status: hit.status,
+          entryType: hit.entryType ?? "defender_alert_acknowledgment",
+          surface: "defender_alert",
         };
       }
     }
@@ -263,7 +321,7 @@ export const previous_period_acknowledgments_reviewHandler: RegisterHandler = as
 
     if (!existing) {
       result.warnings.push(
-        `ack_review references unknown alert_id=${item.alert_id} — no matching break-glass / privileged-grant / config-drift entry`,
+        `ack_review references unknown alert_id=${item.alert_id} — no matching break-glass / privileged-grant / config-drift / defender-alert entry`,
       );
       continue;
     }
@@ -341,9 +399,10 @@ export const previous_period_acknowledgments_reviewHandler: RegisterHandler = as
       continue;
     }
 
-    // ── Privileged-grant + Config-drift surfaces share §1 lifecycle
-    //    semantics. The two branches differ only in the audit-log event
-    //    name and the field used to detect "admin signed" status.
+    // ── Privileged-grant + Config-drift + Defender-alert surfaces share
+    //    §1 lifecycle semantics. They differ only in the audit-log event
+    //    name, resource type, and per-surface details we capture in the
+    //    audit log payload.
     const verifiedBy = item.verified_by ?? "ISSO (manifest signatory)";
     const existingRefs = Array.isArray(data.evidence_refs)
       ? (data.evidence_refs as Array<Record<string, unknown>>)
@@ -410,27 +469,38 @@ export const previous_period_acknowledgments_reviewHandler: RegisterHandler = as
       .where(eq(governanceRegisterEntries.id, existing.id));
     result.entries_updated++;
 
-    const eventName =
-      existing.surface === "config_drift"
-        ? "enclavewatch.config_drift.ack_review_applied"
-        : "enclavewatch.privileged_grant.ack_review_applied";
-    const resourceType =
-      existing.surface === "config_drift"
-        ? "config_drift_alert"
-        : "privileged_grant_alert";
-    const detailsExtras: Record<string, unknown> =
-      existing.surface === "config_drift"
-        ? {
-            related_change_log_entry_id:
-              (data.related_change_log_entry_id as string | null | undefined) ??
-              null,
-            path: (data.path as string | null | undefined) ?? null,
-            change_type: (data.change_type as string | null | undefined) ?? null,
-          }
-        : {
-            related_grant_entry_id:
-              (data.related_grant_entry_id as string | null | undefined) ?? null,
-          };
+    let eventName: string;
+    let resourceType: string;
+    let detailsExtras: Record<string, unknown>;
+    if (existing.surface === "config_drift") {
+      eventName = "enclavewatch.config_drift.ack_review_applied";
+      resourceType = "config_drift_alert";
+      detailsExtras = {
+        related_change_log_entry_id:
+          (data.related_change_log_entry_id as string | null | undefined) ?? null,
+        path: (data.path as string | null | undefined) ?? null,
+        change_type: (data.change_type as string | null | undefined) ?? null,
+      };
+    } else if (existing.surface === "defender_alert") {
+      eventName = "enclavewatch.defender_alert.ack_review_applied";
+      resourceType = "defender_alert";
+      detailsExtras = {
+        alert_title:
+          (data.actor_alert_title as string | null | undefined) ?? null,
+        severity: (data.severity as string | null | undefined) ?? null,
+        event_type: (data.event_type as string | null | undefined) ?? null,
+        system: (data.system as string | null | undefined) ?? null,
+        graph_alert_url:
+          (data.graph_alert_url as string | null | undefined) ?? null,
+      };
+    } else {
+      eventName = "enclavewatch.privileged_grant.ack_review_applied";
+      resourceType = "privileged_grant_alert";
+      detailsExtras = {
+        related_grant_entry_id:
+          (data.related_grant_entry_id as string | null | undefined) ?? null,
+      };
+    }
 
     console.log(
       JSON.stringify({

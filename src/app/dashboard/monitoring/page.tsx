@@ -508,6 +508,85 @@ export default async function MonitoringPage() {
       .sort((a, b) => b.ageHours - a.ageHours);
   }
 
+  // ── Pending Defender alert acknowledgments ─────────────────────────────
+  // Surface every incident_log entry of type defender_alert_acknowledgment
+  // in draft. The admin must record an investigation outcome within 24h
+  // (tighter than the 72h SLA on lower-severity surfaces) or the alert
+  // escalates to ISSO on next weekly review. (Phase 3 of Register-
+  // Automation v1.1 brief.)
+  const DEFENDER_ACK_STALE_HOURS = 24;
+  const ilCandidates = resolveRegisterKeyCandidates("incident_log");
+  const ilRegisters = await db
+    .select({ id: governanceRegisters.id })
+    .from(governanceRegisters)
+    .where(
+      and(
+        eq(governanceRegisters.organizationId, orgId),
+        sql`${governanceRegisters.registerKey} IN (${sql.join(
+          ilCandidates.map((k) => sql`${k}`),
+          sql`, `,
+        )})`,
+      ),
+    );
+  let pendingDefenderAcks: Array<{
+    id: string;
+    alertId: string;
+    alertTitle: string;
+    severity: string;
+    eventType: string;
+    system: string | null;
+    actorUser: string | null;
+    detectedAt: string | null;
+    occurredAt: string | null;
+    ageHours: number;
+    overdue: boolean;
+  }> = [];
+  if (ilRegisters.length > 0) {
+    const defDraftRows = await db
+      .select({
+        id: governanceRegisterEntries.id,
+        entryData: governanceRegisterEntries.entryData,
+        createdAt: governanceRegisterEntries.createdAt,
+      })
+      .from(governanceRegisterEntries)
+      .where(
+        and(
+          sql`${governanceRegisterEntries.registerId} IN (${sql.join(
+            ilRegisters.map((r) => sql`${r.id}`),
+            sql`, `,
+          )})`,
+          eq(
+            governanceRegisterEntries.entryType,
+            "defender_alert_acknowledgment",
+          ),
+          eq(governanceRegisterEntries.status, "draft"),
+        ),
+      );
+    pendingDefenderAcks = defDraftRows
+      .map((r) => {
+        const data = (r.entryData ?? {}) as Record<string, unknown>;
+        const ageHours = Math.max(
+          0,
+          Math.floor((now - new Date(r.createdAt).getTime()) / 3_600_000),
+        );
+        return {
+          id: r.id,
+          alertId: (data.alert_id as string | undefined) ?? r.id,
+          alertTitle:
+            (data.actor_alert_title as string | undefined) ?? "(unknown alert)",
+          severity: (data.severity as string | undefined) ?? "high",
+          eventType: (data.event_type as string | undefined) ?? "(unknown)",
+          system: (data.system as string | null | undefined) ?? null,
+          actorUser: (data.actor_user as string | null | undefined) ?? null,
+          detectedAt: (data.detected_at as string | undefined) ?? null,
+          occurredAt: (data.occurred_at as string | undefined) ?? null,
+          ageHours,
+          overdue: ageHours >= DEFENDER_ACK_STALE_HOURS,
+        };
+      })
+      .sort((a, b) => b.ageHours - a.ageHours);
+  }
+
   // ── Recent ISSO manifest receipts ──────────────────────────────────────
   // Last 5 manifests the codex ingested. Proves the ISSO weekly cadence
   // is firing and gives the assessor an "audit trail of audit trails."
@@ -757,6 +836,42 @@ export default async function MonitoringPage() {
       severity: "warning",
       label: `${pendingDriftAcksOpen.length} configuration drift${pendingDriftAcksOpen.length === 1 ? "" : "s"} awaiting justification`,
       detail: `Provide business justification + outcome within 72h of detection. Common outcomes: intended_change_no_change_log, false_positive, unauthorized_change_remediated.`,
+      href: "/dashboard/monitoring",
+    });
+  }
+
+  // Pending Defender alert acknowledgments (Phase 3)
+  // Defender alerts always start at warning severity. Critical-severity
+  // Defender alerts and any overdue alert (>24h) bubble up as critical.
+  const overdueDefenderAcks = pendingDefenderAcks.filter((a) => a.overdue);
+  const pendingDefenderAcksOpen = pendingDefenderAcks.filter((a) => !a.overdue);
+  const criticalDefenderAcksOpen = pendingDefenderAcksOpen.filter(
+    (a) => a.severity === "critical",
+  );
+  if (overdueDefenderAcks.length > 0) {
+    attention.push({
+      severity: "critical",
+      label: `${overdueDefenderAcks.length} Defender alert${overdueDefenderAcks.length === 1 ? "" : "s"} OVERDUE`,
+      detail: `High/critical Defender for Endpoint alert${overdueDefenderAcks.length === 1 ? "" : "s"} not acknowledged within 24h. ISSO will escalate on next weekly review.`,
+      href: "/dashboard/monitoring",
+    });
+  }
+  if (criticalDefenderAcksOpen.length > 0) {
+    attention.push({
+      severity: "critical",
+      label: `${criticalDefenderAcksOpen.length} CRITICAL Defender alert${criticalDefenderAcksOpen.length === 1 ? "" : "s"} awaiting acknowledgment`,
+      detail: `Investigate, record outcome (true_positive_remediated / false_positive_investigated / risk_accepted) within 24h.`,
+      href: "/dashboard/monitoring",
+    });
+  }
+  const warningDefenderAcksOpen = pendingDefenderAcksOpen.filter(
+    (a) => a.severity !== "critical",
+  );
+  if (warningDefenderAcksOpen.length > 0) {
+    attention.push({
+      severity: "warning",
+      label: `${warningDefenderAcksOpen.length} Defender alert${warningDefenderAcksOpen.length === 1 ? "" : "s"} awaiting acknowledgment`,
+      detail: `Investigate within 24h. Outcomes: true_positive_remediated, true_positive_in_progress, false_positive_investigated, risk_accepted.`,
       href: "/dashboard/monitoring",
     });
   }
@@ -1159,6 +1274,91 @@ export default async function MonitoringPage() {
                       className="shrink-0 inline-flex items-center gap-1 rounded border border-current bg-white px-2 py-0.5 text-[11px] font-medium hover:bg-opacity-80"
                     >
                       Justify <ExternalLink className="h-3 w-3" />
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </section>
+      )}
+
+      {/* ── Section 0b4: Pending Defender alert acknowledgments ────── */}
+      {pendingDefenderAcks.length > 0 && (
+        <section>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">
+              Pending Defender alert acknowledgments
+            </h2>
+            <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-medium text-red-800">
+              {pendingDefenderAcks.length} open · {overdueDefenderAcks.length} overdue
+            </span>
+          </div>
+          <div className={`${cardClass} space-y-2 p-4`}>
+            <p className="text-xs text-[var(--color-gray-600)]">
+              Microsoft Defender for Endpoint raised one or more high or
+              critical alerts. The admin must record an investigation outcome
+              within 24 hours (true positive remediated / in progress / false
+              positive / risk accepted) or the alert escalates to the ISSO on
+              next weekly review.
+            </p>
+            <ul className="mt-3 space-y-1.5">
+              {pendingDefenderAcks.map((ack) => {
+                const isCritical = ack.severity === "critical";
+                const tone =
+                  ack.overdue || isCritical
+                    ? "border-red-200 bg-red-50/60 text-red-900"
+                    : "border-amber-200 bg-amber-50/60 text-amber-900";
+                const remaining = Math.max(0, 24 - ack.ageHours);
+                const ageLabel = ack.overdue
+                  ? `OVERDUE — ${ack.ageHours - 24}h past 24h deadline`
+                  : `${remaining}h remaining`;
+                return (
+                  <li
+                    key={ack.id}
+                    className={`flex items-start gap-3 rounded-md border ${tone} px-3 py-2 text-sm`}
+                  >
+                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white">
+                      <Flame className="h-3.5 w-3.5" aria-hidden />
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-baseline gap-2">
+                        <span className="font-medium break-words">
+                          {ack.alertTitle}
+                        </span>
+                        <span
+                          className={`text-[10px] uppercase tracking-wide font-bold ${
+                            isCritical
+                              ? "rounded bg-red-700 px-1.5 py-0.5 text-white"
+                              : "opacity-80"
+                          }`}
+                        >
+                          {ack.severity}
+                        </span>
+                        <span className="text-[11px] uppercase tracking-wide opacity-80">
+                          {ack.eventType}
+                        </span>
+                      </div>
+                      <p className="mt-0.5 text-xs opacity-80">
+                        {ack.system ? <>system <span className="font-mono">{ack.system}</span> · </> : null}
+                        {ack.actorUser ? <>actor <span className="font-mono">{ack.actorUser}</span> · </> : null}
+                        Detected{" "}
+                        {ack.occurredAt
+                          ? new Date(ack.occurredAt).toLocaleString()
+                          : ack.detectedAt
+                          ? new Date(ack.detectedAt).toLocaleString()
+                          : "(unknown)"}{" "}
+                        · {ageLabel}
+                      </p>
+                      <p className="mt-0.5 font-mono text-[10px] opacity-70 break-words">
+                        alert: {ack.alertId}
+                      </p>
+                    </div>
+                    <Link
+                      href={`/dashboard/evidence-engine/entries/${ack.id}`}
+                      className="shrink-0 inline-flex items-center gap-1 rounded border border-current bg-white px-2 py-0.5 text-[11px] font-medium hover:bg-opacity-80"
+                    >
+                      Acknowledge <ExternalLink className="h-3 w-3" />
                     </Link>
                   </li>
                 );

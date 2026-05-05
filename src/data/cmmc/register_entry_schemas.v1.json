@@ -1158,12 +1158,135 @@
             "exercise_report",
             "attendance_record"
           ]
+        },
+        {
+          "type": "defender_alert_acknowledgment",
+          "short_help": "Auto-detected high or critical Microsoft Defender for Endpoint alert (malware, credential theft, privilege escalation, lateral movement, exfil) awaiting admin investigation acknowledgment. Pattern A — admin acks within 24h with investigation outcome (true_positive_remediated / true_positive_in_progress / false_positive_investigated / risk_accepted) or alert escalates to ISSO. Phase 3 of Register-Automation v1.1.",
+          "required": [
+            "actor_alert_id",
+            "actor_alert_title",
+            "event_type",
+            "event_classification",
+            "detected_at",
+            "occurred_at",
+            "signed_at",
+            "system",
+            "vault_id",
+            "boundary_id",
+            "business_justification",
+            "detection_method",
+            "outcome",
+            "actions_taken",
+            "evidence_refs",
+            "lifecycle_state",
+            "provenance"
+          ],
+          "required_at_finalize": [
+            "actor_alert_id",
+            "actor_alert_title",
+            "event_type",
+            "event_classification",
+            "detected_at",
+            "occurred_at",
+            "signed_at",
+            "system",
+            "vault_id",
+            "boundary_id",
+            "business_justification",
+            "detection_method",
+            "outcome",
+            "actions_taken",
+            "evidence_refs",
+            "lifecycle_state",
+            "provenance"
+          ],
+          "required_at_isso_verified": [
+            "verified_by",
+            "verified_at",
+            "verification_note"
+          ],
+          "optional": [
+            "ticket_url",
+            "notes",
+            "detection_source",
+            "alert_id",
+            "manifest_id",
+            "severity",
+            "category",
+            "affected_assets",
+            "mitre_techniques",
+            "graph_alert_url",
+            "raw_alert_id",
+            "isso_outcome",
+            "isso_note",
+            "verified_by",
+            "verified_at",
+            "verification_note",
+            "dispute_filed",
+            "dispute_status",
+            "escalated_at",
+            "scope_arm",
+            "actor_user",
+            "actor_user_id"
+          ],
+          "enums": {
+            "event_type": [
+              "malware_detected",
+              "credential_theft_attempt",
+              "privilege_escalation_attempt",
+              "lateral_movement_attempt",
+              "data_exfiltration_attempt",
+              "suspicious_process",
+              "other"
+            ],
+            "event_classification": [
+              "endpoint_threat_high",
+              "endpoint_threat_critical"
+            ],
+            "severity": [
+              "high",
+              "critical"
+            ],
+            "detection_method": [
+              "defender_for_endpoint",
+              "manual_attestation"
+            ],
+            "outcome": [
+              "true_positive_remediated",
+              "true_positive_in_progress",
+              "false_positive_investigated",
+              "risk_accepted"
+            ],
+            "lifecycle_state": [
+              "draft",
+              "admin_signed",
+              "isso_verified",
+              "escalated",
+              "disputed",
+              "resolved",
+              "void",
+              "auto_recorded",
+              "auto_recorded_legacy"
+            ],
+            "isso_outcome": [
+              "verified_timely",
+              "overdue_escalated",
+              "dispute_pending"
+            ]
+          },
+          "recommended_attachments": [
+            "defender_alert_screenshot",
+            "investigation_notes",
+            "ticket_link"
+          ]
         }
       ],
       "control_ids": [
         "3.6.1",
         "3.6.2",
-        "3.6.3"
+        "3.6.3",
+        "3.14.2",
+        "3.14.6"
       ]
     },
     {

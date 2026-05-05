@@ -63,7 +63,17 @@ export interface RegistersSection {
     scheduled_maintenance?: unknown[];
     remote_maintenance?: unknown[];
   };
-  incident_log?: { incidents_during_period?: unknown[] };
+  incident_log?: {
+    incidents_during_period?: unknown[];
+    /**
+     * High/critical Microsoft Defender for Endpoint alerts collected
+     * by EnclaveWatch's DefenderCriticalAlertCollector. Each item lands
+     * as a draft defender_alert_acknowledgment entry (Pattern A) on the
+     * incident_log register awaiting admin investigation outcome.
+     * Phase 3 of Register-Automation v1.1.
+     */
+    defender_alerts?: unknown[];
+  };
   access_authorizations?: { weekly_review_findings?: unknown[] };
   vuln_remediation?: { verifications?: unknown[] };
   training_completion?: { expiring_attestations?: unknown[] };

@@ -15,6 +15,7 @@ import { EntryAttachments } from "./EntryAttachments";
 import { BreakGlassAckForm } from "./BreakGlassAckForm";
 import { PrivilegedGrantJustifyForm } from "./PrivilegedGrantJustifyForm";
 import { ChangeDriftJustifyForm } from "./ChangeDriftJustifyForm";
+import { DefenderAlertAckForm } from "./DefenderAlertAckForm";
 
 type PageProps = { params: Promise<{ entryId: string }> };
 
@@ -168,6 +169,30 @@ export default async function EvidenceEngineEntryDetailPage({ params }: PageProp
               (data.sysmon_event_id as number | null | undefined) ?? null,
             related_change_log_entry_id:
               (data.related_change_log_entry_id as string | null | undefined) ?? null,
+          }}
+        />
+      )}
+
+      {entryType === "defender_alert_acknowledgment" && isDraft && canFinalize && (
+        <DefenderAlertAckForm
+          entryId={entryId}
+          detection={{
+            alert_id: data.alert_id as string | undefined,
+            alert_title:
+              (data.actor_alert_title as string | null | undefined) ?? null,
+            severity: (data.severity as string | null | undefined) ?? null,
+            category: (data.category as string | null | undefined) ?? null,
+            event_type: (data.event_type as string | null | undefined) ?? null,
+            system: (data.system as string | null | undefined) ?? null,
+            actor_user: (data.actor_user as string | null | undefined) ?? null,
+            affected_assets:
+              (data.affected_assets as string[] | null | undefined) ?? null,
+            mitre_techniques:
+              (data.mitre_techniques as string[] | null | undefined) ?? null,
+            graph_alert_url:
+              (data.graph_alert_url as string | null | undefined) ?? null,
+            occurred_at: data.occurred_at as string | undefined,
+            detected_at: data.detected_at as string | undefined,
           }}
         />
       )}
