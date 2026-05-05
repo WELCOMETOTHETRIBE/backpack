@@ -27,6 +27,11 @@ import { control_freshnessHandler } from "./handlers/control-freshness";
 import { incident_logHandler } from "./handlers/incident-log";
 import { vuln_remediationHandler } from "./handlers/vuln-remediation";
 import { access_authorizationsHandler } from "./handlers/access-authorizations";
+import { policy_reviewHandler } from "./handlers/policy-review";
+import { assessment_findingsHandler } from "./handlers/assessment-findings";
+import { training_completionHandler } from "./handlers/training-completion";
+import { media_handling_logHandler } from "./handlers/media-handling-log";
+import { personnel_screeningHandler } from "./handlers/personnel-screening";
 import { noopHandler } from "./handlers/noop";
 import type {
   DispatcherResult,
@@ -55,9 +60,13 @@ const SECTION_HANDLERS: Record<string, RegisterHandler> = {
   incident_log: incident_logHandler,
   access_authorizations: access_authorizationsHandler,
   vuln_remediation: vuln_remediationHandler,
-  training_completion: noopHandler("training_completion"),
-  policy_review: noopHandler("policy_review"),
-  assessment_findings: noopHandler("assessment_findings"),
+  // Sprint 5 batch 3:
+  training_completion: training_completionHandler,
+  media_handling_log: media_handling_logHandler,
+  personnel_screening: personnel_screeningHandler,
+  // Sprint 5 batch 2:
+  policy_review: policy_reviewHandler,
+  assessment_findings: assessment_findingsHandler,
   // Sprint 3: bumps control_records.updated_at for each freshly_observed
   // control + emits per-control audit events. needing_attention[] currently
   // logs only; Sprint 6 wires it into the dashboard.

@@ -552,6 +552,46 @@
             "screening_attestation",
             "provider_receipt_or_letter"
           ]
+        },
+        {
+          "type": "personnel_event",
+          "short_help": "Personnel lifecycle event observed during weekly review (hire, termination, role change). Pairs with HR record where applicable.",
+          "required": [
+            "subject_user",
+            "event_type",
+            "occurred_at",
+            "observed_at",
+            "observed_by"
+          ],
+          "optional": [
+            "screening_status",
+            "previous_role",
+            "new_role",
+            "ticket",
+            "notes",
+            "manifest_id",
+            "vault_id"
+          ],
+          "enums": {
+            "event_type": [
+              "hire",
+              "terminate",
+              "role_change",
+              "transfer",
+              "leave_of_absence",
+              "return_from_leave"
+            ],
+            "screening_status": [
+              "passed",
+              "pending",
+              "n_a",
+              "waived"
+            ]
+          },
+          "recommended_attachments": [
+            "hr_record",
+            "termination_checklist"
+          ]
         }
       ],
       "control_ids": [
@@ -1829,6 +1869,47 @@
             "retest_evidence",
             "updated_report"
           ]
+        },
+        {
+          "type": "review_observation",
+          "short_help": "ISSO weekly review observation about a control (lighter-weight than a formal assessment finding; captures notes, watch-list items, suggested follow-ups).",
+          "required": [
+            "observation_id",
+            "control_id",
+            "finding_type",
+            "severity",
+            "summary",
+            "recommended_action",
+            "observed_at",
+            "observed_by"
+          ],
+          "optional": [
+            "notes",
+            "ticket",
+            "manifest_id",
+            "vault_id"
+          ],
+          "enums": {
+            "finding_type": [
+              "drift_detected",
+              "evidence_gap",
+              "process_lapse",
+              "watchlist_item",
+              "improvement_opportunity",
+              "other"
+            ],
+            "severity": [
+              "critical",
+              "high",
+              "medium",
+              "low",
+              "informational"
+            ]
+          },
+          "recommended_attachments": [
+            "evidence_screenshot",
+            "ticket_link"
+          ]
         }
       ],
       "control_ids": [
@@ -2147,6 +2228,37 @@
           "recommended_attachments": [
             "exception_record",
             "approval_record"
+          ]
+        },
+        {
+          "type": "stale_document_flag",
+          "short_help": "ISSO-flagged policy/procedure document approaching or past its review cadence. Drives admin reminder / re-review workflow.",
+          "required": [
+            "doc_code",
+            "last_reviewed_at",
+            "days_since_review",
+            "recommended_action",
+            "observed_at",
+            "observed_by"
+          ],
+          "optional": [
+            "notes",
+            "ticket",
+            "manifest_id",
+            "vault_id"
+          ],
+          "enums": {
+            "recommended_action": [
+              "re_review_now",
+              "schedule_review",
+              "retire",
+              "supersede",
+              "extend_via_exception"
+            ]
+          },
+          "recommended_attachments": [
+            "policy_link",
+            "review_history"
           ]
         }
       ],
@@ -2480,6 +2592,123 @@
         "3.5.6",
         "3.1.5",
         "3.1.6"
+      ]
+    },
+    {
+      "register_id": "media_handling_log",
+      "description": "Tracks media protection events: destruction, removable-media authorization, and periodic encryption attestations.",
+      "default_cadence_days": 0,
+      "entry_types": [
+        {
+          "type": "media_destroyed",
+          "short_help": "Record destruction of media containing CUI per approved destruction method.",
+          "required": [
+            "media_id",
+            "media_type",
+            "destruction_method",
+            "destroyed_at",
+            "destroyed_by",
+            "witnessed_by"
+          ],
+          "optional": [
+            "ticket",
+            "notes",
+            "manifest_id",
+            "vault_id"
+          ],
+          "enums": {
+            "media_type": [
+              "hard_drive",
+              "ssd",
+              "usb",
+              "optical",
+              "magnetic_tape",
+              "paper",
+              "other"
+            ],
+            "destruction_method": [
+              "shred",
+              "degauss",
+              "cryptographic_erase",
+              "physical_destruction",
+              "secure_overwrite",
+              "vendor_certified_destruction"
+            ]
+          },
+          "recommended_attachments": [
+            "destruction_certificate",
+            "chain_of_custody"
+          ]
+        },
+        {
+          "type": "removable_media_authorized",
+          "short_help": "Record temporary authorization for removable media (USB / external drive) connection to a CUI system.",
+          "required": [
+            "subject_user",
+            "media_id",
+            "media_type",
+            "authorized_at",
+            "authorized_by",
+            "expires_at",
+            "justification"
+          ],
+          "optional": [
+            "encryption_required",
+            "ticket",
+            "notes",
+            "manifest_id",
+            "vault_id"
+          ],
+          "enums": {
+            "media_type": [
+              "usb",
+              "external_drive",
+              "sd_card",
+              "optical",
+              "other"
+            ]
+          },
+          "recommended_attachments": [
+            "authorization_form",
+            "encryption_attestation"
+          ]
+        },
+        {
+          "type": "bitlocker_attestation",
+          "short_help": "Periodic confirmation that BitLocker (or platform-equivalent) is enabled on every endpoint in scope.",
+          "required": [
+            "scanned_at",
+            "scanned_by",
+            "endpoints_total",
+            "endpoints_encrypted",
+            "result"
+          ],
+          "optional": [
+            "non_compliant_endpoints",
+            "notes",
+            "manifest_id",
+            "vault_id"
+          ],
+          "enums": {
+            "result": [
+              "all_compliant",
+              "exceptions_documented",
+              "non_compliant"
+            ]
+          },
+          "recommended_attachments": [
+            "scan_export",
+            "remediation_ticket"
+          ]
+        }
+      ],
+      "control_ids": [
+        "3.8.1",
+        "3.8.2",
+        "3.8.3",
+        "3.8.6",
+        "3.8.7",
+        "3.8.9"
       ]
     }
   ]

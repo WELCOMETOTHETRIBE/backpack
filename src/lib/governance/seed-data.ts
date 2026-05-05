@@ -134,6 +134,7 @@ export const REGISTER_KEYS = [
   "audit_log_review_records",
   "visitor_log",
   "media_destruction_log",
+  "media_handling_log",
   // Client-list registers (added to replace free-form uploads with structured data):
   "privileged_user_list",
   "mfa_enrollment_roster",
@@ -169,6 +170,7 @@ export const REGISTER_DEFINITIONS: { registerKey: string; name: string; descript
   { registerKey: "audit_log_review_records", name: "Audit Log Review Records", description: "Log audit log reviews, reviewers, and findings for audit and accountability evidence.", requiredColumns: [{ key: "review_date", label: "Review Date", type: "date" }, { key: "reviewer", label: "Reviewer", type: "string" }, { key: "findings", label: "Findings", type: "string" }], retainForDays: 365 * 3 },
   { registerKey: "visitor_log", name: "Visitor Log", description: "Record visitor dates, names, and purpose for physical security evidence.", requiredColumns: [{ key: "date", label: "Date", type: "date" }, { key: "visitor", label: "Visitor", type: "string" }, { key: "purpose", label: "Purpose", type: "string" }], retainForDays: 365 * 3 },
   { registerKey: "media_destruction_log", name: "Media Destruction Log", description: "Log media destruction date, type, and method for media protection evidence.", requiredColumns: [{ key: "date", label: "Date", type: "date" }, { key: "media", label: "Media", type: "string" }, { key: "method", label: "Method", type: "string" }], retainForDays: 365 * 7 },
+  { registerKey: "media_handling_log", name: "Media Handling Log", description: "ISSO-driven media-protection events: destruction, removable-media authorization, and periodic encryption attestations (MP family). Populated via the v1.1 ISSO weekly export.", requiredColumns: [{ key: "event_type", label: "Event Type", type: "string" }, { key: "media_id", label: "Media ID", type: "string" }, { key: "occurred_at", label: "Occurred At", type: "date" }], retainForDays: 365 * 7 },
   // ── Client-list registers ─────────────────────────────────────────────────
   // Replace free-form "upload a roster" artifacts with structured, in-app data
   // entry. Each row below satisfies specific AC/IA/MP NIST controls.
