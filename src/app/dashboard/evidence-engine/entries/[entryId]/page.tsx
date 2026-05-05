@@ -12,6 +12,7 @@ import {
 } from "@/data/cmmc/field-labels-and-summaries";
 import { FinalizeButton } from "./FinalizeButton";
 import { EntryAttachments } from "./EntryAttachments";
+import { BreakGlassAckForm } from "./BreakGlassAckForm";
 
 type PageProps = { params: Promise<{ entryId: string }> };
 
@@ -109,6 +110,21 @@ export default async function EvidenceEngineEntryDetailPage({ params }: PageProp
         <h3 className="text-sm font-semibold text-[var(--color-navy-primary)]">Summary</h3>
         <p className="mt-2 text-[var(--color-gray-800)]">{summary}</p>
       </div>
+
+      {entryType === "break_glass_acknowledgment" && isDraft && canFinalize && (
+        <BreakGlassAckForm
+          entryId={entryId}
+          detection={{
+            alert_id: data.alert_id as string | undefined,
+            upn: data.upn as string | undefined,
+            detected_at: data.detected_at as string | undefined,
+            source: data.source as string | undefined,
+            client_ip: (data.client_ip as string | null | undefined) ?? null,
+            app_or_resource: (data.app_or_resource as string | null | undefined) ?? null,
+            actions_observed: (data.actions_observed as string[] | null | undefined) ?? null,
+          }}
+        />
+      )}
 
       <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm">
         <div className="flex items-center justify-between">

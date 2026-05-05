@@ -21,6 +21,8 @@ import { issoExportManifests, controlRecords } from "@/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { calculateControlStatus } from "@/lib/control-status";
 import { audit_log_reviewHandler } from "./handlers/audit-log-review";
+import { maintenance_logHandler } from "./handlers/maintenance-log";
+import { previous_period_acknowledgments_reviewHandler } from "./handlers/ack-review";
 import { noopHandler } from "./handlers/noop";
 import type {
   DispatcherResult,
@@ -42,9 +44,9 @@ import type {
  */
 const SECTION_HANDLERS: Record<string, RegisterHandler> = {
   audit_log_review: audit_log_reviewHandler,
-  // Sprint 2: maintenance_log will route break_glass_signins[] to the
-  // break-glass handler. Sprint 5 fills in the rest.
-  maintenance_log: noopHandler("maintenance_log"),
+  // Sprint 2: ships break_glass_signins[]. scheduled_maintenance[] +
+  // remote_maintenance[] still warn-and-no-op until Sprint 5.
+  maintenance_log: maintenance_logHandler,
   incident_log: noopHandler("incident_log"),
   access_authorizations: noopHandler("access_authorizations"),
   vuln_remediation: noopHandler("vuln_remediation"),
@@ -53,11 +55,10 @@ const SECTION_HANDLERS: Record<string, RegisterHandler> = {
   assessment_findings: noopHandler("assessment_findings"),
   // Sprint 3 swaps in the freshness handler that bumps last_evaluated_at.
   control_freshness: noopHandler("control_freshness"),
-  // Sprint 2 (the closed-loop side) updates entry status from the ISSO's
-  // outcome judgment.
-  previous_period_acknowledgments_review: noopHandler(
-    "previous_period_acknowledgments_review",
-  ),
+  // Sprint 2: closes the loop by applying ISSO outcomes to the entries
+  // created by the maintenance_log handler.
+  previous_period_acknowledgments_review:
+    previous_period_acknowledgments_reviewHandler,
 };
 
 export async function dispatchIssoExport(

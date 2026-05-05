@@ -1054,6 +1054,49 @@
             "session_log",
             "approval_record"
           ]
+        },
+        {
+          "type": "break_glass_acknowledgment",
+          "short_help": "Acknowledge a detected break-glass account sign-in. Created as draft by EnclaveWatch detection; admin completes acknowledgment fields to finalize.",
+          "required": [
+            "alert_id",
+            "upn",
+            "detected_at",
+            "source",
+            "acknowledged_by",
+            "purpose_of_session",
+            "actions_taken",
+            "affected_systems",
+            "before_state",
+            "after_state",
+            "signed_at"
+          ],
+          "optional": [
+            "client_ip",
+            "duration_seconds",
+            "session_correlation_id",
+            "actions_observed",
+            "ip_classification",
+            "ticket",
+            "notes",
+            "manifest_id",
+            "isso_outcome",
+            "isso_note",
+            "isso_verified_at",
+            "dispute_filed",
+            "dispute_status",
+            "escalated_at"
+          ],
+          "enums": {
+            "source": ["azure", "vault"],
+            "ip_classification": ["private", "corp", "unknown_or_shared"],
+            "isso_outcome": ["verified_timely", "overdue_escalated", "dispute_pending"]
+          },
+          "recommended_attachments": [
+            "session_recording",
+            "ticket_link",
+            "approval_record"
+          ]
         }
       ],
       "control_ids": [

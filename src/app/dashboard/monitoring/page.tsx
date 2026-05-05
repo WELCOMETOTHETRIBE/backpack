@@ -293,6 +293,72 @@ export default async function MonitoringPage() {
   // Dedupe by label (same template can fan out across multiple control records).
   const expiredAttestationLabels = new Set(expiredAttestations.map((a) => a.label));
 
+  // ── Pending break-glass acknowledgments ────────────────────────────────
+  // Surface every maintenance_log entry of type break_glass_acknowledgment
+  // that's still in draft. The admin must finalize within 72h or the alert
+  // escalates to the ISSO. Sorted by oldest-first so the most urgent
+  // bubbles up.
+  const ACK_STALE_HOURS = 72;
+  const mlCandidates = resolveRegisterKeyCandidates("maintenance_log");
+  const mlRegisters = await db
+    .select({ id: governanceRegisters.id })
+    .from(governanceRegisters)
+    .where(
+      and(
+        eq(governanceRegisters.organizationId, orgId),
+        sql`${governanceRegisters.registerKey} IN (${sql.join(
+          mlCandidates.map((k) => sql`${k}`),
+          sql`, `,
+        )})`,
+      ),
+    );
+  let pendingBreakGlassAcks: Array<{
+    id: string;
+    alertId: string;
+    upn: string;
+    detectedAt: string | null;
+    source: string;
+    ageHours: number;
+    overdue: boolean;
+  }> = [];
+  if (mlRegisters.length > 0) {
+    const draftRows = await db
+      .select({
+        id: governanceRegisterEntries.id,
+        entryData: governanceRegisterEntries.entryData,
+        createdAt: governanceRegisterEntries.createdAt,
+      })
+      .from(governanceRegisterEntries)
+      .where(
+        and(
+          sql`${governanceRegisterEntries.registerId} IN (${sql.join(
+            mlRegisters.map((r) => sql`${r.id}`),
+            sql`, `,
+          )})`,
+          eq(governanceRegisterEntries.entryType, "break_glass_acknowledgment"),
+          eq(governanceRegisterEntries.status, "draft"),
+        ),
+      );
+    pendingBreakGlassAcks = draftRows
+      .map((r) => {
+        const data = (r.entryData ?? {}) as Record<string, unknown>;
+        const ageHours = Math.max(
+          0,
+          Math.floor((now - new Date(r.createdAt).getTime()) / 3_600_000),
+        );
+        return {
+          id: r.id,
+          alertId: (data.alert_id as string | undefined) ?? r.id,
+          upn: (data.upn as string | undefined) ?? "(unknown)",
+          detectedAt: (data.detected_at as string | undefined) ?? null,
+          source: (data.source as string | undefined) ?? "unknown",
+          ageHours,
+          overdue: ageHours >= ACK_STALE_HOURS,
+        };
+      })
+      .sort((a, b) => b.ageHours - a.ageHours);
+  }
+
   // Drift signal: prefer Azure validator (most change-prone surface);
   // fall back to OS validator. OS bundle has 0 findings on its own runs
   // (it's a manifest, not a check) so it can't drive drift.
@@ -351,6 +417,26 @@ export default async function MonitoringPage() {
         href: "/dashboard/monitoring",
       });
     }
+  }
+
+  // Pending break-glass acknowledgments (overdue ones are critical)
+  const overdueAcks = pendingBreakGlassAcks.filter((a) => a.overdue);
+  const pendingAcks = pendingBreakGlassAcks.filter((a) => !a.overdue);
+  if (overdueAcks.length > 0) {
+    attention.push({
+      severity: "critical",
+      label: `${overdueAcks.length} break-glass acknowledgment${overdueAcks.length === 1 ? "" : "s"} OVERDUE`,
+      detail: `Detected break-glass sign-in${overdueAcks.length === 1 ? "" : "s"} not acknowledged within 72h. ISSO will escalate on next weekly review.`,
+      href: "/dashboard/monitoring",
+    });
+  }
+  if (pendingAcks.length > 0) {
+    attention.push({
+      severity: "warning",
+      label: `${pendingAcks.length} break-glass sign-in${pendingAcks.length === 1 ? "" : "s"} awaiting acknowledgment`,
+      detail: `File the maintenance log within 72h of detection or the alert escalates.`,
+      href: "/dashboard/monitoring",
+    });
   }
 
   // Open critical/high CVEs
@@ -521,6 +607,73 @@ export default async function MonitoringPage() {
                 No stale cadences, no open critical/high CVEs, no SLA breaches, no expired attestations, no overdue POA&amp;Ms.
               </p>
             </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── Section 0b: Pending break-glass acknowledgments ─────────── */}
+      {pendingBreakGlassAcks.length > 0 && (
+        <section>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">
+              Pending break-glass acknowledgments
+            </h2>
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-800">
+              {pendingBreakGlassAcks.length} open · {overdueAcks.length} overdue
+            </span>
+          </div>
+          <div className={`${cardClass} space-y-2 p-4`}>
+            <p className="text-xs text-[var(--color-gray-600)]">
+              EnclaveWatch detected sign-ins by the break-glass account. The
+              admin who used break-glass must file an acknowledgment maintenance
+              log within 72 hours, or the alert escalates to the ISSO on next
+              weekly review.
+            </p>
+            <ul className="mt-3 space-y-1.5">
+              {pendingBreakGlassAcks.map((ack) => {
+                const tone = ack.overdue
+                  ? "border-red-200 bg-red-50/60 text-red-900"
+                  : "border-amber-200 bg-amber-50/60 text-amber-900";
+                const remaining = Math.max(0, 72 - ack.ageHours);
+                const ageLabel = ack.overdue
+                  ? `OVERDUE — ${ack.ageHours - 72}h past 72h deadline`
+                  : `${remaining}h remaining`;
+                return (
+                  <li
+                    key={ack.id}
+                    className={`flex items-start gap-3 rounded-md border ${tone} px-3 py-2 text-sm`}
+                  >
+                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white">
+                      <AlertTriangle className="h-3.5 w-3.5" aria-hidden />
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-baseline gap-2">
+                        <span className="font-medium">{ack.upn}</span>
+                        <span className="text-[11px] uppercase tracking-wide opacity-80">
+                          via {ack.source}
+                        </span>
+                      </div>
+                      <p className="mt-0.5 text-xs opacity-80">
+                        Detected{" "}
+                        {ack.detectedAt
+                          ? new Date(ack.detectedAt).toLocaleString()
+                          : "(unknown)"}{" "}
+                        · {ageLabel}
+                      </p>
+                      <p className="mt-0.5 font-mono text-[10px] opacity-70 break-words">
+                        alert: {ack.alertId}
+                      </p>
+                    </div>
+                    <Link
+                      href={`/dashboard/evidence-engine/entries/${ack.id}`}
+                      className="shrink-0 inline-flex items-center gap-1 rounded border border-current bg-white px-2 py-0.5 text-[11px] font-medium hover:bg-opacity-80"
+                    >
+                      Acknowledge <ExternalLink className="h-3 w-3" />
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
         </section>
       )}
