@@ -33,6 +33,7 @@ import { assessment_findingsHandler } from "./handlers/assessment-findings";
 import { training_completionHandler } from "./handlers/training-completion";
 import { media_handling_logHandler } from "./handlers/media-handling-log";
 import { personnel_screeningHandler } from "./handlers/personnel-screening";
+import { change_drift_logHandler } from "./handlers/change-drift-log";
 import { noopHandler } from "./handlers/noop";
 import type {
   DispatcherResult,
@@ -65,6 +66,10 @@ const SECTION_HANDLERS: Record<string, RegisterHandler> = {
   training_completion: training_completionHandler,
   media_handling_log: media_handling_logHandler,
   personnel_screening: personnel_screeningHandler,
+  // Phase 2 (Register-Automation v1.1) — drafts created from
+  // drift_observations[] in the manifest; admin justifies on Monitoring
+  // tab; ISSO closes via previous_period_acknowledgments_review.
+  change_drift_log: change_drift_logHandler,
   // Sprint 5 batch 2:
   policy_review: policy_reviewHandler,
   assessment_findings: assessment_findingsHandler,

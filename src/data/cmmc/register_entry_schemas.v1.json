@@ -1796,6 +1796,152 @@
       ]
     },
     {
+      "register_id": "change_drift_log",
+      "description": "Records configuration changes detected outside the change_log: events where EnclaveWatch's Sysmon-based collector saw a baseline-protected file/registry/service modification but found no matching change_log entry within ±60 minutes. Pattern A — admin justifies (\"intended, ticket #X\" / \"false positive, investigated\") within 72h or alert escalates to ISSO.",
+      "default_cadence_days": 0,
+      "entry_types": [
+        {
+          "type": "change_drift_acknowledgment",
+          "short_help": "Auto-detected configuration drift on a baseline-protected resource that did not match any logged change. Pattern A — admin justifies within 72h with intended business purpose / outcome / actions taken, or alert escalates to ISSO on next weekly review.",
+          "required": [
+            "actor_user",
+            "actor_user_id",
+            "event_type",
+            "event_classification",
+            "detected_at",
+            "occurred_at",
+            "signed_at",
+            "system",
+            "scope_arm",
+            "vault_id",
+            "boundary_id",
+            "business_justification",
+            "detection_method",
+            "outcome",
+            "actions_taken",
+            "evidence_refs",
+            "lifecycle_state",
+            "provenance",
+            "path",
+            "change_type"
+          ],
+          "required_at_finalize": [
+            "actor_user",
+            "actor_user_id",
+            "event_type",
+            "event_classification",
+            "detected_at",
+            "occurred_at",
+            "signed_at",
+            "system",
+            "scope_arm",
+            "vault_id",
+            "boundary_id",
+            "business_justification",
+            "detection_method",
+            "outcome",
+            "actions_taken",
+            "evidence_refs",
+            "lifecycle_state",
+            "provenance",
+            "path",
+            "change_type"
+          ],
+          "required_at_isso_verified": [
+            "verified_by",
+            "verified_at",
+            "verification_note"
+          ],
+          "optional": [
+            "ticket_url",
+            "notes",
+            "detection_source",
+            "alert_id",
+            "manifest_id",
+            "sysmon_event_id",
+            "sysmon_event_record_id",
+            "process_image",
+            "process_id",
+            "prior_value_hash",
+            "new_value_hash",
+            "isso_outcome",
+            "isso_note",
+            "verified_by",
+            "verified_at",
+            "verification_note",
+            "dispute_filed",
+            "dispute_status",
+            "escalated_at",
+            "related_change_log_entry_id",
+            "host"
+          ],
+          "enums": {
+            "event_type": [
+              "file_create",
+              "file_modify",
+              "file_delete",
+              "registry_set_value",
+              "registry_delete_value",
+              "service_change",
+              "binary_replaced"
+            ],
+            "event_classification": [
+              "baseline_drift",
+              "self_protection_breach",
+              "service_change",
+              "config_change"
+            ],
+            "change_type": [
+              "file_create",
+              "file_modify",
+              "file_delete",
+              "registry_set_value",
+              "registry_delete_value",
+              "service_modify",
+              "binary_replaced"
+            ],
+            "detection_method": [
+              "sysmon",
+              "manual_attestation"
+            ],
+            "outcome": [
+              "intended_change_with_change_log_match",
+              "intended_change_no_change_log",
+              "false_positive",
+              "unauthorized_change_remediated",
+              "investigating"
+            ],
+            "lifecycle_state": [
+              "draft",
+              "admin_signed",
+              "isso_verified",
+              "escalated",
+              "disputed",
+              "resolved",
+              "void",
+              "auto_recorded",
+              "auto_recorded_legacy"
+            ],
+            "isso_outcome": [
+              "verified_timely",
+              "overdue_escalated",
+              "dispute_pending"
+            ]
+          },
+          "recommended_attachments": [
+            "change_ticket_link",
+            "investigation_notes",
+            "approval_record"
+          ]
+        }
+      ],
+      "control_ids": [
+        "3.4.1",
+        "3.4.2",
+        "3.4.3"
+      ]
+    },
+    {
       "register_id": "risk_register",
       "description": "Tracks risks, treatments, owners, and periodic reviews.",
       "default_cadence_days": 90,

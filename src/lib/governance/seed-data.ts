@@ -135,6 +135,9 @@ export const REGISTER_KEYS = [
   "visitor_log",
   "media_destruction_log",
   "media_handling_log",
+  // Configuration drift register (Phase 2 of Register-Automation v1.1):
+  // Captures Sysmon-detected baseline drift with no matching change_log entry.
+  "change_drift_log",
   // Client-list registers (added to replace free-form uploads with structured data):
   "privileged_user_list",
   "mfa_enrollment_roster",
@@ -171,6 +174,7 @@ export const REGISTER_DEFINITIONS: { registerKey: string; name: string; descript
   { registerKey: "visitor_log", name: "Visitor Log", description: "Record visitor dates, names, and purpose for physical security evidence.", requiredColumns: [{ key: "date", label: "Date", type: "date" }, { key: "visitor", label: "Visitor", type: "string" }, { key: "purpose", label: "Purpose", type: "string" }], retainForDays: 365 * 3 },
   { registerKey: "media_destruction_log", name: "Media Destruction Log", description: "Log media destruction date, type, and method for media protection evidence.", requiredColumns: [{ key: "date", label: "Date", type: "date" }, { key: "media", label: "Media", type: "string" }, { key: "method", label: "Method", type: "string" }], retainForDays: 365 * 7 },
   { registerKey: "media_handling_log", name: "Media Handling Log", description: "ISSO-driven media-protection events: destruction, removable-media authorization, and periodic encryption attestations (MP family). Populated via the v1.1 ISSO weekly export.", requiredColumns: [{ key: "event_type", label: "Event Type", type: "string" }, { key: "media_id", label: "Media ID", type: "string" }, { key: "occurred_at", label: "Occurred At", type: "date" }], retainForDays: 365 * 7 },
+  { registerKey: "change_drift_log", name: "Configuration Drift Log", description: "Auto-detected configuration changes on baseline-protected resources that did not match any change_log entry within ±60 minutes. Drafted by EnclaveWatch's Sysmon-based ConfigurationDriftCollector; admin justifies within 72h or alert escalates to ISSO. Backs CM 3.4.1 / 3.4.2 / 3.4.3.", requiredColumns: [{ key: "actor_user", label: "Actor", type: "string" }, { key: "path", label: "Path", type: "string" }, { key: "change_type", label: "Change Type", type: "string" }, { key: "occurred_at", label: "Occurred At", type: "date" }], retainForDays: 365 * 3 },
   // ── Client-list registers ─────────────────────────────────────────────────
   // Replace free-form "upload a roster" artifacts with structured, in-app data
   // entry. Each row below satisfies specific AC/IA/MP NIST controls.

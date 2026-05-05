@@ -14,6 +14,7 @@ import { FinalizeButton } from "./FinalizeButton";
 import { EntryAttachments } from "./EntryAttachments";
 import { BreakGlassAckForm } from "./BreakGlassAckForm";
 import { PrivilegedGrantJustifyForm } from "./PrivilegedGrantJustifyForm";
+import { ChangeDriftJustifyForm } from "./ChangeDriftJustifyForm";
 
 type PageProps = { params: Promise<{ entryId: string }> };
 
@@ -145,6 +146,28 @@ export default async function EvidenceEngineEntryDetailPage({ params }: PageProp
               null,
             related_grant_entry_id:
               (data.related_grant_entry_id as string | null | undefined) ?? null,
+          }}
+        />
+      )}
+
+      {entryType === "change_drift_acknowledgment" && isDraft && canFinalize && (
+        <ChangeDriftJustifyForm
+          entryId={entryId}
+          detection={{
+            alert_id: data.alert_id as string | undefined,
+            actor_user: (data.actor_user as string | null | undefined) ?? null,
+            path: (data.path as string | null | undefined) ?? null,
+            change_type: (data.change_type as string | null | undefined) ?? null,
+            event_type: (data.event_type as string | null | undefined) ?? null,
+            host: (data.host as string | null | undefined) ?? null,
+            system: (data.system as string | null | undefined) ?? null,
+            occurred_at: data.occurred_at as string | undefined,
+            detected_at: data.detected_at as string | undefined,
+            process_image: (data.process_image as string | null | undefined) ?? null,
+            sysmon_event_id:
+              (data.sysmon_event_id as number | null | undefined) ?? null,
+            related_change_log_entry_id:
+              (data.related_change_log_entry_id as string | null | undefined) ?? null,
           }}
         />
       )}

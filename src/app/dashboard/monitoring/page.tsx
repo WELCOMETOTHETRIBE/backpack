@@ -435,6 +435,79 @@ export default async function MonitoringPage() {
       .sort((a, b) => b.ageHours - a.ageHours);
   }
 
+  // ── Pending configuration-drift justifications ─────────────────────────
+  // Surface every change_drift_log entry in draft. The admin must justify
+  // each detected drift event within 72h or the alert escalates to ISSO.
+  // (Phase 2 of Register-Automation v1.1 brief.)
+  const cdlCandidates = resolveRegisterKeyCandidates("change_drift_log");
+  const cdlRegisters = await db
+    .select({ id: governanceRegisters.id })
+    .from(governanceRegisters)
+    .where(
+      and(
+        eq(governanceRegisters.organizationId, orgId),
+        sql`${governanceRegisters.registerKey} IN (${sql.join(
+          cdlCandidates.map((k) => sql`${k}`),
+          sql`, `,
+        )})`,
+      ),
+    );
+  let pendingChangeDriftAcks: Array<{
+    id: string;
+    alertId: string;
+    actorUser: string;
+    path: string;
+    changeType: string;
+    host: string | null;
+    detectedAt: string | null;
+    occurredAt: string | null;
+    ageHours: number;
+    overdue: boolean;
+  }> = [];
+  if (cdlRegisters.length > 0) {
+    const cdlDraftRows = await db
+      .select({
+        id: governanceRegisterEntries.id,
+        entryData: governanceRegisterEntries.entryData,
+        createdAt: governanceRegisterEntries.createdAt,
+      })
+      .from(governanceRegisterEntries)
+      .where(
+        and(
+          sql`${governanceRegisterEntries.registerId} IN (${sql.join(
+            cdlRegisters.map((r) => sql`${r.id}`),
+            sql`, `,
+          )})`,
+          eq(governanceRegisterEntries.entryType, "change_drift_acknowledgment"),
+          eq(governanceRegisterEntries.status, "draft"),
+        ),
+      );
+    pendingChangeDriftAcks = cdlDraftRows
+      .map((r) => {
+        const data = (r.entryData ?? {}) as Record<string, unknown>;
+        const ageHours = Math.max(
+          0,
+          Math.floor((now - new Date(r.createdAt).getTime()) / 3_600_000),
+        );
+        return {
+          id: r.id,
+          alertId: (data.alert_id as string | undefined) ?? r.id,
+          actorUser: (data.actor_user as string | undefined) ?? "(unknown)",
+          path: (data.path as string | undefined) ?? "(unknown path)",
+          changeType:
+            (data.change_type as string | undefined) ??
+            (data.event_type as string | undefined) ??
+            "(unknown)",
+          host: (data.host as string | null | undefined) ?? null,
+          detectedAt: (data.detected_at as string | undefined) ?? null,
+          occurredAt: (data.occurred_at as string | undefined) ?? null,
+          ageHours,
+          overdue: ageHours >= ACK_STALE_HOURS,
+        };
+      })
+      .sort((a, b) => b.ageHours - a.ageHours);
+  }
+
   // ── Recent ISSO manifest receipts ──────────────────────────────────────
   // Last 5 manifests the codex ingested. Proves the ISSO weekly cadence
   // is firing and gives the assessor an "audit trail of audit trails."
@@ -664,6 +737,26 @@ export default async function MonitoringPage() {
       severity: "warning",
       label: `${pendingPrivilegedAcksOpen.length} privileged role grant${pendingPrivilegedAcksOpen.length === 1 ? "" : "s"} awaiting justification`,
       detail: `Provide business justification, sunset plan, and outcome within 72h of detection.`,
+      href: "/dashboard/monitoring",
+    });
+  }
+
+  // Pending configuration-drift justifications (Phase 2)
+  const overdueDriftAcks = pendingChangeDriftAcks.filter((a) => a.overdue);
+  const pendingDriftAcksOpen = pendingChangeDriftAcks.filter((a) => !a.overdue);
+  if (overdueDriftAcks.length > 0) {
+    attention.push({
+      severity: "critical",
+      label: `${overdueDriftAcks.length} configuration-drift justification${overdueDriftAcks.length === 1 ? "" : "s"} OVERDUE`,
+      detail: `Sysmon detected baseline-protected change${overdueDriftAcks.length === 1 ? "" : "s"} with no matching change_log entry, not justified within 72h. ISSO will escalate on next weekly review.`,
+      href: "/dashboard/monitoring",
+    });
+  }
+  if (pendingDriftAcksOpen.length > 0) {
+    attention.push({
+      severity: "warning",
+      label: `${pendingDriftAcksOpen.length} configuration drift${pendingDriftAcksOpen.length === 1 ? "" : "s"} awaiting justification`,
+      detail: `Provide business justification + outcome within 72h of detection. Common outcomes: intended_change_no_change_log, false_positive, unauthorized_change_remediated.`,
       href: "/dashboard/monitoring",
     });
   }
@@ -973,6 +1066,83 @@ export default async function MonitoringPage() {
                       <p className="mt-0.5 text-xs opacity-80">
                         {ack.scopeArm ? <>scope <span className="font-mono">{ack.scopeArm}</span> · </> : null}
                         Granted{" "}
+                        {ack.occurredAt
+                          ? new Date(ack.occurredAt).toLocaleString()
+                          : ack.detectedAt
+                          ? new Date(ack.detectedAt).toLocaleString()
+                          : "(unknown)"}{" "}
+                        · {ageLabel}
+                      </p>
+                      <p className="mt-0.5 font-mono text-[10px] opacity-70 break-words">
+                        alert: {ack.alertId}
+                      </p>
+                    </div>
+                    <Link
+                      href={`/dashboard/evidence-engine/entries/${ack.id}`}
+                      className="shrink-0 inline-flex items-center gap-1 rounded border border-current bg-white px-2 py-0.5 text-[11px] font-medium hover:bg-opacity-80"
+                    >
+                      Justify <ExternalLink className="h-3 w-3" />
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </section>
+      )}
+
+      {/* ── Section 0b3: Pending configuration-drift justifications ── */}
+      {pendingChangeDriftAcks.length > 0 && (
+        <section>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">
+              Pending configuration-drift justifications
+            </h2>
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-800">
+              {pendingChangeDriftAcks.length} open · {overdueDriftAcks.length} overdue
+            </span>
+          </div>
+          <div className={`${cardClass} space-y-2 p-4`}>
+            <p className="text-xs text-[var(--color-gray-600)]">
+              EnclaveWatch&apos;s Sysmon-based collector detected baseline-
+              protected file/registry/service changes with no matching{" "}
+              <code className="font-mono">change_log</code> entry within ±60
+              minutes. The admin must justify each event within 72 hours
+              (intended ticketed change / false positive / unauthorized
+              change remediated) or the alert escalates to the ISSO on next
+              weekly review.
+            </p>
+            <ul className="mt-3 space-y-1.5">
+              {pendingChangeDriftAcks.map((ack) => {
+                const tone = ack.overdue
+                  ? "border-red-200 bg-red-50/60 text-red-900"
+                  : "border-amber-200 bg-amber-50/60 text-amber-900";
+                const remaining = Math.max(0, 72 - ack.ageHours);
+                const ageLabel = ack.overdue
+                  ? `OVERDUE — ${ack.ageHours - 72}h past 72h deadline`
+                  : `${remaining}h remaining`;
+                return (
+                  <li
+                    key={ack.id}
+                    className={`flex items-start gap-3 rounded-md border ${tone} px-3 py-2 text-sm`}
+                  >
+                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white">
+                      <FileWarning className="h-3.5 w-3.5" aria-hidden />
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-baseline gap-2">
+                        <span className="font-medium font-mono break-words">
+                          {ack.path}
+                        </span>
+                        <span className="text-[11px] uppercase tracking-wide opacity-80">
+                          {ack.changeType}
+                        </span>
+                      </div>
+                      <p className="mt-0.5 text-xs opacity-80">
+                        {ack.host ? <>host <span className="font-mono">{ack.host}</span> · </> : null}
+                        actor <span className="font-mono">{ack.actorUser}</span>{" "}
+                        ·{" "}
+                        Occurred{" "}
                         {ack.occurredAt
                           ? new Date(ack.occurredAt).toLocaleString()
                           : ack.detectedAt

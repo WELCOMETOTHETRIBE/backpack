@@ -69,6 +69,13 @@ export interface RegistersSection {
   training_completion?: { expiring_attestations?: unknown[] };
   policy_review?: { stale_documents?: unknown[] };
   assessment_findings?: { review_observations?: unknown[] };
+  /**
+   * Configuration drift events detected by EnclaveWatch's Sysmon-based
+   * ConfigurationDriftCollector that did NOT match a change_log entry
+   * within ±60 minutes. Each item lands as a draft change_drift_acknowledgment
+   * entry awaiting admin justification. Phase 2 of Register-Automation v1.1.
+   */
+  change_drift_log?: { drift_observations?: unknown[] };
 }
 
 export interface ControlFreshnessSection {

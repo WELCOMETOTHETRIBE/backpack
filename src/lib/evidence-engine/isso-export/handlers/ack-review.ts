@@ -1,11 +1,13 @@
 /**
  * previous_period_acknowledgments_review handler — closes the
  * acknowledgment loops. The ISSO's outcome judgments from the manifest
- * are applied to the matching draft entries on either:
+ * are applied to the matching draft entries on any of:
  *   - maintenance_log.break_glass_acknowledgment       (Sprint 1)
  *   - access_authorization.privileged_grant_acknowledgment   (Phase 1 of
  *     Register-Automation v1.1 brief; Pattern A — same shape, different
  *     register & §1 verbosity fields)
+ *   - change_drift_log.change_drift_acknowledgment      (Phase 2 of
+ *     Register-Automation v1.1 brief; Pattern A again)
  *
  *   verified_timely    → entry is marked ISSO-verified; if still draft and
  *                        admin acknowledged in time, finalize. If admin
@@ -17,10 +19,11 @@
  *   dispute_pending    → entry stays open with dispute_status=pending.
  *                        Reserved for v1.2 (Sprint 6+) UI.
  *
- * The handler resolves the entry by alert_id across BOTH candidate
+ * The handler resolves the entry by alert_id across ALL candidate
  * register sets and dispatches on entryType. Alert IDs are deterministic
- * by source so they don't collide across surfaces (`bg-azure-*` vs
- * `pga-azure-*`).
+ * by source so they don't collide across surfaces (`bg-azure-*` for
+ * break-glass, `pga-azure-*` for privileged grants, `cd-sysmon-*` for
+ * configuration drift).
  *
  * Per spec §11.
  */
@@ -97,15 +100,35 @@ export const previous_period_acknowledgments_reviewHandler: RegisterHandler = as
       ),
     );
 
-  if (mlRegisters.length === 0 && aaRegisters.length === 0) {
+  // Resolve all candidate change_drift_log register rows (configuration drift, Phase 2).
+  const cdlCandidates = resolveRegisterKeyCandidates("change_drift_log");
+  const cdlRegisters = await db
+    .select({ id: governanceRegisters.id })
+    .from(governanceRegisters)
+    .where(
+      and(
+        eq(governanceRegisters.organizationId, ctx.orgId),
+        sql`${governanceRegisters.registerKey} IN (${sql.join(
+          cdlCandidates.map((k) => sql`${k}`),
+          sql`, `,
+        )})`,
+      ),
+    );
+
+  if (
+    mlRegisters.length === 0 &&
+    aaRegisters.length === 0 &&
+    cdlRegisters.length === 0
+  ) {
     result.warnings.push(
-      "neither maintenance_log nor access_authorization registers provisioned for org — ack outcomes not applied",
+      "no candidate registers (maintenance_log / access_authorization / change_drift_log) provisioned for org — ack outcomes not applied",
     );
     return result;
   }
 
   const mlRegisterIds = mlRegisters.map((r) => r.id);
   const aaRegisterIds = aaRegisters.map((r) => r.id);
+  const cdlRegisterIds = cdlRegisters.map((r) => r.id);
   const now = new Date();
 
   /**
@@ -119,7 +142,7 @@ export const previous_period_acknowledgments_reviewHandler: RegisterHandler = as
         entryData: Record<string, unknown> | null;
         status: string;
         entryType: string;
-        surface: "break_glass" | "privileged_grant";
+        surface: "break_glass" | "privileged_grant" | "config_drift";
       }
     | null
   > {
@@ -151,6 +174,37 @@ export const previous_period_acknowledgments_reviewHandler: RegisterHandler = as
           status: hit.status,
           entryType: hit.entryType ?? "privileged_grant_acknowledgment",
           surface: "privileged_grant",
+        };
+      }
+    }
+    // Configuration drift (Phase 2 — uses cd-* prefix).
+    if (cdlRegisterIds.length > 0) {
+      const [hit] = await db
+        .select({
+          id: governanceRegisterEntries.id,
+          entryData: governanceRegisterEntries.entryData,
+          status: governanceRegisterEntries.status,
+          entryType: governanceRegisterEntries.entryType,
+        })
+        .from(governanceRegisterEntries)
+        .where(
+          and(
+            sql`${governanceRegisterEntries.registerId} IN (${sql.join(
+              cdlRegisterIds.map((id) => sql`${id}`),
+              sql`, `,
+            )})`,
+            eq(governanceRegisterEntries.entryType, "change_drift_acknowledgment"),
+            sql`${governanceRegisterEntries.entryData} ->> 'alert_id' = ${alertId}`,
+          ),
+        )
+        .limit(1);
+      if (hit) {
+        return {
+          id: hit.id,
+          entryData: (hit.entryData ?? null) as Record<string, unknown> | null,
+          status: hit.status,
+          entryType: hit.entryType ?? "change_drift_acknowledgment",
+          surface: "config_drift",
         };
       }
     }
@@ -209,7 +263,7 @@ export const previous_period_acknowledgments_reviewHandler: RegisterHandler = as
 
     if (!existing) {
       result.warnings.push(
-        `ack_review references unknown alert_id=${item.alert_id} — no matching break-glass or privileged-grant entry`,
+        `ack_review references unknown alert_id=${item.alert_id} — no matching break-glass / privileged-grant / config-drift entry`,
       );
       continue;
     }
@@ -287,14 +341,9 @@ export const previous_period_acknowledgments_reviewHandler: RegisterHandler = as
       continue;
     }
 
-    // ── Privileged-grant surface ──
-    // Apply §1 ISSO-verify-time fields: verified_by, verified_at,
-    // verification_note. Append a manifest evidence_ref so the chain
-    // back to the receipt is auditor-navigable. Lifecycle transitions:
-    //   verified_timely    → lifecycle_state=isso_verified, status=final
-    //   overdue_escalated  → lifecycle_state=escalated, status as-is
-    //   dispute_pending    → lifecycle_state=disputed, dispute_filed=true,
-    //                        status as-is
+    // ── Privileged-grant + Config-drift surfaces share §1 lifecycle
+    //    semantics. The two branches differ only in the audit-log event
+    //    name and the field used to detect "admin signed" status.
     const verifiedBy = item.verified_by ?? "ISSO (manifest signatory)";
     const existingRefs = Array.isArray(data.evidence_refs)
       ? (data.evidence_refs as Array<Record<string, unknown>>)
@@ -361,9 +410,31 @@ export const previous_period_acknowledgments_reviewHandler: RegisterHandler = as
       .where(eq(governanceRegisterEntries.id, existing.id));
     result.entries_updated++;
 
+    const eventName =
+      existing.surface === "config_drift"
+        ? "enclavewatch.config_drift.ack_review_applied"
+        : "enclavewatch.privileged_grant.ack_review_applied";
+    const resourceType =
+      existing.surface === "config_drift"
+        ? "config_drift_alert"
+        : "privileged_grant_alert";
+    const detailsExtras: Record<string, unknown> =
+      existing.surface === "config_drift"
+        ? {
+            related_change_log_entry_id:
+              (data.related_change_log_entry_id as string | null | undefined) ??
+              null,
+            path: (data.path as string | null | undefined) ?? null,
+            change_type: (data.change_type as string | null | undefined) ?? null,
+          }
+        : {
+            related_grant_entry_id:
+              (data.related_grant_entry_id as string | null | undefined) ?? null,
+          };
+
     console.log(
       JSON.stringify({
-        event: "enclavewatch.privileged_grant.ack_review_applied",
+        event: eventName,
         orgId: ctx.orgId,
         alertId: item.alert_id,
         outcome,
@@ -373,8 +444,8 @@ export const previous_period_acknowledgments_reviewHandler: RegisterHandler = as
     try {
       await writeAuditLog({
         organizationId: ctx.orgId,
-        action: "enclavewatch.privileged_grant.ack_review_applied",
-        resourceType: "privileged_grant_alert",
+        action: eventName,
+        resourceType,
         resourceId: item.alert_id,
         details: {
           outcome,
@@ -382,8 +453,7 @@ export const previous_period_acknowledgments_reviewHandler: RegisterHandler = as
           verified_by: verifiedBy,
           manifest_id: ctx.manifestId,
           entry_id: existing.id,
-          related_grant_entry_id:
-            (data.related_grant_entry_id as string | null | undefined) ?? null,
+          ...detailsExtras,
         },
       });
     } catch {
