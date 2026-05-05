@@ -36,15 +36,26 @@ The break-glass UPN comes from configuration: `appsettings.json` → `BreakGlass
 
 - **Polling cadence:** every 5 minutes (configurable). Microsoft Graph signIn logs lag by ~5 min anyway, so finer cadence buys nothing.
 - **State:** persist last-seen `signIn.id` (Azure) and last-seen Security log RecordID (vault) in `~/.EnclaveWatch/break-glass-watcher.state.db` (SQLite). Survive process restart without losing events.
-- **Output:** for each detected event, emit a `BreakGlassSignInDetected` event into the existing EnclaveWatch event bus with the shape below. The existing weekly-review exporter picks these up automatically (see Section 2).
-- **Dedupe:** Azure signIn `id` and vault Security log `RecordID` are the natural keys. Re-emitting the same event is forbidden.
+- **Output:** for each detected event, write a `NormalizedEvent` row (same pattern as every other collector — e.g. `WindowsEventLogCollector.Windows.cs:350` does `db.Events.Add(evt)`). Set:
+  - `EventFamily = "break_glass_signin"` (singular, lowercase, underscore)
+  - `Source = "azure"` or `"vault"` per detection origin
+  - `Severity = "warning"` (expected but high audit interest)
+  - `Timestamp = <actual sign-in time>` (NOT poll time)
+  - `Subject = <break-glass UPN exactly as it appears in source>` (don't normalize case)
+  - `Summary = "Break-glass sign-in observed: <upn> from <ip> via <app>"` (short, one-liner)
+  - `Json = <full payload, see "Event shape" below>` — the JSON IS what the exporter ships into `break_glass_signins[]` 1:1, no transformation
+  
+  The existing weekly-review exporter picks these rows up by querying `WHERE EventFamily = 'break_glass_signin' AND Timestamp BETWEEN @reviewPeriodStart AND @reviewPeriodEnd`.
+- **Dedupe:** check existing NormalizedEvent rows by `Json->>'alert_id'` before inserting. Azure signIn `id` and vault Security log `RecordID` produce a stable `alert_id` so re-poll across restarts can't double-emit. Re-emitting the same event is forbidden.
 - **Safety:** if the watcher crashes or can't reach Graph, log loudly (`error` severity into local audit log) but DO NOT block the rest of EnclaveWatch. The watcher is best-effort but its failures must be observable.
 
-### Event shape
+### Event shape (the value you put in `NormalizedEvent.Json`)
+
+This is the canonical break-glass per-entry shape. The codex manifest spec §4.2 has the same form. Vault writes this verbatim into `NormalizedEvent.Json`; the exporter reads it back at export time and includes it in `registers.maintenance_log.break_glass_signins[]`.
 
 ```json
 {
-  "alert_id": "bg-{utc_iso8601_compact}-{short_correlation}",
+  "alert_id": "bg-azure-{signIn.id}" | "bg-vault-{EventRecordID}",
   "detected_at": "RFC3339",
   "source": "azure" | "vault",
   "upn": "emergency-bg-cui@MacTechSolutions256.onmicrosoft.com",
@@ -57,7 +68,11 @@ The break-glass UPN comes from configuration: `appsettings.json` → `BreakGlass
 }
 ```
 
-`alert_id` MUST be deterministic per detected event. Recommend: `bg-{Azure signIn id OR vault EventRecordID}` so re-emission produces the same alert_id and codex de-duplicates correctly.
+`alert_id` MUST be deterministic from the source event ID:
+- Azure: `bg-azure-{signIn.id}` where `signIn.id` is the Microsoft Graph signIn record GUID
+- Vault: `bg-vault-{EventRecordID}` where EventRecordID is the Windows Security log record ID
+
+Re-emission MUST produce the same alert_id so codex idempotency works.
 
 `actions_observed[]` — populate from Activity Log if available (e.g. "Modified CA policy <id>"), otherwise empty. Don't fabricate.
 
@@ -101,16 +116,80 @@ The break-glass UPN comes from configuration: `appsettings.json` → `BreakGlass
 | `registers.training_completion.expiring_attestations[]` | Pulled from training tracker if integrated, else empty array |
 | `registers.policy_review.stale_documents[]` | Pulled from policy tracker if integrated, else empty array |
 | `registers.assessment_findings.review_observations[]` | Free-form ISSO observations |
-| `control_freshness.freshly_observed_implemented[]` | ISSO checks a list of controls during review; populated based on what was observed operating |
-| `control_freshness.needing_attention[]` | Detected gaps (e.g. "no maintenance activity in 90d for control 3.7.5") |
-| `previous_period_acknowledgments_review.items[]` | Pulled from prior week's break-glass alerts that have responses logged |
+| `control_freshness.freshly_observed_implemented[]` | **Vault GETs** the candidate control list from codex (§2a below); ISSO checks boxes; checked control_ids go in this array |
+| `control_freshness.needing_attention[]` | Detected gaps (e.g. "no maintenance activity in 90d for control 3.7.5"). Codex's checklist response includes stale flags the vault can use to pre-populate this list, but ISSO has final say |
+| `previous_period_acknowledgments_review.items[]` | **Vault GETs** ack status from codex (§2b below); ISSO chooses outcome per item; outcomes go in this array |
+
+### 2a. Codex GET — review checklist (called by vault during ISSO review)
+
+```
+GET /api/enclavewatch/isso-review-checklist?vault_id={uuid}&period_end={RFC3339}
+Authorization: Bearer {EnclaveWatch token}
+```
+
+Response shape (codex side spec §12):
+```json
+{
+  "controls": [
+    {
+      "control_id": "3.1.7",
+      "title": "Audit Privileged Functions",
+      "family": "AC",
+      "last_evaluated_at": "RFC3339|null",
+      "days_since_last_evaluation": 0,
+      "is_stale": false,
+      "review_hint": "ISSO should confirm logs were reviewed and no anomalies outstanding"
+    }
+  ],
+  "period_end": "RFC3339"
+}
+```
+
+The codex applies its own filter logic to decide which controls appear (operational lanes only — excludes inherited/N/A). Vault renders the response as the ISSO checklist; checked control_ids go into `control_freshness.freshly_observed_implemented[]`.
+
+**Vault does NOT maintain a local control catalog.** Always trust the codex response — it's the source of truth.
+
+### 2b. Codex GET — break-glass ack status (called by vault during ISSO review)
+
+```
+GET /api/enclavewatch/break-glass-acks?vault_id={uuid}&since={RFC3339}&until={RFC3339}
+Authorization: Bearer {EnclaveWatch token}
+```
+
+Response shape (codex side spec §11):
+```json
+{
+  "items": [
+    {
+      "alert_id": "bg-azure-...",
+      "ack_status": "acknowledged" | "draft_pending" | "disputed" | "overdue_no_ack",
+      "acknowledged_by": "string|null",
+      "signed_at": "RFC3339|null",
+      "purpose_of_session": "string|null",
+      "actions_taken": "string|null",
+      "before_state": "string|null",
+      "after_state": "string|null",
+      "draft_age_hours": 0
+    }
+  ]
+}
+```
+
+Use `since = previous_review_period_start` and `until = current_review_period_end` so the ISSO sees both fully-acked AND still-pending alerts from the prior cycle. ISSO picks an outcome per item:
+- `acknowledged` items → typically `verified_timely`
+- `draft_pending` items → typically `verified_timely` (if ISSO can review the draft) or carries to next cycle
+- `overdue_no_ack` items → `overdue_escalated`
+- `disputed` items → reserved for v1.2 (Sprint 6+); for now treat as `overdue_escalated`
+
+ISSO selections become `previous_period_acknowledgments_review.items[]` in the manifest.
 
 ### ISSO review UI (in the vault dashboard)
 
 Extend the existing weekly review screen so the ISSO sees, for each section, a checklist:
 - Items detected during the period (auto-populated from collectors)
 - Free-text fields for ISSO commentary
-- "Mark as observed implemented" checkboxes against a pre-configured control list (drives `freshly_observed_implemented[]`)
+- **Control review checkboxes** sourced from the codex GET in §2a — pre-checks for stale ones
+- **Break-glass ack outcomes** sourced from the codex GET in §2b — one outcome dropdown per item
 - "Add finding" buttons that create `needing_attention[]` items
 
 The export only fires when ISSO clicks **"Sign + Export"**.
