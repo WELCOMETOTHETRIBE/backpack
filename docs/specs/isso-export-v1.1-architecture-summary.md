@@ -236,3 +236,21 @@ This is the steady-state cadence. No daily admin chores, no monthly attestation-
 ---
 
 **Status as of writing**: Codex side complete (Sprints 0–6.5). Vault side at Phase 2 (manifest builder ready). Phase 3 (UI + version branch) brief delivered, awaiting EnclaveWatch dev session. Integration smoke runs as soon as Phase 3 ships.
+
+---
+
+## Register-Automation v1.1 brief — Phases 1 through 5 (codex side)
+
+The cross-repo brief at `docs/specs/cross-repo-register-automation-blueprint.md` adds three new closed-loop replications and two cross-cutting hardening passes. Codex-side coverage:
+
+- **Phase 1 — Privileged Role Grants** (Pattern A, 72h SLA): Owner / Contributor / User Access Administrator role grants surface as draft `privileged_grant_acknowledgment` entries on the `access_authorization` register. Admin justifies (business purpose, sunset plan, expected duration, outcome) within 72h or ISSO escalates. Backs §3.1.5 / 3.1.6 / 3.10.6. New `/api/registers/access-authorization/[entryId]/justify` endpoint + `/api/enclavewatch/privileged-grant-acks` vault pull. Audit-log chain: `privileged_grant.detected → admin_justified → ack_review_applied`.
+
+- **Phase 2 — Configuration Drift Outside change_log** (Pattern A, 72h SLA): new `change_drift_log` register seeded for all orgs via `0056_change_drift_log_register.sql`. Sysmon-detected baseline-protected file/registry/service changes that don't match a change_log entry within ±60min land as `change_drift_acknowledgment` drafts. Admin justifies (intended_change_no_change_log / false_positive / unauthorized_change_remediated / etc.). Backs §3.4.1 / 3.4.2 / 3.4.3. New `/api/registers/change-log/recent` lets the vault collector correlate.
+
+- **Phase 3 — Critical Defender Alerts** (Pattern A, 24h SLA — tighter than the others): high/critical Microsoft Defender for Endpoint alerts surface as `defender_alert_acknowledgment` drafts on the existing `incident_log` register (no new register — alerts ARE incidents). Admin records investigation outcome (true_positive_remediated / true_positive_in_progress / false_positive_investigated / risk_accepted) within 24h. Backs §3.14.2 / 3.14.6. New `/api/registers/incident-log/[entryId]/acknowledge` endpoint + `/api/enclavewatch/defender-alert-acks` vault pull. Audit-log chain: `defender_alert.detected → admin_acknowledged → ack_review_applied`.
+
+- **Phase 4 — Verbosity hardening** (cross-cutting refactor): every existing handler now writes the §1 auditor-defensible field set (actor_*, event_type + event_classification, all four time anchors, system + scope + vault_id + boundary_id, business_justification, detection_method, outcome + actions_taken, verified_by + verification_note, evidence_refs[], lifecycle_state, provenance) at insert time. Shared `_verbosity.ts` helper (`applyAutoRecordedV1Fields`) standardises the merge so each handler diff is small. Backfill SQL `0057_register_entry_verbosity_backfill.sql` derives `lifecycle_state` and `evidence_refs[]` for legacy entries idempotently.
+
+- **Phase 5 — Cross-reference graph + Monitoring UI evolution**: every entry detail page now renders an "Evidence references" panel (via the reusable `<EvidenceRefList>` component) and a "Related events" section that surfaces the audit-log chain, sibling register entries that share the same alert_id, and every manifest that touched the entry. Each manifest_id click-throughs to a new `/dashboard/monitoring/manifests/[manifestId]` detail page that lists all entries written or updated by that manifest plus the dispatcher's per-section warnings. New `/api/registers/[registerKey]/[entryId]/cross-references` endpoint exposes the same graph for client/external consumers.
+
+**Steady-state aftermath**: every register entry written by the codex now answers the auditor's eleven §1 questions in isolation. The auditor opens the entry detail page and sees the entire chain — detection, admin justification, ISSO verification, source manifest, sibling entries, audit-log rows — without leaving the page. Vault-side ConfigurationDriftCollector (Phase 2) and DefenderCriticalAlertCollector (Phase 3) are pending in EnclaveWatch.

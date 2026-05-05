@@ -1419,6 +1419,12 @@ export default async function MonitoringPage() {
                         {m.manifestId}
                       </p>
                     </div>
+                    <Link
+                      href={`/dashboard/monitoring/manifests/${encodeURIComponent(m.manifestId)}`}
+                      className="shrink-0 inline-flex items-center gap-1 rounded border border-[var(--color-border)] bg-white px-2 py-0.5 text-[11px] font-medium text-[var(--color-blue-accent)] hover:bg-[var(--color-gray-50)]"
+                    >
+                      View detail <ExternalLink className="h-3 w-3" />
+                    </Link>
                   </li>
                 );
               })}

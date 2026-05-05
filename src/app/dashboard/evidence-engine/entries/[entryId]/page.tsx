@@ -2,8 +2,15 @@ import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import { db } from "@/db";
-import { governanceRegisterEntries, governanceRegisters, governanceEntryEvents, users } from "@/db/schema";
-import { eq, and, desc } from "drizzle-orm";
+import {
+  governanceRegisterEntries,
+  governanceRegisters,
+  governanceEntryEvents,
+  users,
+  auditLogs,
+  issoExportManifests,
+} from "@/db/schema";
+import { eq, and, desc, sql } from "drizzle-orm";
 import {
   getFieldLabel,
   getSummaryTemplate,
@@ -16,6 +23,7 @@ import { BreakGlassAckForm } from "./BreakGlassAckForm";
 import { PrivilegedGrantJustifyForm } from "./PrivilegedGrantJustifyForm";
 import { ChangeDriftJustifyForm } from "./ChangeDriftJustifyForm";
 import { DefenderAlertAckForm } from "./DefenderAlertAckForm";
+import { EvidenceRefList } from "@/components/governance/EvidenceRefList";
 
 type PageProps = { params: Promise<{ entryId: string }> };
 
@@ -91,6 +99,164 @@ export default async function EvidenceEngineEntryDetailPage({ params }: PageProp
     }
     return eventType;
   }
+
+  // ── Phase 5: cross-reference graph ─────────────────────────────────────
+  // Fetch related events for the auditor-defensibility chain. Values that
+  // don't apply (no alert_id, no manifest_id) just return empty arrays.
+  const alertId = (data.alert_id as string | undefined) ?? null;
+  const primaryManifestId = (data.manifest_id as string | undefined) ?? null;
+  const evidenceRefs = Array.isArray(data.evidence_refs)
+    ? (data.evidence_refs as Array<Record<string, unknown>>)
+    : [];
+
+  // Audit-log chain — every audit event keyed by alert_id (preferred) or
+  // entry id. Phase 1/2/3 ack chains use alert_id as resourceId, so when
+  // present that's the natural pivot.
+  const auditResourceCandidates = new Set<string>();
+  if (alertId) auditResourceCandidates.add(alertId);
+  auditResourceCandidates.add(entryId);
+  const auditLogChain =
+    auditResourceCandidates.size > 0
+      ? await db
+          .select({
+            id: auditLogs.id,
+            action: auditLogs.action,
+            createdAt: auditLogs.createdAt,
+            userId: auditLogs.userId,
+            details: auditLogs.details,
+          })
+          .from(auditLogs)
+          .where(
+            and(
+              eq(auditLogs.organizationId, orgId),
+              sql`${auditLogs.resourceId} IN (${sql.join(
+                Array.from(auditResourceCandidates).map((id) => sql`${id}`),
+                sql`, `,
+              )})`,
+            ),
+          )
+          .orderBy(desc(auditLogs.createdAt))
+          .limit(50)
+      : [];
+
+  // Related entries — explicit links via evidence_refs[type=related_entry_id]
+  // PLUS siblings sharing the same alert_id.
+  const relatedEntryIds = new Set<string>();
+  for (const ref of evidenceRefs) {
+    if (
+      typeof ref.type === "string" &&
+      ref.type === "related_entry_id" &&
+      typeof ref.value === "string"
+    ) {
+      relatedEntryIds.add(ref.value);
+    }
+  }
+  type RelatedRow = {
+    id: string;
+    entryType: string | null;
+    status: string;
+    registerKey: string;
+    label: string;
+  };
+  const relatedEntries: RelatedRow[] = [];
+  if (relatedEntryIds.size > 0) {
+    const rows = await db
+      .select({
+        id: governanceRegisterEntries.id,
+        entryType: governanceRegisterEntries.entryType,
+        status: governanceRegisterEntries.status,
+        registerKey: governanceRegisters.registerKey,
+      })
+      .from(governanceRegisterEntries)
+      .innerJoin(
+        governanceRegisters,
+        eq(governanceRegisterEntries.registerId, governanceRegisters.id),
+      )
+      .where(
+        and(
+          eq(governanceRegisters.organizationId, orgId),
+          sql`${governanceRegisterEntries.id} IN (${sql.join(
+            Array.from(relatedEntryIds).map((id) => sql`${id}`),
+            sql`, `,
+          )})`,
+        ),
+      );
+    for (const r of rows) {
+      relatedEntries.push({
+        id: r.id,
+        entryType: r.entryType,
+        status: r.status,
+        registerKey: r.registerKey,
+        label: "Linked via evidence_refs[].related_entry_id",
+      });
+    }
+  }
+  if (alertId) {
+    const rows = await db
+      .select({
+        id: governanceRegisterEntries.id,
+        entryType: governanceRegisterEntries.entryType,
+        status: governanceRegisterEntries.status,
+        registerKey: governanceRegisters.registerKey,
+      })
+      .from(governanceRegisterEntries)
+      .innerJoin(
+        governanceRegisters,
+        eq(governanceRegisterEntries.registerId, governanceRegisters.id),
+      )
+      .where(
+        and(
+          eq(governanceRegisters.organizationId, orgId),
+          sql`${governanceRegisterEntries.entryData} ->> 'alert_id' = ${alertId}`,
+        ),
+      )
+      .limit(20);
+    for (const r of rows) {
+      if (r.id === entryId) continue;
+      if (relatedEntries.some((e) => e.id === r.id)) continue;
+      relatedEntries.push({
+        id: r.id,
+        entryType: r.entryType,
+        status: r.status,
+        registerKey: r.registerKey,
+        label: `Linked via shared alert_id=${alertId}`,
+      });
+    }
+  }
+
+  // Manifest history — every manifest that touched this entry.
+  const manifestIdSet = new Set<string>();
+  if (primaryManifestId) manifestIdSet.add(primaryManifestId);
+  for (const ref of evidenceRefs) {
+    if (
+      typeof ref.type === "string" &&
+      ref.type === "manifest_id" &&
+      typeof ref.value === "string"
+    ) {
+      manifestIdSet.add(ref.value);
+    }
+  }
+  const manifestHistory =
+    manifestIdSet.size > 0
+      ? await db
+          .select({
+            manifestId: issoExportManifests.manifestId,
+            receivedAt: issoExportManifests.receivedAt,
+            sectionsProcessed: issoExportManifests.sectionsProcessed,
+            controlsTouched: issoExportManifests.controlsTouched,
+          })
+          .from(issoExportManifests)
+          .where(
+            and(
+              eq(issoExportManifests.organizationId, orgId),
+              sql`${issoExportManifests.manifestId} IN (${sql.join(
+                Array.from(manifestIdSet).map((id) => sql`${id}`),
+                sql`, `,
+              )})`,
+            ),
+          )
+          .orderBy(desc(issoExportManifests.receivedAt))
+      : [];
 
   return (
     <div className="space-y-6">
@@ -226,6 +392,145 @@ export default async function EvidenceEngineEntryDetailPage({ params }: PageProp
       </div>
 
       <EntryAttachments entryId={entryId} />
+
+      {/* Phase 5: Evidence references (§1.9) — every cross-reference the
+          handler embedded so the auditor can navigate from this entry to
+          source manifest, related entries, audit-log rows, tickets. */}
+      <EvidenceRefList
+        refs={evidenceRefs}
+        primaryManifestId={primaryManifestId}
+      />
+
+      {/* Phase 5: Related events — audit-log chain + sibling register
+          entries. Lets the auditor reconstruct the full ack/verification
+          loop from this single page. */}
+      {(auditLogChain.length > 0 ||
+        relatedEntries.length > 0 ||
+        manifestHistory.length > 0) && (
+        <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm">
+          <h3 className="text-sm font-semibold text-[var(--color-navy-primary)]">
+            Related events
+          </h3>
+          <p className="mt-1 text-xs text-[var(--color-gray-500)]">
+            Cross-reference graph for this entry. Click through to navigate
+            the full audit chain.
+          </p>
+
+          {auditLogChain.length > 0 && (
+            <div className="mt-4">
+              <h4 className="text-[11px] font-semibold uppercase tracking-wide text-[var(--color-gray-600)]">
+                Audit-log chain ({auditLogChain.length})
+              </h4>
+              <ul className="mt-2 space-y-1.5">
+                {auditLogChain.map((row) => {
+                  const d =
+                    (row.details ?? null) as Record<string, unknown> | null;
+                  const actor =
+                    (d?.acknowledged_by as string | undefined) ??
+                    (d?.justified_by as string | undefined) ??
+                    (d?.verified_by as string | undefined) ??
+                    (row.userId ?? "system");
+                  return (
+                    <li
+                      key={row.id}
+                      className="flex flex-wrap items-baseline gap-2 border-b border-[var(--color-border-muted)] pb-1.5 text-sm last:border-0"
+                    >
+                      <span className="font-mono text-[10px] text-[var(--color-gray-500)]">
+                        {new Date(row.createdAt).toLocaleString()}
+                      </span>
+                      <span className="font-mono text-xs text-[var(--color-gray-800)] break-all">
+                        {row.action}
+                      </span>
+                      <span className="text-[11px] text-[var(--color-gray-600)]">
+                        by {actor}
+                      </span>
+                      <Link
+                        href={`/admin/audit-logs?id=${encodeURIComponent(row.id)}`}
+                        className="ml-auto text-[11px] text-[var(--color-blue-accent)] hover:underline"
+                      >
+                        view →
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+
+          {relatedEntries.length > 0 && (
+            <div className="mt-5">
+              <h4 className="text-[11px] font-semibold uppercase tracking-wide text-[var(--color-gray-600)]">
+                Related entries ({relatedEntries.length})
+              </h4>
+              <ul className="mt-2 space-y-1.5">
+                {relatedEntries.map((r) => (
+                  <li
+                    key={r.id}
+                    className="flex flex-wrap items-baseline gap-2 border-b border-[var(--color-border-muted)] pb-1.5 text-sm last:border-0"
+                  >
+                    <span className="font-mono text-xs text-[var(--color-gray-800)]">
+                      {r.entryType ?? "(unknown type)"}
+                    </span>
+                    <span className="text-[11px] uppercase tracking-wide text-[var(--color-gray-500)]">
+                      {r.registerKey}
+                    </span>
+                    <span className="text-[11px] text-[var(--color-gray-500)]">
+                      {r.status}
+                    </span>
+                    <span className="text-[11px] text-[var(--color-gray-600)]">
+                      {r.label}
+                    </span>
+                    <Link
+                      href={`/dashboard/evidence-engine/entries/${r.id}`}
+                      className="ml-auto text-[11px] text-[var(--color-blue-accent)] hover:underline"
+                    >
+                      open →
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {manifestHistory.length > 0 && (
+            <div className="mt-5">
+              <h4 className="text-[11px] font-semibold uppercase tracking-wide text-[var(--color-gray-600)]">
+                Manifest history ({manifestHistory.length})
+              </h4>
+              <ul className="mt-2 space-y-1.5">
+                {manifestHistory.map((m) => {
+                  const sections = Array.isArray(m.sectionsProcessed)
+                    ? (m.sectionsProcessed as string[])
+                    : [];
+                  return (
+                    <li
+                      key={m.manifestId}
+                      className="flex flex-wrap items-baseline gap-2 border-b border-[var(--color-border-muted)] pb-1.5 text-sm last:border-0"
+                    >
+                      <span className="font-mono text-[10px] text-[var(--color-gray-500)] break-all">
+                        {m.manifestId.slice(0, 16)}…
+                      </span>
+                      <span className="text-[11px] text-[var(--color-gray-500)]">
+                        ingested{" "}
+                        {new Date(m.receivedAt).toLocaleString()}
+                      </span>
+                      <span className="text-[11px] text-[var(--color-gray-600)]">
+                        sections: {sections.length > 0 ? sections.join(", ") : "—"}
+                      </span>
+                      <Link
+                        href={`/dashboard/monitoring/manifests/${encodeURIComponent(m.manifestId)}`}
+                        className="ml-auto text-[11px] text-[var(--color-blue-accent)] hover:underline"
+                      >
+                        open →
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm">
         <h3 className="text-sm font-semibold text-[var(--color-navy-primary)]">Timeline</h3>
