@@ -24,6 +24,11 @@ import {
 import { eq, and, sql } from "drizzle-orm";
 import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
 import { writeAuditLog } from "@/lib/audit";
+import {
+  applyAutoRecordedV1Fields,
+  buildEvidenceRefsBase,
+  type EvidenceRef,
+} from "./_verbosity";
 import type { HandlerResult, IngestContext, RegisterHandler } from "../types";
 
 const COVERED_BY_BREAK_GLASS = ["3.1.7", "3.7.1", "3.7.2", "3.7.5"] as const;
@@ -148,22 +153,84 @@ export const maintenance_logHandler: RegisterHandler = async (
       continue;
     }
 
+    // §1 evidence_refs[] — base manifest ref + session correlation id
+    // (lets the auditor pivot to all activity in this signin session) +
+    // app_or_resource if present.
+    const evidenceRefs: EvidenceRef[] = buildEvidenceRefsBase(ctx);
+    if (signin.session_correlation_id) {
+      evidenceRefs.push({
+        type: "session_correlation_id",
+        value: signin.session_correlation_id,
+        label: "Azure signIn session correlation id",
+      });
+    }
+    if (signin.app_or_resource) {
+      evidenceRefs.push({
+        type: "azure_resource",
+        value: signin.app_or_resource,
+        label: "Resource accessed during break-glass session",
+      });
+    }
+
     // Detection-time fields (what gets prefilled on the draft entry).
     // Never overwrite admin-filled acknowledgment fields if the entry is
     // already final or partially completed.
-    const detectionData: Record<string, unknown> = {
-      alert_id: signin.alert_id,
-      upn: signin.upn,
-      detected_at: signin.detected_at,
-      source: signin.source ?? "unknown",
-      client_ip: signin.client_ip ?? null,
-      app_or_resource: signin.app_or_resource ?? null,
-      duration_seconds: signin.duration_seconds ?? null,
-      session_correlation_id: signin.session_correlation_id ?? null,
-      actions_observed: signin.actions_observed ?? [],
-      ip_classification: signin.ip_classification ?? "unknown_or_shared",
-      manifest_id: ctx.manifestId,
-    };
+    //
+    // §1 fields baked in at insert: actor_user (UPN), actor_user_id (null
+    // until vault enriches with Entra object id), event_type +
+    // event_classification, all four time anchors, system + scope_arm +
+    // vault_id + boundary_id, detection_method, lifecycle_state (= "draft"
+    // for Pattern A), evidence_refs, provenance. business_justification /
+    // outcome / actions_taken stay null until admin acknowledges.
+    const detectionData: Record<string, unknown> = applyAutoRecordedV1Fields(
+      {
+        // Handler-specific fields (preserved for back-compat with admin form
+        // and Monitoring-tab card).
+        alert_id: signin.alert_id,
+        upn: signin.upn,
+        detected_at: signin.detected_at,
+        source: signin.source ?? "unknown",
+        client_ip: signin.client_ip ?? null,
+        app_or_resource: signin.app_or_resource ?? null,
+        duration_seconds: signin.duration_seconds ?? null,
+        session_correlation_id: signin.session_correlation_id ?? null,
+        actions_observed: signin.actions_observed ?? [],
+        ip_classification: signin.ip_classification ?? "unknown_or_shared",
+        // §1 actor_*. UPN is the human-readable identity; Entra object id
+        // not yet plumbed by vault — explicit null per §1's "always
+        // populate, even with null" rule.
+        actor_user: signin.upn,
+        actor_user_id: null,
+        // §1 event_type / event_classification.
+        event_type: "break_glass_signin",
+        event_classification: "privileged_session",
+        // §1 time anchors. occurred_at == detected_at for signins (same
+        // event); signed_at and verified_at filled later in the loop.
+        occurred_at: signin.detected_at,
+        signed_at: null,
+        verified_at: null,
+        // §1 location.
+        system: signin.app_or_resource ?? "azure_entra_id",
+        scope_arm: null,
+        // §1 lifecycle_state — Pattern A starts "draft" (overrides helper
+        // default of "auto_recorded" since we set it pre-merge).
+        lifecycle_state: "draft",
+        // To-be-filled-by-admin (§1.5/§1.7).
+        business_justification: null,
+        outcome: null,
+        actions_taken: null,
+        // ISSO-verify-time (§1.8).
+        verified_by: null,
+        verification_note: null,
+      },
+      {
+        ctx,
+        boundaryId: primaryBoundary.id,
+        detectionMethod: "azure_signin_log",
+        detectionSource: signin.source ?? "azure",
+        evidenceRefs,
+      },
+    );
 
     // Look up existing entry by alert_id (via JSONB containment).
     const [existing] = await db

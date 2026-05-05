@@ -16,6 +16,11 @@ import {
 } from "@/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
+import {
+  applyAutoRecordedV1Fields,
+  buildEvidenceRefsBase,
+  type EvidenceRef,
+} from "./_verbosity";
 import type { HandlerResult, IngestContext, RegisterHandler } from "../types";
 
 const COVERED = ["3.12.4"] as const;
@@ -111,18 +116,59 @@ export const policy_reviewHandler: RegisterHandler = async (
       continue;
     }
 
-    const entryData: Record<string, unknown> = {
-      doc_code: item.doc_code,
-      last_reviewed_at: item.last_reviewed_at ?? null,
-      days_since_review: item.days_since_review ?? null,
-      recommended_action: item.recommended_action,
-      observed_at: observedAtIso,
-      observed_by: observedBy,
-      notes: item.notes ?? null,
-      ticket: item.ticket ?? null,
-      manifest_id: ctx.manifestId,
-      vault_id: ctx.vaultId,
-    };
+    // §1 evidence_refs[] — base manifest ref + ticket if present.
+    // Per blueprint: ideally also link to the policy doc itself; the
+    // codex-side policy doc store keys by `doc_code` so a future entry
+    // detail page can resolve doc_code → URL without storing the URL here.
+    const evidenceRefs: EvidenceRef[] = buildEvidenceRefsBase(ctx);
+    if (item.ticket) {
+      evidenceRefs.push({
+        type: "ticket_url",
+        value: item.ticket,
+        label: "Tracking ticket for this stale document",
+      });
+    }
+    evidenceRefs.push({
+      type: "policy_doc_code",
+      value: item.doc_code,
+      label: "Policy/procedure document under review",
+    });
+
+    const entryData: Record<string, unknown> = applyAutoRecordedV1Fields(
+      {
+        doc_code: item.doc_code,
+        last_reviewed_at: item.last_reviewed_at ?? null,
+        days_since_review: item.days_since_review ?? null,
+        recommended_action: item.recommended_action,
+        observed_at: observedAtIso,
+        observed_by: observedBy,
+        notes: item.notes ?? null,
+        ticket: item.ticket ?? null,
+        // §1 actor_*.
+        actor_user: observedBy,
+        actor_user_id: null,
+        // §1 event_type / event_classification.
+        event_type: "stale_document_flagged",
+        event_classification: "policy_freshness",
+        // §1 time anchors.
+        detected_at: observedAtIso,
+        occurred_at: observedAtIso,
+        signed_at: observedAtIso,
+        // §1 location.
+        system: "policy_register",
+        scope_arm: null,
+        // §1 outcome / actions_taken.
+        outcome: item.recommended_action,
+        actions_taken: null,
+      },
+      {
+        ctx,
+        boundaryId: primaryBoundary.id,
+        detectionMethod: "isso_observed",
+        detectionSource: "ISSO weekly review of policy_review register",
+        evidenceRefs,
+      },
+    );
 
     const [existing] = await db
       .select({ id: governanceRegisterEntries.id })

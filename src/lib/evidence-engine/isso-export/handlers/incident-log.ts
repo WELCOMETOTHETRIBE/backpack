@@ -26,6 +26,7 @@ import {
 import { eq, and, sql } from "drizzle-orm";
 import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
 import { writeAuditLog } from "@/lib/audit";
+import { applyAutoRecordedV1Fields } from "./_verbosity";
 import type { HandlerResult, IngestContext, RegisterHandler } from "../types";
 
 const COVERED = ["3.6.1", "3.6.2", "3.14.2", "3.14.6"] as const;
@@ -159,19 +160,42 @@ export const incident_logHandler: RegisterHandler = async (
       continue;
     }
 
-    const entryData: Record<string, unknown> = {
-      incident_id: inc.incident_id,
-      detected_at: inc.opened_at,
-      detected_by: inc.detected_by ?? "siem",
-      severity: inc.severity,
-      summary: inc.summary,
-      scope: inc.scope ?? "(unspecified)",
-      initial_actions: inc.response_actions ?? null,
-      closed_at: inc.closed_at ?? null,
-      ticket: inc.ticket ?? null,
-      manifest_id: ctx.manifestId,
-      vault_id: ctx.vaultId,
-    };
+    const entryData: Record<string, unknown> = applyAutoRecordedV1Fields(
+      {
+        incident_id: inc.incident_id,
+        detected_at: inc.opened_at,
+        detected_by: inc.detected_by ?? "siem",
+        severity: inc.severity,
+        summary: inc.summary,
+        scope: inc.scope ?? "(unspecified)",
+        initial_actions: inc.response_actions ?? null,
+        closed_at: inc.closed_at ?? null,
+        ticket: inc.ticket ?? null,
+        // §1 actor_* — detector identity (e.g. "siem", "edr") rather than a
+        // user. The user who triages lives on follow-up incident_update entries.
+        actor_user: inc.detected_by ?? "siem",
+        actor_user_id: null,
+        // §1 event_type / event_classification.
+        event_type: "incident_opened",
+        event_classification: `incident_severity_${inc.severity}`,
+        // §1 time anchors.
+        occurred_at: inc.opened_at,
+        signed_at: null,
+        // §1 location.
+        system: inc.scope ?? null,
+        scope_arm: null,
+        // §1 outcome / actions_taken — outcome stays null until the incident
+        // is closed; actions_taken carries initial response.
+        outcome: inc.closed_at ? "closed" : "open",
+        actions_taken: inc.response_actions ?? null,
+      },
+      {
+        ctx,
+        boundaryId: primaryBoundary.id,
+        detectionMethod: "siem_or_edr",
+        detectionSource: inc.detected_by ?? "siem",
+      },
+    );
 
     const [existing] = await db
       .select({ id: governanceRegisterEntries.id })

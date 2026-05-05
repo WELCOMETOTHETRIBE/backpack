@@ -18,6 +18,11 @@ import {
 } from "@/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
+import {
+  applyAutoRecordedV1Fields,
+  buildEvidenceRefsBase,
+  type EvidenceRef,
+} from "./_verbosity";
 import type { HandlerResult, IngestContext, RegisterHandler } from "../types";
 
 const COVERED = ["3.12.1"] as const;
@@ -131,20 +136,60 @@ export const assessment_findingsHandler: RegisterHandler = async (
       continue;
     }
 
-    const entryData: Record<string, unknown> = {
-      observation_id: item.observation_id,
-      control_id: item.control_id,
-      finding_type: item.finding_type,
-      severity: item.severity,
-      summary: item.summary,
-      recommended_action: item.recommended_action,
-      observed_at: observedAtIso,
-      observed_by: observedBy,
-      notes: item.notes ?? null,
-      ticket: item.ticket ?? null,
-      manifest_id: ctx.manifestId,
-      vault_id: ctx.vaultId,
-    };
+    // §1 evidence_refs[] — base manifest ref + ticket if present + the
+    // control_id this observation is about so the auditor can navigate.
+    const evidenceRefs: EvidenceRef[] = buildEvidenceRefsBase(ctx);
+    if (item.ticket) {
+      evidenceRefs.push({
+        type: "ticket_url",
+        value: item.ticket,
+        label: "Tracking ticket for this observation",
+      });
+    }
+    evidenceRefs.push({
+      type: "control_id",
+      value: item.control_id,
+      label: "Control covered by this observation",
+    });
+
+    const entryData: Record<string, unknown> = applyAutoRecordedV1Fields(
+      {
+        observation_id: item.observation_id,
+        control_id: item.control_id,
+        finding_type: item.finding_type,
+        severity: item.severity,
+        summary: item.summary,
+        recommended_action: item.recommended_action,
+        observed_at: observedAtIso,
+        observed_by: observedBy,
+        notes: item.notes ?? null,
+        ticket: item.ticket ?? null,
+        // §1 actor_*.
+        actor_user: observedBy,
+        actor_user_id: null,
+        // §1 event_type / event_classification.
+        event_type: "review_observation_recorded",
+        event_classification: `observation_${item.finding_type}`,
+        // §1 time anchors.
+        detected_at: observedAtIso,
+        occurred_at: observedAtIso,
+        signed_at: observedAtIso,
+        // §1 location.
+        system: `control:${item.control_id}`,
+        scope_arm: null,
+        // §1 outcome / actions_taken.
+        outcome: item.recommended_action,
+        actions_taken: null,
+      },
+      {
+        ctx,
+        boundaryId: primaryBoundary.id,
+        detectionMethod: "isso_observed",
+        detectionSource:
+          "ISSO weekly review of assessment_findings register (lightweight observations, not formal C3PAO findings)",
+        evidenceRefs,
+      },
+    );
 
     // Idempotent on observation_id (vault generates this stable id).
     const [existing] = await db

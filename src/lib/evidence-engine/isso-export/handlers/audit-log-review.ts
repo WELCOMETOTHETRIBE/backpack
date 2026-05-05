@@ -36,6 +36,11 @@ import {
 } from "@/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
+import {
+  applyAutoRecordedV1Fields,
+  buildEvidenceRefsBase,
+  type EvidenceRef,
+} from "./_verbosity";
 import type { HandlerResult, IngestContext, RegisterHandler } from "../types";
 
 /**
@@ -137,22 +142,76 @@ export const audit_log_reviewHandler: RegisterHandler = async (
     wr.summary ??
     `EnclaveWatch weekly review ${wr.review_period_start?.slice(0, 10) ?? "?"} → ${reviewPeriodEndIso.slice(0, 10)}: ${wr.review_result ?? "n/a"}.`;
 
-  const auditEntryData: Record<string, unknown> = {
-    review_period_start: wr.review_period_start ?? ctx.reviewPeriodStart?.toISOString(),
-    review_period_end: reviewPeriodEndIso,
-    reviewed_at: reviewedAtIso,
-    reviewed_by: reviewerName,
-    summary,
-    findings: wr.findings ?? "no findings",
-    tickets_created: wr.tickets_created ?? null,
-    enclavewatch_run_id: wr.enclavewatch_run_id ?? null,
-    vault_id: wr.vault_id ?? ctx.vaultId,
-    review_result: wr.review_result ?? null,
-    evidence_bundle_hash: wr.evidence_bundle_hash ?? null,
-    weekly_manifest_hash: wr.weekly_manifest_hash ?? null,
-    source: wr.source ?? "enclavewatch_weekly_review",
-    manifest_id: ctx.manifestId,
-  };
+  // §1 evidence_refs[] — base manifest ref plus the optional bundle/run refs
+  // so the auditor can navigate from this single entry to the full chain
+  // (signed bundle hash, EnclaveWatch run, weekly manifest hash).
+  const evidenceRefs: EvidenceRef[] = buildEvidenceRefsBase(ctx);
+  if (wr.evidence_bundle_hash) {
+    evidenceRefs.push({
+      type: "evidence_file_hash",
+      value: wr.evidence_bundle_hash,
+      label: "Signed evidence bundle (sha256)",
+    });
+  }
+  if (wr.weekly_manifest_hash && wr.weekly_manifest_hash !== ctx.manifestId) {
+    evidenceRefs.push({
+      type: "evidence_file_hash",
+      value: wr.weekly_manifest_hash,
+      label: "Weekly manifest hash",
+    });
+  }
+  if (wr.enclavewatch_run_id) {
+    evidenceRefs.push({
+      type: "external_id",
+      value: wr.enclavewatch_run_id,
+      label: "EnclaveWatch weekly-review run id",
+    });
+  }
+
+  const auditEntryData: Record<string, unknown> = applyAutoRecordedV1Fields(
+    {
+      // Handler-specific fields (preserved from prior shape for back-compat).
+      review_period_start:
+        wr.review_period_start ?? ctx.reviewPeriodStart?.toISOString(),
+      review_period_end: reviewPeriodEndIso,
+      reviewed_at: reviewedAtIso,
+      reviewed_by: reviewerName,
+      summary,
+      findings: wr.findings ?? "no findings",
+      tickets_created: wr.tickets_created ?? null,
+      enclavewatch_run_id: wr.enclavewatch_run_id ?? null,
+      vault_id: wr.vault_id ?? ctx.vaultId,
+      review_result: wr.review_result ?? null,
+      evidence_bundle_hash: wr.evidence_bundle_hash ?? null,
+      weekly_manifest_hash: wr.weekly_manifest_hash ?? null,
+      source: wr.source ?? "enclavewatch_weekly_review",
+      // §1 actor_* — surface the ISSO reviewer as the actor for audit chain.
+      actor_user: reviewerName,
+      actor_user_id: null,
+      // §1 event_type / event_classification.
+      event_type: "weekly_review_completed",
+      event_classification: "isso_weekly_review",
+      // §1 time anchors. occurred_at = reviewed_at; signed_at populated when
+      // the reviewer signs the manifest (mirrored as reviewed_at).
+      detected_at: reviewedAtIso,
+      occurred_at: reviewedAtIso,
+      signed_at: reviewedAtIso,
+      // §1 location. system covers the audit log subsystem reviewed.
+      system: "audit_log_subsystem",
+      scope_arm: null,
+      // §1 outcome / actions_taken — derived from manifest review_result +
+      // findings string so the entry is self-explanatory in isolation.
+      outcome: wr.review_result ?? null,
+      actions_taken: wr.findings ?? null,
+    },
+    {
+      ctx,
+      boundaryId: primaryBoundary.id,
+      detectionMethod: "isso_observed",
+      detectionSource: "enclavewatch_weekly_review",
+      evidenceRefs,
+    },
+  );
 
   // Idempotent on (registerId, review_period_end). Re-ingesting same period
   // updates in place rather than duplicating.

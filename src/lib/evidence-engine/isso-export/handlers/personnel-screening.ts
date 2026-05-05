@@ -20,6 +20,11 @@ import {
 } from "@/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
+import {
+  applyAutoRecordedV1Fields,
+  buildEvidenceRefsBase,
+  type EvidenceRef,
+} from "./_verbosity";
 import type { HandlerResult, IngestContext, RegisterHandler } from "../types";
 
 const COVERED = ["3.9.1", "3.9.2"] as const;
@@ -119,20 +124,60 @@ export const personnel_screeningHandler: RegisterHandler = async (
       continue;
     }
 
-    const entryData: Record<string, unknown> = {
-      subject_user: e.subject_user,
-      event_type: e.event_type,
-      occurred_at: e.occurred_at,
-      observed_at: observedAtIso,
-      observed_by: observedBy,
-      screening_status: e.screening_status ?? "n_a",
-      previous_role: e.previous_role ?? null,
-      new_role: e.new_role ?? null,
-      ticket: e.ticket ?? null,
-      notes: e.notes ?? null,
-      manifest_id: ctx.manifestId,
-      vault_id: ctx.vaultId,
-    };
+    const evidenceRefs: EvidenceRef[] = buildEvidenceRefsBase(ctx);
+    if (e.ticket) {
+      evidenceRefs.push({
+        type: "ticket_url",
+        value: e.ticket,
+        label: "HR ticket / record",
+      });
+    }
+    evidenceRefs.push({
+      type: "hr_subject_user",
+      value: e.subject_user,
+      label: `Personnel record subject (${e.event_type})`,
+    });
+
+    const entryData: Record<string, unknown> = applyAutoRecordedV1Fields(
+      {
+        subject_user: e.subject_user,
+        event_type: e.event_type,
+        occurred_at: e.occurred_at,
+        observed_at: observedAtIso,
+        observed_by: observedBy,
+        screening_status: e.screening_status ?? "n_a",
+        previous_role: e.previous_role ?? null,
+        new_role: e.new_role ?? null,
+        ticket: e.ticket ?? null,
+        notes: e.notes ?? null,
+        // §1 actor_* — subject of the personnel event.
+        actor_user: e.subject_user,
+        actor_user_id: null,
+        // §1 event_classification (event_type already set above).
+        event_classification: `personnel_${e.event_type}`,
+        // §1 time anchors. detected_at = ISSO observed; occurred_at = the
+        // actual lifecycle event timestamp. signed_at populated when the
+        // ISSO observed and recorded the event.
+        detected_at: observedAtIso,
+        signed_at: observedAtIso,
+        // §1 location.
+        system: "personnel_register",
+        scope_arm: null,
+        // §1 outcome / actions_taken.
+        outcome: e.screening_status ?? "n_a",
+        actions_taken:
+          e.event_type === "role_change" || e.event_type === "transfer"
+            ? `${e.previous_role ?? "?"} → ${e.new_role ?? "?"}`
+            : e.notes ?? null,
+      },
+      {
+        ctx,
+        boundaryId: primaryBoundary.id,
+        detectionMethod: "isso_observed",
+        detectionSource: "ISSO weekly review of personnel events",
+        evidenceRefs,
+      },
+    );
 
     const [existing] = await db
       .select({ id: governanceRegisterEntries.id })

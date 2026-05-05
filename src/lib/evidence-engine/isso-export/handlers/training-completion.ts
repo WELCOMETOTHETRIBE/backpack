@@ -26,6 +26,11 @@ import {
 } from "@/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
+import {
+  applyAutoRecordedV1Fields,
+  buildEvidenceRefsBase,
+  type EvidenceRef,
+} from "./_verbosity";
 import type { HandlerResult, IngestContext, RegisterHandler } from "../types";
 
 const COVERED = ["3.2.1", "3.2.2", "3.2.3"] as const;
@@ -171,7 +176,18 @@ export const training_completionHandler: RegisterHandler = async (
 
     const entryType = entryTypeForTopicKind(c.training_topic_kind);
 
-    const entryData: Record<string, unknown> = {
+    // §1 evidence_refs[] — base manifest ref + LMS certificate id (if
+    // present) so the auditor can fetch the certificate from the LMS.
+    const evidenceRefs: EvidenceRef[] = buildEvidenceRefsBase(ctx);
+    if (c.certificate_id) {
+      evidenceRefs.push({
+        type: "lms_certificate_id",
+        value: c.certificate_id,
+        label: "LMS-issued certificate ID",
+      });
+    }
+
+    const baseFields: Record<string, unknown> = {
       subject_user: c.subject_user,
       training_name: c.training_name,
       completed_at: c.completed_at,
@@ -179,19 +195,45 @@ export const training_completionHandler: RegisterHandler = async (
       score: c.score ?? null,
       certificate_id: c.certificate_id ?? null,
       notes: c.notes ?? null,
-      manifest_id: ctx.manifestId,
-      vault_id: ctx.vaultId,
+      // §1 actor_* — the user who completed the training.
+      actor_user: c.subject_user,
+      actor_user_id: null,
+      // §1 event_type / event_classification.
+      event_type: entryType,
+      event_classification: `training_${c.training_topic_kind ?? "annual"}`,
+      // §1 time anchors. completion is occurrence; detected_at = completion;
+      // signed_at populated when LMS issued the certificate (best-effort).
+      detected_at: c.completed_at,
+      occurred_at: c.completed_at,
+      signed_at: c.completed_at,
+      // §1 location.
+      system: "lms",
+      scope_arm: null,
+      // §1 outcome / actions_taken.
+      outcome: "completed",
+      actions_taken: c.notes ?? null,
     };
     // Topic-specific fields:
     if (entryType === "initial_training_completion") {
-      entryData.hire_date = c.hire_date ?? null;
+      baseFields.hire_date = c.hire_date ?? null;
     } else if (entryType === "annual_training_completion") {
-      entryData.training_year =
+      baseFields.training_year =
         c.training_year ?? new Date(c.completed_at).getUTCFullYear();
     } else if (entryType === "role_based_training_completion") {
-      entryData.role = c.role ?? "(unspecified)";
-      entryData.required_by = c.required_by ?? "(unspecified)";
+      baseFields.role = c.role ?? "(unspecified)";
+      baseFields.required_by = c.required_by ?? "(unspecified)";
     }
+
+    const entryData: Record<string, unknown> = applyAutoRecordedV1Fields(
+      baseFields,
+      {
+        ctx,
+        boundaryId: primaryBoundary.id,
+        detectionMethod: "lms_attestation",
+        detectionSource: c.delivery_method ?? "lms",
+        evidenceRefs,
+      },
+    );
 
     const [existing] = await db
       .select({ id: governanceRegisterEntries.id })

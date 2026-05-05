@@ -18,6 +18,11 @@ import {
 } from "@/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
+import {
+  applyAutoRecordedV1Fields,
+  buildEvidenceRefsBase,
+  type EvidenceRef,
+} from "./_verbosity";
 import type { HandlerResult, IngestContext, RegisterHandler } from "../types";
 
 const COVERED = ["3.8.1", "3.8.2", "3.8.3", "3.8.6", "3.8.7", "3.8.9"] as const;
@@ -142,18 +147,54 @@ export const media_handling_logHandler: RegisterHandler = async (
       result.warnings.push("media_destroyed missing required fields — skipped");
       continue;
     }
-    const entryData: Record<string, unknown> = {
-      media_id: m.media_id,
-      media_type: m.media_type,
-      destruction_method: m.destruction_method,
-      destroyed_at: m.destroyed_at,
-      destroyed_by: m.destroyed_by,
-      witnessed_by: m.witnessed_by,
-      ticket: m.ticket ?? null,
-      notes: m.notes ?? null,
-      manifest_id: ctx.manifestId,
-      vault_id: ctx.vaultId,
-    };
+    const evidenceRefs: EvidenceRef[] = buildEvidenceRefsBase(ctx);
+    if (m.ticket) {
+      evidenceRefs.push({
+        type: "ticket_url",
+        value: m.ticket,
+        label: "Destruction work order / ticket",
+      });
+    }
+    evidenceRefs.push({
+      type: "chain_of_custody",
+      value: `${m.media_id}|${m.destroyed_by}|${m.witnessed_by}`,
+      label: "Chain of custody (media_id|destroyed_by|witnessed_by)",
+    });
+    const entryData: Record<string, unknown> = applyAutoRecordedV1Fields(
+      {
+        media_id: m.media_id,
+        media_type: m.media_type,
+        destruction_method: m.destruction_method,
+        destroyed_at: m.destroyed_at,
+        destroyed_by: m.destroyed_by,
+        witnessed_by: m.witnessed_by,
+        ticket: m.ticket ?? null,
+        notes: m.notes ?? null,
+        // §1 actor_*.
+        actor_user: m.destroyed_by,
+        actor_user_id: null,
+        // §1 event_type / event_classification.
+        event_type: "media_destroyed",
+        event_classification: `media_${m.media_type}`,
+        // §1 time anchors.
+        detected_at: m.destroyed_at,
+        occurred_at: m.destroyed_at,
+        signed_at: m.destroyed_at,
+        // §1 location.
+        system: "media_handling",
+        scope_arm: null,
+        // §1 outcome / actions_taken.
+        outcome: "destroyed",
+        actions_taken: m.destruction_method,
+      },
+      {
+        ctx,
+        boundaryId: primaryBoundary.id,
+        detectionMethod: "admin_attested",
+        detectionSource: "Witnessed media destruction event",
+        evidenceRefs,
+      },
+    );
     const [existing] = await db
       .select({ id: governanceRegisterEntries.id })
       .from(governanceRegisterEntries)
@@ -202,20 +243,59 @@ export const media_handling_logHandler: RegisterHandler = async (
       );
       continue;
     }
-    const entryData: Record<string, unknown> = {
-      subject_user: a.subject_user,
-      media_id: a.media_id,
-      media_type: a.media_type,
-      authorized_at: a.authorized_at,
-      authorized_by: a.authorized_by,
-      expires_at: a.expires_at,
-      justification: a.justification,
-      encryption_required: a.encryption_required ?? true,
-      ticket: a.ticket ?? null,
-      notes: a.notes ?? null,
-      manifest_id: ctx.manifestId,
-      vault_id: ctx.vaultId,
-    };
+    const evidenceRefs: EvidenceRef[] = buildEvidenceRefsBase(ctx);
+    if (a.ticket) {
+      evidenceRefs.push({
+        type: "ticket_url",
+        value: a.ticket,
+        label: "Authorization ticket",
+      });
+    }
+    evidenceRefs.push({
+      type: "chain_of_custody",
+      value: `${a.subject_user}|${a.media_id}|${a.authorized_by}`,
+      label: "Chain of custody (subject_user|media_id|authorized_by)",
+    });
+    const entryData: Record<string, unknown> = applyAutoRecordedV1Fields(
+      {
+        subject_user: a.subject_user,
+        media_id: a.media_id,
+        media_type: a.media_type,
+        authorized_at: a.authorized_at,
+        authorized_by: a.authorized_by,
+        expires_at: a.expires_at,
+        justification: a.justification,
+        encryption_required: a.encryption_required ?? true,
+        ticket: a.ticket ?? null,
+        notes: a.notes ?? null,
+        // §1 actor_* — both subject and authorizer are interesting; use
+        // authorizer as actor_user since they're the authorizing actor.
+        actor_user: a.authorized_by,
+        actor_user_id: null,
+        // §1 event_type / event_classification.
+        event_type: "removable_media_authorized",
+        event_classification: `media_${a.media_type}`,
+        // §1 time anchors.
+        detected_at: a.authorized_at,
+        occurred_at: a.authorized_at,
+        signed_at: a.authorized_at,
+        // §1 location.
+        system: "media_handling",
+        scope_arm: null,
+        // §1 outcome / actions_taken — business_justification is the
+        // authorization rationale (synonym for `justification` field).
+        business_justification: a.justification,
+        outcome: "authorized",
+        actions_taken: `Authorized removable media for ${a.subject_user}; expires ${a.expires_at}`,
+      },
+      {
+        ctx,
+        boundaryId: primaryBoundary.id,
+        detectionMethod: "admin_attested",
+        detectionSource: "Removable media authorization workflow",
+        evidenceRefs,
+      },
+    );
     const [existing] = await db
       .select({ id: governanceRegisterEntries.id })
       .from(governanceRegisterEntries)
@@ -260,17 +340,48 @@ export const media_handling_logHandler: RegisterHandler = async (
       result.warnings.push("bitlocker_attestation missing required fields — skipped");
       continue;
     }
-    const entryData: Record<string, unknown> = {
-      scanned_at: b.scanned_at,
-      scanned_by: b.scanned_by,
-      endpoints_total: b.endpoints_total,
-      endpoints_encrypted: b.endpoints_encrypted,
-      result: b.result,
-      non_compliant_endpoints: b.non_compliant_endpoints ?? [],
-      notes: b.notes ?? null,
-      manifest_id: ctx.manifestId,
-      vault_id: ctx.vaultId,
-    };
+    const evidenceRefs: EvidenceRef[] = buildEvidenceRefsBase(ctx);
+    if (b.non_compliant_endpoints && b.non_compliant_endpoints.length > 0) {
+      evidenceRefs.push({
+        type: "non_compliant_endpoints",
+        value: b.non_compliant_endpoints.join(","),
+        label: `${b.non_compliant_endpoints.length} endpoint(s) without BitLocker`,
+      });
+    }
+    const entryData: Record<string, unknown> = applyAutoRecordedV1Fields(
+      {
+        scanned_at: b.scanned_at,
+        scanned_by: b.scanned_by,
+        endpoints_total: b.endpoints_total,
+        endpoints_encrypted: b.endpoints_encrypted,
+        result: b.result,
+        non_compliant_endpoints: b.non_compliant_endpoints ?? [],
+        notes: b.notes ?? null,
+        // §1 actor_*.
+        actor_user: b.scanned_by,
+        actor_user_id: null,
+        // §1 event_type / event_classification.
+        event_type: "bitlocker_attestation_recorded",
+        event_classification: "media_at_rest_encryption",
+        // §1 time anchors.
+        detected_at: b.scanned_at,
+        occurred_at: b.scanned_at,
+        signed_at: b.scanned_at,
+        // §1 location.
+        system: "endpoint_fleet",
+        scope_arm: null,
+        // §1 outcome / actions_taken.
+        outcome: b.result,
+        actions_taken: `${b.endpoints_encrypted}/${b.endpoints_total} endpoints attested encrypted`,
+      },
+      {
+        ctx,
+        boundaryId: primaryBoundary.id,
+        detectionMethod: "fleet_scan",
+        detectionSource: b.scanned_by,
+        evidenceRefs,
+      },
+    );
     const [existing] = await db
       .select({ id: governanceRegisterEntries.id })
       .from(governanceRegisterEntries)

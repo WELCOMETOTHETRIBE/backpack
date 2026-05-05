@@ -17,6 +17,11 @@ import {
 } from "@/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
+import {
+  applyAutoRecordedV1Fields,
+  buildEvidenceRefsBase,
+  type EvidenceRef,
+} from "./_verbosity";
 import type { HandlerResult, IngestContext, RegisterHandler } from "../types";
 
 const COVERED = ["3.1.5", "3.1.6", "3.5.1", "3.10.6"] as const;
@@ -119,18 +124,53 @@ export const access_authorizationsHandler: RegisterHandler = async (
       continue;
     }
 
-    const entryData: Record<string, unknown> = {
-      subject_user: f.subject_user,
-      finding_type: f.finding_type,
-      severity: f.severity,
-      recommended_action: f.recommended_action,
-      observed_at: observedAtIso,
-      observed_by: observedBy,
-      notes: f.notes ?? null,
-      ticket: f.ticket ?? null,
-      manifest_id: ctx.manifestId,
-      vault_id: ctx.vaultId,
-    };
+    // §1 evidence_refs[] — base manifest ref + ticket if present.
+    const evidenceRefs: EvidenceRef[] = buildEvidenceRefsBase(ctx);
+    if (f.ticket) {
+      evidenceRefs.push({
+        type: "ticket_url",
+        value: f.ticket,
+        label: "Tracking ticket for this finding",
+      });
+    }
+
+    const entryData: Record<string, unknown> = applyAutoRecordedV1Fields(
+      {
+        subject_user: f.subject_user,
+        finding_type: f.finding_type,
+        severity: f.severity,
+        recommended_action: f.recommended_action,
+        observed_at: observedAtIso,
+        observed_by: observedBy,
+        notes: f.notes ?? null,
+        ticket: f.ticket ?? null,
+        // §1 actor_* — ISSO is the observing actor.
+        actor_user: observedBy,
+        actor_user_id: null,
+        // §1 event_type / event_classification.
+        event_type: "weekly_review_finding",
+        event_classification: `access_${f.finding_type}`,
+        // §1 time anchors.
+        detected_at: observedAtIso,
+        occurred_at: observedAtIso,
+        signed_at: observedAtIso,
+        // §1 location.
+        system: "access_authorization_register",
+        scope_arm: null,
+        // §1 outcome / actions_taken — outcome alias for recommended_action
+        // per blueprint Phase 4 verbosity audit; actions_taken null until
+        // admin remediates.
+        outcome: f.recommended_action,
+        actions_taken: null,
+      },
+      {
+        ctx,
+        boundaryId: primaryBoundary.id,
+        detectionMethod: "isso_observed",
+        detectionSource: "ISSO weekly review of access_authorization register",
+        evidenceRefs,
+      },
+    );
 
     // Idempotent on (subject_user, finding_type, observed_at) — same
     // anomaly reported in same period is a no-op replace.

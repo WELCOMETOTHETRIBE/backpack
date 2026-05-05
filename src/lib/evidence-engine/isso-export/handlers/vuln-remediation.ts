@@ -16,6 +16,11 @@ import {
 } from "@/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
+import {
+  applyAutoRecordedV1Fields,
+  buildEvidenceRefsBase,
+  type EvidenceRef,
+} from "./_verbosity";
 import type { HandlerResult, IngestContext, RegisterHandler } from "../types";
 
 const COVERED = ["3.4.4", "3.11.2", "3.11.3", "3.14.1"] as const;
@@ -105,17 +110,54 @@ export const vuln_remediationHandler: RegisterHandler = async (
       continue;
     }
 
-    const entryData: Record<string, unknown> = {
-      vuln_id: v.vuln_id,
-      asset: v.asset,
-      status_observed: v.status_observed,
-      observed_at: observedAtIso,
-      observed_by: observedBy,
-      notes: v.notes ?? null,
-      ticket: v.ticket ?? null,
-      manifest_id: ctx.manifestId,
-      vault_id: ctx.vaultId,
-    };
+    // §1 evidence_refs[] — base manifest ref + ticket if present so the
+    // auditor can navigate from the verification entry to the underlying
+    // ticket. The vulnerability_detected parent entry isn't currently
+    // persisted with a stable id; if/when that lands, append a related_
+    // entry_id ref here.
+    const evidenceRefs: EvidenceRef[] = buildEvidenceRefsBase(ctx);
+    if (v.ticket) {
+      evidenceRefs.push({
+        type: "ticket_url",
+        value: v.ticket,
+        label: "Remediation ticket",
+      });
+    }
+
+    const entryData: Record<string, unknown> = applyAutoRecordedV1Fields(
+      {
+        vuln_id: v.vuln_id,
+        asset: v.asset,
+        status_observed: v.status_observed,
+        observed_at: observedAtIso,
+        observed_by: observedBy,
+        notes: v.notes ?? null,
+        ticket: v.ticket ?? null,
+        // §1 actor_* — ISSO is the verifier of remediation status.
+        actor_user: observedBy,
+        actor_user_id: null,
+        // §1 event_type / event_classification.
+        event_type: "vulnerability_remediation_verified",
+        event_classification: `remediation_status_${v.status_observed}`,
+        // §1 time anchors.
+        detected_at: observedAtIso,
+        occurred_at: observedAtIso,
+        signed_at: observedAtIso,
+        // §1 location.
+        system: v.asset,
+        scope_arm: null,
+        // §1 outcome / actions_taken.
+        outcome: v.status_observed,
+        actions_taken: v.notes ?? null,
+      },
+      {
+        ctx,
+        boundaryId: primaryBoundary.id,
+        detectionMethod: "isso_observed",
+        detectionSource: "ISSO weekly verification of vuln remediation status",
+        evidenceRefs,
+      },
+    );
 
     // Idempotent on (vuln_id, observed_at) — same review period producing
     // the same verification is a no-op replace, not a duplicate row.
