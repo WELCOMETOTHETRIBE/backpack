@@ -5,6 +5,6 @@ export default async function LegacyAcceptInviteRedirect({
 }: {
   params: Promise<{ token: string }>;
 }) {
-  await params;
-  redirect("/sign-in");
+  const { token } = await params;
+  redirect(`/join/${encodeURIComponent(token)}`);
 }
