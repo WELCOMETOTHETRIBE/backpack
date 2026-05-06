@@ -36,13 +36,38 @@ interface IngestHistoryRow {
   attestation_control_id: string | null;
 }
 
-const SOURCE_LABELS: Record<IngestHistoryRow["source"], { short: string; long: string; cls: string }> = {
+type SourceMeta = { short: string; long: string; cls: string };
+
+const SOURCE_LABELS: Record<string, SourceMeta> = {
   cui_evidence_manifest:    { short: "OS bundle",    long: "OS evidence bundle (Collect-Cui-Evidence-v2)", cls: "bg-indigo-100 text-indigo-800 border-indigo-200" },
   windows_server_hardening: { short: "OS validator", long: "OS validator report (Test-CuiHardening)",      cls: "bg-purple-100 text-purple-800 border-purple-200" },
   azure_entra:              { short: "Cloud",        long: "Cloud validator report (validate_azure_entra)", cls: "bg-sky-100 text-sky-800 border-sky-200" },
   governance_manifest:      { short: "Governance",   long: "Signed governance manifest",                    cls: "bg-emerald-100 text-emerald-800 border-emerald-200" },
   attestation:              { short: "Attestation",  long: "Signed control attestation",                    cls: "bg-amber-100 text-amber-800 border-amber-200" },
+  // The history API returns r.source verbatim from evidenceRuns.source
+  // (a free-text column). The known set above covers the operator-uploaded
+  // sources, but EnclaveWatch posts additional sources during ingest
+  // cadence (e.g. enclavewatch_weekly_review). Any unknown source
+  // resolves to the fallback below — without this, sourceMeta.cls
+  // throws "Cannot read properties of undefined" on the very first
+  // render and the whole page becomes an Application Error.
+  enclavewatch_weekly_review: { short: "ISSO weekly", long: "ISSO weekly review (signed acknowledgement from EnclaveWatch)", cls: "bg-teal-100 text-teal-800 border-teal-200" },
 };
+
+const SOURCE_FALLBACK: SourceMeta = {
+  short: "Other",
+  long: "Other ingest source",
+  cls: "bg-gray-100 text-gray-800 border-gray-200",
+};
+
+function sourceMetaFor(source: string | null | undefined): SourceMeta {
+  if (!source) return SOURCE_FALLBACK;
+  return SOURCE_LABELS[source] ?? {
+    ...SOURCE_FALLBACK,
+    short: source.length > 12 ? source.slice(0, 12) + "…" : source,
+    long: source,
+  };
+}
 
 function formatRelativeDate(iso: string): string {
   const d = new Date(iso);
@@ -98,7 +123,7 @@ function IngestHistory({
         <ul className="mt-4 space-y-2">
           {history.map((row) => {
             const badge = historyStatusBadge(row);
-            const sourceMeta = SOURCE_LABELS[row.source];
+            const sourceMeta = sourceMetaFor(row.source);
             const isOpen = open === row.id;
             const headline = headlineFor(row);
             const subline = sublineFor(row);
