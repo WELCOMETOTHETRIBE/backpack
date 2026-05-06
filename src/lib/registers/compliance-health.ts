@@ -28,10 +28,87 @@ export type RegisterHealthSummary = {
   href: string;
 };
 
+const DAY_MS = 86_400_000;
+const WEEK_MS = 7 * DAY_MS;
+/** Friday-end-of-week deadline: 17:00 UTC. */
+const FRIDAY_UTC_HOUR = 17;
+/** ISO-style day-of-week constants (matches Date.getUTCDay): Sun=0 ... Fri=5 ... Sat=6 */
+const FRIDAY = 5;
+
+/**
+ * Returns the next Friday 17:00 UTC strictly at-or-after the given timestamp.
+ * Used as the cycle-end anchor for weekly-cadence registers.
+ */
+function nextFridayAtOrAfter(d: Date): Date {
+  const dow = d.getUTCDay();
+  // Days forward to the upcoming Friday in the same week.
+  // Sun(0)..Fri(5): FRIDAY - dow. Sat(6): wraps to next Friday → 6.
+  const daysToFriday = dow <= FRIDAY ? FRIDAY - dow : 7 - dow + FRIDAY;
+  let candidate = new Date(
+    Date.UTC(
+      d.getUTCFullYear(),
+      d.getUTCMonth(),
+      d.getUTCDate() + daysToFriday,
+      FRIDAY_UTC_HOUR,
+      0,
+      0,
+      0
+    )
+  );
+  // If today IS Friday but past 17:00 UTC, advance to the next Friday.
+  if (candidate.getTime() < d.getTime()) {
+    candidate = new Date(candidate.getTime() + WEEK_MS);
+  }
+  return candidate;
+}
+
+/**
+ * Compute the next deadline for a weekly-cadence register, anchored to
+ * Friday 17:00 UTC end-of-week (per the ISSO weekly audit cadence model).
+ *
+ *   - Each cycle ends Friday at 17:00 UTC.
+ *   - An entry made anytime within cycle W satisfies cycle W; next deadline
+ *     becomes the END of cycle W+1 (the Friday 17:00 UTC AFTER the cycle the
+ *     entry falls into).
+ *   - An entry made AFTER a cycle's deadline (Friday > 17:00 UTC, weekend, or
+ *     any time before the next Friday 17:00 UTC) counts toward the NEXT cycle.
+ *
+ * Examples:
+ *   Tue 12:00 UTC  → entry in cycle ending this Fri 17:00 UTC
+ *                    → next deadline = Fri 17:00 UTC NEXT week (10 days)
+ *   Fri 16:00 UTC  → entry in cycle ending today at 17:00 UTC
+ *                    → next deadline = Fri 17:00 UTC NEXT week (~7 days)
+ *   Fri 18:00 UTC  → past today's deadline; cycle ending NEXT Fri owns it
+ *                    → next deadline = Fri 17:00 UTC TWO weeks out (~13 days)
+ *   Sat 02:00 UTC  → cycle ending NEXT Fri owns this entry
+ *                    → next deadline = Fri 17:00 UTC TWO weeks out (~13 days)
+ */
+export function nextWeeklyDeadline(lastEntryAt: Date): Date {
+  const cycleEnd = nextFridayAtOrAfter(lastEntryAt);
+  return new Date(cycleEnd.getTime() + WEEK_MS);
+}
+
+type CadenceRuleLike = {
+  cadence_type: string;
+  cadence_days: number;
+  warning_days: number;
+};
+
 function computeHealthStatus(
   lastEntryAt: Date | null,
-  cadenceDays: number | null
+  rule: CadenceRuleLike | null,
+  fallbackCadenceDays: number | null,
+  now: Date = new Date()
 ): { status: RegisterHealthStatus; daysOverdue: number | null; daysUntilDue: number | null } {
+  const cadenceDays = rule?.cadence_days ?? fallbackCadenceDays ?? null;
+  // Honor warning_days from the cadence rules JSON instead of the legacy
+  // hardcoded 7-day threshold. Weekly registers use 2; quarterly use 14;
+  // each register tunes its own due-soon window via data, not code.
+  const warningDays = rule?.warning_days ?? 7;
+  const cadenceType = rule?.cadence_type ?? null;
+
+  // Event-driven (cadence_days = 0): no scheduled deadline. The register
+  // is "current" as soon as anything has been logged.
   if (cadenceDays === null || cadenceDays === 0) {
     if (!lastEntryAt) return { status: "never_used", daysOverdue: null, daysUntilDue: null };
     return { status: "current", daysOverdue: null, daysUntilDue: null };
@@ -39,12 +116,19 @@ function computeHealthStatus(
   if (!lastEntryAt) {
     return { status: "never_used", daysOverdue: null, daysUntilDue: null };
   }
-  const cadenceMs = cadenceDays * 86_400_000;
-  const nextDue = lastEntryAt.getTime() + cadenceMs;
-  const msUntil = nextDue - Date.now();
-  const daysUntil = Math.ceil(msUntil / 86_400_000);
+
+  // Weekly cadence is anchored to Friday 17:00 UTC; everything else uses
+  // a sliding window from the last entry. We can extend the anchor model
+  // to monthly/quarterly/annual later if needed.
+  const nextDueMs =
+    cadenceType === "weekly"
+      ? nextWeeklyDeadline(lastEntryAt).getTime()
+      : lastEntryAt.getTime() + cadenceDays * DAY_MS;
+
+  const msUntil = nextDueMs - now.getTime();
+  const daysUntil = Math.ceil(msUntil / DAY_MS);
   if (msUntil < 0) return { status: "overdue", daysOverdue: Math.abs(daysUntil), daysUntilDue: null };
-  if (daysUntil <= 7) return { status: "due_soon", daysOverdue: null, daysUntilDue: daysUntil };
+  if (daysUntil <= warningDays) return { status: "due_soon", daysOverdue: null, daysUntilDue: daysUntil };
   return { status: "current", daysOverdue: null, daysUntilDue: daysUntil };
 }
 
@@ -81,6 +165,9 @@ export async function getComplianceRegisterHealth(orgId: string): Promise<Regist
     const orgReg = orgRegisterMap.get(schema.register_id);
     const cadenceDays = orgReg?.defaultCadenceDays ?? schema.default_cadence_days ?? null;
     const effectiveCadence = !cadenceDays || cadenceDays === 0 ? null : cadenceDays;
+    // Cadence rule carries cadence_type (drives weekly Friday-anchor) and
+    // warning_days (per-register due-soon threshold).
+    const rule = getCadenceRuleByRegisterId(schema.register_id);
 
     let lastEntryAt: Date | null = null;
     let entryCount = 0;
@@ -101,7 +188,11 @@ export async function getComplianceRegisterHealth(orgId: string): Promise<Regist
       entryCount = allEntries.length;
     }
 
-    const { status, daysOverdue, daysUntilDue } = computeHealthStatus(lastEntryAt, effectiveCadence);
+    const { status, daysOverdue, daysUntilDue } = computeHealthStatus(
+      lastEntryAt,
+      rule,
+      effectiveCadence
+    );
     const displayName = REGISTER_DISPLAY_NAMES[schema.register_id] ?? schema.register_id;
 
     results.push({
