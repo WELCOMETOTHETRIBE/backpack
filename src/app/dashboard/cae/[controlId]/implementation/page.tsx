@@ -6,7 +6,8 @@ import { controlObservedImplementations } from "@/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { getControlAssessmentLogic } from "@/data/cmmc/control-assessment-logic";
 import { getLatestAdjudication } from "@/lib/evidence-engine/adjudication/scorer";
-import { AdjudicationStatusBadge } from "@/components/governance/AdjudicationStatusBadge";
+import { StatusBadge } from "@/components/governance-wizard/StatusBadge";
+import { GOVERNANCE_18_CONTROL_IDS } from "@/lib/compliance/satisfaction-sources";
 
 /**
  * /dashboard/cae/[controlId]/implementation
@@ -89,12 +90,32 @@ export default async function OISPage({
   return (
     <div className="mx-auto max-w-4xl space-y-6 p-8">
       <div>
-        <Link
-          href="/dashboard/controls"
-          className="text-sm text-[var(--color-gray-600)] hover:underline"
-        >
-          ← Controls
-        </Link>
+        <div className="flex flex-wrap items-center gap-3 text-sm">
+          <Link
+            href="/dashboard/cae"
+            className="text-[var(--color-gray-600)] hover:underline"
+          >
+            ← Adjudication Engine
+          </Link>
+          <span className="text-[var(--color-gray-300)]">·</span>
+          <Link
+            href={`/dashboard/controls?control=${encodeURIComponent(decoded)}`}
+            className="text-[var(--color-blue-accent)] hover:underline"
+          >
+            View in SCTM ↗
+          </Link>
+          {GOVERNANCE_18_CONTROL_IDS.has(decoded) && (
+            <>
+              <span className="text-[var(--color-gray-300)]">·</span>
+              <Link
+                href={`/dashboard/adjudication/governance/${encodeURIComponent(decoded)}`}
+                className="text-violet-700 hover:underline"
+              >
+                Governance docs ↗
+              </Link>
+            </>
+          )}
+        </div>
         <div className="mt-1 flex flex-wrap items-baseline gap-3">
           <h1 className="text-xl font-semibold text-[var(--color-navy-primary)]">
             {decoded} — Observed Implementation
@@ -108,7 +129,8 @@ export default async function OISPage({
             </span>
           )}
           {adjudication && (
-            <AdjudicationStatusBadge
+            <StatusBadge
+              kind="adjudication"
               status={adjudication.status}
               confidence={adjudication.confidence}
               size="md"

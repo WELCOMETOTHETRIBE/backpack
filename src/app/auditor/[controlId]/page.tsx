@@ -11,7 +11,7 @@ import {
 import { and, eq, desc, sql } from "drizzle-orm";
 import { getControlAssessmentLogic } from "@/data/cmmc/control-assessment-logic";
 import { getLatestAdjudication } from "@/lib/evidence-engine/adjudication/scorer";
-import { AdjudicationStatusBadge } from "@/components/governance/AdjudicationStatusBadge";
+import { StatusBadge } from "@/components/governance-wizard/StatusBadge";
 import { AssessorScratchpad } from "./AssessorScratchpad";
 
 /**
@@ -150,7 +150,8 @@ export default async function AuditorControlPage({
             {control.family} family
           </span>
           {adjudication && (
-            <AdjudicationStatusBadge
+            <StatusBadge
+              kind="adjudication"
               status={adjudication.status}
               confidence={adjudication.confidence}
               size="md"

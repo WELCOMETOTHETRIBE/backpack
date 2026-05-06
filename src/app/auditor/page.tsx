@@ -4,7 +4,7 @@ import { assessments } from "@/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { getControlAssessmentLogic } from "@/data/cmmc/control-assessment-logic";
 import { getLatestAdjudicationsForOrg } from "@/lib/evidence-engine/adjudication/scorer";
-import { AdjudicationStatusBadge } from "@/components/governance/AdjudicationStatusBadge";
+import { StatusBadge } from "@/components/governance-wizard/StatusBadge";
 import { requireAuditorRole } from "@/lib/auditor-role-gate";
 
 /**
@@ -134,7 +134,8 @@ export default async function AuditorIndexPage() {
                 </span>
                 <div className="min-w-0 flex-1">
                   {snap ? (
-                    <AdjudicationStatusBadge
+                    <StatusBadge
+                      kind="adjudication"
                       status={snap.status}
                       confidence={snap.confidence}
                     />

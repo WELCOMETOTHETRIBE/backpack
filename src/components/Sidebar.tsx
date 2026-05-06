@@ -16,6 +16,7 @@ import {
   MessageSquare,
   Archive,
   Upload,
+  Gauge,
 } from "lucide-react";
 
 type NavItem = {
@@ -37,6 +38,7 @@ function buildNav(_boundaryComplete?: boolean | null): NavGroup[] {
       items: [
         { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
         { name: "SCTM", href: "/dashboard/controls", icon: Shield },
+        { name: "Adjudication Engine", href: "/dashboard/cae", icon: Gauge },
         { name: "Registers", href: "/dashboard/registers", icon: BookCheck },
         { name: "Artifacts", href: "/dashboard/artifacts", icon: Archive },
         { name: "Upload Evidence", href: "/dashboard/evidence/upload-manifest", icon: Upload },

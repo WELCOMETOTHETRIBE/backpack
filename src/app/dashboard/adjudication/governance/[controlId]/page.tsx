@@ -131,13 +131,27 @@ export default function GovernanceControlPage() {
 
   return (
     <div className="min-h-0 space-y-6">
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center gap-4 text-sm">
         <Link
           href="/dashboard/adjudication/governance"
-          className="inline-flex items-center gap-1 text-sm font-medium text-slate-600 hover:text-slate-900"
+          className="inline-flex items-center gap-1 font-medium text-slate-600 hover:text-slate-900"
         >
           <ArrowLeft className="h-4 w-4" />
           18 Governance Controls
+        </Link>
+        <span className="text-slate-300">·</span>
+        <Link
+          href={`/dashboard/cae/${encodeURIComponent(controlId)}/implementation`}
+          className="font-medium text-blue-700 hover:underline"
+        >
+          Adjudication Engine ↗
+        </Link>
+        <span className="text-slate-300">·</span>
+        <Link
+          href={`/dashboard/controls?control=${encodeURIComponent(controlId)}`}
+          className="font-medium text-blue-700 hover:underline"
+        >
+          View in SCTM ↗
         </Link>
       </div>
 

@@ -24,7 +24,7 @@ import { PrivilegedGrantJustifyForm } from "./PrivilegedGrantJustifyForm";
 import { ChangeDriftJustifyForm } from "./ChangeDriftJustifyForm";
 import { DefenderAlertAckForm } from "./DefenderAlertAckForm";
 import { EvidenceRefList } from "@/components/governance/EvidenceRefList";
-import { LifecycleStateBadge } from "@/components/governance/LifecycleStateBadge";
+import { StatusBadge } from "@/components/governance-wizard/StatusBadge";
 
 type PageProps = { params: Promise<{ entryId: string }> };
 
@@ -276,7 +276,7 @@ export default async function EvidenceEngineEntryDetailPage({ params }: PageProp
           <span>·</span>
           <span className="font-mono">{entry.status}</span>
           {typeof data.lifecycle_state === "string" && data.lifecycle_state && (
-            <LifecycleStateBadge state={data.lifecycle_state} />
+            <StatusBadge kind="lifecycle" status={data.lifecycle_state} />
           )}
         </div>
       </div>

@@ -652,6 +652,24 @@ export function SCTMControlDetail({
                   SPRS {SPRS_VALUE_BY_CONTROL[record.controlId]}
                 </span>
               )}
+              <Link
+                href={`/dashboard/cae/${encodeURIComponent(record.controlId)}/implementation`}
+                className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700 hover:bg-blue-100"
+                title="View observed-implementation narrative + adjudication verdict"
+              >
+                Adjudication Engine
+                <ExternalLink className="h-2.5 w-2.5" />
+              </Link>
+              {record.satisfiedByGovernance && (
+                <Link
+                  href={`/dashboard/adjudication/governance/${encodeURIComponent(record.controlId)}`}
+                  className="inline-flex items-center gap-1 rounded-full border border-violet-200 bg-violet-50 px-2 py-0.5 text-[10px] font-medium text-violet-700 hover:bg-violet-100"
+                  title="View governance-18 documentation surface"
+                >
+                  Governance docs
+                  <ExternalLink className="h-2.5 w-2.5" />
+                </Link>
+              )}
             </div>
             {displayTitle && (
               <h1 className="mt-0.5 text-sm font-semibold text-[var(--color-gray-900)] leading-tight">{displayTitle}</h1>

@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { getControlAssessmentLogic } from "@/data/cmmc/control-assessment-logic";
 import { getLatestAdjudicationsForOrg } from "@/lib/evidence-engine/adjudication/scorer";
-import { AdjudicationStatusBadge } from "@/components/governance/AdjudicationStatusBadge";
+import { StatusBadge } from "@/components/governance-wizard/StatusBadge";
 
 /**
  * /dashboard/cae — Control adjudication overview.
@@ -200,7 +200,8 @@ export default async function SctmPage({ searchParams }: PageProps) {
                   {row.family}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <AdjudicationStatusBadge
+                  <StatusBadge
+                    kind="adjudication"
                     status={row.status}
                     confidence={row.confidence}
                   />
