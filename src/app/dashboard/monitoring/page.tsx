@@ -609,7 +609,20 @@ export default async function MonitoringPage() {
   // Cross-evidence joins (e.g., break-glass + privileged grant + Defender
   // alert from same actor). Surfaces threat stories the auditor would
   // otherwise have to assemble manually.
-  const threatNarrativesRecent = await getRecentThreatNarratives(orgId, 30);
+  // Phase 9 narratives query — wrapped in try/catch so a missing table
+  // (pre-Phase-9 deploy, partial migration apply) doesn't 500 the
+  // Monitoring page. The empty array makes the card hide silently.
+  let threatNarrativesRecent: Awaited<
+    ReturnType<typeof getRecentThreatNarratives>
+  > = [];
+  try {
+    threatNarrativesRecent = await getRecentThreatNarratives(orgId, 30);
+  } catch (err) {
+    console.warn(
+      "[monitoring] threat narratives query failed; rendering empty card:",
+      err instanceof Error ? err.message : err,
+    );
+  }
 
   // ── ISSO observations rollup ───────────────────────────────────────────
   // Sums high+critical entries written by ISSO weekly review across three
