@@ -1941,6 +1941,62 @@ export const threatNarratives = pgTable("threat_narratives", {
     .defaultNow(),
 });
 
+/**
+ * Phase 10 — C3PAO assessment session lifecycle.
+ *
+ * Opening an assessment freezes every controlObservedImplementations row
+ * for the duration so the auditor sees a stable evidence picture.
+ * Closing creates a tamper-evident receipt with assessor sign-off.
+ */
+export const assessments = pgTable("assessments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  status: varchar("status", { length: 16 }).notNull().default("open"),
+  openedAt: timestamp("opened_at", { withTimezone: true }).notNull().defaultNow(),
+  openedByUserId: uuid("opened_by_user_id"),
+  closedAt: timestamp("closed_at", { withTimezone: true }),
+  closedByUserId: uuid("closed_by_user_id"),
+  assessorName: text("assessor_name"),
+  assessorOrg: text("assessor_org"),
+  assessorEmail: text("assessor_email"),
+  closeoutSummary: text("closeout_summary"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+/**
+ * Per-(assessment, control) assessor notes + recommended verdict.
+ * Autosaves from the /auditor/[controlId] page. The auditor's verdict is
+ * INDEPENDENT of the CAE engine's verdict — this captures professional
+ * opinion after walking the evidence.
+ */
+export const assessorScratchpads = pgTable("assessor_scratchpads", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  assessmentId: uuid("assessment_id")
+    .notNull()
+    .references(() => assessments.id, { onDelete: "cascade" }),
+  organizationId: uuid("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  controlId: varchar("control_id", { length: 20 }).notNull(),
+  notes: text("notes").notNull().default(""),
+  assessorVerdict: varchar("assessor_verdict", { length: 24 }),
+  lastEditedAt: timestamp("last_edited_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  lastEditedByUserId: uuid("last_edited_by_user_id"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 // ============== IR Tabletop & AAR Evidence Kit ==============
 export {
   irExerciseStatusEnum,
