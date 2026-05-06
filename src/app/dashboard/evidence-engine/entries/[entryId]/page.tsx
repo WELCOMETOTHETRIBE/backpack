@@ -24,6 +24,7 @@ import { PrivilegedGrantJustifyForm } from "./PrivilegedGrantJustifyForm";
 import { ChangeDriftJustifyForm } from "./ChangeDriftJustifyForm";
 import { DefenderAlertAckForm } from "./DefenderAlertAckForm";
 import { EvidenceRefList } from "@/components/governance/EvidenceRefList";
+import { LifecycleStateBadge } from "@/components/governance/LifecycleStateBadge";
 
 type PageProps = { params: Promise<{ entryId: string }> };
 
@@ -270,9 +271,14 @@ export default async function EvidenceEngineEntryDetailPage({ params }: PageProp
         <h2 className="mt-1 text-xl font-semibold text-[var(--color-navy-primary)]">
           Entry detail
         </h2>
-        <p className="mt-0.5 font-mono text-sm text-[var(--color-gray-600)]">
-          {entryType} · {entry.status}
-        </p>
+        <div className="mt-0.5 flex flex-wrap items-center gap-2 text-sm text-[var(--color-gray-600)]">
+          <span className="font-mono">{entryType}</span>
+          <span>·</span>
+          <span className="font-mono">{entry.status}</span>
+          {typeof data.lifecycle_state === "string" && data.lifecycle_state && (
+            <LifecycleStateBadge state={data.lifecycle_state} />
+          )}
+        </div>
       </div>
 
       <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm">
