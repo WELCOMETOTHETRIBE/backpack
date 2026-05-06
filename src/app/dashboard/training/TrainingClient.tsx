@@ -960,14 +960,32 @@ export default function TrainingClient({ initialRecords }: { initialRecords: Tra
     [records]
   );
 
+  // A control is compliant only when EVERY user in its required cohort
+  // (general / privileged) has a current, non-expired record of that
+  // training type. "≥1 record exists" is not enough — that was the prior
+  // bug that flipped the SCTM AT.L2-3.2.x rows to IMPLEMENTED on the
+  // first user's completion.
   const totalControls = TRAINING_SECTIONS.length;
-  const controlsMet = TRAINING_SECTIONS.filter((s) => {
-    const sectionRecords = records.filter((r) => r.trainingType === s.type);
-    return (
-      sectionRecords.length > 0 &&
-      sectionRecords.every((r) => !r.expiresAt || new Date(r.expiresAt) >= new Date())
-    );
-  }).length;
+  const controlsMet = useMemo(() => {
+    if (boundaryUsers.length === 0) return 0;
+    const today = new Date();
+    return TRAINING_SECTIONS.filter((s) => {
+      const cohort = boundaryUsers.filter((u) =>
+        (s.requiredFor as readonly UserType[]).includes(u.userType),
+      );
+      if (cohort.length === 0) return true; // vacuously satisfied
+      return cohort.every((user) => {
+        const userRecords = records.filter(
+          (r) =>
+            r.trainingType === s.type &&
+            r.personnelEmail?.toLowerCase() === user.email.toLowerCase(),
+        );
+        return userRecords.some(
+          (r) => !r.expiresAt || new Date(r.expiresAt) >= today,
+        );
+      });
+    }).length;
+  }, [boundaryUsers, records]);
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
@@ -991,10 +1009,15 @@ export default function TrainingClient({ initialRecords }: { initialRecords: Tra
             ) : (
               <AlertTriangle className="h-4 w-4 text-amber-600" />
             )}
-            <span className={`text-xs font-semibold ${
-              controlsMet === totalControls ? "text-emerald-700 dark:text-emerald-400" : "text-amber-700 dark:text-amber-400"
-            }`}>
-              {controlsMet} / {totalControls} controls covered
+            <span
+              className={`text-xs font-semibold ${
+                controlsMet === totalControls
+                  ? "text-emerald-700 dark:text-emerald-400"
+                  : "text-amber-700 dark:text-amber-400"
+              }`}
+              title="A control is compliant only when every user in its required cohort (general / privileged) has a current training record of that type."
+            >
+              {controlsMet} / {totalControls} controls compliant
             </span>
           </div>
           {totalExpired > 0 && (
