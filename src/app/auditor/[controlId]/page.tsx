@@ -385,10 +385,10 @@ export default async function AuditorControlPage({
         <div className="rounded-[var(--radius-xl)] border border-[var(--color-border-muted)] bg-[var(--color-gray-50)]/40 p-4 text-xs text-[var(--color-gray-600)]">
           No assessment is currently open. Open an assessment from
           <Link
-            href="/dashboard/sctm"
+            href="/dashboard/cae"
             className="ml-1 text-[var(--color-blue-accent)] hover:underline"
           >
-            /dashboard/sctm
+            /dashboard/cae
           </Link>{" "}
           to enable scratchpad capture and freeze narratives for the
           duration.

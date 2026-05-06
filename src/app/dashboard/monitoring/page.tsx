@@ -1603,7 +1603,7 @@ export default async function MonitoringPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-baseline gap-2">
                         <Link
-                          href={`/dashboard/sctm/${encodeURIComponent(item.controlId)}`}
+                          href={`/dashboard/cae/${encodeURIComponent(item.controlId)}`}
                           className="font-medium underline decoration-dotted hover:no-underline"
                         >
                           {item.controlId}

@@ -9,7 +9,7 @@ import { getLatestAdjudication } from "@/lib/evidence-engine/adjudication/scorer
 import { AdjudicationStatusBadge } from "@/components/governance/AdjudicationStatusBadge";
 
 /**
- * /dashboard/sctm/[controlId]/implementation
+ * /dashboard/cae/[controlId]/implementation
  *
  * Phase 6 — Observed-Implementation Statement (OIS) page. Renders the
  * latest auto-generated narrative for a CMMC control plus the per-(register,

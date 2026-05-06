@@ -224,7 +224,7 @@ export async function getLatestAdjudication(
 
 /**
  * Read the latest snapshot for ALL controls in one query. Used by the
- * /dashboard/sctm overview page and the /auditor index.
+ * /dashboard/cae overview page and the /auditor index.
  */
 export async function getLatestAdjudicationsForOrg(
   orgId: string,

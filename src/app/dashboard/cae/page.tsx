@@ -6,7 +6,7 @@ import { getLatestAdjudicationsForOrg } from "@/lib/evidence-engine/adjudication
 import { AdjudicationStatusBadge } from "@/components/governance/AdjudicationStatusBadge";
 
 /**
- * /dashboard/sctm — Control adjudication overview.
+ * /dashboard/cae — Control adjudication overview.
  *
  * Phase 7 of the Control Adjudication Ecosystem roadmap. Shows every CMMC
  * control with its latest adjudication status (satisfies / partial / gap /
@@ -220,7 +220,7 @@ export default async function SctmPage({ searchParams }: PageProps) {
                   )}
                 </div>
                 <Link
-                  href={`/dashboard/sctm/${encodeURIComponent(row.controlId)}/implementation`}
+                  href={`/dashboard/cae/${encodeURIComponent(row.controlId)}/implementation`}
                   className="shrink-0 text-[11px] text-[var(--color-blue-accent)] hover:underline"
                 >
                   open →
@@ -266,7 +266,7 @@ function buildFilterUrl(family: string, status: string): string {
   if (family) params.set("family", family);
   if (status) params.set("status", status);
   const qs = params.toString();
-  return `/dashboard/sctm${qs ? "?" + qs : ""}`;
+  return `/dashboard/cae${qs ? "?" + qs : ""}`;
 }
 
 function compareControlIds(a: string, b: string): number {

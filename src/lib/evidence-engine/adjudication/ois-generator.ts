@@ -405,7 +405,7 @@ export async function regenerateOISAllControls(
 
 /**
  * Read the latest OIS row for a given (org, control). Most recent by
- * period_end. Used by /dashboard/sctm/[controlId]/implementation page.
+ * period_end. Used by /dashboard/cae/[controlId]/implementation page.
  */
 export async function getLatestOIS(
   orgId: string,
