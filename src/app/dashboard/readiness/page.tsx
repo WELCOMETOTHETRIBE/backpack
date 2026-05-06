@@ -19,27 +19,21 @@ import {
 } from "@/lib/sprs";
 import {
   controlRecords,
-  governanceRegisters,
-  governanceRegisterEntries,
-  boundaries,
   governanceArtifactCompletions,
   artifacts,
 } from "@/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
-import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
 import {
-  isRegisterLaneSatisfied,
-  finalCountForSchemaId,
-  isProvisionedForSchemaId,
-} from "@/lib/registers/compliance-health";
+  computeAdjudicationContext,
+  isControlAdjudicated,
+} from "@/lib/adjudication-helpers";
 import { RecalculateControlsButton } from "./RecalculateControlsButton";
 
 const cardClass =
   "rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm";
 
 const TOTAL_CONTROLS = ALL_CONTROL_IDS.length;
-const ADJUDICATED_STATUSES = ["implemented", "assessed", "inherited", "not_applicable"] as const;
 
 const sprs5 = sprsScoringData.filter((c) => c.value === 5).length;
 const sprs3 = sprsScoringData.filter((c) => c.value === 3).length;
@@ -76,90 +70,20 @@ export default async function ReadinessPage() {
     .from(controlRecords)
     .where(eq(controlRecords.organizationId, orgId));
 
-  // ── Register satisfaction (drives the implemented count) ──
-  const intelMap = new Map(CONTROL_INTELLIGENCE.map((c) => [c.controlId, c]));
-  const orgRegisters = await db
-    .select({ id: governanceRegisters.id, registerKey: governanceRegisters.registerKey })
-    .from(governanceRegisters)
-    .where(eq(governanceRegisters.organizationId, orgId));
-  const orgBoundaries = await db
-    .select({ id: boundaries.id })
-    .from(boundaries)
-    .where(eq(boundaries.organizationId, orgId));
-  const boundaryIds = orgBoundaries.map((b) => b.id);
-
-  const registerFinalCounts = new Map<string, number>();
-  if (boundaryIds.length > 0) {
-    for (const reg of orgRegisters) {
-      const [row] = await db
-        .select({ cnt: sql<number>`count(*)::int` })
-        .from(governanceRegisterEntries)
-        .where(
-          and(
-            eq(governanceRegisterEntries.registerId, reg.id),
-            eq(governanceRegisterEntries.status, "final"),
-            sql`${governanceRegisterEntries.boundaryId} IN (${sql.join(
-              boundaryIds.map((id) => sql`${id}`),
-              sql`, `,
-            )})`,
-          ),
-        );
-      registerFinalCounts.set(reg.registerKey, row?.cnt ?? 0);
-    }
-  }
-  const orgProvisionedRegisterKeys = new Set(orgRegisters.map((r) => r.registerKey));
-  const registerSatisfiedMap = new Map<string, boolean>();
-  for (const [controlId, intel] of intelMap) {
-    if (!intel.registerRequired || !intel.registerSchemaId) {
-      registerSatisfiedMap.set(controlId, true);
-      continue;
-    }
-    registerSatisfiedMap.set(
-      controlId,
-      isRegisterLaneSatisfied({
-        registerSchemaId: intel.registerSchemaId,
-        finalEntryCount: finalCountForSchemaId(registerFinalCounts, intel.registerSchemaId),
-        orgProvisioned: isProvisionedForSchemaId(orgProvisionedRegisterKeys, intel.registerSchemaId),
-      }),
-    );
-  }
-
-  const implemented = records.filter((r) => {
-    // Match the Overview page (isControlAdjudicated): inherited / not_applicable
-    // short-circuit to true. The register lane doesn't gate their adjudication
-    // — vendor SRM (inherited) or rationale (N/A) is the evidence. Without
-    // this short-circuit, Readiness undercounts inherited controls whose
-    // mapped register isn't fully populated (e.g. 3.10.1–3.10.5 mapped to
-    // control_monitoring), splitting from Overview's count.
-    if (r.implementationStatus === "inherited" || r.implementationStatus === "not_applicable") {
-      return true;
-    }
-    const registerOk = registerSatisfiedMap.get(r.controlId) !== false;
-    if (r.policyDocRequired) {
-      return r.technicalStatus === "satisfied" && r.policyStatus === "satisfied" && registerOk;
-    }
-    return ADJUDICATED_STATUSES.includes(r.implementationStatus as (typeof ADJUDICATED_STATUSES)[number]) && registerOk;
-  }).length;
-  const total = records.length || TOTAL_CONTROLS;
+  // ── Adjudication count: single source of truth ──
+  // Use the canonical helper so Readiness, Overview, and SCTM all return
+  // the same number. Previously this page ran its own register-only
+  // counting that ignored artifact + attestation lanes and the
+  // dual-pipeline gate, splitting from Overview's count by 4 controls.
+  const ctx = await computeAdjudicationContext(orgId, records.map((r) => r.id));
+  const implemented = records.filter((r) => isControlAdjudicated(r, ctx)).length;
+  const total = TOTAL_CONTROLS;
   const compliancePct = total > 0 ? Math.round((implemented / total) * 100) : 0;
-  const controlsImplementedPct = TOTAL_CONTROLS > 0 ? Math.round((implemented / TOTAL_CONTROLS) * 100) : 0;
+  const controlsImplementedPct = compliancePct;
   const sprsPct = SPRS_RANGE > 0 ? Math.round(((sprsScore - SPRS_MIN) / SPRS_RANGE) * 100) : 0;
 
-  // ── Annual workflow status: outstanding count + risk-assessment state ──
-  // Mirror the implemented-count logic so the two numbers are exact
-  // complements (implemented + outstanding == total). Without the
-  // inherited/N/A short-circuit, outstanding overcounts the same controls
-  // that implemented undercounts.
-  const outstandingCount = records.filter((r) => {
-    if (r.implementationStatus === "inherited" || r.implementationStatus === "not_applicable") {
-      return false;
-    }
-    const registerOk = registerSatisfiedMap.get(r.controlId) !== false;
-    if (r.policyDocRequired) {
-      return !(r.technicalStatus === "satisfied" && r.policyStatus === "satisfied" && registerOk);
-    }
-    return !(ADJUDICATED_STATUSES.includes(r.implementationStatus as (typeof ADJUDICATED_STATUSES)[number]) && registerOk);
-  }).length;
+  // Strict complement so implemented + outstanding always equals 110.
+  const outstandingCount = Math.max(0, TOTAL_CONTROLS - implemented);
 
   // Risk assessment program state (used to color the workflow card)
   let raSigned = false;
