@@ -31,8 +31,16 @@ export async function POST(req: Request) {
   const orgId = (session?.user as { organizationId?: string } | undefined)
     ?.organizationId;
   const userId = (session?.user as { id?: string } | undefined)?.id;
+  const role = (session?.user as { role?: string } | undefined)?.role;
   if (!orgId || !userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  // Same allow-list as /auditor/* page gate (lib/auditor-role-gate).
+  if (role !== "Admin" && role !== "Compliance" && role !== "Assessor") {
+    return NextResponse.json(
+      { error: "Forbidden — Admin / Compliance / Assessor role required" },
+      { status: 403 },
+    );
   }
 
   let body: Body;

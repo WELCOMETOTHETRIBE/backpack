@@ -1,12 +1,11 @@
 import Link from "next/link";
-import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { assessments } from "@/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { getControlAssessmentLogic } from "@/data/cmmc/control-assessment-logic";
 import { getLatestAdjudicationsForOrg } from "@/lib/evidence-engine/adjudication/scorer";
 import { AdjudicationStatusBadge } from "@/components/governance/AdjudicationStatusBadge";
+import { requireAuditorRole } from "@/lib/auditor-role-gate";
 
 /**
  * /auditor — read-only assessment view index.
@@ -28,10 +27,7 @@ import { AdjudicationStatusBadge } from "@/components/governance/AdjudicationSta
  */
 
 export default async function AuditorIndexPage() {
-  const session = await auth();
-  const orgId = (session?.user as { organizationId?: string } | undefined)
-    ?.organizationId;
-  if (!orgId) redirect("/auth/signin");
+  const { orgId } = await requireAuditorRole();
 
   const logic = getControlAssessmentLogic();
   const adjudications = await getLatestAdjudicationsForOrg(orgId);

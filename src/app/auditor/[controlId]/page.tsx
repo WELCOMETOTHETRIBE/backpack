@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { auth } from "@/lib/auth";
-import { redirect, notFound } from "next/navigation";
+import { notFound } from "next/navigation";
 import { db } from "@/db";
+import { requireAuditorRole } from "@/lib/auditor-role-gate";
 import {
   controlObservedImplementations,
   threatNarratives,
@@ -39,11 +39,7 @@ export default async function AuditorControlPage({
 }: {
   params: Promise<{ controlId: string }>;
 }) {
-  const session = await auth();
-  const orgId = (session?.user as { organizationId?: string } | undefined)
-    ?.organizationId;
-  if (!orgId) redirect("/auth/signin");
-
+  const { orgId } = await requireAuditorRole();
   const { controlId } = await params;
   const decoded = decodeURIComponent(controlId);
 
