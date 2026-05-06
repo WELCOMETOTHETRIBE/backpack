@@ -322,11 +322,17 @@ export default function AdminUserManagement() {
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                       User
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      System Role
+                    <th
+                      className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500"
+                      title="Trust Codex platform role — controls in-app permissions (manage settings, edit controls, sign attestations)."
+                    >
+                      Codex Role
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      User Type
+                    <th
+                      className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500"
+                      title="CUI environment privilege — drives whether AT.L2-3.2.2 role-based training is required. Independent of Codex Role."
+                    >
+                      CUI Access
                     </th>
                     <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">
                       Actions
@@ -456,7 +462,7 @@ export default function AdminUserManagement() {
           {/* Help text */}
           <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
             <p className="text-xs text-slate-600">
-              <strong className="font-semibold text-slate-700">User Type</strong> determines training requirements:
+              <strong className="font-semibold text-slate-700">CUI Access</strong> (separate from Codex Role) determines training requirements:
               <span className="ml-2 inline-flex items-center gap-1 text-blue-600">
                 <Shield className="h-3 w-3" />
                 General Users
@@ -594,7 +600,7 @@ export default function AdminUserManagement() {
                 </div>
                 <div>
                   <label className="mb-1.5 block text-sm font-medium text-slate-700">
-                    User Type (for Training) <span className="text-red-500">*</span>
+                    CUI Access Level <span className="text-red-500">*</span>
                   </label>
                   <select
                     value={createUserType}

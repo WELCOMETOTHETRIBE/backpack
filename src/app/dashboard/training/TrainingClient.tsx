@@ -329,8 +329,11 @@ function UserComplianceRoster({ users, records }: UserComplianceRosterProps) {
                 <th className="px-5 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                   User
                 </th>
-                <th className="px-5 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Type
+                <th
+                  className="px-5 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500"
+                  title="CUI environment privilege — separate from Trust Codex platform role. Drives whether AT.L2-3.2.2 role-based training is required."
+                >
+                  CUI Access
                 </th>
                 <th className="px-5 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                   3.2.1 Awareness
