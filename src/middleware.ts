@@ -48,6 +48,13 @@ const isPublicRoute = createRouteMatcher([
   // resolveOrgFromSessionOrBearer; without this exception Clerk rewrites
   // to /clerk_* (404) before the handler ever sees the bearer.
   "/api/registers/change-log(.*)",
+  // Sprint 9 (TrainOS → Codex) — inbound webhook from
+  // training.mactechsolutionsllc.com. Auth is per-tenant HMAC validated
+  // by the route handler (X-TrainOS-Signature against
+  // organizations.trainos_webhook_secret). Without this exception, Clerk
+  // intercepts before the handler reads the body, rewriting to /clerk_*
+  // (404) and TrainOS sees a terminal 4xx with no diagnostic.
+  "/api/integrations/trainos(.*)",
 ]);
 
 const AUDIT_SESSION_COOKIE = "mactech_audit_session";
