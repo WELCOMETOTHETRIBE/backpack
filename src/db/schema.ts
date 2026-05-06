@@ -1814,6 +1814,63 @@ export const controlAttentionItems = pgTable(
   },
 );
 
+// ============== Control Adjudication Ecosystem (Phase 6+) ==============
+/**
+ * Phase 6 — Observed-Implementation Statements (OIS).
+ *
+ * Auto-generated per-control SSP narrative derived from observed register
+ * entries. Refreshed on every ISSO weekly export ingest so the latest
+ * signed manifest's evidence drives the live narrative. Replaces
+ * hand-authored implementation statements with a content-hash-traceable
+ * derivation.
+ *
+ * One row per (organization_id, control_id, period_end) — re-running
+ * generation for the same period replaces the row.
+ *
+ * The narrative_lock fields freeze the row during an open Phase 10
+ * assessment so a C3PAO sees a stable narrative to adjudicate against.
+ */
+export const controlObservedImplementations = pgTable(
+  "control_observed_implementations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    controlId: varchar("control_id", { length: 20 }).notNull(),
+    periodStart: timestamp("period_start", { withTimezone: true }).notNull(),
+    periodEnd: timestamp("period_end", { withTimezone: true }).notNull(),
+    narrative: text("narrative").notNull(),
+    /**
+     * Per-(register_key, entry_type, lifecycle_state) counts that drove
+     * the narrative. Lets the UI show a numerical breakdown next to the
+     * prose without re-querying.
+     */
+    evidenceSummary: jsonb("evidence_summary").notNull().default({}),
+    generatedAt: timestamp("generated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    generatedFromManifestId: text("generated_from_manifest_id"),
+    /**
+     * Most recent admin_signed-or-isso_verified entry across the control's
+     * register_requirements. Drives at-risk detection in Phase 8.
+     */
+    mostRecentEvidenceAt: timestamp("most_recent_evidence_at", {
+      withTimezone: true,
+    }),
+    narrativeLockStartedAt: timestamp("narrative_lock_started_at", {
+      withTimezone: true,
+    }),
+    narrativeLockAssessmentId: uuid("narrative_lock_assessment_id"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+);
+
 // ============== IR Tabletop & AAR Evidence Kit ==============
 export {
   irExerciseStatusEnum,

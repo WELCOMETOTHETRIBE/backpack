@@ -21,6 +21,7 @@ import { issoExportManifests, controlRecords } from "@/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { calculateControlStatus } from "@/lib/control-status";
 import { writeAuditLog } from "@/lib/audit";
+import { regenerateOIS } from "@/lib/evidence-engine/adjudication/ois-generator";
 import { audit_log_reviewHandler } from "./handlers/audit-log-review";
 import { maintenance_logHandler } from "./handlers/maintenance-log";
 import { previous_period_acknowledgments_reviewHandler } from "./handlers/ack-review";
@@ -166,6 +167,31 @@ export async function dispatchIssoExport(
     await Promise.all(
       recs.map((r) => calculateControlStatus(r.id).catch(() => null)),
     );
+  }
+
+  // ── Phase 6: regenerate Observed-Implementation Statements ────────────
+  // Every control touched by this manifest gets a fresh narrative derived
+  // from observed register entries. Best-effort — OIS failure does NOT
+  // roll back ingest. Locked rows (active assessment) skip silently.
+  if (controlsTouched.length > 0) {
+    try {
+      const periodStart =
+        ctx.reviewPeriodStart ??
+        new Date(ctx.reviewPeriodEnd.getTime() - 7 * 24 * 60 * 60 * 1000);
+      await regenerateOIS(
+        {
+          orgId: ctx.orgId,
+          periodStartUtc: periodStart,
+          periodEndUtc: ctx.reviewPeriodEnd,
+          manifestId: ctx.manifestId,
+        },
+        controlsTouched,
+      );
+    } catch (err) {
+      warnings.push(
+        `OIS regeneration failed: ${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
   }
 
   // ── Persist for replay safety ──────────────────────────────────────────
