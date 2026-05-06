@@ -263,16 +263,25 @@ export async function applyTrainosEvidence(
     const expiresAtMs =
       new Date(completedAtIso).getTime() + 365 * 24 * 60 * 60 * 1000;
     const expiresAtDate = new Date(expiresAtMs).toISOString().slice(0, 10);
-    const trainingType = pickTrainingType(nistControlIds);
+    // training_records.training_type is single-valued and the
+    // /dashboard/training Boundary Compliance widget renders one column
+    // per type (3.2.1 awareness / 3.2.2 role-based / 3.2.3 insider threat).
+    // A course like AT-001 covers BOTH 3.2.1 and 3.2.3 — insert one row
+    // per covered control so all relevant columns mark complete. Each
+    // row points back to the same canonical evidence + cert, so this is
+    // a denormalized projection of the single underlying completion.
+    //
     // NOTE: trainingRecords.userRole is in src/db/schema.ts but not yet
-    // migrated to production (verified against \\d training_records on the
-    // deployed DB on 2026-05-06). Omitted here until the migration lands.
-    // Once applied, add: userRole: canonical.learnerRole.
-    await tx.insert(trainingRecords).values({
+    // migrated to production. Omitted here until the migration lands.
+    const trainingTypeByNistId: Record<string, string> = {
+      "3.2.1": "security_awareness",
+      "3.2.2": "role_based",
+      "3.2.3": "insider_threat",
+    };
+    const baseRow = {
       organizationId,
       personnelName: canonical.learnerName,
       personnelEmail: canonical.learnerEmail,
-      trainingType,
       courseTitle: canonical.courseTitle,
       deliveryMethod: "online",
       completedAt: completedAtDate,
@@ -280,7 +289,16 @@ export async function applyTrainosEvidence(
       evidenceUrl: certificate?.verificationUrl ?? null,
       notes: `TrainOS delivery ${event.deliveryId} · evidence ${event.evidence.evidenceRecordId} · score ${canonical.score}/${canonical.passingThreshold} · learner role ${canonical.learnerRole}`,
       createdById: matchedUser?.id ?? null,
-    });
+    };
+    const rowsToInsert = nistControlIds
+      .filter((id) => trainingTypeByNistId[id])
+      .map((id) => ({ ...baseRow, trainingType: trainingTypeByNistId[id]! }));
+    // Fallback: if none of the controlIds map to a known type, still
+    // record one row as "other" so the completion is visible.
+    if (rowsToInsert.length === 0) {
+      rowsToInsert.push({ ...baseRow, trainingType: "other" });
+    }
+    await tx.insert(trainingRecords).values(rowsToInsert);
   });
 
   // 6. Recalculate control_records status for affected controls. Best-effort
@@ -312,19 +330,6 @@ export async function applyTrainosEvidence(
     attestationsCreated,
     recalcErrors,
   };
-}
-
-/**
- * Map TrainOS-supplied control IDs to the legacy training_records.training_type
- * enum (security_awareness | role_based | insider_threat | other). Driven by
- * the AT.L2-3.2.x family ID since that's how the existing UI categorizes.
- */
-function pickTrainingType(nistControlIds: string[]): string {
-  const ids = new Set(nistControlIds);
-  if (ids.has("3.2.3")) return "insider_threat";
-  if (ids.has("3.2.2")) return "role_based";
-  if (ids.has("3.2.1")) return "security_awareness";
-  return "other";
 }
 
 /** Re-export for the route module so it doesn't have to import the const directly. */
