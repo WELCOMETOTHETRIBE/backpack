@@ -35,6 +35,13 @@ import {
 import { and, eq, gte, lte, sql, desc } from "drizzle-orm";
 import { getControlAssessmentLogic } from "@/data/cmmc/control-assessment-logic";
 import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
+import {
+  getControlDocuments,
+  type ContractDocument,
+} from "@/lib/integrations/qms-client";
+import { GOVERNANCE_18_CONTROL_IDS } from "@/lib/compliance/governance-18-analysis";
+
+const GOVERNANCE_18_SET = new Set(GOVERNANCE_18_CONTROL_IDS);
 import templatesJson from "@/data/cmmc/control_implementation_templates.v1.json";
 
 interface TemplatesFile {
@@ -121,7 +128,18 @@ export async function regenerateOIS(
       control.register_requirements.map((r) => r.register_id),
     );
 
-    const narrative = renderNarrative(controlId, control, ctx, summary);
+    let narrative = renderNarrative(controlId, control, ctx, summary);
+
+    // Phase 13 — append QMS-derived documentation section for the 17
+    // pure-governance controls. Sourced from the v2.1 contract via
+    // qms-client. Returns "" if the control isn't governance-18 or QMS
+    // is unreachable; never throws.
+    if (GOVERNANCE_18_SET.has(controlId)) {
+      const docsSection = await buildQmsGovernanceSection(controlId);
+      if (docsSection) {
+        narrative = `${narrative}\n\n${docsSection}`;
+      }
+    }
 
     const totalEntries = sumAcrossSummary(summary.evidence_summary);
 
@@ -423,4 +441,75 @@ export async function getLatestOIS(
     .orderBy(desc(controlObservedImplementations.periodEnd))
     .limit(1);
   return row ?? null;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Governance-18 QMS documentation section (Phase 13 / Sprint 3.D)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Build the "Documentation:" section appended to the OIS narrative for
+ * pure-governance controls. Reads the v2.1 contract via qms-client. Returns
+ * "" on any failure — QMS unreachable, no docs tagged, malformed payload —
+ * so the OIS narrative degrades gracefully to register-only prose.
+ *
+ * Format mirrors the brief's example:
+ *   "Documentation: governance is captured in QMS document 'Separation of
+ *    Duties Policy' v2.4, last reviewed 2026-04-03, next review 2027-04-03
+ *    (current within the 365-day cycle)."
+ *
+ * Branches on source — bundle docs (no PeriodicReview) emit "effective
+ * YYYY-MM-DD" instead of "last reviewed".
+ */
+async function buildQmsGovernanceSection(controlId: string): Promise<string> {
+  const contract = await getControlDocuments(controlId);
+  if (!contract || contract.documents.length === 0) return "";
+
+  const sentences = contract.documents.map((d) => formatDocSentence(d));
+  return `Documentation: ${sentences.join(" ")}`;
+}
+
+function formatDocSentence(d: ContractDocument): string {
+  const titleClause = d.current_version
+    ? `'${d.title}' v${d.current_version}`
+    : `'${d.title}'`;
+
+  const dateClause =
+    d.source === "qms_managed"
+      ? d.last_reviewed_at
+        ? `last reviewed ${formatIsoDate(d.last_reviewed_at)}`
+        : "no completed review on file"
+      : d.current_version_effective_date
+        ? `effective ${formatIsoDate(d.current_version_effective_date)}`
+        : "no effective date on file";
+
+  const nextClause = d.next_review_due_at
+    ? `, next review ${formatIsoDate(d.next_review_due_at)}`
+    : "";
+
+  const cycleClause = formatCycleClause(d);
+
+  return `Governance is captured in QMS document ${titleClause} (${d.doc_id}), ${dateClause}${nextClause}${cycleClause}.`;
+}
+
+function formatIsoDate(iso: string): string {
+  // Trim to YYYY-MM-DD for narrative readability; ISO already starts with that.
+  return iso.slice(0, 10);
+}
+
+function formatCycleClause(d: ContractDocument): string {
+  switch (d.review_cycle_status) {
+    case "current":
+      return d.cadence_label
+        ? ` (current within the ${d.cadence_label} cycle)`
+        : " (current)";
+    case "due_soon":
+      return " (review due soon)";
+    case "overdue":
+      return " (review overdue)";
+    case "expired":
+      return " (review expired — past the cadence + grace window)";
+    default:
+      return "";
+  }
 }
