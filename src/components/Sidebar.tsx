@@ -41,7 +41,7 @@ function buildNav(_boundaryComplete?: boolean | null): NavGroup[] {
         { name: "Adjudication Engine", href: "/dashboard/cae", icon: Gauge },
         { name: "Registers", href: "/dashboard/registers", icon: BookCheck },
         { name: "Artifacts", href: "/dashboard/artifacts", icon: Archive },
-        { name: "Upload Evidence", href: "/dashboard/evidence/upload-manifest", icon: Upload },
+        { name: "Upload Manifest", href: "/dashboard/evidence/upload-manifest", icon: Upload },
         { name: "POA&M", href: "/dashboard/poam", icon: FileText },
       ],
     },

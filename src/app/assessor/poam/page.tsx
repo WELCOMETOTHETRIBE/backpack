@@ -1,5 +1,4 @@
-import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
+import { requireAssessor } from "@/lib/role-gate";
 import { db } from "@/db";
 import {
   poamEntries,
@@ -13,10 +12,7 @@ import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 
 export default async function AssessorPoamPage() {
-  const session = await auth();
-  const user = session?.user as { organizationId?: string; role?: string } | undefined;
-  const orgId = user?.organizationId;
-  if (!orgId || user?.role !== "Assessor") redirect("/auth/signin");
+  const { orgId } = await requireAssessor();
 
   // ── Fetch all entries ──
   const entries = await db

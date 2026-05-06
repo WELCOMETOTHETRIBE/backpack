@@ -1,5 +1,4 @@
-import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
+import { requireAssessor } from "@/lib/role-gate";
 import { db } from "@/db";
 import { organizations, sspSections } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -71,10 +70,7 @@ function SectionBlock({
 }
 
 export default async function AssessorSspPage() {
-  const session = await auth();
-  const user = session?.user as { organizationId?: string; role?: string } | undefined;
-  const orgId = user?.organizationId;
-  if (!orgId || user?.role !== "Assessor") redirect("/auth/signin");
+  const { orgId } = await requireAssessor();
 
   // ── Org metadata ──
   const [org] = await db

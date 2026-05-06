@@ -1,11 +1,10 @@
-import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { SignOutButton } from "@clerk/nextjs";
 import { db } from "@/db";
 import { organizations } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { Shield, Lock, LogOut } from "lucide-react";
+import { requirePageRole } from "@/lib/role-gate";
 import { AssessorNav } from "./AssessorNav";
 
 export default async function AssessorLayout({
@@ -13,21 +12,17 @@ export default async function AssessorLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
-  const user = session?.user as { role?: string; organizationId?: string } | undefined;
-  if (!session?.user) redirect("/auth/signin");
-  if (user?.role !== "Assessor") redirect("/dashboard");
+  const { orgId } = await requirePageRole(["Assessor"], {
+    onAnon: { kind: "redirect", to: "/auth/signin" },
+    onDeny: { kind: "redirect", to: "/dashboard" },
+  });
 
-  const orgId = user?.organizationId;
-  let orgName: string | null = null;
-  if (orgId) {
-    const [orgRow] = await db
-      .select({ name: organizations.name })
-      .from(organizations)
-      .where(eq(organizations.id, orgId))
-      .limit(1);
-    orgName = orgRow?.name ?? null;
-  }
+  const [orgRow] = await db
+    .select({ name: organizations.name })
+    .from(organizations)
+    .where(eq(organizations.id, orgId))
+    .limit(1);
+  const orgName = orgRow?.name ?? null;
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-[var(--color-surface-muted,#f8fafc)]">

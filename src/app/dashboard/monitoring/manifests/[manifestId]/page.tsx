@@ -9,6 +9,8 @@ import {
   auditLogs,
 } from "@/db/schema";
 import { eq, and, sql, desc } from "drizzle-orm";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
+import { DataUnavailable } from "@/components/ui/DataUnavailable";
 
 /**
  * Manifest detail page — Phase 5 of Register-Automation v1.1.
@@ -40,16 +42,28 @@ export default async function ManifestDetailPage({ params }: PageProps) {
   const { manifestId: rawManifestId } = await params;
   const manifestId = decodeURIComponent(rawManifestId);
 
-  const [manifest] = await db
-    .select()
-    .from(issoExportManifests)
-    .where(
-      and(
-        eq(issoExportManifests.manifestId, manifestId),
-        eq(issoExportManifests.organizationId, orgId),
-      ),
-    )
-    .limit(1);
+  let manifest: typeof issoExportManifests.$inferSelect | undefined;
+  try {
+    [manifest] = await db
+      .select()
+      .from(issoExportManifests)
+      .where(
+        and(
+          eq(issoExportManifests.manifestId, manifestId),
+          eq(issoExportManifests.organizationId, orgId),
+        ),
+      )
+      .limit(1);
+  } catch (err) {
+    console.error("Manifest detail primary fetch failed:", err);
+    return (
+      <DataUnavailable
+        resource="manifest"
+        backTo="/dashboard/monitoring"
+        backLabel="Back to Monitoring"
+      />
+    );
+  }
 
   if (!manifest) notFound();
 
@@ -154,13 +168,14 @@ export default async function ManifestDetailPage({ params }: PageProps) {
   return (
     <div className="space-y-6">
       <div>
-        <Link
-          href="/dashboard/monitoring"
-          className="text-sm text-[var(--color-gray-600)] hover:underline"
-        >
-          ← Continuous monitoring
-        </Link>
-        <h2 className="mt-1 text-xl font-semibold text-[var(--color-navy-primary)]">
+        <Breadcrumbs
+          items={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Monitoring", href: "/dashboard/monitoring" },
+            { label: "ISSO weekly export" },
+          ]}
+        />
+        <h2 className="text-xl font-semibold text-[var(--color-navy-primary)]">
           ISSO weekly export
         </h2>
         <p className="mt-0.5 font-mono text-xs text-[var(--color-gray-600)] break-all">

@@ -1,5 +1,5 @@
-import { auth } from "@/lib/auth";
 import { notFound } from "next/navigation";
+import { requirePageRole } from "@/lib/role-gate";
 import Link from "next/link";
 import { db } from "@/db";
 import {
@@ -74,10 +74,10 @@ export default async function AssessorControlPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const session = await auth();
-  const user = session?.user as { organizationId?: string; role?: string } | undefined;
-  const orgId = user?.organizationId;
-  if (!orgId || user?.role !== "Assessor") notFound();
+  const { orgId } = await requirePageRole(["Assessor"], {
+    onAnon: { kind: "notFound" },
+    onDeny: { kind: "notFound" },
+  });
   const { id: controlId } = await params;
 
   const [record] = await db

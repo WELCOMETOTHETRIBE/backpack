@@ -1,5 +1,4 @@
-import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
+import { requireAssessor } from "@/lib/role-gate";
 import { db } from "@/db";
 import {
   controlRecords,
@@ -36,10 +35,7 @@ function PolicyBadge({ status }: { status: string }) {
 }
 
 export default async function AssessorGovernancePage() {
-  const session = await auth();
-  const user = session?.user as { organizationId?: string; role?: string } | undefined;
-  const orgId = user?.organizationId;
-  if (!orgId || user?.role !== "Assessor") redirect("/auth/signin");
+  const { orgId } = await requireAssessor();
 
   // ── Manifest runs ─────────────────────────────────────────────────────────
   const manifestRuns = await db

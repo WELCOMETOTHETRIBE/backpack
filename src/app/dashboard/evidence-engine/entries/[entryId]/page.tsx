@@ -25,6 +25,8 @@ import { ChangeDriftJustifyForm } from "./ChangeDriftJustifyForm";
 import { DefenderAlertAckForm } from "./DefenderAlertAckForm";
 import { EvidenceRefList } from "@/components/governance/EvidenceRefList";
 import { StatusBadge } from "@/components/governance-wizard/StatusBadge";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
+import { DataUnavailable } from "@/components/ui/DataUnavailable";
 
 type PageProps = { params: Promise<{ entryId: string }> };
 
@@ -35,24 +37,36 @@ export default async function EvidenceEngineEntryDetailPage({ params }: PageProp
 
   const { entryId } = await params;
 
-  const [entry] = await db
-    .select()
-    .from(governanceRegisterEntries)
-    .where(eq(governanceRegisterEntries.id, entryId));
-
-  if (!entry) notFound();
-
-  const [register] = await db
-    .select()
-    .from(governanceRegisters)
-    .where(
-      and(
-        eq(governanceRegisters.id, entry.registerId),
-        eq(governanceRegisters.organizationId, orgId)
-      )
+  let entry: typeof governanceRegisterEntries.$inferSelect | undefined;
+  let register: typeof governanceRegisters.$inferSelect | undefined;
+  try {
+    [entry] = await db
+      .select()
+      .from(governanceRegisterEntries)
+      .where(eq(governanceRegisterEntries.id, entryId));
+    if (entry) {
+      [register] = await db
+        .select()
+        .from(governanceRegisters)
+        .where(
+          and(
+            eq(governanceRegisters.id, entry.registerId),
+            eq(governanceRegisters.organizationId, orgId)
+          )
+        );
+    }
+  } catch (err) {
+    console.error("Entry detail primary fetch failed:", err);
+    return (
+      <DataUnavailable
+        resource="register entry"
+        backTo="/dashboard/evidence-engine"
+        backLabel="Back to Evidence Engine"
+      />
     );
+  }
 
-  if (!register) notFound();
+  if (!entry || !register) notFound();
 
   const data = (entry.entryData ?? {}) as Record<string, unknown>;
   const registerKey = register.registerKey;
@@ -262,13 +276,18 @@ export default async function EvidenceEngineEntryDetailPage({ params }: PageProp
   return (
     <div className="space-y-6">
       <div>
-        <Link
-          href={`/dashboard/evidence-engine/registers/${encodeURIComponent(registerKey)}`}
-          className="text-sm text-[var(--color-gray-600)] hover:underline"
-        >
-          ← {register.name}
-        </Link>
-        <h2 className="mt-1 text-xl font-semibold text-[var(--color-navy-primary)]">
+        <Breadcrumbs
+          items={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Evidence Engine", href: "/dashboard/evidence-engine" },
+            {
+              label: register.name,
+              href: `/dashboard/evidence-engine/registers/${encodeURIComponent(registerKey)}`,
+            },
+            { label: "Entry detail" },
+          ]}
+        />
+        <h2 className="text-xl font-semibold text-[var(--color-navy-primary)]">
           Entry detail
         </h2>
         <div className="mt-0.5 flex flex-wrap items-center gap-2 text-sm text-[var(--color-gray-600)]">

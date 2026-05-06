@@ -1,5 +1,4 @@
-import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
+import { requireAssessor } from "@/lib/role-gate";
 import { db } from "@/db";
 import {
   controlRecords,
@@ -18,10 +17,7 @@ function familyOf(controlId: string): string {
 }
 
 export default async function AssessorControlsPage() {
-  const session = await auth();
-  const user = session?.user as { organizationId?: string; role?: string } | undefined;
-  const orgId = user?.organizationId;
-  if (!orgId || user?.role !== "Assessor") redirect("/auth/signin");
+  const { orgId } = await requireAssessor();
 
   // ── Fetch all control records ──
   const records = await db

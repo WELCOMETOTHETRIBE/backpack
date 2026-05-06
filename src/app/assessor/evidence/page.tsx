@@ -1,9 +1,8 @@
-import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { controlEvidenceLinks, controlRecords, controls } from "@/db/schema";
 import { eq, asc } from "drizzle-orm";
 import Link from "next/link";
+import { requireAssessor } from "@/lib/role-gate";
 import { EvidenceExportButton, type EvidenceRow } from "./EvidenceExportButton";
 
 function evidenceStatus(expiresAt: Date | null): { label: string; cls: string } {
@@ -16,10 +15,7 @@ function evidenceStatus(expiresAt: Date | null): { label: string; cls: string } 
 }
 
 export default async function AssessorEvidencePage() {
-  const session = await auth();
-  const user = session?.user as { organizationId?: string; role?: string } | undefined;
-  const orgId = user?.organizationId;
-  if (!orgId || user?.role !== "Assessor") redirect("/auth/signin");
+  const { orgId } = await requireAssessor();
 
   const rows = await db
     .select({

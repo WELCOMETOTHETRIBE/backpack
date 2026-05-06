@@ -1,8 +1,8 @@
 import Link from "next/link"
-import { notFound, redirect } from "next/navigation"
+import { notFound } from "next/navigation"
 import { and, desc, eq, inArray, or, sql } from "drizzle-orm"
 
-import { auth } from "@/lib/auth"
+import { requireAssessor } from "@/lib/role-gate"
 import { db } from "@/db"
 import {
   auditLogs,
@@ -25,12 +25,7 @@ export default async function AssessorIrTabletopDetailPage({
   params,
 }: PageProps) {
   const { exerciseId } = await params
-  const session = await auth()
-  const user = session?.user as
-    | { organizationId?: string; role?: string }
-    | undefined
-  const orgId = user?.organizationId
-  if (!orgId || user?.role !== "Assessor") redirect("/auth/signin")
+  const { orgId } = await requireAssessor()
 
   const exercise = (
     await db

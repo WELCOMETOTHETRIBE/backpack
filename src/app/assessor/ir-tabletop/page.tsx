@@ -1,19 +1,13 @@
 import Link from "next/link"
-import { redirect } from "next/navigation"
 import { ShieldAlert } from "lucide-react"
 import { desc, eq } from "drizzle-orm"
 
-import { auth } from "@/lib/auth"
+import { requireAssessor } from "@/lib/role-gate"
 import { db } from "@/db"
 import { irExercises, irAars } from "@/db/schema"
 
 export default async function AssessorIrTabletopListPage() {
-  const session = await auth()
-  const user = session?.user as
-    | { organizationId?: string; role?: string }
-    | undefined
-  const orgId = user?.organizationId
-  if (!orgId || user?.role !== "Assessor") redirect("/auth/signin")
+  const { orgId } = await requireAssessor()
 
   const exercises = await db
     .select({
