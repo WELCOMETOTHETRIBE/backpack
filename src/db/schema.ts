@@ -13,6 +13,7 @@ import {
   varchar,
   date,
   boolean,
+  real,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -1866,6 +1867,38 @@ export const controlObservedImplementations = pgTable(
       .notNull()
       .defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+);
+
+/**
+ * Phase 7 — Control Adjudication Engine (CAE) snapshots.
+ *
+ * For every control × every ISSO weekly export, score the requirements
+ * and emit a snapshot. status ∈ {satisfies, partial, gap, at_risk};
+ * confidence ∈ [0,1]; requirements_json carries the per-requirement
+ * breakdown with click-through evidence_entry_ids.
+ *
+ * One row per (org, control, manifest). Re-scoring the same manifest is
+ * a no-op replace.
+ */
+export const controlAdjudicationSnapshots = pgTable(
+  "control_adjudication_snapshots",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    controlId: varchar("control_id", { length: 20 }).notNull(),
+    computedAt: timestamp("computed_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    status: varchar("status", { length: 16 }).notNull(),
+    confidence: real("confidence").notNull(),
+    requirementsJson: jsonb("requirements_json").notNull().default([]),
+    periodBasisManifestId: text("period_basis_manifest_id"),
+    createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
   },

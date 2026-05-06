@@ -5,6 +5,8 @@ import { db } from "@/db";
 import { controlObservedImplementations } from "@/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { getControlAssessmentLogic } from "@/data/cmmc/control-assessment-logic";
+import { getLatestAdjudication } from "@/lib/evidence-engine/adjudication/scorer";
+import { AdjudicationStatusBadge } from "@/components/governance/AdjudicationStatusBadge";
 
 /**
  * /dashboard/sctm/[controlId]/implementation
@@ -52,6 +54,20 @@ export default async function OISPage({
   const latest = rows[0] ?? null;
   const history = rows.slice(1);
 
+  // Phase 7 — latest adjudication snapshot for this control.
+  const adjudication = await getLatestAdjudication(orgId, decoded);
+  const requirementResults = (adjudication?.requirementsJson ?? []) as Array<{
+    register_key: string;
+    required_min: number;
+    observed_final: number;
+    observed_isso_verified: number;
+    cadence_days_required: number;
+    cadence_days_actual: number | null;
+    satisfied: boolean;
+    evidence_entry_ids: string[];
+    gap_reason?: string;
+  }>;
+
   const evidence =
     (latest?.evidenceSummary ?? {}) as Record<
       string,
@@ -90,6 +106,13 @@ export default async function OISPage({
             <span className="text-[10px] uppercase tracking-wide rounded-full bg-amber-100 px-2 py-0.5 text-amber-800">
               locked for assessment
             </span>
+          )}
+          {adjudication && (
+            <AdjudicationStatusBadge
+              status={adjudication.status}
+              confidence={adjudication.confidence}
+              size="md"
+            />
           )}
         </div>
         <p className="mt-1 text-sm text-[var(--color-gray-600)]">
@@ -154,6 +177,76 @@ export default async function OISPage({
               )}
             </p>
           </div>
+
+          {/* Phase 7 — Requirement breakdown card */}
+          {adjudication && requirementResults.length > 0 && (
+            <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm">
+              <div className="flex items-baseline justify-between">
+                <h2 className="text-sm font-semibold text-[var(--color-navy-primary)]">
+                  Adjudication requirements ({requirementResults.filter((r) => r.satisfied).length}/{requirementResults.length} satisfied)
+                </h2>
+                <span className="text-[11px] text-[var(--color-gray-500)]">
+                  computed{" "}
+                  {new Date(adjudication.computedAt).toLocaleString()}
+                </span>
+              </div>
+              <ul className="mt-3 divide-y divide-[var(--color-border-muted)]">
+                {requirementResults.map((req) => (
+                  <li key={req.register_key} className="py-3">
+                    <div className="flex flex-wrap items-baseline gap-2">
+                      <span
+                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ${
+                          req.satisfied
+                            ? "bg-emerald-100 text-emerald-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {req.satisfied ? "satisfied" : "gap"}
+                      </span>
+                      <Link
+                        href={`/dashboard/evidence-engine/registers/${encodeURIComponent(
+                          req.register_key,
+                        )}`}
+                        className="font-mono text-xs text-[var(--color-blue-accent)] hover:underline"
+                      >
+                        {req.register_key}
+                      </Link>
+                      <span className="text-[11px] text-[var(--color-gray-600)]">
+                        {req.observed_final}/{req.required_min} final ·{" "}
+                        {req.observed_isso_verified} ISSO-verified ·{" "}
+                        cadence{" "}
+                        {req.cadence_days_actual === null
+                          ? "—"
+                          : `${req.cadence_days_actual}d`}
+                        /
+                        {req.cadence_days_required === 0
+                          ? "event-driven"
+                          : `${req.cadence_days_required}d`}
+                      </span>
+                    </div>
+                    {req.gap_reason && (
+                      <p className="mt-1 text-xs text-red-700">
+                        Gap: {req.gap_reason}
+                      </p>
+                    )}
+                    {req.evidence_entry_ids.length > 0 && (
+                      <div className="mt-1.5 flex flex-wrap gap-1.5">
+                        {req.evidence_entry_ids.map((id) => (
+                          <Link
+                            key={id}
+                            href={`/dashboard/evidence-engine/entries/${id}`}
+                            className="rounded border border-[var(--color-border)] bg-[var(--color-gray-50)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--color-gray-700)] hover:bg-[var(--color-gray-100)]"
+                          >
+                            {id.slice(0, 8)}…
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {/* Evidence breakdown card */}
           <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm">

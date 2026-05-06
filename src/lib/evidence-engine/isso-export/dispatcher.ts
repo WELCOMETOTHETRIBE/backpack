@@ -22,6 +22,7 @@ import { eq, and, inArray } from "drizzle-orm";
 import { calculateControlStatus } from "@/lib/control-status";
 import { writeAuditLog } from "@/lib/audit";
 import { regenerateOIS } from "@/lib/evidence-engine/adjudication/ois-generator";
+import { scoreControl, persistAdjudication } from "@/lib/evidence-engine/adjudication/scorer";
 import { audit_log_reviewHandler } from "./handlers/audit-log-review";
 import { maintenance_logHandler } from "./handlers/maintenance-log";
 import { previous_period_acknowledgments_reviewHandler } from "./handlers/ack-review";
@@ -190,6 +191,32 @@ export async function dispatchIssoExport(
     } catch (err) {
       warnings.push(
         `OIS regeneration failed: ${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
+  }
+
+  // ── Phase 7: re-score Control Adjudication for touched controls ───────
+  // Same best-effort policy. The scorer reads the latest entries (which
+  // includes whatever this manifest just wrote) and emits a snapshot.
+  // Snapshots accumulate over time — the unique index on (org, control,
+  // manifest_id) means re-running this manifest is a no-op replace.
+  if (controlsTouched.length > 0) {
+    try {
+      for (const controlId of controlsTouched) {
+        const result = await scoreControl(
+          { orgId: ctx.orgId, manifestId: ctx.manifestId },
+          controlId,
+        );
+        if (result) {
+          await persistAdjudication(
+            { orgId: ctx.orgId, manifestId: ctx.manifestId },
+            result,
+          );
+        }
+      }
+    } catch (err) {
+      warnings.push(
+        `CAE scoring failed: ${err instanceof Error ? err.message : String(err)}`,
       );
     }
   }
