@@ -23,6 +23,7 @@ export async function GET() {
         id: users.id,
         email: users.email,
         name: users.name,
+        cuiAccessLevel: users.cuiAccessLevel,
       })
       .from(users)
       .where(eq(users.organizationId, orgId));

@@ -15,6 +15,7 @@ export async function GET() {
         email: users.email,
         name: users.name,
         role: users.role,
+        cuiAccessLevel: users.cuiAccessLevel,
       })
       .from(users)
       .where(eq(users.organizationId, orgId));

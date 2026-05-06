@@ -18,14 +18,15 @@ import {
   Trash2,
 } from "lucide-react";
 
+type UserType = "general" | "privileged";
+
 type OrgUser = {
   id: string;
   email: string;
   name: string | null;
   role: string;
+  cuiAccessLevel: UserType;
 };
-
-type UserType = "general" | "privileged";
 
 interface BoundaryUser {
   id: string;
@@ -62,12 +63,14 @@ export default function AdminUserManagement() {
   const [resetError, setResetError] = useState("");
   const [resetSuccess, setResetSuccess] = useState("");
 
-  // User type update state (for boundary personnel tracking)
-  const [userTypes, setUserTypes] = useState<Record<string, UserType>>({});
+  // CUI access level is now persisted on the user row (migration 0064).
+  // Reads come straight from /api/admin/users; writes go through the
+  // PATCH /api/admin/users/[id]/cui-access-level endpoint.
+  const [savingUserType, setSavingUserType] = useState<string | null>(null);
+  const [userTypeError, setUserTypeError] = useState<string>("");
 
   useEffect(() => {
     fetchUsers();
-    loadUserTypes();
   }, []);
 
   async function fetchUsers() {
@@ -84,26 +87,35 @@ export default function AdminUserManagement() {
     }
   }
 
-  function loadUserTypes() {
-    // Load user types from localStorage for now (will be moved to DB)
+  async function saveUserType(userId: string, type: UserType): Promise<void> {
+    setUserTypeError("");
+    setSavingUserType(userId);
+    // Optimistic update so the dropdown reflects the choice immediately.
+    setUsers((prev) =>
+      prev.map((u) => (u.id === userId ? { ...u, cuiAccessLevel: type } : u)),
+    );
     try {
-      const stored = localStorage.getItem("boundaryUserTypes");
-      if (stored) {
-        setUserTypes(JSON.parse(stored));
+      const res = await fetch(`/api/admin/users/${userId}/cui-access-level`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cuiAccessLevel: type }),
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        setUserTypeError(data.error ?? "Failed to update CUI access level");
+        // Roll back optimistic update.
+        await fetchUsers();
       }
     } catch {
-      // ignore
+      setUserTypeError("Network error — please try again");
+      await fetchUsers();
+    } finally {
+      setSavingUserType(null);
     }
   }
 
-  function saveUserType(userId: string, type: UserType) {
-    const updated = { ...userTypes, [userId]: type };
-    setUserTypes(updated);
-    localStorage.setItem("boundaryUserTypes", JSON.stringify(updated));
-  }
-
   function getUserType(userId: string): UserType {
-    return userTypes[userId] ?? "general";
+    return users.find((u) => u.id === userId)?.cuiAccessLevel ?? "general";
   }
 
   async function handleCreateUser(e: React.FormEvent) {
@@ -131,8 +143,11 @@ export default function AdminUserManagement() {
         return;
       }
 
-      // Save user type for boundary tracking
-      saveUserType(data.id, createUserType);
+      // Save CUI access level for boundary tracking. Await so a failure
+      // surfaces before we declare success.
+      if (createUserType !== "general") {
+        await saveUserType(data.id, createUserType);
+      }
 
       setCreateSuccess(`User "${data.email}" created successfully.`);
       setCreateEmail("");
@@ -260,6 +275,11 @@ export default function AdminUserManagement() {
       {/* Directory Tab */}
       {activeTab === "directory" && (
         <div className="space-y-3">
+          {userTypeError && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              {userTypeError}
+            </div>
+          )}
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -347,8 +367,11 @@ export default function AdminUserManagement() {
                         <td className="px-4 py-3">
                           <select
                             value={userType}
-                            onChange={(e) => saveUserType(user.id, e.target.value as UserType)}
-                            className={`rounded-md border px-2.5 py-1 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                            disabled={savingUserType === user.id}
+                            onChange={(e) =>
+                              saveUserType(user.id, e.target.value as UserType)
+                            }
+                            className={`rounded-md border px-2.5 py-1 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 ${
                               userType === "privileged"
                                 ? "border-violet-200 bg-violet-50 text-violet-700"
                                 : "border-blue-200 bg-blue-50 text-blue-700"

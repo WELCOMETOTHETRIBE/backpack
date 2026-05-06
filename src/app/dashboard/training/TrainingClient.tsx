@@ -911,29 +911,27 @@ export default function TrainingClient({ initialRecords }: { initialRecords: Tra
   const [boundaryUsers, setBoundaryUsers] = useState<BoundaryUser[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
 
-  // Load boundary users from API and localStorage user types
+  // Load boundary users with their persisted CUI access level. The
+  // /api/boundary-users response now carries `cuiAccessLevel` (column
+  // added in migration 0064) — no more browser-localStorage state for
+  // compliance-impacting per-user data. See AdminUserManagement for the
+  // edit UI; this component is read-only.
   useEffect(() => {
     async function loadUsers() {
       try {
         const res = await fetch("/api/boundary-users");
         if (res.ok) {
-          const users = await res.json();
-          // Load user types from localStorage
-          let userTypes: Record<string, "general" | "privileged"> = {};
-          try {
-            const stored = localStorage.getItem("boundaryUserTypes");
-            if (stored) {
-              userTypes = JSON.parse(stored);
-            }
-          } catch {
-            // ignore
-          }
-          
-          const mappedUsers: BoundaryUser[] = users.map((u: { id: string; email: string; name: string | null }) => ({
+          const users = (await res.json()) as Array<{
+            id: string;
+            email: string;
+            name: string | null;
+            cuiAccessLevel?: "general" | "privileged";
+          }>;
+          const mappedUsers: BoundaryUser[] = users.map((u) => ({
             id: u.id,
             email: u.email,
             name: u.name,
-            userType: userTypes[u.id] ?? "general",
+            userType: u.cuiAccessLevel ?? "general",
           }));
           setBoundaryUsers(mappedUsers);
         }

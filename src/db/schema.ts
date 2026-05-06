@@ -19,6 +19,13 @@ import { relations } from "drizzle-orm";
 
 // ============== Enums ==============
 export const userRoleEnum = pgEnum("user_role", ["Admin", "Compliance", "Assessor"]);
+/**
+ * CUI vault access level — orthogonal to userRoleEnum (which is the Codex
+ * platform role). 'privileged' = sysadmin / elevated access in the actual
+ * CUI environment; drives which AT.L2-3.2.x training is required. See
+ * migration 0064 for full rationale.
+ */
+export const cuiAccessLevelEnum = pgEnum("cui_access_level", ["general", "privileged"]);
 export const controlStatusEnum = pgEnum("control_status", [
   "Not Started",
   "Implemented",
@@ -703,6 +710,8 @@ export const users = pgTable("users", {
   passwordHash: text("password_hash"),
   name: text("name"),
   role: userRoleEnum("role").notNull().default("Compliance"),
+  /** CUI vault privilege level — see cuiAccessLevelEnum. */
+  cuiAccessLevel: cuiAccessLevelEnum("cui_access_level").notNull().default("general"),
   mfaEnabled: integer("mfa_enabled").default(0).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
