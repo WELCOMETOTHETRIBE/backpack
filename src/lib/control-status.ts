@@ -22,6 +22,8 @@ import {
   governanceRegisters,
   governanceRegisterEntries,
   boundaries,
+  trainingRecords,
+  users,
 } from "@/db/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
 import {
@@ -145,10 +147,88 @@ const intelByControlId = new Map(CONTROL_INTELLIGENCE.map((c) => [c.controlId, c
  */
 const EVENT_DRIVEN_EXCLUDED_FROM_EMPTY_PASS = new Set<string>(["technical_compliance_run"]);
 
+/**
+ * AT.L2-3.2.x training coverage gate.
+ *
+ * The cadence-rule-only "any one entry passes" check below is too lenient
+ * for training controls — a single user's completion would flip the entire
+ * org's control to implemented even when the rest of the boundary user
+ * roster was missing training. The C3PAO rule is per-user coverage. We
+ * mirror the audience tiers from TRAINING_SECTIONS in
+ * src/app/dashboard/training/TrainingClient.tsx:
+ *
+ *   3.2.1 (security_awareness) → general + privileged users
+ *   3.2.2 (role_based)         → privileged users only
+ *   3.2.3 (insider_threat)     → general + privileged users
+ *
+ * A control passes only when EVERY user in the org whose cuiAccessLevel is
+ * in the audience tier list has a training_records row of the right
+ * training_type. The cuiAccessLevel column was added in migration 0064 to
+ * give the server-side gate the signal it needs (was previously
+ * localStorage-only).
+ */
+const TRAINING_CONTROLS: Record<
+  string,
+  { trainingType: string; requiredFor: ReadonlyArray<"general" | "privileged"> }
+> = {
+  "3.2.1": { trainingType: "security_awareness", requiredFor: ["general", "privileged"] },
+  "3.2.2": { trainingType: "role_based", requiredFor: ["privileged"] },
+  "3.2.3": { trainingType: "insider_threat", requiredFor: ["general", "privileged"] },
+};
+
+async function isTrainingControlSatisfied(
+  organizationId: string,
+  controlId: string
+): Promise<boolean> {
+  const spec = TRAINING_CONTROLS[controlId];
+  if (!spec) return true;
+
+  const orgUsers = await db
+    .select({ email: users.email, cuiAccessLevel: users.cuiAccessLevel })
+    .from(users)
+    .where(eq(users.organizationId, organizationId));
+
+  const requiredEmails = orgUsers
+    .filter((u) =>
+      spec.requiredFor.includes(u.cuiAccessLevel as "general" | "privileged")
+    )
+    .map((u) => u.email.toLowerCase());
+
+  // Edge case: zero users in the org's audience tier means the control has
+  // no applicable population; treat as satisfied (vacuous truth — matches
+  // the way "no privileged users" trivially satisfies 3.2.2).
+  if (requiredEmails.length === 0) return true;
+
+  const tr = await db
+    .select({ email: trainingRecords.personnelEmail })
+    .from(trainingRecords)
+    .where(
+      and(
+        eq(trainingRecords.organizationId, organizationId),
+        eq(trainingRecords.trainingType, spec.trainingType)
+      )
+    );
+  const trainedEmails = new Set(
+    tr
+      .map((r) => r.email?.toLowerCase())
+      .filter((e): e is string => Boolean(e))
+  );
+
+  return requiredEmails.every((e) => trainedEmails.has(e));
+}
+
 async function isRegisterSatisfied(
   organizationId: string,
   controlId: string
 ): Promise<boolean> {
+  // Training-control coverage gate: enforced before the generic "any final
+  // entry" rule because the AT family needs full-user-population coverage.
+  // Without this, one Patrick training_record flips 3.2.1 + 3.2.3 to
+  // implemented while Brian and James have no training on file.
+  if (TRAINING_CONTROLS[controlId]) {
+    return isTrainingControlSatisfied(organizationId, controlId);
+  }
+
   const intel = intelByControlId.get(controlId);
   if (!intel?.registerRequired || !intel.registerSchemaId) return true; // no register needed
 
