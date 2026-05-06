@@ -440,8 +440,51 @@ export const organizations = pgTable("organizations", {
    * or no reverse proxy is published.
    */
   enclavewatchBaseUrl: text("enclavewatch_base_url"),
+  /**
+   * TrainOS tenant identifier (cuid). Set per-org in Settings →
+   * Integrations → TrainOS during onboarding. The inbound webhook handler
+   * resolves orgId via this column; missing row → terminal 404
+   * (tenant_not_onboarded). See docs and Sprint 9.
+   */
+  trainosTenantId: text("trainos_tenant_id").unique(),
+  /**
+   * Per-tenant HMAC secret (hex-encoded random bytes) used to validate
+   * `sha256={hex(hmac_sha256(secret, "{ts}.{body}"))}` on inbound deliveries
+   * from training.mactechsolutionsllc.com. Manual two-phase rotation only
+   * for v1 (dual-window deferred to v3). Show-once UX in Settings.
+   */
+  trainosWebhookSecret: text("trainos_webhook_secret"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
+
+/**
+ * TrainOS → Codex delivery audit + dedup log. One row per accepted
+ * `evidence.attempt.completed` (or other) event. Replay of the same
+ * `delivery_id` returns the cached `verdict_response` verbatim — same
+ * pattern as isso_export_manifests.
+ */
+export const trainosDeliveries = pgTable(
+  "trainos_deliveries",
+  {
+    deliveryId: uuid("delivery_id").primaryKey(),
+    organizationId: uuid("organization_id")
+      .references(() => organizations.id, { onDelete: "cascade" })
+      .notNull(),
+    event: varchar("event", { length: 80 }).notNull(),
+    schemaVersion: varchar("schema_version", { length: 8 }),
+    canonicalizationVer: varchar("canonicalization_ver", { length: 8 }),
+    evidenceRecordId: text("evidence_record_id").notNull(),
+    evidenceHash: text("evidence_hash").notNull(),
+    certificateNumber: text("certificate_number"),
+    occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull(),
+    verdictResponse: jsonb("verdict_response").$type<Record<string, unknown>>().notNull(),
+    verdictOverall: varchar("verdict_overall", { length: 32 }).notNull(),
+    /** sha256 hex of the raw request body — for 409 detection on replay-with-different-body. */
+    requestBodyHash: text("request_body_hash").notNull(),
+    receivedAt: timestamp("received_at", { withTimezone: true }).defaultNow().notNull(),
+    sandbox: boolean("sandbox").default(false).notNull(),
+  }
+);
 
 /** One per org: selected technology stack for evidence requirements (keys from technical_evidence_requirements). */
 export const boundaryProfiles = pgTable(
