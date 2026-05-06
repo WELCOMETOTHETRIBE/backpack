@@ -30,7 +30,7 @@ import {
   governanceRegisters,
   users,
 } from "@/db/schema";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { calculateControlStatus } from "@/lib/control-status";
 import { controlIdToNist } from "@/lib/compliance/controlId";
 import type {
@@ -232,7 +232,7 @@ export async function applyTrainosEvidence(
         .where(
           and(
             eq(controlRecords.organizationId, organizationId),
-            sql`${controlRecords.controlId} = ANY(${nistControlIds})`
+            inArray(controlRecords.controlId, nistControlIds)
           )
         );
 
@@ -261,7 +261,7 @@ export async function applyTrainosEvidence(
     .where(
       and(
         eq(controlRecords.organizationId, organizationId),
-        sql`${controlRecords.controlId} = ANY(${nistControlIds})`
+        inArray(controlRecords.controlId, nistControlIds)
       )
     );
 
