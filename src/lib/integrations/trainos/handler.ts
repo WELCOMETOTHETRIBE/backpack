@@ -299,14 +299,35 @@ function handleHandshake(args: {
   org: { id: string; name: string; trainosTenantId: string };
   sandbox: boolean;
 }): NextResponse {
-  const probe = args.parsed.probe as
-    | { input?: unknown; expectedCanonical?: string; expectedSha256?: string }
+  // TrainOS's actual payload shape (lib/integrations/codex/payload.ts
+  // buildHandshakePayload): probe lives under handshake.probe and the
+  // sha256 field is named expectedSha256Hex. The brief's draft used a
+  // flatter shape but the sender shipped first; align with the wire
+  // reality. Fall back to the flat shape for forward-compat with any
+  // future sender that follows the original draft.
+  const handshakeBlock = args.parsed.handshake as
+    | { probe?: Record<string, unknown> }
     | undefined;
+  const rawProbe = (handshakeBlock?.probe ?? args.parsed.probe) as
+    | {
+        input?: unknown;
+        expectedCanonical?: string;
+        expectedSha256?: string;
+        expectedSha256Hex?: string;
+      }
+    | undefined;
+  const probe = rawProbe
+    ? {
+        input: rawProbe.input,
+        expectedCanonical: rawProbe.expectedCanonical,
+        expectedSha256: rawProbe.expectedSha256Hex ?? rawProbe.expectedSha256,
+      }
+    : undefined;
   if (!probe || probe.input === undefined || !probe.expectedCanonical || !probe.expectedSha256) {
     return NextResponse.json(
       {
         error: "malformed_handshake",
-        message: "integration.handshake events must include a probe with input + expectedCanonical + expectedSha256.",
+        message: "integration.handshake events must include handshake.probe (or top-level probe) with input + expectedCanonical + expectedSha256Hex.",
       },
       { status: 400 }
     );
