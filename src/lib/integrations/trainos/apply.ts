@@ -28,6 +28,7 @@ import {
   controlRecords,
   governanceRegisterEntries,
   governanceRegisters,
+  trainingRecords,
   users,
 } from "@/db/schema";
 import { and, eq, inArray, sql } from "drizzle-orm";
@@ -251,6 +252,35 @@ export async function applyTrainosEvidence(
 
       void createdEntry; // already consumed
     }
+
+    // 6. Mirror into the legacy training_records table so /dashboard/training
+    // (and the 50+ other call sites that read from it) see TrainOS-sourced
+    // completions alongside hand-entered ones. The register entry above is
+    // the system-of-record for evidence; this row is just the operational
+    // view the rest of Codex already knows how to read.
+    const completedAtIso = canonical.completedAt; // ISO 8601 string
+    const completedAtDate = completedAtIso.slice(0, 10); // YYYY-MM-DD
+    const expiresAtMs =
+      new Date(completedAtIso).getTime() + 365 * 24 * 60 * 60 * 1000;
+    const expiresAtDate = new Date(expiresAtMs).toISOString().slice(0, 10);
+    const trainingType = pickTrainingType(nistControlIds);
+    // NOTE: trainingRecords.userRole is in src/db/schema.ts but not yet
+    // migrated to production (verified against \\d training_records on the
+    // deployed DB on 2026-05-06). Omitted here until the migration lands.
+    // Once applied, add: userRole: canonical.learnerRole.
+    await tx.insert(trainingRecords).values({
+      organizationId,
+      personnelName: canonical.learnerName,
+      personnelEmail: canonical.learnerEmail,
+      trainingType,
+      courseTitle: canonical.courseTitle,
+      deliveryMethod: "online",
+      completedAt: completedAtDate,
+      expiresAt: expiresAtDate,
+      evidenceUrl: certificate?.verificationUrl ?? null,
+      notes: `TrainOS delivery ${event.deliveryId} · evidence ${event.evidence.evidenceRecordId} · score ${canonical.score}/${canonical.passingThreshold} · learner role ${canonical.learnerRole}`,
+      createdById: matchedUser?.id ?? null,
+    });
   });
 
   // 6. Recalculate control_records status for affected controls. Best-effort
@@ -282,6 +312,19 @@ export async function applyTrainosEvidence(
     attestationsCreated,
     recalcErrors,
   };
+}
+
+/**
+ * Map TrainOS-supplied control IDs to the legacy training_records.training_type
+ * enum (security_awareness | role_based | insider_threat | other). Driven by
+ * the AT.L2-3.2.x family ID since that's how the existing UI categorizes.
+ */
+function pickTrainingType(nistControlIds: string[]): string {
+  const ids = new Set(nistControlIds);
+  if (ids.has("3.2.3")) return "insider_threat";
+  if (ids.has("3.2.2")) return "role_based";
+  if (ids.has("3.2.1")) return "security_awareness";
+  return "other";
 }
 
 /** Re-export for the route module so it doesn't have to import the const directly. */
