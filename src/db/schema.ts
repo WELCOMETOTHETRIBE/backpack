@@ -1904,6 +1904,43 @@ export const controlAdjudicationSnapshots = pgTable(
   },
 );
 
+/**
+ * Phase 9 — Cross-evidence threat narratives.
+ *
+ * Joins multiple register entries that tell a single threat story (e.g.,
+ * break-glass sign-in + privileged grant + Defender alert in the same
+ * hour from the same actor). Each narrative is a Pattern A loop in
+ * itself: detected by the correlation engine, admin signs investigation
+ * outcome, ISSO verifies on weekly review.
+ */
+export const threatNarratives = pgTable("threat_narratives", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  narrativeType: varchar("narrative_type", { length: 80 }).notNull(),
+  summary: text("summary").notNull(),
+  confidence: real("confidence").notNull(),
+  relatedEntryIds: jsonb("related_entry_ids").notNull().default([]),
+  openedAt: timestamp("opened_at", { withTimezone: true }).notNull(),
+  lastObservedAt: timestamp("last_observed_at", { withTimezone: true }).notNull(),
+  status: varchar("status", { length: 24 }).notNull().default("open"),
+  adminAcknowledgedAt: timestamp("admin_acknowledged_at", { withTimezone: true }),
+  adminAcknowledgedBy: uuid("admin_acknowledged_by"),
+  adminOutcome: text("admin_outcome"),
+  adminNotes: text("admin_notes"),
+  issoVerifiedAt: timestamp("isso_verified_at", { withTimezone: true }),
+  issoVerifiedByName: text("isso_verified_by_name"),
+  issoNote: text("isso_note"),
+  mergedIntoId: uuid("merged_into_id"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 // ============== IR Tabletop & AAR Evidence Kit ==============
 export {
   irExerciseStatusEnum,

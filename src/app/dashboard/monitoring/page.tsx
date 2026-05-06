@@ -39,6 +39,7 @@ import {
 import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
 import { getVulnStatsForOrg } from "@/lib/sctm/vuln-stats";
 import { AttentionResolveButton } from "./AttentionResolveButton";
+import { getRecentThreatNarratives } from "@/lib/evidence-engine/correlation/threat-narratives";
 
 /**
  * Continuous Monitoring (3.12.3) — operational dashboard for the
@@ -604,6 +605,12 @@ export default async function MonitoringPage() {
     .orderBy(desc(issoExportManifests.receivedAt))
     .limit(5);
 
+  // ── Phase 9: active threat narratives ────────────────────────────────
+  // Cross-evidence joins (e.g., break-glass + privileged grant + Defender
+  // alert from same actor). Surfaces threat stories the auditor would
+  // otherwise have to assemble manually.
+  const threatNarrativesRecent = await getRecentThreatNarratives(orgId, 30);
+
   // ── ISSO observations rollup ───────────────────────────────────────────
   // Sums high+critical entries written by ISSO weekly review across three
   // registers in the last 14 days. Drives the admin "what did ISSO flag"
@@ -1064,6 +1071,75 @@ export default async function MonitoringPage() {
                 No stale cadences, no open critical/high CVEs, no SLA breaches, no expired attestations, no overdue POA&amp;Ms.
               </p>
             </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── Section 0a2: Active threat narratives (Phase 9) ─────────── */}
+      {threatNarrativesRecent.length > 0 && (
+        <section>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">
+              Active threat narratives
+            </h2>
+            <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-medium text-purple-800">
+              {threatNarrativesRecent.length} narrative{threatNarrativesRecent.length === 1 ? "" : "s"} (last 30d)
+            </span>
+          </div>
+          <div className={`${cardClass} space-y-2 p-4`}>
+            <p className="text-xs text-[var(--color-gray-600)]">
+              Cross-evidence joins detected by the Phase 9 correlation
+              engine — e.g., a break-glass session + privileged role grant
+              from the same actor, or configuration drift + a Defender
+              alert on the same host. Each narrative is a Pattern A loop:
+              admin signs investigation outcome, ISSO verifies on next
+              weekly review.
+            </p>
+            <ul className="mt-3 space-y-1.5">
+              {threatNarrativesRecent.map((n) => {
+                const related = Array.isArray(n.relatedEntryIds)
+                  ? (n.relatedEntryIds as Array<{ entry_id: string }>)
+                  : [];
+                const tone =
+                  n.status === "open"
+                    ? "border-purple-200 bg-purple-50/60 text-purple-900"
+                    : n.status === "isso_verified" ||
+                      n.status === "admin_resolved"
+                    ? "border-emerald-200 bg-emerald-50/60 text-emerald-900"
+                    : n.status === "false_positive"
+                    ? "border-gray-200 bg-gray-50/60 text-gray-700"
+                    : "border-amber-200 bg-amber-50/60 text-amber-900";
+                return (
+                  <li
+                    key={n.id}
+                    className={`flex items-start gap-3 rounded-md border ${tone} px-3 py-2 text-sm`}
+                  >
+                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white text-purple-700">
+                      <Flame className="h-3.5 w-3.5" aria-hidden />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-baseline gap-2">
+                        <span className="font-medium">
+                          {n.narrativeType.replace(/_/g, " ")}
+                        </span>
+                        <span className="text-[10px] uppercase tracking-wide opacity-70">
+                          {n.status}
+                        </span>
+                        <span className="text-[10px] opacity-70">
+                          confidence {Math.round(n.confidence * 100)}%
+                        </span>
+                      </div>
+                      <p className="mt-0.5 text-xs opacity-90">{n.summary}</p>
+                      <p className="mt-0.5 text-[10px] opacity-70">
+                        opened {new Date(n.openedAt).toLocaleString()} · last observed{" "}
+                        {new Date(n.lastObservedAt).toLocaleString()} ·{" "}
+                        {related.length} contributing entr{related.length === 1 ? "y" : "ies"}
+                      </p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
         </section>
       )}

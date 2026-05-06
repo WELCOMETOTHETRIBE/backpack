@@ -1,0 +1,139 @@
+{
+  "schema": "mactech.cmmc.threat-narrative-rules.v1",
+  "version": "1.0.0",
+  "description": "Hand-coded correlation rules for Phase 9 of the Control Adjudication Ecosystem roadmap. Each rule fires when a leading entry is followed (within window_minutes) by N supporting entries matching the support_filter. The correlator service reads these rules and emits threat_narratives rows.",
+  "rules": [
+    {
+      "id": "credential_compromise_v1",
+      "narrative_type": "credential_compromise",
+      "title": "Credential compromise narrative",
+      "description": "Break-glass sign-in immediately followed by a privileged role grant from the same actor — classic credential-takeover pattern.",
+      "lead": {
+        "entry_type": "break_glass_acknowledgment",
+        "register_key_in": ["maintenance_log"]
+      },
+      "supporting": [
+        {
+          "entry_type": "privileged_grant_acknowledgment",
+          "register_key_in": ["access_authorization"],
+          "min_count": 1,
+          "join_on": ["actor_user", "scope_arm"]
+        }
+      ],
+      "window_minutes": 120,
+      "summary_template": "Break-glass sign-in by {{lead.actor_user}} at {{lead.detected_at}} from {{lead.client_ip}} was immediately followed by {{count.privileged_grant_acknowledgment}} privileged role grant(s) on {{lead.scope_arm}}. Pattern is consistent with credential takeover. Admin should investigate whether the break-glass session was authorized AND whether the privileged grants were intentional.",
+      "confidence": 0.85
+    },
+    {
+      "id": "tampering_drift_with_alert_v1",
+      "narrative_type": "tampering",
+      "title": "Tampering narrative — drift + Defender alert",
+      "description": "Configuration drift on a baseline-protected resource immediately followed by a Defender alert categorized as privilege_escalation_attempt or suspicious_process — likely tampering.",
+      "lead": {
+        "entry_type": "change_drift_acknowledgment",
+        "register_key_in": ["change_drift_log"]
+      },
+      "supporting": [
+        {
+          "entry_type": "defender_alert_acknowledgment",
+          "register_key_in": ["incident_log"],
+          "min_count": 1,
+          "join_on": ["host", "system"],
+          "filter": {
+            "event_type_in": [
+              "privilege_escalation_attempt",
+              "suspicious_process",
+              "credential_theft_attempt"
+            ]
+          }
+        }
+      ],
+      "window_minutes": 60,
+      "summary_template": "Configuration drift on {{lead.path}} ({{lead.change_type}}) on host {{lead.host}} at {{lead.occurred_at}} was followed by a Defender alert ({{count.defender_alert_acknowledgment}}) in the same window. This combination is consistent with on-host tampering. Investigate whether the drift was intentional AND whether the alert was triaged.",
+      "confidence": 0.8
+    },
+    {
+      "id": "stale_privilege_v1",
+      "narrative_type": "stale_privilege",
+      "title": "Stale-privilege narrative",
+      "description": "Weekly review finding flagged a dormant or unjustified privileged account on a UPN that ALSO has an open privileged_grant_acknowledgment in the period.",
+      "lead": {
+        "entry_type": "weekly_review_finding",
+        "register_key_in": ["access_authorization"],
+        "filter": {
+          "finding_type_in": ["dormant_account", "unjustified_grant", "stale_role"]
+        }
+      },
+      "supporting": [
+        {
+          "entry_type": "privileged_grant_acknowledgment",
+          "register_key_in": ["access_authorization"],
+          "min_count": 1,
+          "join_on": ["actor_user"]
+        }
+      ],
+      "window_minutes": 10080,
+      "summary_template": "ISSO weekly review flagged {{lead.subject_user}} as {{lead.finding_type}} during {{lead.observed_at}}, and the same UPN holds {{count.privileged_grant_acknowledgment}} active privileged grant(s). Admin should review whether the privilege should be revoked or the finding should be marked resolved with documented justification.",
+      "confidence": 0.75
+    },
+    {
+      "id": "lateral_movement_burst_v1",
+      "narrative_type": "lateral_movement_burst",
+      "title": "Lateral movement burst",
+      "description": "Multiple Defender alerts categorized as lateral_movement_attempt or credential_theft_attempt within a short window — burst suggests a coordinated attack.",
+      "lead": {
+        "entry_type": "defender_alert_acknowledgment",
+        "register_key_in": ["incident_log"],
+        "filter": {
+          "event_type_in": [
+            "lateral_movement_attempt",
+            "credential_theft_attempt"
+          ]
+        }
+      },
+      "supporting": [
+        {
+          "entry_type": "defender_alert_acknowledgment",
+          "register_key_in": ["incident_log"],
+          "min_count": 2,
+          "filter": {
+            "event_type_in": [
+              "lateral_movement_attempt",
+              "credential_theft_attempt",
+              "privilege_escalation_attempt"
+            ]
+          }
+        }
+      ],
+      "window_minutes": 30,
+      "summary_template": "{{count.defender_alert_acknowledgment}} Defender alerts categorized as lateral movement / credential theft / privilege escalation observed within 30 minutes. Pattern is consistent with a coordinated attack. Investigate whether the alerts share a common source actor or compromised endpoint.",
+      "confidence": 0.9
+    },
+    {
+      "id": "unjustified_drift_at_scale_v1",
+      "narrative_type": "unjustified_drift_at_scale",
+      "title": "Unjustified drift at scale",
+      "description": "Three or more change_drift_acknowledgment entries past the 72-hour SLA without admin justification — operational drift is exceeding admin capacity.",
+      "lead": {
+        "entry_type": "change_drift_acknowledgment",
+        "register_key_in": ["change_drift_log"],
+        "filter": {
+          "lifecycle_state_in": ["draft"]
+        }
+      },
+      "supporting": [
+        {
+          "entry_type": "change_drift_acknowledgment",
+          "register_key_in": ["change_drift_log"],
+          "min_count": 2,
+          "filter": {
+            "lifecycle_state_in": ["draft"]
+          }
+        }
+      ],
+      "window_minutes": 4320,
+      "summary_template": "{{count.change_drift_acknowledgment}} configuration-drift events past the 72-hour admin justification SLA. Operational drift volume is exceeding admin capacity to triage. Either the WatchPaths configuration is too broad (false positives) or there is genuine widespread baseline drift requiring escalation.",
+      "confidence": 0.7
+    }
+  ]
+}

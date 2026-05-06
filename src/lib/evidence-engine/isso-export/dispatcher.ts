@@ -23,6 +23,7 @@ import { calculateControlStatus } from "@/lib/control-status";
 import { writeAuditLog } from "@/lib/audit";
 import { regenerateOIS } from "@/lib/evidence-engine/adjudication/ois-generator";
 import { scoreControl, persistAdjudication } from "@/lib/evidence-engine/adjudication/scorer";
+import { runThreatCorrelation } from "@/lib/evidence-engine/correlation/threat-narratives";
 import { audit_log_reviewHandler } from "./handlers/audit-log-review";
 import { maintenance_logHandler } from "./handlers/maintenance-log";
 import { previous_period_acknowledgments_reviewHandler } from "./handlers/ack-review";
@@ -193,6 +194,18 @@ export async function dispatchIssoExport(
         `OIS regeneration failed: ${err instanceof Error ? err.message : String(err)}`,
       );
     }
+  }
+
+  // ── Phase 9: run threat-narrative correlation across recent entries ───
+  // Same best-effort policy. Joins recent entries by alert_id / actor /
+  // host / etc. against the rules in threat_narrative_rules.v1.json and
+  // emits threat_narratives rows for matching clusters.
+  try {
+    await runThreatCorrelation({ orgId: ctx.orgId });
+  } catch (err) {
+    warnings.push(
+      `Threat correlation failed: ${err instanceof Error ? err.message : String(err)}`,
+    );
   }
 
   // ── Phase 7: re-score Control Adjudication for touched controls ───────
