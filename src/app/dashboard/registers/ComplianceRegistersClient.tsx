@@ -737,7 +737,7 @@ export function ComplianceRegistersClient({ userRole }: { userRole: string }) {
                   </span>
                   <span className="flex items-center gap-1">
                     <span className="h-2 w-2 rounded-full bg-amber-500" />
-                    <strong>Due Soon</strong> — entry needed within 7 days
+                    <strong>Due Soon</strong> — entry needed within the per-register warning window (e.g. weekly = 2d, quarterly = 14d). Each row shows its exact countdown.
                   </span>
                   <span className="flex items-center gap-1">
                     <span className="h-2 w-2 rounded-full bg-red-500" />

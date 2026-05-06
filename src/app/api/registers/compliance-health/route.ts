@@ -12,7 +12,11 @@ import { governanceRegisters, governanceRegisterEntries, controlRecords } from "
 import { eq, desc } from "drizzle-orm";
 import { getRegisterSchemas } from "@/data/cmmc/register-schemas";
 import { CONTROL_INTELLIGENCE, cadenceToDays } from "@/data/cmmc/control-intelligence";
-import { REGISTER_DISPLAY_NAMES, type RegisterHealthStatus } from "@/lib/registers/compliance-health";
+import {
+  REGISTER_DISPLAY_NAMES,
+  computeHealthStatus,
+  type RegisterHealthStatus,
+} from "@/lib/registers/compliance-health";
 import { getCadenceRuleByRegisterId } from "@/data/cmmc/register-cadence-rules";
 import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
 
@@ -50,25 +54,13 @@ export type ComplianceRegisterHealth = {
   href: string;
 };
 
-function computeStatus(
-  lastEntryAt: Date | null,
-  cadenceDays: number | null
-): { status: RegisterHealthStatus; daysOverdue: number | null; daysUntilDue: number | null; nextDueAt: Date | null } {
-  if (cadenceDays === null || cadenceDays === 0) {
-    if (!lastEntryAt) return { status: "never_used", daysOverdue: null, daysUntilDue: null, nextDueAt: null };
-    return { status: "current", daysOverdue: null, daysUntilDue: null, nextDueAt: null };
-  }
-  if (!lastEntryAt) {
-    return { status: "never_used", daysOverdue: null, daysUntilDue: null, nextDueAt: null };
-  }
-  const cadenceMs = cadenceDays * 86_400_000;
-  const nextDueAt = new Date(lastEntryAt.getTime() + cadenceMs);
-  const msUntilDue = nextDueAt.getTime() - Date.now();
-  const daysUntilDue = Math.ceil(msUntilDue / 86_400_000);
-  if (msUntilDue < 0) return { status: "overdue", daysOverdue: Math.abs(daysUntilDue), daysUntilDue: null, nextDueAt };
-  if (daysUntilDue <= 7) return { status: "due_soon", daysOverdue: null, daysUntilDue, nextDueAt };
-  return { status: "current", daysOverdue: null, daysUntilDue, nextDueAt };
-}
+// Status compute moved to src/lib/registers/compliance-health.ts as
+// computeHealthStatus() — single canonical source of truth for both the
+// /dashboard server component and this client-fetched API route. The old
+// duplicate that lived here had a hardcoded <=7d due-soon threshold and
+// no Friday anchor, producing wrong status badges on weekly registers
+// (e.g. audit_log_review showing "Due Soon" with 6 days remaining when
+// its warning_days is 2). See git history if you need the old version.
 
 export async function GET() {
   const session = await auth();
@@ -150,7 +142,8 @@ export async function GET() {
       entryCount = all.length;
     }
 
-    const computed = computeStatus(lastEntryAt, effectiveCadence);
+    const cadenceRule = getCadenceRuleByRegisterId(schema.register_id);
+    const computed = computeHealthStatus(lastEntryAt, cadenceRule, effectiveCadence);
     const displayName = REGISTER_DISPLAY_NAMES[schema.register_id] ?? schema.register_id;
     const description = schema.description ?? "";
 
@@ -160,7 +153,7 @@ export async function GET() {
       : effectiveCadence <= 90 ? "Quarterly"
       : "Annual";
 
-    const cadenceRule = getCadenceRuleByRegisterId(schema.register_id);
+    // cadenceRule already loaded above for computeHealthStatus
     const eventDriven = cadenceRule?.cadence_days === 0;
 
     // N/A cascade: if every control mapped to this register is inherited or

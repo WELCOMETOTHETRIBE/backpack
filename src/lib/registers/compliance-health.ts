@@ -88,18 +88,35 @@ export function nextWeeklyDeadline(lastEntryAt: Date): Date {
   return new Date(cycleEnd.getTime() + WEEK_MS);
 }
 
-type CadenceRuleLike = {
+export type CadenceRuleLike = {
   cadence_type: string;
   cadence_days: number;
   warning_days: number;
 };
 
-function computeHealthStatus(
+export type ComputedRegisterStatus = {
+  status: RegisterHealthStatus;
+  daysOverdue: number | null;
+  daysUntilDue: number | null;
+  /** Wall-clock for the next deadline. null for event-driven / never-used. */
+  nextDueAt: Date | null;
+};
+
+/**
+ * Single canonical compute for register due/overdue/due-soon status.
+ * Honored by both `getComplianceRegisterHealth()` (server component) and
+ * `/api/registers/compliance-health` (client fetch). Do NOT inline a
+ * second copy of this anywhere — the previous duplicate in the API route
+ * caused the "Due in 6d → Due Soon" bug because it didn't read
+ * warning_days from the cadence rule and didn't anchor weekly cadence
+ * to Friday 17:00 UTC.
+ */
+export function computeHealthStatus(
   lastEntryAt: Date | null,
   rule: CadenceRuleLike | null,
   fallbackCadenceDays: number | null,
   now: Date = new Date()
-): { status: RegisterHealthStatus; daysOverdue: number | null; daysUntilDue: number | null } {
+): ComputedRegisterStatus {
   const cadenceDays = rule?.cadence_days ?? fallbackCadenceDays ?? null;
   // Honor warning_days from the cadence rules JSON instead of the legacy
   // hardcoded 7-day threshold. Weekly registers use 2; quarterly use 14;
@@ -110,26 +127,26 @@ function computeHealthStatus(
   // Event-driven (cadence_days = 0): no scheduled deadline. The register
   // is "current" as soon as anything has been logged.
   if (cadenceDays === null || cadenceDays === 0) {
-    if (!lastEntryAt) return { status: "never_used", daysOverdue: null, daysUntilDue: null };
-    return { status: "current", daysOverdue: null, daysUntilDue: null };
+    if (!lastEntryAt) return { status: "never_used", daysOverdue: null, daysUntilDue: null, nextDueAt: null };
+    return { status: "current", daysOverdue: null, daysUntilDue: null, nextDueAt: null };
   }
   if (!lastEntryAt) {
-    return { status: "never_used", daysOverdue: null, daysUntilDue: null };
+    return { status: "never_used", daysOverdue: null, daysUntilDue: null, nextDueAt: null };
   }
 
   // Weekly cadence is anchored to Friday 17:00 UTC; everything else uses
   // a sliding window from the last entry. We can extend the anchor model
   // to monthly/quarterly/annual later if needed.
-  const nextDueMs =
+  const nextDue =
     cadenceType === "weekly"
-      ? nextWeeklyDeadline(lastEntryAt).getTime()
-      : lastEntryAt.getTime() + cadenceDays * DAY_MS;
+      ? nextWeeklyDeadline(lastEntryAt)
+      : new Date(lastEntryAt.getTime() + cadenceDays * DAY_MS);
 
-  const msUntil = nextDueMs - now.getTime();
+  const msUntil = nextDue.getTime() - now.getTime();
   const daysUntil = Math.ceil(msUntil / DAY_MS);
-  if (msUntil < 0) return { status: "overdue", daysOverdue: Math.abs(daysUntil), daysUntilDue: null };
-  if (daysUntil <= warningDays) return { status: "due_soon", daysOverdue: null, daysUntilDue: daysUntil };
-  return { status: "current", daysOverdue: null, daysUntilDue: daysUntil };
+  if (msUntil < 0) return { status: "overdue", daysOverdue: Math.abs(daysUntil), daysUntilDue: null, nextDueAt: nextDue };
+  if (daysUntil <= warningDays) return { status: "due_soon", daysOverdue: null, daysUntilDue: daysUntil, nextDueAt: nextDue };
+  return { status: "current", daysOverdue: null, daysUntilDue: daysUntil, nextDueAt: nextDue };
 }
 
 /**
