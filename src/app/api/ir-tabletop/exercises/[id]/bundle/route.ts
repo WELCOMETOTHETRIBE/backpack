@@ -25,6 +25,11 @@ import {
   UploadBundleManifestSchema,
 } from "@/lib/ir-tabletop-bridge"
 import { getIrTabletopStorage } from "@/lib/ir-tabletop-storage"
+import {
+  emitPoamFromBundle,
+  type FindingForEmission,
+} from "@/lib/ir-tabletop-poam-emission"
+import { sendIrParticipantDisputeNotifications } from "@/lib/ir-tabletop-dispute-email"
 
 /**
  * Capture a full state snapshot for the exercise at archive time.
@@ -182,6 +187,64 @@ export async function POST(
     )[0]
     if (!exercise) {
       return NextResponse.json({ error: "Not found" }, { status: 404 })
+    }
+
+    // ─── Cadence enforcement (Codex migration 0065 step 3) ─────────────────
+    // AT.L2-3.6.3 requires the IR capability to be tested on a defined
+    // frequency. The C3PAO position: an AAR older than 12 months is stale
+    // — the exercise needs to be re-run, not re-uploaded. Enforce only
+    // when the bundle ships executedAt; legacy (pre-augmentation) bundles
+    // without executedAt fall through and rely on existing cadence math.
+    const TWELVE_MONTHS_MS = 365 * 24 * 60 * 60 * 1000
+    if (body.executedAt) {
+      const ageMs = Date.now() - new Date(body.executedAt).getTime()
+      if (ageMs > TWELVE_MONTHS_MS) {
+        return NextResponse.json(
+          {
+            error: "bundle_stale",
+            message: `Exercise executedAt is more than 12 months old (${Math.floor(ageMs / (24 * 60 * 60 * 1000))} days). C3PAO requires AT.L2-3.6.3 testing on a defined frequency — re-run the tabletop and upload a fresh bundle.`,
+            executedAt: body.executedAt,
+            maxAgeMonths: 12,
+          },
+          { status: 422 }
+        )
+      }
+      if (ageMs < 0) {
+        return NextResponse.json(
+          {
+            error: "bundle_future_dated",
+            message:
+              "Exercise executedAt is in the future. Reject — possible clock skew or bad data.",
+            executedAt: body.executedAt,
+          },
+          { status: 422 }
+        )
+      }
+    }
+
+    // ─── Live-proof enforcement (Codex migration 0065 step 3) ──────────────
+    // Bundle claims AT.L2-3.6.3 satisfaction (testing) only when there's
+    // evidence of live execution: facilitator-attested participants AND
+    // attendance corroboration beyond the facilitator's word (Teams CSV
+    // OR signed roster image). Without those, the bundle is a paper
+    // walkthrough — accept it, but the bundle's irCoverage flag will
+    // tell Codex to stamp it as facilitator_only and 3.6.3 stays
+    // in_progress. We don't reject in this case (3.6.1 capability
+    // satisfaction is still valid). Reject only if a partial signal
+    // is present (e.g. claims 'teams_csv' corroboration but didn't
+    // include the file's sha256).
+    if (
+      body.attendanceCorroborationKind &&
+      body.attendanceCorroborationKind !== "facilitator_only" &&
+      !body.attendanceCorroborationFileSha256
+    ) {
+      return NextResponse.json(
+        {
+          error: "live_proof_incomplete",
+          message: `Bundle claims '${body.attendanceCorroborationKind}' corroboration but no attendanceCorroborationFileSha256 was supplied. Either include the corroboration file's sha256 or set kind to 'facilitator_only' (3.6.1 only).`,
+        },
+        { status: 422 }
+      )
     }
 
     // Idempotency: check for existing run with same fingerprint (manifestSha256).
@@ -541,6 +604,68 @@ export async function POST(
       req,
     })
 
+    // ─── POA&M emission (Codex migration 0065 step 3) ────────────────────
+    // After the archive transaction commits, walk the snapshot for
+    // high/critical findings without closed corrective actions and the
+    // bundle's irCoverage block for the DIBNet gap. Emit POA&Ms outside
+    // the archive tx so a POA&M write failure can't roll back the
+    // bundle. Best-effort — log and continue if it errors.
+    let emittedPoams: { poamId: string; controlId: string; trigger: string }[] = []
+    try {
+      const findingsForEmission: FindingForEmission[] = stateSnapshot.findings.map(
+        (f) => ({
+          id: f.id,
+          controlId: f.controlId,
+          severity: String(f.severity),
+          title: f.title,
+          description: f.description,
+          hasClosedCorrectiveAction: (f.correctiveActions ?? []).some(
+            (ca) => ca.status === "completed" || ca.closedAt !== null,
+          ),
+        }),
+      )
+      const irCoverage = (body.manifest?.irCoverage ?? undefined) as
+        | Record<string, { satisfied: boolean; gaps: string[] } | undefined>
+        | undefined
+      emittedPoams = await emitPoamFromBundle({
+        organizationId: auth.organizationId,
+        exerciseId: id,
+        bundleId: result.bundle.id,
+        findings: findingsForEmission,
+        irCoverage,
+      })
+    } catch (emitErr) {
+      // eslint-disable-next-line no-console
+      console.error(
+        `[ir-bundle/poam-emission] failed for bundle=${result.bundle.id}:`,
+        emitErr,
+      )
+    }
+
+    // ─── Dispute notification emails (Codex migration 0065 step 3) ───────
+    // Send a magic-link confirm/dispute email to every facilitator-attested
+    // participant whose ir_participant_disputes row was created in the
+    // archive transaction. Best-effort — Resend failures log but don't
+    // affect the bundle's archived state. Rows without notification_sent_at
+    // can be retried by a future seal job or operator action.
+    let disputeEmailResult: { total: number; sent: number; skipped: number; failed: number } = {
+      total: 0,
+      sent: 0,
+      skipped: 0,
+      failed: 0,
+    }
+    try {
+      disputeEmailResult = await sendIrParticipantDisputeNotifications(
+        result.bundle.id,
+      )
+    } catch (emailErr) {
+      // eslint-disable-next-line no-console
+      console.error(
+        `[ir-bundle/dispute-email] failed for bundle=${result.bundle.id}:`,
+        emailErr,
+      )
+    }
+
     // Bundle archive may have flipped 3.6.1/3.6.2/3.6.3 (and any adjacent
     // controls linked via ir_exercise_controls) into the customer's
     // operational evidence. Invalidate cached server-renders so the
@@ -550,8 +675,26 @@ export async function POST(
     revalidatePath("/dashboard/readiness")
     revalidatePath("/dashboard/readiness/outstanding")
     revalidatePath("/dashboard/incident-response/tabletop")
+    revalidatePath("/dashboard/poam")
     for (const c of result.completionInserts) {
       revalidatePath(`/dashboard/controls/${c.controlId}`)
+    }
+    // Side-effects audit log — fires after POA&M emission + dispute emails
+    // so their counts can be captured. Separate event from bundle_archived
+    // so the canonical archive event lands in the audit feed first.
+    if (emittedPoams.length > 0 || disputeEmailResult.total > 0) {
+      await logIrAuditEvent({
+        organizationId: auth.organizationId,
+        userId: auth.userId,
+        action: "bundle_side_effects",
+        resourceType: "ir_exercise_bundle",
+        resourceId: result.bundle.id,
+        details: {
+          emittedPoams,
+          disputeEmail: disputeEmailResult,
+        },
+        req,
+      })
     }
 
     return NextResponse.json(
