@@ -15,6 +15,62 @@ const UUID_RE =
 function isUuid(s: string | null | undefined): s is string {
   return typeof s === "string" && UUID_RE.test(s)
 }
+
+/**
+ * Map a free-form participant role string from a TrainOS payload to one
+ * of the ir_participant_role enum values. TrainOS surfaces job titles
+ * ("ISSO", "CISO", "VP Eng", etc.) while Codex's enum is a small
+ * controlled set. We do a best-effort match — exact enum value first,
+ * then a synonym table for common abbreviations, then "other" as a safe
+ * default. The original string is preserved in
+ * ir_exercise_bundles.attestation_basis_json so the audit trail keeps
+ * the verbatim title an auditor would expect to see.
+ */
+const ROLE_ENUM_VALUES = [
+  "facilitator",
+  "approver",
+  "executive",
+  "it_admin",
+  "program_manager",
+  "security_lead",
+  "mactech_support",
+  "observer",
+  "other",
+] as const
+type ParticipantRole = (typeof ROLE_ENUM_VALUES)[number]
+
+function mapParticipantRole(raw: string | null | undefined): ParticipantRole {
+  if (!raw) return "other"
+  const norm = raw.trim().toLowerCase().replace(/[\s-]+/g, "_")
+  if ((ROLE_ENUM_VALUES as readonly string[]).includes(norm)) {
+    return norm as ParticipantRole
+  }
+  // Common job-title aliases → enum values.
+  const aliases: Record<string, ParticipantRole> = {
+    isso: "security_lead",
+    iso: "security_lead",
+    ciso: "security_lead",
+    "security_officer": "security_lead",
+    "system_administrator": "it_admin",
+    sysadmin: "it_admin",
+    devops: "it_admin",
+    "it_staff": "it_admin",
+    pm: "program_manager",
+    "project_manager": "program_manager",
+    ceo: "executive",
+    cto: "executive",
+    cio: "executive",
+    coo: "executive",
+    "vp": "executive",
+    "vp_eng": "executive",
+    "vp_engineering": "executive",
+    "vp_security": "security_lead",
+    director: "executive",
+    "mactech": "mactech_support",
+    "mactech_engineer": "mactech_support",
+  }
+  return aliases[norm] ?? "other"
+}
 import { db } from "@/db"
 import {
   controlRecords,
@@ -635,17 +691,46 @@ export async function POST(
 
       // ─── Per-named-participant dispute rows (migration 0065) ────────────
       // For every facilitator-attested participant, create an
-      // ir_participant_disputes row. The dispute_token is opaque (32 bytes
-      // hex). Email send happens out-of-band — this transaction only
-      // creates the rows so they exist when the seal job runs in 7 days
-      // OR when a participant clicks the magic link (whichever comes first).
+      // ─── Upsert ir_exercise_participants from attestationBasis ─────────
+      // TrainOS owns participant identity end-to-end and ships full context
+      // (id + name + email + role) on every archive. Codex's
       // ir_participant_disputes.participant_id is a uuid FK to
-      // ir_exercise_participants.id. TrainOS sends Prisma cuids on
-      // attestationBasis[].participantId — those satisfy the relaxed zod
-      // regex (cuid OR uuid OR synthetic) but are NOT valid uuids and
-      // would fail the FK INSERT. Coerce non-uuids to null here; the cuid
-      // is still preserved verbatim in ir_exercise_bundles.attestation_
-      // basis_json so a C3PAO can correlate the participant back to
+      // ir_exercise_participants.id, so a TrainOS-supplied uuid that
+      // doesn't already have a row in ir_exercise_participants would
+      // crash the dispute insert with a fkey violation (the original
+      // smoke 500). Mirror the auto-create-exercise pattern: upsert each
+      // attested participant by id with ON CONFLICT DO NOTHING so the FK
+      // target exists for the dispute insert below AND so re-archives
+      // (idempotent at manifest hash) don't double-insert.
+      const participantUpserts = (body.attestationBasis ?? [])
+        .filter((p) => p.participantId && isUuid(p.participantId))
+        .map((p) => ({
+          id: p.participantId!,
+          exerciseId: exercise.id,
+          name: p.participantName,
+          // ir_exercise_participants.organization is NOT NULL but absent
+          // from the TrainOS payload — fall back to the exercise's
+          // customerName which is already populated and audit-defensible.
+          organization: exercise.customerName ?? "Unknown",
+          role: mapParticipantRole(p.participantRole),
+          email: p.participantEmail ?? null,
+        }))
+      if (participantUpserts.length > 0) {
+        await tx
+          .insert(irExerciseParticipants)
+          .values(participantUpserts)
+          .onConflictDoNothing({ target: irExerciseParticipants.id })
+      }
+
+      // ─── ir_participant_disputes (one per named attestee with email) ───
+      // The dispute_token is opaque (32 bytes hex). Email send happens
+      // out-of-band — this transaction only creates the rows so they
+      // exist when the seal job runs in 7 days OR when a participant
+      // clicks the magic link (whichever comes first).
+      //
+      // Non-uuid participantIds (cuids, synthetic ids) coerce to null —
+      // the cuid is preserved verbatim in ir_exercise_bundles.attestation
+      // _basis_json so a C3PAO can correlate the participant back to
       // TrainOS by email + cuid + name.
       const disputeRows = (body.attestationBasis ?? [])
         .filter((p) => p.participantEmail) // need an email to dispute to
