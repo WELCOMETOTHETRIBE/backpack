@@ -12,12 +12,35 @@
 
 The Codex–QMS integration shipped today gives Codex a live read of "is this control's policy doc current?" via `GET /api/v1/cmmc/controls/...`. That's enough for the UI surface (`/dashboard/adjudication/governance/*`) and for the OIS narrative thread.
 
-It is **not** enough to satisfy CMMC L2's audit-trail expectations. Specifically:
-- **3.3.1 / 3.3.2** — audit records of governance-document state must be retained
-- **3.3.4** — alerting on audit-process failures (e.g. missed manifest)
-- **3.4.1 / 3.4.2** — baseline configuration of the QMS doc set, snapshotted
-- **3.4.5** — only authorized changes flow in (signed envelope)
-- **3.13.11** — FIPS-validated crypto (HMAC-SHA-256 or equivalent)
+It is **not** enough to satisfy CMMC L2's audit-trail expectations. The manifest pipeline contributes on **two axes**:
+
+### A. Mechanism — controls satisfied by the signed-manifest pipeline itself
+Independent of which documents are in the envelope. These are the audit-records / configuration-management / crypto controls the immutable signed-evidence pattern addresses:
+
+- **3.3.1 / 3.3.2** — audit-record generation + prescribed content (actor, timestamp, content hash, signature)
+- **3.3.3** — audit reduction & report generation (the manifest IS a structured periodic report)
+- **3.3.4** — alerting on audit-process failure (Codex can detect a missed / stale manifest)
+- **3.4.1 / 3.4.2** — baseline configuration of the QMS doc set + change history
+- **3.4.5** — only authorized changes flow in (signed envelope = authorization)
+- **3.12.3** — continuous monitoring (manifest-on-cadence demonstrates the monitoring activity itself)
+- **3.13.11** — FIPS-validated crypto (HMAC-SHA-256 is FIPS 140 approved)
+
+### B. Content — all 17 pure-governance controls satisfied by `documents[]`
+The manifest carries the same governance docs the v2.1 read-only contract surfaces, just snapshotted + signed + immutable. Each tagged doc covers its mapped control(s):
+
+| Control | Document evidence carried |
+|---|---|
+| 3.1.4 | Separation-of-Duties policy |
+| 3.2.1 / 3.2.2 / 3.2.3 | Training program docs (records come from TrainOS) |
+| 3.3.3 | Audit-reduction procedure (also satisfied mechanistically) |
+| 3.4.4 | Vendor-change procedure |
+| 3.6.1 / 3.6.2 / 3.6.3 | IRP, IR procedure, IR test reports |
+| 3.7.6 | Maintenance-personnel procedure |
+| 3.9.1 / 3.9.2 | Personnel screening + termination procedures |
+| 3.11.1 | Risk-assessment reports |
+| 3.12.1 / 3.12.2 / 3.12.3 / 3.12.4 | Security-assessment reports, POA&M policy + records, continuous-monitoring strategy, the SSP itself |
+
+**Net surface:** 17 pure-governance via content + 7 mechanism-only (3.3.1, 3.3.2, 3.3.4, 3.4.1, 3.4.2, 3.4.5, 3.13.11) + 2 double-satisfied (3.3.3, 3.12.3) = the pipeline contributes evidence to **≥ 22 distinct controls**. The read-only v2.1 contract alone covers the 17 doc-content path; the manifest layer adds the audit/integrity stack the 17 can't carry by themselves.
 
 The signed-manifest pattern is exactly what we already do for the **ISSO weekly export** flow into Codex: QMS produces a snapshot, signs it, ships it to a Codex ingest endpoint; Codex verifies, content-hashes, stores immutably, and routes the controls touched into the OIS adjudication engine. This brief proposes the same shape for governance manifests.
 
