@@ -473,6 +473,14 @@ export const irExerciseBundles = pgTable(
     anchorHash: varchar("anchor_hash", { length: 64 }),
     /** anchor_hash of the previous bundle for this org — empty for first bundle. */
     prevAnchorHash: varchar("prev_anchor_hash", { length: 64 }),
+    /**
+     * True iff TrainOS uploaded real ZIP bytes to the customer's Azure Gov
+     * blob (vs the pre-3cd0122 stub mode that returned a placeholder URI).
+     * Set from the inbound bundle archive payload's `bytesPersisted` field.
+     * C3PAO breadcrumb that distinguishes "real persisted blob" from
+     * "manifest-only" without chasing the Gov SDK driver state.
+     */
+    bytesPersisted: boolean("bytes_persisted").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => [

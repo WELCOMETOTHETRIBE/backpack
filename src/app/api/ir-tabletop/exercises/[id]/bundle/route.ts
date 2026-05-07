@@ -173,6 +173,31 @@ export async function POST(
     const auth = await authorizeIrRequest(req, rawBody)
     const body = UploadBundleManifestSchema.parse(JSON.parse(rawBody))
 
+    // Defense-in-depth #2 (warn, don't reject): if vaultStorageUri is set
+    // but the host doesn't end in .usgovcloudapi.net, surface it in logs.
+    // The zod .refine on the schema already REJECTS commercial Azure
+    // (.blob.core.windows.net) with HTTP 400; this catches the in-between
+    // case (private cloud, customer-named endpoint, dev proxy) so a
+    // misconfigured non-commercial-non-Gov host can't slip in silently.
+    if (body.vaultStorageUri) {
+      try {
+        const host = new URL(body.vaultStorageUri).host.toLowerCase()
+        if (!host.endsWith(".usgovcloudapi.net")) {
+          console.warn(
+            "[ir-bundle] vault_storage_uri host is not Azure Gov",
+            JSON.stringify({
+              exerciseId: id,
+              host,
+              uri: body.vaultStorageUri,
+              orgId: auth.organizationId,
+            })
+          )
+        }
+      } catch {
+        /* zod's URL validation already ran; unreachable */
+      }
+    }
+
     const exercise = (
       await db
         .select()
@@ -429,6 +454,7 @@ export async function POST(
           bundleSha256: body.bundleSha256,
           vaultStorageUri: body.vaultStorageUri ?? null,
           vaultStorageRegion: body.vaultStorageRegion ?? null,
+          bytesPersisted: body.bytesPersisted ?? false,
           executedAt: new Date(executedAtIso),
           validThroughAt: new Date(validThroughIso),
           attestationBasisJson: body.attestationBasis ?? null,
@@ -599,6 +625,7 @@ export async function POST(
         anchorHash,
         prevAnchorHash: prevAnchorHash || null,
         vaultStorageUri: body.vaultStorageUri ?? null,
+        bytesPersisted: body.bytesPersisted ?? false,
         disputeRowsCreated: result.disputeRows.length,
       },
       req,

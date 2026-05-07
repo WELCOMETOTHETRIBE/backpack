@@ -34,6 +34,12 @@ const STMTS: { label: string; sql: string }[] = [
   { label: "0065 ir_exercise_bundles.bundle_state", sql: `ALTER TABLE "ir_exercise_bundles" ADD COLUMN IF NOT EXISTS "bundle_state" text NOT NULL DEFAULT 'provisional'` },
   { label: "0065 ir_exercise_bundles.anchor_hash", sql: `ALTER TABLE "ir_exercise_bundles" ADD COLUMN IF NOT EXISTS "anchor_hash" varchar(64)` },
   { label: "0065 ir_exercise_bundles.prev_anchor_hash", sql: `ALTER TABLE "ir_exercise_bundles" ADD COLUMN IF NOT EXISTS "prev_anchor_hash" varchar(64)` },
+  // bytesPersisted=true on the inbound payload signals that TrainOS
+  // uploaded real ZIP bytes to the customer's Azure Gov blob (vs the
+  // pre-3cd0122 stub mode). Stored as an audit breadcrumb so a C3PAO can
+  // distinguish a real-blob bundle from a manifest-only stub bundle
+  // without chasing Gov SDK driver state.
+  { label: "0065 ir_exercise_bundles.bytes_persisted", sql: `ALTER TABLE "ir_exercise_bundles" ADD COLUMN IF NOT EXISTS "bytes_persisted" boolean NOT NULL DEFAULT false` },
   { label: "0065 ir_exercise_bundles_anchor_chain_idx", sql: `CREATE INDEX IF NOT EXISTS "ir_exercise_bundles_anchor_chain_idx" ON "ir_exercise_bundles" ("evidence_run_id", "created_at" DESC)` },
   // ── governance_artifact_completions per-objective ──────────────────────────
   { label: "0065 governance_artifact_completions.objective_id", sql: `ALTER TABLE "governance_artifact_completions" ADD COLUMN IF NOT EXISTS "objective_id" varchar(8)` },

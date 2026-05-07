@@ -478,8 +478,41 @@ export const UploadBundleManifestSchema = z.object({
    * bundle upload. Codex stores the URI + the sha256s but never the bytes
    * — keeps Codex out of the CUI authorization boundary.
    */
-  vaultStorageUri: z.string().url().optional(),
+  vaultStorageUri: z
+    .string()
+    .url()
+    .optional()
+    // Defense-in-depth host guard for the customer-Azure-Gov boundary.
+    // TrainOS validates this on the upload side (3cd0122) but a paranoid
+    // C3PAO will want to see Codex enforce it independently. Reject
+    // commercial Azure (.blob.core.windows.net) outright; allow the rest
+    // and surface non-Gov hosts as a route-level warning so misconfigs are
+    // visible without breaking customer flexibility (e.g. local dev
+    // proxies, future air-gapped clouds).
+    .refine(
+      (url) => {
+        if (!url) return true;
+        try {
+          const host = new URL(url).host.toLowerCase();
+          return !host.endsWith(".blob.core.windows.net");
+        } catch {
+          return false;
+        }
+      },
+      {
+        message:
+          "vault_storage_uri host is commercial Azure (.blob.core.windows.net). CUI bundles must live in Azure Gov (.usgovcloudapi.net). Reject.",
+      }
+    ),
   vaultStorageRegion: z.string().optional(),
+  /**
+   * Set to true by TrainOS when the bundle ZIP was actually uploaded to
+   * the customer's Azure Gov blob (vs the pre-3cd0122 stub mode that
+   * returned a placeholder URI). Persisted on ir_exercise_bundles for
+   * C3PAO breadcrumb. Defaults false if absent — manifest-only bundles
+   * are still accepted but flagged.
+   */
+  bytesPersisted: z.boolean().optional(),
   /**
    * When the exercise actually ran (NOT when the ZIP was generated).
    * Codex enforces validThroughAt = executedAt + 365 days for 3.6.3.
