@@ -48,6 +48,19 @@ const dateStringOrNull = z
     return v;
   });
 
+// v1.2 — per-doc signature row. Mirrors QMS DocumentSignature with the
+// password_hash field intentionally omitted (re-auth artifact, not part of
+// the audit chain). The chain proves who approved the doc and when, with
+// the document_hash anchoring the doc state at signing time.
+export const manifestSignatureSchema_perDoc = z.object({
+  signer_name: z.string().nullable(),
+  signer_email: z.string().nullable(),
+  signature_meaning: z.string().nullable(),
+  signed_at: z.string().datetime({ offset: true }).nullable(),
+  document_hash: z.string().nullable(),
+  signature_hash: z.string().nullable(),
+});
+
 export const manifestDocumentSchema = z.object({
   document_number: z.string().min(1),
   document_name: z.string().min(1),
@@ -60,6 +73,16 @@ export const manifestDocumentSchema = z.object({
   sha256: z.string().regex(/^[0-9a-f]{64}$/i, "must be 64-char hex SHA-256"),
   file_size_bytes: z.number().int().nonnegative().nullable().optional(),
   controls_mapped: z.array(z.string()).default([]),
+  // v1.2 — release state + per-doc signature chain. Optional for backward
+  // compat with v1.1 envelopes (older builders don't emit these).
+  released: z.boolean().optional(),
+  released_at: dateStringOrNull.optional(),
+  signatures: z.array(manifestSignatureSchema_perDoc).default([]).optional(),
+});
+
+export const releaseSummarySchema = z.object({
+  released_docs: z.number().int().nonnegative(),
+  unreleased_docs: z.number().int().nonnegative(),
 });
 
 export const manifestEnvelopeSchema = z
@@ -81,6 +104,9 @@ export const manifestEnvelopeSchema = z
 
     controls_touched: z.array(z.string()),
     doc_count: z.number().int().nonnegative(),
+
+    // v1.2 — top-level lifecycle rollup. Optional for backward compat.
+    release_summary: releaseSummarySchema.optional(),
 
     content_hash: z.string().regex(/^sha256:[0-9a-f]{64}$/i),
     signing_hash: z.string().regex(/^sha256:[0-9a-f]{64}$/i),

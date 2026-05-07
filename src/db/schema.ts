@@ -1926,6 +1926,12 @@ export const qmsGovernanceManifestDocuments = pgTable(
     sha256: text("sha256").notNull(),
     fileSizeBytes: integer("file_size_bytes"),
     controlsMapped: jsonb("controls_mapped").notNull(),
+    // v1.2 — release lifecycle fields.
+    released: boolean("released").notNull().default(false),
+    releasedAt: text("released_at"),
+    // QMS DocumentSignature chain ordered by signed_at desc. Schema mirrors
+    // qms-manifest-schema.ts manifestSignatureSchema_perDoc.
+    signatures: jsonb("signatures").notNull().default([]),
   },
   (t) => ({
     runIdIdx: index("qms_governance_manifest_documents_run_idx").on(t.runId),

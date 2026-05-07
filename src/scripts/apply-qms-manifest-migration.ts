@@ -95,6 +95,22 @@ const STMTS: { label: string; sql: string }[] = [
     sql: `CREATE INDEX IF NOT EXISTS qms_governance_manifest_documents_org_idx
       ON qms_governance_manifest_documents (organization_id)`,
   },
+  // ── v1.2 lifecycle/signature columns (additive on existing 0065 table) ──
+  {
+    label: "0065+v1.2 qms_governance_manifest_documents.released",
+    sql: `ALTER TABLE qms_governance_manifest_documents
+      ADD COLUMN IF NOT EXISTS released boolean NOT NULL DEFAULT false`,
+  },
+  {
+    label: "0065+v1.2 qms_governance_manifest_documents.released_at",
+    sql: `ALTER TABLE qms_governance_manifest_documents
+      ADD COLUMN IF NOT EXISTS released_at text`,
+  },
+  {
+    label: "0065+v1.2 qms_governance_manifest_documents.signatures",
+    sql: `ALTER TABLE qms_governance_manifest_documents
+      ADD COLUMN IF NOT EXISTS signatures jsonb NOT NULL DEFAULT '[]'::jsonb`,
+  },
 ];
 
 (async () => {

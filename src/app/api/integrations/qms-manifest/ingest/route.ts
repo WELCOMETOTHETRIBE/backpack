@@ -202,6 +202,11 @@ export async function POST(req: NextRequest) {
             sha256: d.sha256.toLowerCase(),
             fileSizeBytes: d.file_size_bytes ?? null,
             controlsMapped: d.controls_mapped,
+            // v1.2 fields. released_at stays as a string (ISO or
+            // YYYY-MM-DD) for hashing-determinism reasons.
+            released: d.released ?? false,
+            releasedAt: d.released_at ?? null,
+            signatures: d.signatures ?? [],
           })),
         );
       }

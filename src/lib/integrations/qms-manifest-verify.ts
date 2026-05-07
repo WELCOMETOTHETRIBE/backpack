@@ -75,6 +75,24 @@ export function computeContentHash(
       file_path: d.file_path ?? null,
       file_size_bytes: d.file_size_bytes ?? null,
       next_review_date: d.next_review_date ?? null,
+      // v1.2 fields. Default false/null/[] when absent so v1.1 envelopes
+      // produce the same hash on both sides.
+      released: d.released ?? false,
+      released_at: d.released_at ?? null,
+      signatures: Array.isArray(d.signatures)
+        ? [...d.signatures]
+            .sort((a, b) =>
+              String(b.signed_at ?? "").localeCompare(String(a.signed_at ?? "")),
+            )
+            .map((s) => ({
+              document_hash: s.document_hash ?? null,
+              signature_hash: s.signature_hash ?? null,
+              signature_meaning: s.signature_meaning ?? null,
+              signed_at: s.signed_at ?? null,
+              signer_email: s.signer_email ?? null,
+              signer_name: s.signer_name ?? null,
+            }))
+        : [],
       sha256: d.sha256.toLowerCase(),
       status: d.status ?? null,
       version: d.version ?? null,
