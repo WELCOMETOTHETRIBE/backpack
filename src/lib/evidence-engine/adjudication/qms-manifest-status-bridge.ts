@@ -38,6 +38,7 @@ import { db } from "@/db";
 import {
   governanceDocuments,
   governanceDocumentControlLinks,
+  governanceManifestRuns,
   controlRecords,
 } from "@/db/schema";
 import { and, eq, inArray } from "drizzle-orm";
@@ -146,14 +147,52 @@ export async function bridgeQmsManifestToGovernance(
   }
 
   // ── 2. Replace governance_document_control_links for THIS run's docs ──
-  // The old wipe-then-reinsert pattern is the safest because a doc's
-  // controls_mapped may shrink across runs.
+  // The schema requires manifest_run_id to be a UUID FK to
+  // governance_manifest_runs.id (codex-native). The QMS run_id is a
+  // text key on a different table (qms_governance_manifests) — to
+  // satisfy the FK we mirror the QMS run into governance_manifest_runs
+  // first (UPSERT on (org, run_id)) and use its UUID.
   const docNumbersInRun = envelope.documents
     .filter((d) => d.released)
     .map((d) => d.document_number);
 
   if (docNumbersInRun.length > 0) {
     try {
+      // Mirror this run into governance_manifest_runs. Idempotent on the
+      // (org, run_id) unique index. Returns the UUID we'll FK against.
+      let runUuid: string;
+      const [existingRun] = await db
+        .select({ id: governanceManifestRuns.id })
+        .from(governanceManifestRuns)
+        .where(
+          and(
+            eq(governanceManifestRuns.organizationId, orgId),
+            eq(governanceManifestRuns.runId, envelope.run_id),
+          ),
+        )
+        .limit(1);
+      if (existingRun) {
+        runUuid = existingRun.id;
+      } else {
+        const [inserted] = await db
+          .insert(governanceManifestRuns)
+          .values({
+            organizationId: orgId,
+            runId: envelope.run_id,
+            // schemaVersion is integer; the QMS schema is a text like
+            // "mactech-governance-manifest.v1.2". We default the integer
+            // column to 3 (ISSO weekly export schema) since the codex-
+            // native column predates the QMS path; a non-fatal
+            // mismatch — auditors should look at qms_governance_manifests
+            // for the QMS-side schema string.
+            schemaVersion: 3,
+            bundleSource: envelope.source ?? "qms_document_control",
+            docCount: envelope.doc_count,
+          })
+          .returning({ id: governanceManifestRuns.id });
+        runUuid = inserted.id;
+      }
+
       // Drop existing links for these docs in this org.
       await db
         .delete(governanceDocumentControlLinks)
@@ -164,9 +203,6 @@ export async function bridgeQmsManifestToGovernance(
           ),
         );
 
-      // Insert fresh links. We don't have a real manifest_run_id row in
-      // governance_manifest_runs (codex-native), so we use the
-      // qms_governance_manifests.run_id which the schema accepts as text.
       const linkRows: {
         organizationId: string;
         manifestRunId: string;
@@ -180,7 +216,7 @@ export async function bridgeQmsManifestToGovernance(
           if (typeof cid !== "string" || !cid) continue;
           linkRows.push({
             organizationId: orgId,
-            manifestRunId: envelope.run_id,
+            manifestRunId: runUuid,
             docCode: d.document_number,
             controlId: cid,
             satisfactionType: "primary",
@@ -188,7 +224,6 @@ export async function bridgeQmsManifestToGovernance(
         }
       }
       if (linkRows.length > 0) {
-        // Insert in chunks to dodge max-parameter caps on big runs.
         const CHUNK = 500;
         for (let i = 0; i < linkRows.length; i += CHUNK) {
           await db
