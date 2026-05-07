@@ -2,6 +2,19 @@ import { NextResponse, type NextRequest } from "next/server"
 import { revalidatePath } from "next/cache"
 import { and, desc, eq, inArray } from "drizzle-orm"
 import { createHash, randomBytes } from "node:crypto"
+
+/**
+ * RFC 4122 uuid shape (any version). Used to gate cross-system IDs that
+ * arrive on the bundle payload — cuids and synthetic ids pass the bridge
+ * zod regex but must be coerced to null before any uuid-typed FK INSERT,
+ * so a Postgres "invalid input syntax for type uuid" doesn't blow up
+ * the archive transaction.
+ */
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+function isUuid(s: string | null | undefined): s is string {
+  return typeof s === "string" && UUID_RE.test(s)
+}
 import { db } from "@/db"
 import {
   controlRecords,
@@ -600,11 +613,19 @@ export async function POST(
       // hex). Email send happens out-of-band — this transaction only
       // creates the rows so they exist when the seal job runs in 7 days
       // OR when a participant clicks the magic link (whichever comes first).
+      // ir_participant_disputes.participant_id is a uuid FK to
+      // ir_exercise_participants.id. TrainOS sends Prisma cuids on
+      // attestationBasis[].participantId — those satisfy the relaxed zod
+      // regex (cuid OR uuid OR synthetic) but are NOT valid uuids and
+      // would fail the FK INSERT. Coerce non-uuids to null here; the cuid
+      // is still preserved verbatim in ir_exercise_bundles.attestation_
+      // basis_json so a C3PAO can correlate the participant back to
+      // TrainOS by email + cuid + name.
       const disputeRows = (body.attestationBasis ?? [])
         .filter((p) => p.participantEmail) // need an email to dispute to
         .map((p) => ({
           bundleId: bundle.id,
-          participantId: p.participantId,
+          participantId: isUuid(p.participantId) ? p.participantId : null,
           participantEmail: p.participantEmail!.toLowerCase(),
           participantName: p.participantName,
           disputeToken: randomBytes(32).toString("hex"),

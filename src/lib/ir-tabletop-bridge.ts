@@ -441,14 +441,35 @@ export type ApproveAarRequest = z.infer<typeof ApproveAarRequestSchema>;
  * party; this row records the basis for each named attendee. The participant
  * gets an email confirmation link post-archive (ir_participant_disputes).
  */
+/**
+ * Identifier shape regex for cross-system IDs that arrive on this payload.
+ *
+ * TrainOS uses Prisma cuids (e.g. `cmotizdrk00010gsbvo78l859`) for both
+ * User.id and Participant.id; synthetic pilot-mode rows use prefixed
+ * forms like `pilot-smoke-participant-001`. Codex itself uses uuids.
+ *
+ * Earlier the schema required `.uuid()`, which 4xx'd every TrainOS
+ * payload because cuids will never match that regex. Backfilling
+ * TrainOS to uuids would require a multi-table reference rewrite — not
+ * worth it for an ID we treat opaquely on the Codex side anyway. The
+ * regex enforces shape (printable, bounded length, no path-traversal
+ * surprises) without locking to one generator.
+ */
+const CROSS_SYSTEM_ID_RE = /^[A-Za-z0-9_-]{1,64}$/;
+
 const AttestationBasisSchema = z.object({
-  participantId: z.string().uuid().nullable(),
+  participantId: z
+    .string()
+    .regex(CROSS_SYSTEM_ID_RE, "expected cuid / uuid / printable id (≤64 chars)")
+    .nullable(),
   participantName: z.string().min(1),
   participantEmail: z.string().email().nullable(),
   participantRole: z.string().nullable(),
   attestationBasis: z.enum(["present_in_room", "present_via_video", "present_via_phone"]),
   signedAt: IsoDateTimeSchema,
-  signedByUserId: z.string().uuid(),
+  signedByUserId: z
+    .string()
+    .regex(CROSS_SYSTEM_ID_RE, "expected cuid / uuid / printable id (≤64 chars)"),
 });
 export type AttestationBasis = z.infer<typeof AttestationBasisSchema>;
 
