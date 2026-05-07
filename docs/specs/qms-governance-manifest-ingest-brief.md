@@ -229,7 +229,62 @@ The existing v2.1 read-only contract (`/api/v1/cmmc/controls/...`) does NOT chan
 3. **Doc-content hashing:** Brian's manifest has `sha256` per doc and `file_path`. Are those file hashes (HTML rendered content) or DB-row hashes? CMMC L2 audit prefers immutable evidence — if the file is rendered fresh on each manifest run, the hash will churn even when the underlying record didn't change. Suggest: hash a canonicalized JSON of the row's audit-relevant fields (`document_number, version, status, effective_date, content`).
 4. **Trigger cadence for the manifest:** weekly (matches ISSO)? On every controlled-doc state change? On admin demand only? Weekly + on-demand is the safest combination.
 5. **Brian's intent for `governance-manifest-cmmc20.json` vs `governance-manifest.json`:** is one canonical and the other a CLI test artifact? These are sitting in the QMS root untracked.
-6. **Migration ordering:** Brian's `server/prisma/migrations/20260411120000_governance_manifest_ingest/migration.sql` is dated **2026-04-11** but the live prod schema has my **2026-05-06** Phase 1b additions applied via direct psql (not via Prisma migrate). When Brian's migration runs via `prisma migrate deploy`, will it conflict? Need to dry-run.
+6. ~~**Migration ordering:** Brian's `server/prisma/migrations/20260411120000_governance_manifest_ingest/migration.sql` is dated **2026-04-11** but the live prod schema has my **2026-05-06** Phase 1b additions applied via direct psql (not via Prisma migrate). When Brian's migration runs via `prisma migrate deploy`, will it conflict? Need to dry-run.~~ **RESOLVED — see Migration Baseline Reset below.**
+
+## Migration Baseline Reset (Q6 resolution)
+
+**Problem:** Prod schema is the truth, but `_prisma_migrations` is incoherent. Phase 1b applied via raw psql; the Railway start command (`npx prisma db push && npm start`) syncs without writing migration history; Brian's `20260411120000_governance_manifest_ingest` migration file exists but was never applied through Prisma.
+
+**Decision:** clean baseline. Wipe migration history + folder, generate one baseline migration reflecting the current live schema, switch deploys from `db push` to `migrate deploy` going forward. **Preserves all data** (only resets metadata in `_prisma_migrations`). CMMC 3.4.2 (Configuration Change Control) is better served by versioned migrations than diff-syncing anyway.
+
+### QMS execution (Quality agent)
+
+Run from `/Users/patrick/QMS/.claude/worktrees/upbeat-black-fe4a93` (or main, post-Brian-pile-merge — see Q1):
+
+```bash
+# 1. Resolve Brian's pile against the live Phase 0/1 schema first.
+#    The conflicts in /Users/patrick/QMS main worktree need a clean merge —
+#    schema.prisma, documents.js, App.tsx, system/SystemManagementLayout.tsx.
+#    Brian's manifest-related schema additions (governanceControlMapping +
+#    whatever else his migration introduces) must land in schema.prisma
+#    cleanly alongside Phase 0/1 (organizationId, junction tables,
+#    effectiveDate). After resolution, schema.prisma is the source of truth.
+
+# 2. Delete every migration folder (Brian's + any older).
+rm -rf server/prisma/migrations
+
+# 3. Drop _prisma_migrations on prod (preserves all real tables/data).
+railway run --service QMS -- bash -c \
+  'psql "$DATABASE_PUBLIC_URL" -c "DROP TABLE IF EXISTS _prisma_migrations;"'
+
+# 4. Generate a fresh baseline migration reflecting the current schema.prisma.
+cd server
+npx prisma migrate diff \
+  --from-empty \
+  --to-schema-datamodel prisma/schema.prisma \
+  --script > prisma/migrations/00000000000000_baseline/migration.sql
+mkdir -p prisma/migrations/00000000000000_baseline
+mv prisma/migrations/00000000000000_baseline/migration.sql prisma/migrations/00000000000000_baseline/
+
+# 5. Mark the baseline as already-applied on prod (so prisma doesn't try
+#    to re-run it).
+railway run --service QMS -- bash -c \
+  'DATABASE_URL=$DATABASE_PUBLIC_URL npx prisma migrate resolve --applied 00000000000000_baseline'
+
+# 6. Switch Railway start command from db-push to migrate-deploy.
+#    Edit server/package.json or railway.json — change "npx prisma db push && npm start"
+#    to "npx prisma migrate deploy && npm start".
+```
+
+After step 6, every future schema change is `prisma migrate dev` (locally) → commit migration file → push → `prisma migrate deploy` (on Railway start) → `_prisma_migrations` records the application. Auditable, rollback-aware, CMMC-defensible.
+
+### Brian's pending manifest schema additions
+
+After the baseline lands, Brian's `governanceControlMapping` table (or whatever his pile adds) becomes a **net-new migration on top of the baseline**, generated normally via `prisma migrate dev --name governance_manifest_ingest`. The original `20260411120000` folder is deleted in step 2; the new one is timestamped at the time of the next dev run.
+
+### Manifest data preservation
+
+The CMMC manifest JSONs sitting in the QMS root (`governance-manifest-cmmc20.json`, etc.) are file artifacts on disk — not affected by any DB operation here. The `governance_control_mappings` table data (if Brian seeded it on prod) survives the `_prisma_migrations` drop intact; only the baseline marker changes.
 
 ## What I propose to do next
 
