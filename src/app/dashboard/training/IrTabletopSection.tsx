@@ -314,7 +314,7 @@ function Stat({
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 hover:underline"
-              title={link}
+              title={`${link}\n\nVault URL — opens in a new tab. Public access is disabled on the storage account (correct for CUI). Sign in via Azure Portal, az CLI, or Storage Explorer to download.`}
             >
               {value}
               <ExternalLink className="h-3 w-3" />
