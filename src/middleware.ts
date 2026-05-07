@@ -55,6 +55,11 @@ const isPublicRoute = createRouteMatcher([
   // intercepts before the handler reads the body, rewriting to /clerk_*
   // (404) and TrainOS sees a terminal 4xx with no diagnostic.
   "/api/integrations/trainos(.*)",
+  // Phase 13 (QMS → Codex) — inbound signed governance manifest from
+  // quality.mactechsolutionsllc.com. Auth is in-body HMAC against
+  // QMS_MANIFEST_SIGNING_SECRET; the route handler verifies via
+  // qms-manifest-verify.ts. Same Clerk-bypass rationale as TrainOS.
+  "/api/integrations/qms-manifest(.*)",
 ]);
 
 const AUDIT_SESSION_COOKIE = "mactech_audit_session";
