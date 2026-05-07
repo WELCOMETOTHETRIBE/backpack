@@ -437,10 +437,86 @@ export const irExerciseBundles = pgTable(
     archivedStateSnapshotJson: jsonb("archived_state_snapshot_json").$type<
       Record<string, unknown>
     >(),
+    // ── Migration 0065: IR satisfaction hardening (C3PAO-defensible) ──
+    /** sha256 of the bundle ZIP bytes themselves (separate from manifest hash). */
+    bundleSha256: varchar("bundle_sha256", { length: 64 }),
+    /** Azure Gov blob URL where the ZIP lives — bytes never on Codex. */
+    vaultStorageUri: text("vault_storage_uri"),
+    /** Azure Gov region tag (e.g. "us-gov-virginia"). */
+    vaultStorageRegion: text("vault_storage_region"),
+    /** When the exercise actually ran (NOT when the bundle was archived). */
+    executedAt: timestamp("executed_at", { withTimezone: true }),
+    /** executed_at + 365 days; AAR older than this fails 3.6.3. */
+    validThroughAt: timestamp("valid_through_at", { withTimezone: true }),
+    /** Per-named-participant attestation: who facilitator signed for, basis, role. */
+    attestationBasisJson: jsonb("attestation_basis_json").$type<
+      Array<{
+        participantId: string | null;
+        participantName: string;
+        participantEmail: string | null;
+        participantRole: string | null;
+        attestationBasis: "present_in_room" | "present_via_video" | "present_via_phone";
+        signedAt: string;
+        signedByUserId: string;
+      }>
+    >(),
+    /** Source of supporting attendance evidence beyond the facilitator's word. */
+    attendanceCorroborationKind: text("attendance_corroboration_kind").$type<
+      "teams_csv" | "signed_roster_image" | "facilitator_only"
+    >(),
+    attendanceCorroborationFileSha256: varchar("attendance_corroboration_file_sha256", { length: 64 }),
+    /** Provisional → sealed deadline (executedAt + 7d dispute window). */
+    attendanceSealAt: timestamp("attendance_seal_at", { withTimezone: true }),
+    /** provisional | sealed | rejected. Sealed = past dispute window with no fatal disputes. */
+    bundleState: text("bundle_state").$type<"provisional" | "sealed" | "rejected">().notNull().default("provisional"),
+    /** sha256(bundleSha256 || manifestSha256 || executedAtIso || tenantId || prevAnchorHash). */
+    anchorHash: varchar("anchor_hash", { length: 64 }),
+    /** anchor_hash of the previous bundle for this org — empty for first bundle. */
+    prevAnchorHash: varchar("prev_anchor_hash", { length: 64 }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => [
     uniqueIndex("ir_exercise_bundles_exercise_version_idx").on(t.exerciseId, t.bundleVersion),
     index("ir_exercise_bundles_evidence_run_idx").on(t.evidenceRunId),
+    index("ir_exercise_bundles_anchor_chain_idx").on(t.evidenceRunId, t.createdAt),
+  ]
+);
+
+// ============== 10. Per-participant dispute window (migration 0065) ==============
+/**
+ * After a bundle archives, every named participant gets an email with a
+ * time-limited HMAC token link. They can confirm or dispute within 7 days.
+ * Non-action = implicit confirmation when state transitions to 'expired'
+ * via the seal job.
+ *
+ * One row per (bundle, participant). The dispute_token is opaque and used
+ * as the magic-link parameter on the public confirmation/dispute endpoint.
+ */
+export const irParticipantDisputes = pgTable(
+  "ir_participant_disputes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    bundleId: uuid("bundle_id")
+      .references(() => irExerciseBundles.id, { onDelete: "cascade" })
+      .notNull(),
+    participantId: uuid("participant_id").references(() => irExerciseParticipants.id),
+    participantEmail: text("participant_email").notNull(),
+    participantName: text("participant_name").notNull(),
+    /** Opaque token; HMAC-signed by IR_DISPUTE_HMAC env var. */
+    disputeToken: text("dispute_token").notNull().unique(),
+    disputeTokenExpiresAt: timestamp("dispute_token_expires_at", { withTimezone: true }).notNull(),
+    state: text("state").$type<"pending" | "confirmed" | "disputed" | "expired">().notNull().default("pending"),
+    respondedAt: timestamp("responded_at", { withTimezone: true }),
+    disputeReason: text("dispute_reason"),
+    notificationSentAt: timestamp("notification_sent_at", { withTimezone: true }),
+    notificationEmailId: text("notification_email_id"),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    index("ir_participant_disputes_bundle_idx").on(t.bundleId),
+    index("ir_participant_disputes_token_idx").on(t.disputeToken),
+    index("ir_participant_disputes_state_idx").on(t.state, t.disputeTokenExpiresAt),
   ]
 );

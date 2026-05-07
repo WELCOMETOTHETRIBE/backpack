@@ -436,21 +436,77 @@ export const ApproveAarRequestSchema = z.object({
 });
 export type ApproveAarRequest = z.infer<typeof ApproveAarRequestSchema>;
 
+/**
+ * Per-named-participant attestation block. Facilitator click-signs for the
+ * party; this row records the basis for each named attendee. The participant
+ * gets an email confirmation link post-archive (ir_participant_disputes).
+ */
+const AttestationBasisSchema = z.object({
+  participantId: z.string().uuid().nullable(),
+  participantName: z.string().min(1),
+  participantEmail: z.string().email().nullable(),
+  participantRole: z.string().nullable(),
+  attestationBasis: z.enum(["present_in_room", "present_via_video", "present_via_phone"]),
+  signedAt: IsoDateTimeSchema,
+  signedByUserId: z.string().uuid(),
+});
+export type AttestationBasis = z.infer<typeof AttestationBasisSchema>;
+
 export const UploadBundleManifestSchema = z.object({
   bundleVersion: z.number().int().positive().default(1),
   manifest: z.record(z.string(), z.unknown()),
   manifestSha256: z.string().regex(/^[a-f0-9]{64}$/, "Expected lowercase hex sha256"),
+  /**
+   * sha256 of the bundle ZIP bytes themselves. Required for the anchor
+   * chain — the manifest hash and the bundle hash are distinct values
+   * committed together so neither can be tampered without the other.
+   */
+  bundleSha256: z.string().regex(/^[a-f0-9]{64}$/, "Expected lowercase hex sha256"),
   timestampToken: z.string().optional(),
   timestampedAt: IsoDateTimeSchema.optional(),
   /** Caller-provided storage key (rare). Normally control-plane derives this when bytes are uploaded. */
   storagePrefix: z.string().optional(),
   /**
-   * Phase 8 byte archival: base64-encoded ZIP bytes. When present, control-plane
-   * stores them via the configured storage driver (azure-blob | local) and sets
-   * `storage_prefix` on the bundle row. Optional for backward compatibility —
-   * if absent, the bundle remains manifest-only.
+   * @deprecated Codex no longer accepts inline ZIP bytes. CUI must live in
+   * the customer's vault (Azure Gov blob), not on the control-plane host.
+   * Send vaultStorageUri instead. Field tolerated transiently for backward
+   * compat — will be removed in the next migration cycle.
    */
   bundleZipBase64: z.string().optional(),
+  /**
+   * Azure Gov blob URL where the bundle ZIP lives. Required for any new
+   * bundle upload. Codex stores the URI + the sha256s but never the bytes
+   * — keeps Codex out of the CUI authorization boundary.
+   */
+  vaultStorageUri: z.string().url().optional(),
+  vaultStorageRegion: z.string().optional(),
+  /**
+   * When the exercise actually ran (NOT when the ZIP was generated).
+   * Codex enforces validThroughAt = executedAt + 365 days for 3.6.3.
+   */
+  executedAt: IsoDateTimeSchema.optional(),
+  /**
+   * Per-named-participant attestation. One entry per attendee the
+   * facilitator click-signed for during the run console. Empty array
+   * acceptable for the bundle to upload, but Codex will stamp the
+   * exercise as facilitator_only and 3.6.3 won't be satisfied.
+   */
+  attestationBasis: z.array(AttestationBasisSchema).optional(),
+  /**
+   * Source of corroborating attendance evidence beyond the facilitator's word.
+   *   - 'teams_csv'           — Teams attendance CSV uploaded as a bundle file
+   *   - 'signed_roster_image' — Photo/scan of in-person wet-signed roster
+   *   - 'facilitator_only'    — Bundle relies on facilitator attestation alone
+   *                             (satisfies 3.6.1 capability only, not 3.6.3 testing)
+   */
+  attendanceCorroborationKind: z
+    .enum(["teams_csv", "signed_roster_image", "facilitator_only"])
+    .optional(),
+  /** sha256 of the corroboration file (Teams CSV or roster image), if any. */
+  attendanceCorroborationFileSha256: z
+    .string()
+    .regex(/^[a-f0-9]{64}$/)
+    .optional(),
   files: z
     .array(
       z.object({

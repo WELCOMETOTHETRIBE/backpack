@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server"
 import { revalidatePath } from "next/cache"
 import { and, desc, eq, inArray } from "drizzle-orm"
+import { createHash, randomBytes } from "node:crypto"
 import { db } from "@/db"
 import {
   controlRecords,
@@ -15,6 +16,7 @@ import {
   irExercises,
   irFindings,
   irInjectResponses,
+  irParticipantDisputes,
 } from "@/db/schema"
 import {
   authorizeIrRequest,
@@ -216,6 +218,77 @@ export async function POST(
     // grade record of "what was tested" — frozen forever from this point.
     const stateSnapshot = await snapshotExerciseState(id)
 
+    // ─── Snapshot consistency check (migration 0065, warn mode) ────────────
+    // If TrainOS sent its own snapshot in the manifest, compare to the
+    // server-built one we just captured. Divergence = drift between
+    // TrainOS's view and Codex's view; logs a warning today, will reject
+    // strictly in a later phase. Compares only the row counts and key ids
+    // — full deep-equality is too brittle while the contract evolves.
+    const incomingSnapshot = (body.manifest?.archivedStateSnapshotJson ??
+      body.manifest?.archived_state_snapshot_json) as
+      | { participants?: unknown[]; findings?: unknown[]; injectResponses?: unknown[] }
+      | undefined
+    if (incomingSnapshot) {
+      const counts = {
+        server: {
+          participants: stateSnapshot.participants.length,
+          findings: stateSnapshot.findings.length,
+          injectResponses: stateSnapshot.injectResponses.length,
+        },
+        bundle: {
+          participants: incomingSnapshot.participants?.length ?? 0,
+          findings: incomingSnapshot.findings?.length ?? 0,
+          injectResponses: incomingSnapshot.injectResponses?.length ?? 0,
+        },
+      }
+      const diverged =
+        counts.server.participants !== counts.bundle.participants ||
+        counts.server.findings !== counts.bundle.findings ||
+        counts.server.injectResponses !== counts.bundle.injectResponses
+      if (diverged) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          `[ir-bundle/snapshot-divergence] exercise=${id} server=${JSON.stringify(counts.server)} bundle=${JSON.stringify(counts.bundle)}`,
+        )
+      }
+    }
+
+    // ─── Anchor chain (migration 0065) ─────────────────────────────────────
+    // Each bundle's anchor_hash is sha256(bundleSha || manifestSha ||
+    // executedAt || tenantId || prevAnchorHash). Chains every bundle for
+    // an org so byte-level tampering between archive and audit can be
+    // detected by replaying the chain. The "prev" is the most recent
+    // bundle for the SAME org (across exercises) — if none exists, prev
+    // is the empty string (chain root). Computed before the transaction
+    // so the value can be persisted on the bundle row in one shot.
+    const [prevBundle] = await db
+      .select({ anchorHash: irExerciseBundles.anchorHash })
+      .from(irExerciseBundles)
+      .innerJoin(evidenceRuns, eq(evidenceRuns.id, irExerciseBundles.evidenceRunId))
+      .where(eq(evidenceRuns.organizationId, auth.organizationId))
+      .orderBy(desc(irExerciseBundles.createdAt))
+      .limit(1)
+    const prevAnchorHash = prevBundle?.anchorHash ?? ""
+    const executedAtIso = body.executedAt ?? new Date().toISOString()
+    const validThroughIso = new Date(
+      new Date(executedAtIso).getTime() + 365 * 24 * 60 * 60 * 1000,
+    ).toISOString()
+    // 7-day dispute window — bundle stays "provisional" until then.
+    const attendanceSealAtIso = new Date(
+      Date.now() + 7 * 24 * 60 * 60 * 1000,
+    ).toISOString()
+    const anchorHash = createHash("sha256")
+      .update(body.bundleSha256)
+      .update("|")
+      .update(body.manifestSha256)
+      .update("|")
+      .update(executedAtIso)
+      .update("|")
+      .update(auth.organizationId)
+      .update("|")
+      .update(prevAnchorHash)
+      .digest("hex")
+
     // Phase 8 byte archival: if the caller included the ZIP bytes, store them
     // via the configured driver before opening the DB transaction. The
     // returned storage key gets persisted on the bundle row. Failure here
@@ -289,6 +362,20 @@ export async function POST(
           generatedByUserId: auth.userId,
           storagePrefix: resolvedStoragePrefix,
           archivedStateSnapshotJson: stateSnapshot,
+          // ── Migration 0065: IR satisfaction hardening ──
+          bundleSha256: body.bundleSha256,
+          vaultStorageUri: body.vaultStorageUri ?? null,
+          vaultStorageRegion: body.vaultStorageRegion ?? null,
+          executedAt: new Date(executedAtIso),
+          validThroughAt: new Date(validThroughIso),
+          attestationBasisJson: body.attestationBasis ?? null,
+          attendanceCorroborationKind: body.attendanceCorroborationKind ?? null,
+          attendanceCorroborationFileSha256:
+            body.attendanceCorroborationFileSha256 ?? null,
+          attendanceSealAt: new Date(attendanceSealAtIso),
+          bundleState: "provisional",
+          anchorHash,
+          prevAnchorHash: prevAnchorHash || null,
         })
         .returning()
 
@@ -305,7 +392,20 @@ export async function POST(
         .from(irExerciseControls)
         .where(eq(irExerciseControls.exerciseId, id))
 
-      const completionInserts: { controlId: string; completionId: string }[] = []
+      // Per-objective objective ids carried by the bundle's manifest, e.g.:
+      //   { "3.6.3": ["[a]", "[b]", "[c]"], "3.6.1": ["[a]", "[b]"] }
+      // If absent, fall back to one whole-control completion per linked
+      // control (legacy behavior, objective_id=null).
+      const objectivesPerControl =
+        (body.manifest?.objectivesPerControl as
+          | Record<string, string[]>
+          | undefined) ?? {}
+
+      const completionInserts: {
+        controlId: string
+        objectiveId: string | null
+        completionId: string
+      }[] = []
       for (const link of linkedControls) {
         // Resolve or lazy-create the org's control_record
         let [record] = await tx
@@ -328,34 +428,50 @@ export async function POST(
             .returning({ id: controlRecords.id })
         }
 
-        // Upsert a completion row keyed on (controlRecordId, artifactLabel).
-        // The label embeds the bundle id so the same exercise's later bundles
-        // (versions) each get their own completion row, and re-archiving the
-        // same bundle (same id) is idempotent.
-        const artifactLabel = `ir_tabletop_bundle:${bundle.id}`
-        const [completion] = await tx
-          .insert(governanceArtifactCompletions)
-          .values({
-            organizationId: auth.organizationId,
-            controlRecordId: record.id,
-            artifactLabel,
-            artifactType: "ATTESTATION",
-            valueText: `IR tabletop AAR archived as bundle ${bundle.id} (manifest sha256 ${body.manifestSha256.slice(0, 16)}…). Exercise ${id}, version ${body.bundleVersion}.`,
-            attestedBy: auth.userId ?? null,
-            attestedAt: new Date(),
-          })
-          .onConflictDoUpdate({
-            target: [
-              governanceArtifactCompletions.controlRecordId,
-              governanceArtifactCompletions.artifactLabel,
-            ],
-            set: {
-              valueText: `IR tabletop AAR archived as bundle ${bundle.id} (manifest sha256 ${body.manifestSha256.slice(0, 16)}…). Exercise ${id}, version ${body.bundleVersion}.`,
+        // Per-objective fan-out: one completion row per (control, objective)
+        // when the manifest carries the breakdown; otherwise a single row
+        // with objective_id=null. The artifact label encodes the objective so
+        // the existing (control_record_id, artifact_label) uniqueness still
+        // dedupes idempotent re-archives.
+        const objectives =
+          objectivesPerControl[link.controlId] ?? [null as string | null]
+        for (const objective of objectives) {
+          const labelSuffix = objective ? `:${objective}` : ""
+          const artifactLabel = `ir_tabletop_bundle:${bundle.id}${labelSuffix}`
+          const valueText = objective
+            ? `IR tabletop AAR archived as bundle ${bundle.id} satisfies ${link.controlId}${objective} (manifest sha256 ${body.manifestSha256.slice(0, 16)}…). Exercise ${id}, version ${body.bundleVersion}.`
+            : `IR tabletop AAR archived as bundle ${bundle.id} (manifest sha256 ${body.manifestSha256.slice(0, 16)}…). Exercise ${id}, version ${body.bundleVersion}.`
+          const [completion] = await tx
+            .insert(governanceArtifactCompletions)
+            .values({
+              organizationId: auth.organizationId,
+              controlRecordId: record.id,
+              artifactLabel,
+              artifactType: "ATTESTATION",
+              valueText,
+              attestedBy: auth.userId ?? null,
               attestedAt: new Date(),
-              updatedAt: new Date(),
-            },
+              objectiveId: objective ?? null,
+            })
+            .onConflictDoUpdate({
+              target: [
+                governanceArtifactCompletions.controlRecordId,
+                governanceArtifactCompletions.artifactLabel,
+              ],
+              set: {
+                valueText,
+                attestedAt: new Date(),
+                updatedAt: new Date(),
+                objectiveId: objective ?? null,
+              },
+            })
+            .returning({ id: governanceArtifactCompletions.id })
+          completionInserts.push({
+            controlId: link.controlId,
+            objectiveId: objective ?? null,
+            completionId: completion.id,
           })
-          .returning({ id: governanceArtifactCompletions.id })
+        }
 
         // Stamp lastValidationDate on the control record so the readiness
         // checklist's cadence math reflects the exercise.
@@ -366,14 +482,29 @@ export async function POST(
             updatedAt: new Date(),
           })
           .where(eq(controlRecords.id, record.id))
-
-        completionInserts.push({
-          controlId: link.controlId,
-          completionId: completion.id,
-        })
       }
 
-      return { run, bundle, completionInserts }
+      // ─── Per-named-participant dispute rows (migration 0065) ────────────
+      // For every facilitator-attested participant, create an
+      // ir_participant_disputes row. The dispute_token is opaque (32 bytes
+      // hex). Email send happens out-of-band — this transaction only
+      // creates the rows so they exist when the seal job runs in 7 days
+      // OR when a participant clicks the magic link (whichever comes first).
+      const disputeRows = (body.attestationBasis ?? [])
+        .filter((p) => p.participantEmail) // need an email to dispute to
+        .map((p) => ({
+          bundleId: bundle.id,
+          participantId: p.participantId,
+          participantEmail: p.participantEmail!.toLowerCase(),
+          participantName: p.participantName,
+          disputeToken: randomBytes(32).toString("hex"),
+          disputeTokenExpiresAt: new Date(attendanceSealAtIso),
+        }))
+      if (disputeRows.length > 0) {
+        await tx.insert(irParticipantDisputes).values(disputeRows)
+      }
+
+      return { run, bundle, completionInserts, disputeRows }
     })
 
     await logIrAuditEvent({
@@ -386,6 +517,7 @@ export async function POST(
         exerciseId: id,
         bundleVersion: body.bundleVersion,
         manifestSha256: body.manifestSha256,
+        bundleSha256: body.bundleSha256,
         fileCount: body.files.length,
         snapshotVersion: stateSnapshot.snapshotVersion,
         snapshotParticipantCount: stateSnapshot.participants.length,
@@ -394,6 +526,17 @@ export async function POST(
         storageDriver,
         completionsAttached: result.completionInserts.length,
         completionControls: result.completionInserts.map((c) => c.controlId),
+        // ── Migration 0065: IR satisfaction hardening ──
+        executedAt: executedAtIso,
+        validThroughAt: validThroughIso,
+        attendanceSealAt: attendanceSealAtIso,
+        attestationBasisCount: body.attestationBasis?.length ?? 0,
+        attendanceCorroborationKind: body.attendanceCorroborationKind ?? null,
+        bundleState: "provisional",
+        anchorHash,
+        prevAnchorHash: prevAnchorHash || null,
+        vaultStorageUri: body.vaultStorageUri ?? null,
+        disputeRowsCreated: result.disputeRows.length,
       },
       req,
     })

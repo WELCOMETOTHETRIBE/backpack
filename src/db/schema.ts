@@ -309,6 +309,14 @@ export const governanceArtifactCompletions = pgTable(
     valueText: text("value_text"),
     attestedBy: uuid("attested_by").references(() => users.id),
     attestedAt: timestamp("attested_at", { withTimezone: true }),
+    /**
+     * Optional NIST SP 800-171A objective letter (e.g. "[a]", "[b]", "[c]").
+     * Per-objective completions let an IR tabletop bundle close
+     * 3.6.3[a] independently of [b]/[c] instead of marking the whole
+     * control "touched". NULL = whole-control attestation (legacy + most
+     * non-IR completions). Added in migration 0065.
+     */
+    objectiveId: varchar("objective_id", { length: 8 }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
@@ -2162,5 +2170,6 @@ export {
   irFindings,
   irCorrectiveActions,
   irExerciseBundles,
+  irParticipantDisputes,
 } from "./schema.ir-tabletop";
 export type { IrScenarioInject } from "./schema.ir-tabletop";
