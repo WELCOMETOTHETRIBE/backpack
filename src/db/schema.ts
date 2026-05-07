@@ -1835,6 +1835,101 @@ export const issoExportManifests = pgTable(
   },
 );
 
+// ============== QMS Governance Manifests (Phase 13 — manifest ingest) ==============
+/**
+ * Signed CMMC governance manifest received from the QMS document-control
+ * service. Mirrors the ISSO weekly-export ingest pattern: QMS produces a
+ * snapshot, signs it with HMAC-SHA-256, POSTs to
+ * /api/integrations/qms-manifest/ingest. Codex verifies signature +
+ * recomputes content_hash + persists immutably.
+ *
+ * Schema is `mactech-governance-manifest.v1.1` (additive bump over Brian's
+ * v1, adds controls_touched aggregation + signing envelope). Each row is
+ * append-only — re-POSTing the same run_id is a no-op (idempotent).
+ *
+ * Drives:
+ *   - chain-of-custody for governance docs (CMMC 3.3.1/3.3.2/3.4.1/3.4.2)
+ *   - freshness scoring on control_observed_implementations via
+ *     mostRecentEvidenceAt refresh after ingest
+ *   - OIS narrative regeneration for controls_touched ∩ governance-18
+ */
+export const qmsGovernanceManifests = pgTable(
+  "qms_governance_manifests",
+  {
+    runId: text("run_id").primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    schemaVersion: text("schema_version").notNull(),
+    generatedAt: timestamp("generated_at", { withTimezone: true }).notNull(),
+    generatedBy: text("generated_by"),
+    toolVersion: text("tool_version"),
+    source: text("source").notNull(),
+    reviewPeriodStart: timestamp("review_period_start", { withTimezone: true }),
+    reviewPeriodEnd: timestamp("review_period_end", { withTimezone: true }),
+    issuerService: text("issuer_service"),
+    issuerUrl: text("issuer_url"),
+    issuerClientId: text("issuer_client_id"),
+    issuerGitSha: text("issuer_git_sha"),
+    docCount: integer("doc_count").notNull(),
+    controlsTouched: jsonb("controls_touched").notNull(),
+    contentHash: text("content_hash").notNull(),
+    signingHash: text("signing_hash").notNull(),
+    signatureAlg: text("signature_alg").notNull(),
+    signatureKid: text("signature_kid").notNull(),
+    signatureValue: text("signature_value").notNull(),
+    rawEnvelope: jsonb("raw_envelope").notNull(),
+    receivedAt: timestamp("received_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    orgIdx: index("qms_governance_manifests_org_idx").on(t.organizationId),
+    receivedIdx: index("qms_governance_manifests_received_idx").on(t.receivedAt),
+  }),
+);
+
+/**
+ * Per-document rows from a manifest. Child of qmsGovernanceManifests on
+ * runId. Stored as denormalized JSON column projection so per-control
+ * queries can pivot on controls_mapped without parsing the raw envelope.
+ *
+ * One row per document_number per manifest. Cardinality is bounded by
+ * QMS doc count (≤200 in practice) × manifest cadence (weekly).
+ */
+export const qmsGovernanceManifestDocuments = pgTable(
+  "qms_governance_manifest_documents",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    runId: text("run_id")
+      .notNull()
+      .references(() => qmsGovernanceManifests.runId, { onDelete: "cascade" }),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    documentNumber: text("document_number").notNull(),
+    documentName: text("document_name").notNull(),
+    documentType: text("document_type"),
+    filePath: text("file_path"),
+    version: text("version"),
+    status: text("status"),
+    effectiveDate: timestamp("effective_date", { withTimezone: true }),
+    nextReviewDate: timestamp("next_review_date", { withTimezone: true }),
+    sha256: text("sha256").notNull(),
+    fileSizeBytes: integer("file_size_bytes"),
+    controlsMapped: jsonb("controls_mapped").notNull(),
+  },
+  (t) => ({
+    runIdIdx: index("qms_governance_manifest_documents_run_idx").on(t.runId),
+    docNumberIdx: index("qms_governance_manifest_documents_doc_idx").on(
+      t.documentNumber,
+    ),
+    orgIdx: index("qms_governance_manifest_documents_org_idx").on(
+      t.organizationId,
+    ),
+  }),
+);
+
 // ============== Control Attention Items (Sprint 6.5) ==============
 /**
  * Persistent record of every control_freshness.needing_attention[] item the
