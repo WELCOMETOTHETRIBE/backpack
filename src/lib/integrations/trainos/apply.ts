@@ -271,13 +271,28 @@ export async function applyTrainosEvidence(
     // row points back to the same canonical evidence + cert, so this is
     // a denormalized projection of the single underlying completion.
     //
-    // NOTE: trainingRecords.userRole is in src/db/schema.ts but not yet
-    // migrated to production. Omitted here until the migration lands.
     const trainingTypeByNistId: Record<string, string> = {
       "3.2.1": "security_awareness",
       "3.2.2": "role_based",
       "3.2.3": "insider_threat",
     };
+    // Map TrainOS OfficialRole (LEARNER, ISSO, …) onto the Codex
+    // user_role taxonomy used by the in-app form (TrainingClient.tsx
+    // USER_ROLES). The audience pill in the Training register reads
+    // these snake_case values; the Boundary Compliance widget keys
+    // off users.cui_access_level instead, so mismatches are cosmetic.
+    const TRAINOS_TO_CODEX_ROLE: Record<string, string> = {
+      LEARNER: "all_users",
+      MANAGER: "manager",
+      ADMIN: "system_administrator",
+      ISSO: "security_officer",
+      INCIDENT_RESPONDER: "privileged_user",
+      EVIDENCE_OWNER: "privileged_user",
+      ASSESSOR: "privileged_user",
+    };
+    const learnerRoleRaw = canonical.learnerRole ?? "";
+    const codexUserRole =
+      TRAINOS_TO_CODEX_ROLE[learnerRoleRaw] ?? "all_users";
     const baseRow = {
       organizationId,
       personnelName: canonical.learnerName,
@@ -286,8 +301,9 @@ export async function applyTrainosEvidence(
       deliveryMethod: "online",
       completedAt: completedAtDate,
       expiresAt: expiresAtDate,
+      userRole: codexUserRole,
       evidenceUrl: certificate?.verificationUrl ?? null,
-      notes: `TrainOS delivery ${event.deliveryId} · evidence ${event.evidence.evidenceRecordId} · score ${canonical.score}/${canonical.passingThreshold} · learner role ${canonical.learnerRole}`,
+      notes: `TrainOS delivery ${event.deliveryId} · evidence ${event.evidence.evidenceRecordId} · score ${canonical.score}/${canonical.passingThreshold} · learner role ${learnerRoleRaw}`,
       createdById: matchedUser?.id ?? null,
     };
     const rowsToInsert = nistControlIds
