@@ -216,11 +216,17 @@ export default async function MonitoringPage() {
         ? false
         : null;
 
-  // 2. OS patch state — proxy via 3.14.1 update-services check until we
-  // capture actual "days since last successful WU install" in the
-  // canonical evidence bundle. PASS = update services healthy, can patch.
+  // 2. OS patch state — combines two signals:
+  //    • 3.14.1 (`wuauserv` + bits service health) → headline PASS/FAIL
+  //    • 3.14.4 (`win32_quickfixengineering` last-hotfix age) → days-old
+  //      number when present. Surfaced as a sub-line so the auditor sees
+  //      both "services running" AND "actually patched recently" without
+  //      conflating the two like the previous AV-defs miswiring did.
   const wuFinding = findingByControl.get("3.14.1");
   const wuPass = wuFinding?.pass ?? null;
+  const qfeFinding = findingByControl.get("3.14.4");
+  const qfeAgeMatch = qfeFinding?.observed.match(/(\d+)\s*-?\s*days?\b/i);
+  const qfeAgeDays = qfeAgeMatch ? parseInt(qfeAgeMatch[1], 10) : null;
 
   // 3. Open critical + high CVEs — count vuln_remediation register entries
   // with status=draft AND severity ∈ (critical, high). Will be 0 until
@@ -769,6 +775,12 @@ export default async function MonitoringPage() {
     driftSource && driftSource.latest && driftSource.previous
       ? {
           source: driftSource.label,
+          // Absolute counts on the latest run — DriftCell shows these as
+          // the headline so a steady-state "no change since prior" reads
+          // as "43 PASS, unchanged" instead of misleading "0".
+          passCurrent: driftSource.latest.pass,
+          partialCurrent: driftSource.latest.partial,
+          failCurrent: driftSource.latest.fail,
           passDelta: driftSource.latest.pass - driftSource.previous.pass,
           partialDelta: driftSource.latest.partial - driftSource.previous.partial,
           failDelta: driftSource.latest.fail - driftSource.previous.fail,
@@ -1793,7 +1805,15 @@ export default async function MonitoringPage() {
               label="OS patch posture"
               control="SI 3.14.1"
               value={wuPass === null ? "—" : wuPass ? "Healthy" : "Stalled"}
-              valueLabel={wuPass === null ? "No data yet" : wuPass ? "wuauserv + bits ready" : "Update services not running"}
+              valueLabel={
+                wuPass === null
+                  ? "No data yet"
+                  : wuPass
+                  ? qfeAgeDays !== null
+                    ? `wuauserv + bits ready · last hotfix ${qfeAgeDays}d ago`
+                    : "wuauserv + bits ready"
+                  : "Update services not running"
+              }
               tone={wuPass === null ? "neutral" : wuPass ? "good" : "bad"}
               hint="Windows Update services state — proxy for flaw remediation cadence (real day-count comes when EnclaveWatch captures WU history)"
             />
@@ -1860,9 +1880,9 @@ export default async function MonitoringPage() {
                   </span>
                 </p>
                 <div className="mt-3 grid grid-cols-3 gap-3 text-sm">
-                  <DriftCell label="PASS Δ" delta={drift.passDelta} positiveIsGood />
-                  <DriftCell label="PARTIAL Δ" delta={drift.partialDelta} positiveIsGood={false} />
-                  <DriftCell label="FAIL Δ" delta={drift.failDelta} positiveIsGood={false} />
+                  <DriftCell label="PASS" current={drift.passCurrent} delta={drift.passDelta} positiveIsGood />
+                  <DriftCell label="PARTIAL" current={drift.partialCurrent} delta={drift.partialDelta} positiveIsGood={false} />
+                  <DriftCell label="FAIL" current={drift.failCurrent} delta={drift.failDelta} positiveIsGood={false} />
                 </div>
                 {drift.passDelta === 0 && drift.partialDelta === 0 && drift.failDelta === 0 && (
                   <p className="mt-3 text-xs text-[var(--color-gray-500)]">
@@ -2035,30 +2055,36 @@ function VitalCard({
 
 function DriftCell({
   label,
+  current,
   delta,
   positiveIsGood,
 }: {
   label: string;
+  current: number;
   delta: number;
   positiveIsGood: boolean;
 }) {
   const sign = delta > 0 ? "+" : "";
   const good = positiveIsGood ? delta >= 0 : delta <= 0;
-  const colorClass =
+  // Headline = absolute count on the latest run. Subtitle = delta vs the
+  // prior run. Earlier version showed delta-only, so a steady-state
+  // PASS Δ=0 read as "0 passes" — bad signal even when nothing changed.
+  const deltaColor =
     delta === 0
-      ? "text-[var(--color-gray-600)]"
+      ? "text-[var(--color-gray-500)]"
       : good
         ? "text-emerald-700"
         : "text-amber-700";
+  const deltaText = delta === 0 ? "no change" : `${sign}${delta} since prior`;
   return (
     <div className="rounded-md border border-[var(--color-border-muted)] bg-[var(--color-gray-50)]/50 px-3 py-2">
       <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">
         {label}
       </p>
-      <p className={`mt-0.5 text-lg font-bold tabular-nums ${colorClass}`}>
-        {sign}
-        {delta}
+      <p className="mt-0.5 text-lg font-bold tabular-nums text-[var(--color-navy-primary)]">
+        {current}
       </p>
+      <p className={`text-[10px] font-medium ${deltaColor}`}>{deltaText}</p>
     </div>
   );
 }
