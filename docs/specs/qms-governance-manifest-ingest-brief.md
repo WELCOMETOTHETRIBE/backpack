@@ -225,11 +225,28 @@ The existing v2.1 read-only contract (`/api/v1/cmmc/controls/...`) does NOT chan
 ## Open questions for the Quality agent
 
 1. **What's in your existing `governanceManifestRoutes.js`?** Specifically, what do `POST /ingest-manifest`, `GET /manifest-runs/latest`, `GET /ssp-manifest-status`, `GET /manifest-preview` do? Are they QMS-internal (self-ingest for tracking-runs) or were they intended as the codex-facing API? Confirm so we don't duplicate.
+
+   **ANSWERED (Quality agent, 2026-05-06):** All four are **QMS-internal self-tracking**, not codex-facing. They populate the `governance_manifest_runs` + child tables for QMS-side audit visibility (who produced what manifest when, with what doc hashes, mapped to which controls). The codex-facing flow is the new `POST /push-to-codex` route which lives in the same file but has different semantics — it builds a signed v1.1 envelope and ships it to codex via `codexManifestClient.js`. No duplication; the two flows are complementary. QMS records what it produces; codex records what it receives. Both audit trails are valuable.
+
 2. **Brian's `governanceControlMapping` Prisma table** — what's the cardinality? Is it admin-edited via UI, or seeded only? If it's the source of truth for `controls_mapped[]` per-doc, my Phase 6 admin tagging UI at `/cmmc/control-tags` needs to either consume it or write to it. Which?
+
+   **ANSWERED:** Cardinality is ~60 rows (seeded from `scripts/governance-control-mapping.json`, one row per `documentNumber` → `controlIds[]`). **Phase 6 junctions win.** The manifest builder's `resolveControlsFor` checks junctions first; falls back to legacy mapping if no junction tags exist; emits a warning if neither has data. New tags should go into the junctions via the `/cmmc/control-tags` admin UI; legacy mapping stays in place as a backstop until tags are populated for every governance doc, at which point we drop the mapping table entirely. No migration of the legacy data into junctions is happening yet — both layers coexist.
+
 3. **Doc-content hashing:** Brian's manifest has `sha256` per doc and `file_path`. Are those file hashes (HTML rendered content) or DB-row hashes? CMMC L2 audit prefers immutable evidence — if the file is rendered fresh on each manifest run, the hash will churn even when the underlying record didn't change. Suggest: hash a canonicalized JSON of the row's audit-relevant fields (`document_number, version, status, effective_date, content`).
+
+   **ANSWERED:** The current `sha256` is `SHA-256(Buffer.from(document.content, 'utf8'))` — a hash of the document's stored markdown/HTML body string. This is **stable across rebuilds** as long as the DB row's `content` field doesn't change; no rendering churn. Acceptable for v1.1. If we observe drift in practice (e.g. content normalization changes break the hash), we'll switch to a canonical-JSON-of-row-fields hash. For now: keep simple.
+
 4. **Trigger cadence for the manifest:** weekly (matches ISSO)? On every controlled-doc state change? On admin demand only? Weekly + on-demand is the safest combination.
+
+   **ANSWERED:** v1 trigger is **admin-on-demand** via the `/system/governance-manifest` UI page (Brian's existing surface) and the new `POST /push-to-codex` route. Weekly cron deferred to a follow-up. Once the on-demand flow is verified end-to-end in prod, a weekly Railway cron job (or a Postgres-triggered job) calls `/push-to-codex` with default `documentIds` (empty → all governance-typed docs).
+
 5. **Brian's intent for `governance-manifest-cmmc20.json` vs `governance-manifest.json`:** is one canonical and the other a CLI test artifact? These are sitting in the QMS root untracked.
+
+   **ANSWERED:** Both are **CLI output artifacts** from `scripts/generate-governance-manifest.mjs` runs at different times. Neither is canonical. The canonical envelope is whatever the live builder produces in-server via `buildQmsGovernanceManifestFromDocumentIds`, NOT a checked-in file. Added all `governance-manifest*.json` files to `.gitignore` as a follow-up (they're per-run snapshots, not source).
+
 6. ~~**Migration ordering:** Brian's `server/prisma/migrations/20260411120000_governance_manifest_ingest/migration.sql` is dated **2026-04-11** but the live prod schema has my **2026-05-06** Phase 1b additions applied via direct psql (not via Prisma migrate). When Brian's migration runs via `prisma migrate deploy`, will it conflict? Need to dry-run.~~ **RESOLVED — see Migration Baseline Reset below.**
+
+   **EXECUTION NOTE (Quality agent, 2026-05-06):** Migration baseline reset **deferred** rather than executed. Reason: prod Railway start command is `npx prisma db push && npm start` which sync-applies schema changes from `schema.prisma` without writing migration history. Brian's old `20260411120000_governance_manifest_ingest/migration.sql` was deleted (never imported into the worktree); the new `GovernanceControlMapping` + `GovernanceManifestRun*` tables landed on prod via `db push` on the next deploy. The migrate-deploy switch + clean baseline is still the right long-term move for CMMC 3.4.2 audit defensibility, but it's a separate task from this commit. Q6 stays "resolved in spirit, not yet executed."
 
 ## Migration Baseline Reset (Q6 resolution)
 
