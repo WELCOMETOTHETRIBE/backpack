@@ -193,9 +193,21 @@ export default async function MonitoringPage() {
   }
   const findingByControl = new Map(osValidatorFindings.map((f) => [f.controlId, f]));
 
-  // 1. AV signature age — parse `AntivirusSignatureAge=N` from 3.14.4
+  // 1. AV signature age — parse the age in days from the 3.14.4 finding's
+  // `observed` string. The validator has emitted at least two formats over
+  // its lifetime:
+  //   • "AntivirusSignatureAge=19"  (legacy Defender path)
+  //   • "19-days (via win32_quickfixengineering)"  (current QFE-based fallback
+  //     when Defender PS module isn't available; the integer is still the
+  //     malicious-code-protection update age in days, just sourced from
+  //     the OS hotfix list)
+  // Tolerate both formats so the card stays populated as the validator
+  // evolves; bias toward the "AntivirusSignatureAge=" form when both are
+  // present in a future hybrid emission.
   const avFinding = findingByControl.get("3.14.4");
-  const avAgeMatch = avFinding?.observed.match(/AntivirusSignatureAge=(\d+)/i);
+  const avAgeMatch =
+    avFinding?.observed.match(/AntivirusSignatureAge=(\d+)/i) ??
+    avFinding?.observed.match(/(\d+)\s*-?\s*days?\b/i);
   const avAgeDays = avAgeMatch ? parseInt(avAgeMatch[1], 10) : null;
 
   // 2. OS patch state — proxy via 3.14.1 update-services check until we
@@ -756,6 +768,8 @@ export default async function MonitoringPage() {
           failDelta: driftSource.latest.fail - driftSource.previous.fail,
           priorRunId: driftSource.previous.runId,
           currentRunId: driftSource.latest.runId,
+          priorCollectedAt: driftSource.previous.collectedAt,
+          currentCollectedAt: driftSource.latest.collectedAt,
         }
       : null;
 
@@ -1795,14 +1809,17 @@ export default async function MonitoringPage() {
                   {drift.source}
                 </p>
                 <p className="mt-0.5 text-xs text-[var(--color-gray-500)]">
-                  Comparing run{" "}
-                  <code className="rounded bg-[var(--color-gray-100)] px-1 py-0.5 font-mono text-[10px]">
-                    {drift.priorRunId.slice(0, 28)}…
-                  </code>{" "}
+                  Comparing run from{" "}
+                  <span className="font-medium text-[var(--color-gray-700)]">
+                    {drift.priorCollectedAt.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}
+                  </span>{" "}
                   against{" "}
-                  <code className="rounded bg-[var(--color-gray-100)] px-1 py-0.5 font-mono text-[10px]">
-                    {drift.currentRunId.slice(0, 28)}…
-                  </code>
+                  <span className="font-medium text-[var(--color-gray-700)]">
+                    {drift.currentCollectedAt.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}
+                  </span>
+                  <span className="ml-1 text-[var(--color-gray-400)]" title={`prior: ${drift.priorRunId} → current: ${drift.currentRunId}`}>
+                    ⓘ
+                  </span>
                 </p>
                 <div className="mt-3 grid grid-cols-3 gap-3 text-sm">
                   <DriftCell label="PASS Δ" delta={drift.passDelta} positiveIsGood />
