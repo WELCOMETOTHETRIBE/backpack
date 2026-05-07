@@ -226,11 +226,21 @@ export default async function OutstandingPage() {
         );
         return everBundled ? "in_progress" : "not_started";
       }
-      // 3.2.x: training_completion register has any final entry
+      // 3.2.x: defer to controlRecords.implementationStatus, which is
+      // produced by calculateControlStatus → isTrainingControlSatisfied
+      // (the per-user cohort gate added in a6f88b0). The old rule —
+      // "any final training_completion entry exists" — flipped these
+      // cards to "closed" the moment one user completed training, even
+      // if the rest of the boundary roster was missing it. That's the
+      // bug the user spotted on /dashboard/readiness/outstanding.
       if (entry.controlId.startsWith("3.2.")) {
-        const count = finalCounts.get("training_completion") ?? 0;
-        if (count > 0) return "closed";
-        if (registerIdByKey.has("training_completion")) return "in_progress";
+        if (record.implementationStatus === "implemented") return "closed";
+        if (
+          record.implementationStatus === "in_progress" ||
+          registerIdByKey.has("training_completion")
+        ) {
+          return "in_progress";
+        }
         return "not_started";
       }
       return "not_started";
