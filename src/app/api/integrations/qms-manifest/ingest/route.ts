@@ -36,6 +36,7 @@ import {
 import { verifyEnvelope } from "@/lib/integrations/qms-manifest-verify";
 import { writeAuditLog } from "@/lib/audit";
 import { regenerateOISForManifest } from "@/lib/evidence-engine/adjudication/qms-manifest-ois-bridge";
+import { bridgeQmsManifestToGovernance } from "@/lib/evidence-engine/adjudication/qms-manifest-status-bridge";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -239,7 +240,37 @@ export async function POST(req: NextRequest) {
     console.error("[qms-manifest-ingest] audit log write failed:", err);
   }
 
-  // 9. Async fan-out: regenerate OIS for any governance-18 controls
+  // 9a. Synchronous bridge: UPSERT QMS docs into the codex-native
+  //     governance_documents + governance_document_control_links tables
+  //     so calculateControlStatus.hasApprovedGovDocs sees them, then
+  //     recalculate every affected control_record's implementation_status.
+  //     This is what flips controls from Not Started → In Progress →
+  //     Implemented on the dashboard after a QMS push. Done synchronously
+  //     so the HTTP response confirms control flip happened.
+  try {
+    const bridgeResult = await bridgeQmsManifestToGovernance({
+      orgId: orgRow.id,
+      envelope,
+    });
+    if (bridgeResult.errors.length > 0) {
+      console.error(
+        "[qms-manifest-ingest] status bridge had non-fatal errors:",
+        bridgeResult.errors,
+      );
+    }
+    console.log(
+      `[qms-manifest-ingest] status bridge: ${bridgeResult.documentsUpserted} docs, ${bridgeResult.linksUpserted} links, ${bridgeResult.controlRecordsRecalculated} controls recalculated`,
+    );
+  } catch (err) {
+    // Bridge failures are non-fatal — the manifest is still stored and
+    // an admin can re-trigger by re-pushing. Log loudly.
+    console.error(
+      "[qms-manifest-ingest] status bridge failed (non-blocking):",
+      err,
+    );
+  }
+
+  // 9b. Async fan-out: regenerate OIS for any governance-18 controls
   //    touched, and refresh mostRecentEvidenceAt so freshness scoring
   //    sees this manifest's evidence as fresh. Awaited inside a
   //    setImmediate-style background tick so the HTTP response returns
