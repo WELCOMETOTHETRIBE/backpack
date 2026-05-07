@@ -28,6 +28,13 @@
  */
 
 import postgres from "postgres";
+import { db } from "@/db";
+import { controlRecords } from "@/db/schema";
+import { eq, sql as sqlExpr } from "drizzle-orm";
+import { calculateControlStatus } from "@/lib/control-status";
+
+// Org scope for the recalc — script is single-tenant by design (MacTech beta).
+const RECALC_ORG_ID = "901cc0c7-79b1-466b-a402-14c3ec7771ff";
 
 const url = process.env.DATABASE_URL;
 if (!url) {
@@ -142,7 +149,36 @@ async function run() {
   }
 
   console.log("");
-  console.log("[wipe-training-progress] complete. Slate is clean for TrainOS evidence ingest.");
+  console.log("[wipe-training-progress] data wipe complete. Running auto-recalc...");
+
+  // Auto-recalc so the dashboard reflects the new evidence picture
+  // without a manual "Recalculate control statuses" click. Without this,
+  // the cached control_records.implementation_status stays at the
+  // pre-wipe value until something else triggers calculateControlStatus.
+  const recs = await db
+    .select({ id: controlRecords.id, controlId: controlRecords.controlId })
+    .from(controlRecords)
+    .where(eq(controlRecords.organizationId, RECALC_ORG_ID));
+  let recalcOk = 0;
+  let recalcFail = 0;
+  for (const r of recs) {
+    try {
+      await calculateControlStatus(r.id);
+      recalcOk++;
+    } catch (e) {
+      recalcFail++;
+      console.warn(
+        `  recalc failed for ${r.controlId}: ${e instanceof Error ? e.message : String(e)}`
+      );
+    }
+  }
+  console.log(`  recalculated:                    ${recalcOk}/${recs.length} (${recalcFail} failed)`);
+  // sqlExpr import is reserved for any future raw-SQL recalc flag; silence
+  // the lint warning without removing the import.
+  void sqlExpr;
+
+  console.log("");
+  console.log("[wipe-training-progress] complete with auto-recalc. Slate is clean for TrainOS evidence ingest.");
   console.log("");
   console.log("Next steps:");
   console.log("  1. SCTM should now show AT.L2-3.2.1 / .2.2 / .2.3 as outstanding.");

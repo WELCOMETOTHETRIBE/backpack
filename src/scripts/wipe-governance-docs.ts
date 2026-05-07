@@ -33,6 +33,10 @@
  */
 
 import postgres from "postgres";
+import { db } from "@/db";
+import { controlRecords } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { calculateControlStatus } from "@/lib/control-status";
 
 const url = process.env.DATABASE_URL;
 if (!url) {
@@ -148,16 +152,42 @@ async function run() {
   }
 
   console.log("");
-  console.log("[wipe-governance-docs] complete.");
+  console.log("[wipe-governance-docs] doc wipe complete. Running auto-recalc...");
+
+  // Auto-recalc: calculateControlStatus walks every required lane and
+  // persists the new implementation_status to control_records, then SPRS
+  // is recomputed downstream. Without this step the cached
+  // implementation_status stays at "implemented" until something else
+  // (artifact upload, wizard save, manual "Recalculate" click) triggers
+  // a recompute — which is the trap the first wipe hit.
+  //
+  // Scoped to the org we just wiped; best-effort per-control so a single
+  // failure doesn't block the rest.
+  const recs = await db
+    .select({ id: controlRecords.id, controlId: controlRecords.controlId })
+    .from(controlRecords)
+    .where(eq(controlRecords.organizationId, ORG_ID));
+  let recalcOk = 0;
+  let recalcFail = 0;
+  for (const r of recs) {
+    try {
+      await calculateControlStatus(r.id);
+      recalcOk++;
+    } catch (e) {
+      recalcFail++;
+      console.warn(
+        `  recalc failed for ${r.controlId}: ${e instanceof Error ? e.message : String(e)}`
+      );
+    }
+  }
+  console.log(`  recalculated:                    ${recalcOk}/${recs.length} (${recalcFail} failed)`);
+
   console.log("");
-  console.log("Next steps:");
-  console.log("  1. /dashboard/readiness → click 'Recalculate control statuses'");
-  console.log("     (or upload any artifact / save any wizard — anything that triggers");
-  console.log("     calculateControlStatus). The Overview adjudicated count will drop");
-  console.log("     by however many controls were satisfied via the doc lane alone.");
-  console.log("  2. SCTM will surface the newly-outstanding controls in their bins.");
-  console.log("  3. Register entries + artifact completions + attestations are preserved,");
-  console.log("     so any control still backed by those lanes stays adjudicated.");
+  console.log("[wipe-governance-docs] complete with auto-recalc.");
+  console.log("Dashboard will reflect the new count on next page load — no manual");
+  console.log("'Recalculate control statuses' click needed. Register entries +");
+  console.log("artifact completions + attestations are preserved, so any control");
+  console.log("still backed by those lanes stays adjudicated.");
   await sql.end();
 }
 
