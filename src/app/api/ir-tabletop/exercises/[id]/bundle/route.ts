@@ -570,7 +570,10 @@ export async function POST(
           bundleSha256: body.bundleSha256,
           vaultStorageUri: body.vaultStorageUri ?? null,
           vaultStorageRegion: body.vaultStorageRegion ?? null,
-          bytesPersisted: body.bytesPersisted ?? false,
+          // Accept either bytesPersisted (original field name) or
+// vaultBytesPersisted (TrainOS rename). vaultBytesPersisted wins
+// when both are sent — it's closer to the post-upload truth.
+bytesPersisted: body.vaultBytesPersisted ?? body.bytesPersisted ?? false,
           executedAt: new Date(executedAtIso),
           validThroughAt: new Date(validThroughIso),
           attestationBasisJson: body.attestationBasis ?? null,
@@ -778,7 +781,10 @@ export async function POST(
         anchorHash,
         prevAnchorHash: prevAnchorHash || null,
         vaultStorageUri: body.vaultStorageUri ?? null,
-        bytesPersisted: body.bytesPersisted ?? false,
+        // Accept either bytesPersisted (original field name) or
+// vaultBytesPersisted (TrainOS rename). vaultBytesPersisted wins
+// when both are sent — it's closer to the post-upload truth.
+bytesPersisted: body.vaultBytesPersisted ?? body.bytesPersisted ?? false,
         // Pilot escape hatch breadcrumb. true iff CODEX_ALLOW_COMMERCIAL_
         // AZURE_FOR_DEV was set AND the URL was commercial Azure. Lets a
         // C3PAO query for any bundle archived during the pilot window:

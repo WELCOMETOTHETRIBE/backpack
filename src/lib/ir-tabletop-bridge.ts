@@ -543,8 +543,15 @@ export const UploadBundleManifestSchema = z.object({
    * returned a placeholder URI). Persisted on ir_exercise_bundles for
    * C3PAO breadcrumb. Defaults false if absent — manifest-only bundles
    * are still accepted but flagged.
+   *
+   * Accept both `bytesPersisted` (original name) and `vaultBytesPersisted`
+   * (TrainOS post-rename) so a future field rename in either direction
+   * doesn't silently flip the column to false. Route handler reads
+   * whichever is set; if both, vaultBytesPersisted wins (closer to the
+   * post-upload truth).
    */
   bytesPersisted: z.boolean().optional(),
+  vaultBytesPersisted: z.boolean().optional(),
   /**
    * When the exercise actually ran (NOT when the ZIP was generated).
    * Codex enforces validThroughAt = executedAt + 365 days for 3.6.3.
