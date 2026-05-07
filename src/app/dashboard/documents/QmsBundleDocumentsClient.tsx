@@ -476,7 +476,10 @@ export default function QmsBundleDocumentsClient({
 
 function DocRow({ doc }: { doc: QmsDoc }) {
   const [expanded, setExpanded] = useState(false);
-  const qmsUrl = `${QMS_BASE}/documents/by-code/${encodeURIComponent(doc.documentNumber)}`;
+  // Link to the read-only "presentation view" on QMS (C3PAO-friendly,
+  // beautifully-rendered MD with the full signature chain visible). Not
+  // the editable detail page.
+  const qmsUrl = `${QMS_BASE}/documents/by-code/${encodeURIComponent(doc.documentNumber)}/view`;
   const sortedSigs = [...doc.signatures].sort((a, b) => {
     const order = (m: string | null) =>
       m === "Reviewer" ? 0 : m === "Approver" ? 1 : m === "Quality Release" ? 2 : 3;
