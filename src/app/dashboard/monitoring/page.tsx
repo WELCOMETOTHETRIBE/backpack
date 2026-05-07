@@ -193,22 +193,28 @@ export default async function MonitoringPage() {
   }
   const findingByControl = new Map(osValidatorFindings.map((f) => [f.controlId, f]));
 
-  // 1. AV signature age — parse the age in days from the 3.14.4 finding's
-  // `observed` string. The validator has emitted at least two formats over
-  // its lifetime:
-  //   • "AntivirusSignatureAge=19"  (legacy Defender path)
-  //   • "19-days (via win32_quickfixengineering)"  (current QFE-based fallback
-  //     when Defender PS module isn't available; the integer is still the
-  //     malicious-code-protection update age in days, just sourced from
-  //     the OS hotfix list)
-  // Tolerate both formats so the card stays populated as the validator
-  // evolves; bias toward the "AntivirusSignatureAge=" form when both are
-  // present in a future hybrid emission.
-  const avFinding = findingByControl.get("3.14.4");
-  const avAgeMatch =
-    avFinding?.observed.match(/AntivirusSignatureAge=(\d+)/i) ??
-    avFinding?.observed.match(/(\d+)\s*-?\s*days?\b/i);
-  const avAgeDays = avAgeMatch ? parseInt(avAgeMatch[1], 10) : null;
+  // 1. AV state — read from the 3.14.2 finding (Defender / malicious code
+  // protection). 3.14.4 is OS patch recency (win32_quickfixengineering /
+  // Windows Update last-success), NOT antivirus — wiring the AV card to
+  // 3.14.4 was a control-mapping bug that made the widget show a WU
+  // age while labeled "AV definitions".
+  //
+  // Two emission formats observed from the validator over time:
+  //   • "RealTimeProtectionEnabled=True"  (current state — boolean)
+  //   • "SignatureAge=N"                  (future — when validator wires
+  //                                        Get-MpComputerStatus output)
+  // Prefer SignatureAge when present (richer signal, gives an age in days);
+  // otherwise fall back to the realtime-protection boolean. Card render
+  // logic below switches on which signal we have.
+  const avFinding = findingByControl.get("3.14.2");
+  const avSigAgeMatch = avFinding?.observed.match(/SignatureAge=(\d+)/i);
+  const avAgeDays = avSigAgeMatch ? parseInt(avSigAgeMatch[1], 10) : null;
+  const avRealtimeEnabled =
+    avFinding?.observed.match(/RealTimeProtectionEnabled=(True|False)/i)?.[1]?.toLowerCase() === "true"
+      ? true
+      : avFinding?.observed.match(/RealTimeProtectionEnabled=(True|False)/i)?.[1]?.toLowerCase() === "false"
+        ? false
+        : null;
 
   // 2. OS patch state — proxy via 3.14.1 update-services check until we
   // capture actual "days since last successful WU install" in the
@@ -1744,11 +1750,43 @@ export default async function MonitoringPage() {
             <VitalCard
               icon={Shield}
               label="AV definitions"
-              control="SI 3.14.4"
-              value={avAgeDays === null ? "—" : `${avAgeDays}d`}
-              valueLabel={avAgeDays === null ? "Not captured" : avAgeDays === 0 ? "current today" : avAgeDays === 1 ? "1 day old" : `${avAgeDays} days old`}
-              tone={avAgeDays === null ? "neutral" : avAgeDays <= 7 ? "good" : avAgeDays <= 14 ? "warn" : "bad"}
-              hint="Microsoft Defender signature age — assessor-relevant for malicious code protection"
+              control="SI 3.14.2"
+              value={
+                avAgeDays !== null
+                  ? `${avAgeDays}d`
+                  : avRealtimeEnabled === true
+                  ? "Active"
+                  : avRealtimeEnabled === false
+                  ? "Off"
+                  : "—"
+              }
+              valueLabel={
+                avAgeDays !== null
+                  ? avAgeDays === 0
+                    ? "current today"
+                    : avAgeDays === 1
+                    ? "1 day old"
+                    : `${avAgeDays} days old`
+                  : avRealtimeEnabled === true
+                  ? "Defender real-time protection on"
+                  : avRealtimeEnabled === false
+                  ? "Defender real-time protection OFF"
+                  : "Not captured"
+              }
+              tone={
+                avAgeDays !== null
+                  ? avAgeDays <= 7
+                    ? "good"
+                    : avAgeDays <= 14
+                    ? "warn"
+                    : "bad"
+                  : avRealtimeEnabled === true
+                  ? "good"
+                  : avRealtimeEnabled === false
+                  ? "bad"
+                  : "neutral"
+              }
+              hint="Microsoft Defender state — assessor-relevant for malicious code protection (3.14.2)"
             />
             <VitalCard
               icon={Wrench}

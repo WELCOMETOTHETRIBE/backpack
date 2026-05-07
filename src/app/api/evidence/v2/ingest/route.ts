@@ -14,6 +14,7 @@ import { eq, and, inArray, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { resolveOrgFromSessionOrBearer } from "@/lib/auth-bearer";
 import { calculateControlStatus } from "@/lib/control-status";
+import { persistFilePresenceForRun } from "@/lib/evidence/per-control-file-presence";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { controlIdToNist } from "@/lib/compliance/controlId";
 import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
@@ -254,20 +255,33 @@ export async function POST(req: Request) {
             eq(evidenceRuns.runFingerprint, manifestFingerprint),
           ),
         );
-      await db.insert(evidenceRuns).values({
-        organizationId: orgId,
-        systemId: manifestBoundaryId,
-        runId,
-        collectedAt,
-        collectorName: "collect_cui_evidence_v2",
-        collectorVersion: "2.0",
-        bundleRoot: m.bundle_root ?? "",
-        manifest: m as unknown as Record<string, unknown>,
-        hashAlgorithm: "sha256",
-        source: "cui_evidence_manifest",
-        boundaryId: manifestBoundaryId,
-        runFingerprint: manifestFingerprint,
-      });
+      const [manifestRun] = await db
+        .insert(evidenceRuns)
+        .values({
+          organizationId: orgId,
+          systemId: manifestBoundaryId,
+          runId,
+          collectedAt,
+          collectorName: "collect_cui_evidence_v2",
+          collectorVersion: "2.0",
+          bundleRoot: m.bundle_root ?? "",
+          manifest: m as unknown as Record<string, unknown>,
+          hashAlgorithm: "sha256",
+          source: "cui_evidence_manifest",
+          boundaryId: manifestBoundaryId,
+          runFingerprint: manifestFingerprint,
+        })
+        .returning({ id: evidenceRuns.id });
+
+      // Per-control file-presence evaluator — was previously only wired
+      // into the legacy /api/evidence-runs/import path, leaving every
+      // collect_cui_evidence_v2 ingest with ZERO rows in
+      // evidence_control_technical_status. TrainOS surfaced the stall;
+      // this call closes the loop by computing the per-control
+      // file-presence aggregate every time a manifest lands here.
+      if (manifestRun) {
+        await persistFilePresenceForRun(manifestRun.id, m.files ?? []);
+      }
     }
 
     // ── Control-evidence mapping ─────────────────────────────────────────────
