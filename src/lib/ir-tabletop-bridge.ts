@@ -489,9 +489,20 @@ export const UploadBundleManifestSchema = z.object({
     // and surface non-Gov hosts as a route-level warning so misconfigs are
     // visible without breaking customer flexibility (e.g. local dev
     // proxies, future air-gapped clouds).
+    //
+    // Pilot escape hatch: CODEX_ALLOW_COMMERCIAL_AZURE_FOR_DEV=true
+    // downgrades the reject to a route-level warning + audit marker so
+    // smoke testing can proceed before MacTech's Azure Gov subscription
+    // lands. Default OFF; mirrors TrainOS's TRAINOS_ALLOW_COMMERCIAL_
+    // AZURE_FOR_DEV. Both flags are removed once Gov subscription is
+    // live — see route.ts for the audit-log breadcrumb on bypassed
+    // bundles.
     .refine(
       (url) => {
         if (!url) return true;
+        if (process.env.CODEX_ALLOW_COMMERCIAL_AZURE_FOR_DEV === "true") {
+          return true; // pilot bypass — logged at route level
+        }
         try {
           const host = new URL(url).host.toLowerCase();
           return !host.endsWith(".blob.core.windows.net");

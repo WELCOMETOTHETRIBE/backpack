@@ -173,16 +173,37 @@ export async function POST(
     const auth = await authorizeIrRequest(req, rawBody)
     const body = UploadBundleManifestSchema.parse(JSON.parse(rawBody))
 
-    // Defense-in-depth #2 (warn, don't reject): if vaultStorageUri is set
-    // but the host doesn't end in .usgovcloudapi.net, surface it in logs.
-    // The zod .refine on the schema already REJECTS commercial Azure
-    // (.blob.core.windows.net) with HTTP 400; this catches the in-between
-    // case (private cloud, customer-named endpoint, dev proxy) so a
-    // misconfigured non-commercial-non-Gov host can't slip in silently.
+    // Defense-in-depth host inspection on vaultStorageUri.
+    //
+    // Cases:
+    //   (a) host ends in .usgovcloudapi.net   → green path, no log
+    //   (b) host ends in .blob.core.windows.net AND
+    //       CODEX_ALLOW_COMMERCIAL_AZURE_FOR_DEV=true → PILOT BYPASS
+    //       (zod skipped its reject). Loud warn + audit-log breadcrumb so
+    //       a C3PAO can later grep "pilot bypass active for these N
+    //       bundles". Removed once MacTech's Gov subscription lands.
+    //   (c) host neither Gov nor commercial Azure → warn (don't reject).
+    //       Catches private clouds / dev proxies / misconfigured endpoints.
+    //   (d) host ends in .blob.core.windows.net AND no bypass flag →
+    //       already rejected by zod with HTTP 400. Unreachable here.
+    let pilotBypassActive = false
     if (body.vaultStorageUri) {
       try {
         const host = new URL(body.vaultStorageUri).host.toLowerCase()
-        if (!host.endsWith(".usgovcloudapi.net")) {
+        if (host.endsWith(".blob.core.windows.net")) {
+          // Case (b): pilot bypass active.
+          pilotBypassActive = true
+          console.warn(
+            "[ir-bundle] PILOT BYPASS — commercial Azure URL accepted (CODEX_ALLOW_COMMERCIAL_AZURE_FOR_DEV=true). NOT C3PAO-defensible for production CUI bundles.",
+            JSON.stringify({
+              exerciseId: id,
+              host,
+              uri: body.vaultStorageUri,
+              orgId: auth.organizationId,
+            })
+          )
+        } else if (!host.endsWith(".usgovcloudapi.net")) {
+          // Case (c): non-Gov, non-commercial-Azure — log to surface misconfig.
           console.warn(
             "[ir-bundle] vault_storage_uri host is not Azure Gov",
             JSON.stringify({
@@ -626,6 +647,13 @@ export async function POST(
         prevAnchorHash: prevAnchorHash || null,
         vaultStorageUri: body.vaultStorageUri ?? null,
         bytesPersisted: body.bytesPersisted ?? false,
+        // Pilot escape hatch breadcrumb. true iff CODEX_ALLOW_COMMERCIAL_
+        // AZURE_FOR_DEV was set AND the URL was commercial Azure. Lets a
+        // C3PAO query for any bundle archived during the pilot window:
+        //   SELECT * FROM audit_logs
+        //   WHERE action = 'bundle_archived'
+        //     AND details->>'pilotBypassActive' = 'true';
+        pilotBypassActive,
         disputeRowsCreated: result.disputeRows.length,
       },
       req,
