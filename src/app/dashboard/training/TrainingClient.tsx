@@ -24,6 +24,8 @@ import {
   ClipboardList,
 } from "lucide-react";
 import CertificateImporter from "@/components/training/CertificateImporter";
+import { IrTabletopSection } from "./IrTabletopSection";
+import type { IrTabletopSummary } from "@/lib/ir-tabletop/get-summary-for-org";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -909,7 +911,13 @@ function TrainingSection({ section, records, onAdd, onDelete }: SectionProps) {
 
 // ── Main Component ────────────────────────────────────────────────────────────
 
-export default function TrainingClient({ initialRecords }: { initialRecords: TrainingRecord[] }) {
+export default function TrainingClient({
+  initialRecords,
+  irTabletopSummary = null,
+}: {
+  initialRecords: TrainingRecord[];
+  irTabletopSummary?: IrTabletopSummary | null;
+}) {
   const [records, setRecords] = useState<TrainingRecord[]>(initialRecords);
   const [boundaryUsers, setBoundaryUsers] = useState<BoundaryUser[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
@@ -992,10 +1000,10 @@ export default function TrainingClient({ initialRecords }: { initialRecords: Tra
       {/* Page header */}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Training Records</h1>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Training & Testing</h1>
           <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
-            Track completion of the three CMMC awareness and training controls (NIST 3.2.1 – 3.2.3).{" "}
-            {records.length} record{records.length !== 1 ? "s" : ""} on file.
+            CMMC awareness training (NIST 3.2.1–3.2.3) + incident response testing (NIST 3.6.1–3.6.3).{" "}
+            {records.length} training record{records.length !== 1 ? "s" : ""} on file.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -1090,6 +1098,9 @@ export default function TrainingClient({ initialRecords }: { initialRecords: Tra
           onDelete={handleDelete}
         />
       ))}
+
+      {/* IR Tabletop testing — IR.L2-3.6.1 / 3.6.2 / 3.6.3 */}
+      <IrTabletopSection summary={irTabletopSummary} />
 
       {/* Footer note */}
       <p className="text-xs text-gray-400 dark:text-gray-500">
