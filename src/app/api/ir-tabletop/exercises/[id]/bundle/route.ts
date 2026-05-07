@@ -146,7 +146,20 @@ export async function GET(
         .limit(1)
     )[0]
     if (!exercise) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 })
+      // Strict-by-id: this endpoint does NOT auto-create the exercise.
+      // Surface the specific cause so callers (TrainOS, future
+      // integrations) don't have to round-trip to diagnose. Pre-register
+      // the exercise via POST /api/ir-tabletop/exercises first.
+      return NextResponse.json(
+        {
+          error: "exercise_not_registered",
+          message:
+            "No ir_exercises row exists with the given id under your org. Pre-register the exercise via POST /api/ir-tabletop/exercises (returns the canonical id) before archiving a bundle against it.",
+          exerciseId: id,
+          orgId: auth.organizationId,
+        },
+        { status: 404 }
+      )
     }
 
     const bundles = await db
@@ -245,7 +258,20 @@ export async function POST(
         .limit(1)
     )[0]
     if (!exercise) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 })
+      // Strict-by-id: this endpoint does NOT auto-create the exercise.
+      // Surface the specific cause so callers (TrainOS, future
+      // integrations) don't have to round-trip to diagnose. Pre-register
+      // the exercise via POST /api/ir-tabletop/exercises first.
+      return NextResponse.json(
+        {
+          error: "exercise_not_registered",
+          message:
+            "No ir_exercises row exists with the given id under your org. Pre-register the exercise via POST /api/ir-tabletop/exercises (returns the canonical id) before archiving a bundle against it.",
+          exerciseId: id,
+          orgId: auth.organizationId,
+        },
+        { status: 404 }
+      )
     }
 
     // ─── Cadence enforcement (Codex migration 0065 step 3) ─────────────────
