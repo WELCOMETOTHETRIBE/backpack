@@ -10,6 +10,7 @@ import { eq, and } from "drizzle-orm";
 import { requireOrg, requireRole } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
 import { getAttestationTemplate } from "@/lib/compliance/attestation-templates";
+import { runAttestationGuard } from "@/lib/risk-assessment/attestation-guard";
 import { createHash } from "node:crypto";
 
 /**
@@ -108,6 +109,39 @@ export async function POST(req: Request) {
           fallback: template.fallbackIfConditionFails,
         },
         { status: 400 }
+      );
+    }
+
+    // Per-template factual guard. For most templates this is a no-op
+    // (affirmation alone is enough). For a small set (currently
+    // `risk_assessment_program`) the guard verifies that the customer's
+    // claim has a backing fact in the system — e.g., a finalized
+    // risk_assessments row in the past 365 days. This is the structural
+    // fix for 2026-05-04: customer cannot click "we operate an annual
+    // risk-assessment program" without one actually existing.
+    const guardResult = await runAttestationGuard(templateId, orgId, body);
+    if (!guardResult.ok) {
+      await writeAuditLog({
+        organizationId: orgId,
+        userId: user.id,
+        action: "risk_assessment.attestation_blocked",
+        resourceType: "attestation_template",
+        resourceId: templateId,
+        details: {
+          controlId,
+          reason: guardResult.reason,
+          evidenceLookedFor: guardResult.evidenceLookedFor,
+          ...(guardResult.detail ?? {}),
+        },
+      });
+      return NextResponse.json(
+        {
+          error: guardResult.reason,
+          evidenceLookedFor: guardResult.evidenceLookedFor,
+          remediation: guardResult.remediation,
+          detail: guardResult.detail,
+        },
+        { status: 412 }, // 412 Precondition Failed — customer's claim isn't backed by system state
       );
     }
 

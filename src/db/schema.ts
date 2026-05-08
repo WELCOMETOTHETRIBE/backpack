@@ -2158,6 +2158,167 @@ export const assessorScratchpads = pgTable("assessor_scratchpads", {
     .defaultNow(),
 });
 
+// ============== RA.L2-3.11.1 — Risk Assessment lifecycle envelope ==============
+//
+// One row per annual cycle. Risks themselves continue to live in
+// governance_register_entries with registerKey='risk_register'. This
+// table is the lifecycle/sign-off/finalization envelope, plus the home
+// for the C3PAO objective-level statuses ([a] frequency defined,
+// [b] assessment performed). See drizzle/0066_risk_assessment_lifecycle.sql
+// for the full DDL + check constraints (finalize-completeness, status
+// enum, frequency-must-be-<=-365-days).
+export const riskAssessments = pgTable("risk_assessments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  boundaryId: uuid("boundary_id")
+    .notNull()
+    .references(() => boundaries.id, { onDelete: "restrict" }),
+  /**
+   * Pivot key shared with governance_register_entries.entryData.assessment_id.
+   * Lets the bundle endpoint and the risk register find each other without
+   * a hard FK across schema boundaries.
+   */
+  assessmentPivotId: uuid("assessment_pivot_id").notNull().unique(),
+  controlId: varchar("control_id", { length: 20 }).notNull().default("3.11.1"),
+  sourceApp: varchar("source_app", { length: 32 }).notNull().default("training_readiness"),
+  assessmentName: text("assessment_name"),
+  organizationName: text("organization_name"),
+  systemName: text("system_name"),
+  scopeType: varchar("scope_type", { length: 16 }).notNull().default("enclave"),
+  methodology: text("methodology")
+    .notNull()
+    .default("NIST SP 800-30 Rev. 1 / CMMC Level 2"),
+  definedFrequencyDays: integer("defined_frequency_days"),
+  reviewPeriodStart: date("review_period_start"),
+  reviewPeriodEnd: date("review_period_end"),
+  nextDueDate: date("next_due_date"),
+  /**
+   * Lifecycle status. Enum-by-CHECK rather than pg ENUM so future states
+   * can be added without a costly type alter. Allowed values pinned by
+   * a CHECK constraint in the migration.
+   */
+  status: varchar("status", { length: 24 }).notNull().default("draft"),
+  objectiveAStatus: varchar("objective_a_status", { length: 16 })
+    .notNull()
+    .default("unknown"),
+  objectiveARationale: text("objective_a_rationale"),
+  objectiveBStatus: varchar("objective_b_status", { length: 16 })
+    .notNull()
+    .default("unknown"),
+  objectiveBRationale: text("objective_b_rationale"),
+  assessorDisplayName: text("assessor_display_name"),
+  reviewerDisplayName: text("reviewer_display_name"),
+  approverDisplayName: text("approver_display_name"),
+  submittedByUserId: uuid("submitted_by_user_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  reviewedByUserId: uuid("reviewed_by_user_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  approvedByUserId: uuid("approved_by_user_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  submittedAt: timestamp("submitted_at", { withTimezone: true }),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+  approvedAt: timestamp("approved_at", { withTimezone: true }),
+  finalizedAt: timestamp("finalized_at", { withTimezone: true }),
+  supersededAt: timestamp("superseded_at", { withTimezone: true }),
+  /**
+   * Self-FK — a finalized assessment can be marked superseded when a
+   * fresh annual cycle is finalized. We carry the pointer rather than
+   * deleting because the C3PAO walkthrough wants the trail.
+   */
+  supersededByAssessmentId: uuid("superseded_by_assessment_id"),
+  finalReportSha256: varchar("final_report_sha256", { length: 64 }),
+  packageSha256: varchar("package_sha256", { length: 64 }),
+  evidenceManifestSha256: varchar("evidence_manifest_sha256", { length: 64 }),
+  vaultArtifactPointer: text("vault_artifact_pointer"),
+  immutableManifestPointer: text("immutable_manifest_pointer"),
+  metadataVersion: integer("metadata_version").notNull().default(1),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+/**
+ * Executive risk acceptance record. The "skip POA&M" path under CMMC —
+ * if the customer chooses to *accept* a risk rather than mitigate /
+ * transfer / avoid, an executive must sign off and a re-review date
+ * must be set. High/critical acceptance is enforced at the API layer
+ * (executive role required) — this table just persists the result.
+ */
+export const riskAcceptances = pgTable("risk_acceptances", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  riskAssessmentId: uuid("risk_assessment_id")
+    .notNull()
+    .references(() => riskAssessments.id, { onDelete: "cascade" }),
+  riskExternalId: varchar("risk_external_id", { length: 64 }).notNull(),
+  severity: varchar("severity", { length: 16 }).notNull(),
+  residualRisk: varchar("residual_risk", { length: 16 }).notNull(),
+  acceptanceRationaleSummary: text("acceptance_rationale_summary").notNull(),
+  approverUserId: uuid("approver_user_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  approverDisplayName: text("approver_display_name").notNull(),
+  approverRole: varchar("approver_role", { length: 64 }),
+  approvedAt: timestamp("approved_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  nextReviewDate: date("next_review_date").notNull(),
+  vaultPointer: text("vault_pointer"),
+  acceptanceRecordHash: varchar("acceptance_record_hash", { length: 64 }),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+/**
+ * Edge between a specific risk's external id (from the wizard's
+ * risks.json output) and a POA&M entry. One link per (risk, assessment).
+ * Either poam_entry_id (canonical, FK into poam_entries) or
+ * poam_external_ref (when the POA&M lives in an external GRC tool) is
+ * populated — never both. Enforced by a CHECK constraint in the
+ * migration.
+ */
+export const riskPoamLinks = pgTable("risk_poam_links", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  riskAssessmentId: uuid("risk_assessment_id")
+    .notNull()
+    .references(() => riskAssessments.id, { onDelete: "cascade" }),
+  riskExternalId: varchar("risk_external_id", { length: 64 }).notNull(),
+  poamEntryId: uuid("poam_entry_id").references(() => poamEntries.id, {
+    onDelete: "set null",
+  }),
+  poamExternalRef: text("poam_external_ref"),
+  poamSource: varchar("poam_source", { length: 16 }).notNull().default("control_plane"),
+  sanitizedTitle: text("sanitized_title"),
+  severity: varchar("severity", { length: 16 }),
+  ownerRole: varchar("owner_role", { length: 64 }),
+  dueDate: date("due_date"),
+  vaultPointer: text("vault_pointer"),
+  linkHash: varchar("link_hash", { length: 64 }),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 // ============== IR Tabletop & AAR Evidence Kit ==============
 export {
   irExerciseStatusEnum,

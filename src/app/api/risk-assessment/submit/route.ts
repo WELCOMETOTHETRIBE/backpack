@@ -9,7 +9,18 @@ import {
 } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { calculateControlStatus } from "@/lib/control-status";
+import { writeAuditLog } from "@/lib/audit";
+import { ensureAssessmentEnvelope } from "@/lib/risk-assessment/lifecycle";
 import { randomUUID } from "crypto";
+
+/**
+ * The customer-defined cadence for RA.L2-3.11.1[a]. Defaults to 365 days
+ * (annual) — the wizard doesn't currently let the customer pick a
+ * tighter cadence, but the lifecycle schema and objective evaluator
+ * support anything ≤ 366 days. Wire this to a wizard control when the
+ * conversation comes up.
+ */
+const DEFAULT_FREQUENCY_DAYS = 365;
 
 /**
  * POST /api/risk-assessment/submit
@@ -216,6 +227,52 @@ export async function POST(req: Request) {
     await calculateControlStatus(rec.id).catch(() => null);
   }
 
+  // ── Lifecycle envelope ─────────────────────────────────────────
+  // The wizard writes per-risk rows above. We also stamp a
+  // `risk_assessments` row that owns the lifecycle (objective [a]/[b]
+  // status, sign-off chain, finalize-eligible). Idempotent on
+  // assessment_pivot_id.
+  let envelope: Awaited<ReturnType<typeof ensureAssessmentEnvelope>> | null = null;
+  try {
+    envelope = await ensureAssessmentEnvelope({
+      organizationId: orgId,
+      boundaryId: boundary.id,
+      assessmentPivotId: assessmentId,
+      reviewPeriodStart: body.scope.reviewPeriodStart,
+      reviewPeriodEnd: body.scope.reviewPeriodEnd,
+      definedFrequencyDays: DEFAULT_FREQUENCY_DAYS,
+      assessorDisplayName: body.scope.assessor,
+      reviewerDisplayName: body.signoff.reviewer ?? null,
+      approverDisplayName: body.signoff.approver,
+      submittedByUserId: userId,
+    });
+    await writeAuditLog({
+      organizationId: orgId,
+      userId,
+      action: "risk_assessment.submitted",
+      resourceType: "risk_assessment",
+      resourceId: envelope.id,
+      details: {
+        assessmentPivotId: assessmentId,
+        boundaryId: boundary.id,
+        risksCount: inserted,
+        controlId: "3.11.1",
+      },
+    });
+  } catch (err) {
+    // Soft-fail: per-risk rows already landed, the customer's data is
+    // safe; the envelope is "extra." Surface a stderr line so the
+    // operator notices, but don't block the wizard's response.
+    console.error(
+      JSON.stringify({
+        event: "risk_assessment_envelope_failed",
+        orgId,
+        assessmentId,
+        error: err instanceof Error ? err.message : String(err),
+      }),
+    );
+  }
+
   console.log(
     JSON.stringify({
       event: "risk_assessment_submitted",
@@ -233,6 +290,7 @@ export async function POST(req: Request) {
   return NextResponse.json({
     ok: true,
     assessmentId,
+    riskAssessmentId: envelope?.id ?? null,
     registerId: register.id,
     inserted,
   });
