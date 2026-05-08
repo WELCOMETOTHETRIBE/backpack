@@ -29,6 +29,14 @@ const isPublicRoute = createRouteMatcher([
   // exception, Clerk's protect() rewrites all unauthenticated requests to
   // /clerk_* (404), blocking the bridge entirely.
   "/api/ir-tabletop(.*)",
+  // RA.L2-3.11.1 risk-assessment bridge — same auth shape as IR Tabletop
+  // (HMAC-signed bearer + X-RA-Bridge-* headers). Each route in
+  // src/app/api/risk-assessments/ validates auth via
+  // authorizeRaRequest() in src/lib/ra-bridge.ts. Same Clerk-bypass
+  // rationale as the IR bridge — unauth'd POSTs from TrainOS would
+  // otherwise rewrite to /clerk_* (404) before the route ever sees the
+  // bearer.
+  "/api/risk-assessments(.*)",
   // EnclaveWatch unattended ingest endpoints. The vault service pushes
   // OS evidence + Azure validator + weekly review acknowledgements
   // without a Clerk session. Each route uses resolveOrgFromSessionOrBearer
