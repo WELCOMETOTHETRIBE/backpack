@@ -60,11 +60,13 @@ export async function DELETE(
     }
 
     const storageKey = artifact.storageKey ?? artifact.fileUrl;
-    try {
-      const storage = getStorageService();
-      await storage.delete(storageKey);
-    } catch {
-      // Storage delete best-effort; still remove DB record
+    if (storageKey) {
+      try {
+        const storage = getStorageService();
+        await storage.delete(storageKey);
+      } catch {
+        // Storage delete best-effort; still remove DB record
+      }
     }
 
     const controlRecordId = artifact.controlRecordId;

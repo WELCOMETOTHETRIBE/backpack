@@ -77,7 +77,7 @@ export async function PATCH(
   const [row] = await db
     .update(osAssets)
     .set(updates)
-    .where(eq(osAssets.id, id))
+    .where(and(eq(osAssets.id, id), eq(osAssets.organizationId, orgId)))
     .returning();
   return NextResponse.json(row);
 }
@@ -101,6 +101,6 @@ export async function DELETE(
     .where(and(eq(osAssets.id, id), eq(osAssets.organizationId, orgId)));
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  await db.delete(osAssets).where(eq(osAssets.id, id));
+  await db.delete(osAssets).where(and(eq(osAssets.id, id), eq(osAssets.organizationId, orgId)));
   return NextResponse.json({ ok: true });
 }

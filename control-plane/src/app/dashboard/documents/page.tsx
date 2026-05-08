@@ -1,160 +1,258 @@
-"use client";
-
-import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
+import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { db } from "@/db";
 import {
-  GOVERNANCE_18_CONTROL_IDS,
-  GOVERNANCE_18_ANALYSIS,
-} from "@/lib/compliance/governance-18-analysis";
-import { StatusBadge } from "@/components/governance-wizard/StatusBadge";
-import { GovernanceDocumentUploadModal } from "@/components/adjudication/GovernanceDocumentUploadModal";
-import { RecordsManagementWidget } from "@/components/adjudication/RecordsManagementWidget";
-import { FileStack, FileText, ClipboardCheck, ChevronRight } from "lucide-react";
+  qmsGovernanceManifests,
+  qmsGovernanceManifestDocuments,
+  controlObservedImplementations,
+  controlImplementations,
+  controls,
+  organizations,
+} from "@/db/schema";
+import { and, eq, desc, isNotNull } from "drizzle-orm";
+import QmsBundleDocumentsClient, {
+  type QmsRun,
+  type QmsDoc,
+  type OisImpact,
+} from "./QmsBundleDocumentsClient";
 
-type ControlRecord = {
-  id: string;
-  controlId: string;
-  implementationStatus: string;
-};
+/**
+ * Documents page — surfaces the live QMS Governance Bundle as ingested
+ * via /api/integrations/qms-manifest/ingest.
+ *
+ * Sources of truth:
+ *   - qms_governance_manifests           (one row per ingest run)
+ *   - qms_governance_manifest_documents  (per-doc rows with sigs + controls)
+ *   - control_observed_implementations   (OIS narratives the run refreshed)
+ *
+ * The previously-shipped page read from `governance_documents` /
+ * `governance_manifest_runs` / `governance_document_control_links` —
+ * those are codex-native bundle docs from a different ingest path and
+ * never see the QMS-pushed manifests. This rewrite addresses the
+ * "QMS release isn't surfaced in codex" gap.
+ */
 
-export default function DocumentsPage() {
-  const [records, setRecords] = useState<ControlRecord[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [governanceModalOpen, setGovernanceModalOpen] = useState(false);
+export default async function DocumentsPage() {
+  const session = await auth();
+  const user = session?.user as { organizationId?: string } | undefined;
+  const orgId = user?.organizationId;
+  if (!orgId) redirect("/auth/signin");
 
-  const fetchRecords = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/control-records");
-      if (res.ok) {
-        const list: ControlRecord[] = await res.json();
-        setRecords(list);
-      }
-    } finally {
-      setLoading(false);
+  // 1. Pick the latest QMS manifest run for this org. If none, the
+  // page renders an "awaiting first ingest" empty state.
+  const [latestRun] = await db
+    .select({
+      runId: qmsGovernanceManifests.runId,
+      schemaVersion: qmsGovernanceManifests.schemaVersion,
+      generatedAt: qmsGovernanceManifests.generatedAt,
+      receivedAt: qmsGovernanceManifests.receivedAt,
+      generatedBy: qmsGovernanceManifests.generatedBy,
+      toolVersion: qmsGovernanceManifests.toolVersion,
+      source: qmsGovernanceManifests.source,
+      docCount: qmsGovernanceManifests.docCount,
+      controlsTouched: qmsGovernanceManifests.controlsTouched,
+      contentHash: qmsGovernanceManifests.contentHash,
+      signingHash: qmsGovernanceManifests.signingHash,
+      signatureKid: qmsGovernanceManifests.signatureKid,
+      issuerService: qmsGovernanceManifests.issuerService,
+      issuerUrl: qmsGovernanceManifests.issuerUrl,
+    })
+    .from(qmsGovernanceManifests)
+    .where(eq(qmsGovernanceManifests.organizationId, orgId))
+    .orderBy(desc(qmsGovernanceManifests.receivedAt))
+    .limit(1);
+
+  // 2. Run history (last 10) so an auditor can see the cadence.
+  const runHistory = await db
+    .select({
+      runId: qmsGovernanceManifests.runId,
+      schemaVersion: qmsGovernanceManifests.schemaVersion,
+      receivedAt: qmsGovernanceManifests.receivedAt,
+      generatedAt: qmsGovernanceManifests.generatedAt,
+      docCount: qmsGovernanceManifests.docCount,
+      generatedBy: qmsGovernanceManifests.generatedBy,
+      contentHash: qmsGovernanceManifests.contentHash,
+    })
+    .from(qmsGovernanceManifests)
+    .where(eq(qmsGovernanceManifests.organizationId, orgId))
+    .orderBy(desc(qmsGovernanceManifests.receivedAt))
+    .limit(10);
+
+  // 3. Per-doc rows for the latest run — the meat of the page.
+  const docs = latestRun
+    ? await db
+        .select({
+          documentNumber: qmsGovernanceManifestDocuments.documentNumber,
+          documentName: qmsGovernanceManifestDocuments.documentName,
+          documentType: qmsGovernanceManifestDocuments.documentType,
+          version: qmsGovernanceManifestDocuments.version,
+          status: qmsGovernanceManifestDocuments.status,
+          effectiveDate: qmsGovernanceManifestDocuments.effectiveDate,
+          nextReviewDate: qmsGovernanceManifestDocuments.nextReviewDate,
+          sha256: qmsGovernanceManifestDocuments.sha256,
+          released: qmsGovernanceManifestDocuments.released,
+          releasedAt: qmsGovernanceManifestDocuments.releasedAt,
+          controlsMapped: qmsGovernanceManifestDocuments.controlsMapped,
+          signatures: qmsGovernanceManifestDocuments.signatures,
+        })
+        .from(qmsGovernanceManifestDocuments)
+        .where(
+          and(
+            eq(qmsGovernanceManifestDocuments.organizationId, orgId),
+            eq(qmsGovernanceManifestDocuments.runId, latestRun.runId),
+          ),
+        )
+        .orderBy(qmsGovernanceManifestDocuments.documentNumber)
+    : [];
+
+  // 4. OIS narratives that reference THIS run's manifest — the
+  // proof-of-impact for a C3PAO ("here are the controls whose
+  // mechanism evidence was refreshed by this release").
+  const oisImpact = latestRun
+    ? await db
+        .select({
+          controlId: controlObservedImplementations.controlId,
+          generatedAt: controlObservedImplementations.generatedAt,
+          mostRecentEvidenceAt: controlObservedImplementations.mostRecentEvidenceAt,
+        })
+        .from(controlObservedImplementations)
+        .where(
+          and(
+            eq(controlObservedImplementations.organizationId, orgId),
+            eq(controlObservedImplementations.generatedFromManifestId, latestRun.runId),
+          ),
+        )
+        .orderBy(controlObservedImplementations.controlId)
+    : [];
+
+  // Cumulative coverage: how many *unique* controls have at least one
+  // released-effective doc in their controls_mapped, across the latest
+  // run? This is the headline number — "QMS is backing N controls
+  // right now." Pure CMMC-L2 governance evidence count.
+  const controlsWithBacking = new Set<string>();
+  for (const d of docs) {
+    if (!d.released || d.status !== "effective") continue;
+    const mapped = (d.controlsMapped as string[] | null) ?? [];
+    for (const c of mapped) {
+      if (typeof c === "string" && c) controlsWithBacking.add(c);
     }
-  }, []);
+  }
 
-  useEffect(() => {
-    fetchRecords();
-  }, [fetchRecords]);
+  const [org] = await db
+    .select({ name: organizations.name })
+    .from(organizations)
+    .where(eq(organizations.id, orgId))
+    .limit(1);
 
-  const recordByControlId = Object.fromEntries(records.map((r) => [r.controlId, r]));
+  // /dashboard/controls/[id] expects a control_implementations.id (UUID),
+  // but controls referenced from QMS docs and OIS rows arrive as control
+  // codes (e.g. "AC.L2-3.1.1" or short "3.1.1"). Build a code → UUID map
+  // for this org so the client can render real, working hrefs instead of
+  // 404-bound code-strings.
+  const implRows = await db
+    .select({
+      implId: controlImplementations.id,
+      controlCode: controls.controlId,
+    })
+    .from(controlImplementations)
+    .innerJoin(controls, eq(controlImplementations.controlId, controls.id))
+    .where(eq(controlImplementations.organizationId, orgId));
+
+  const controlCodeToImplId: Record<string, string> = {};
+  for (const r of implRows) {
+    controlCodeToImplId[r.controlCode] = r.implId;
+    // Also key by the bare requirement number ("3.1.1") so docs that
+    // reference the short form still resolve.
+    const bare = r.controlCode.replace(/^[A-Z]{2,3}\.L\d+-/, "");
+    if (bare && bare !== r.controlCode) controlCodeToImplId[bare] = r.implId;
+  }
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-xl font-semibold text-[var(--color-navy-primary)]">Documents</h1>
-        <p className="mt-1 text-sm text-[var(--color-gray-600)]">
-          Upload governance documentation, adjudicate the 18 governance controls, and manage routine logs and records.
-        </p>
-      </div>
-
-      {/* 1. Governance documents (upload & map) */}
-      <section
-        className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm"
-        aria-labelledby="doc-governance-heading"
-      >
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 id="doc-governance-heading" className="flex items-center gap-2 text-sm font-semibold text-[var(--color-navy-primary)]">
-              <FileStack className="h-4 w-4" aria-hidden />
-              Governance documents
-            </h2>
-            <p className="mt-1 text-sm text-[var(--color-gray-600)]">
-              Upload policies and procedures; map one document to multiple controls.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setGovernanceModalOpen(true)}
-            className="inline-flex shrink-0 items-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[var(--color-primary-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2"
-          >
-            <FileText className="h-4 w-4" aria-hidden />
-            Upload & map documents
-          </button>
-        </div>
-      </section>
-
-      {/* 2. 18 Governance controls */}
-      <section
-        className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm"
-        aria-labelledby="doc-18-heading"
-      >
-        <div className="border-b border-[var(--color-border)] px-6 py-4">
-          <h2 id="doc-18-heading" className="flex items-center gap-2 text-sm font-semibold text-[var(--color-navy-primary)]">
-            <ClipboardCheck className="h-4 w-4" aria-hidden />
-            18 Governance controls
-          </h2>
-          <p className="mt-1 text-sm text-[var(--color-gray-600)]">
-            Adjudicate by document: each control has its own page with requirements and upload.
-          </p>
-        </div>
-        {loading ? (
-          <div className="flex min-h-[200px] items-center justify-center p-8">
-            <p className="text-sm text-[var(--color-gray-600)]">Loading…</p>
-          </div>
-        ) : (
-          <ul className="divide-y divide-[var(--color-border-muted)]">
-            {GOVERNANCE_18_CONTROL_IDS.map((controlId) => {
-              const analysis = GOVERNANCE_18_ANALYSIS[controlId];
-              const record = recordByControlId[controlId];
-              const title = analysis?.title ?? controlId;
-              return (
-                <li key={controlId}>
-                  <Link
-                    href={`/dashboard/adjudication/governance/${controlId}`}
-                    className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 transition-colors hover:bg-[var(--color-gray-50)] focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--color-blue-accent)]"
-                  >
-                    <div className="min-w-0">
-                      <span className="font-mono text-sm font-medium text-[var(--color-gray-800)]">
-                        {controlId}
-                      </span>
-                      <span className="ml-2 text-sm text-[var(--color-gray-600)]">{title}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {record ? (
-                        <StatusBadge status={record.implementationStatus} />
-                      ) : (
-                        <span className="rounded bg-[var(--color-gray-100)] px-2 py-0.5 text-xs font-medium text-[var(--color-gray-600)]">
-                          —
-                        </span>
-                      )}
-                      <ChevronRight className="h-4 w-4 text-[var(--color-gray-400)]" aria-hidden />
-                    </div>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
-
-      {/* 3. Routine logs & records */}
-      <section
-        className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm"
-        aria-labelledby="doc-records-heading"
-      >
-        <h2 id="doc-records-heading" className="text-sm font-semibold text-[var(--color-navy-primary)]">
-          Routine logs & records
-        </h2>
-        <p className="mt-1 text-sm text-[var(--color-gray-600)]">
-          Controls that require periodic manual records, attestations, or training uploads.
-        </p>
-        <div className="mt-4">
-          <RecordsManagementWidget />
-        </div>
-      </section>
-
-      {governanceModalOpen && (
-        <GovernanceDocumentUploadModal
-          onClose={() => setGovernanceModalOpen(false)}
-          onSaved={() => {
-            setGovernanceModalOpen(false);
-            fetchRecords();
-          }}
-        />
+    <QmsBundleDocumentsClient
+      orgName={org?.name ?? "Your org"}
+      latestRun={
+        latestRun
+          ? ({
+              runId: latestRun.runId,
+              schemaVersion: latestRun.schemaVersion,
+              generatedAt: toIso(latestRun.generatedAt),
+              receivedAt: toIso(latestRun.receivedAt),
+              generatedBy: latestRun.generatedBy,
+              toolVersion: latestRun.toolVersion,
+              source: latestRun.source,
+              docCount: latestRun.docCount,
+              controlsTouched:
+                (latestRun.controlsTouched as string[] | null) ?? [],
+              contentHash: latestRun.contentHash,
+              signingHash: latestRun.signingHash,
+              signatureKid: latestRun.signatureKid,
+              issuerService: latestRun.issuerService,
+              issuerUrl: latestRun.issuerUrl,
+            } satisfies QmsRun)
+          : null
+      }
+      runHistory={runHistory.map(
+        (r) =>
+          ({
+            runId: r.runId,
+            schemaVersion: r.schemaVersion,
+            receivedAt: toIso(r.receivedAt),
+            generatedAt: toIso(r.generatedAt),
+            generatedBy: r.generatedBy,
+            docCount: r.docCount,
+            contentHash: r.contentHash,
+          }) satisfies QmsRun,
       )}
-    </div>
+      docs={docs.map(
+        (d) =>
+          ({
+            documentNumber: d.documentNumber,
+            documentName: d.documentName,
+            documentType: d.documentType,
+            version: d.version,
+            status: d.status,
+            effectiveDate: toIsoOrNull(d.effectiveDate),
+            nextReviewDate: toIsoOrNull(d.nextReviewDate),
+            sha256: d.sha256,
+            released: d.released,
+            releasedAt: d.releasedAt,
+            controlsMapped: ((d.controlsMapped as string[] | null) ?? []).filter(
+              (x) => typeof x === "string" && x,
+            ),
+            signatures:
+              ((d.signatures as Record<string, unknown>[] | null) ?? []).map((s) => ({
+                signerName: (s.signer_name as string | null) ?? null,
+                signerEmail: (s.signer_email as string | null) ?? null,
+                signatureMeaning:
+                  (s.signature_meaning as string | null) ?? null,
+                signedAt: (s.signed_at as string | null) ?? null,
+                signatureHash:
+                  (s.signature_hash as string | null) ?? null,
+              })),
+          }) satisfies QmsDoc,
+      )}
+      oisImpact={oisImpact.map(
+        (o) =>
+          ({
+            controlId: o.controlId,
+            generatedAt: toIso(o.generatedAt),
+            mostRecentEvidenceAt: toIsoOrNull(o.mostRecentEvidenceAt),
+          }) satisfies OisImpact,
+      )}
+      controlsWithBackingCount={controlsWithBacking.size}
+      controlCodeToImplId={controlCodeToImplId}
+    />
   );
+}
+
+function toIso(v: Date | string | null | undefined): string {
+  if (v == null) return "";
+  if (v instanceof Date) return v.toISOString();
+  return String(v);
+}
+
+function toIsoOrNull(v: Date | string | null | undefined): string | null {
+  if (v == null) return null;
+  if (v instanceof Date) return v.toISOString();
+  return String(v);
 }

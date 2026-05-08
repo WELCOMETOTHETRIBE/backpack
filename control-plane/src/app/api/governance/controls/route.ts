@@ -18,6 +18,11 @@ import {
   HYBRID_TECHNICAL_IDS,
   getControlBin,
 } from "@/lib/compliance/control-bins";
+import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
+
+const NA_CONTROL_SET = new Set(
+  CONTROL_INTELLIGENCE.filter((c) => c.disposition === "not_applicable").map((c) => c.controlId)
+);
 
 const FAMILY_PREFIX: Record<string, string> = {
   AC: "3.1", AT: "3.2", AU: "3.3", CM: "3.4", IA: "3.5", IR: "3.6",
@@ -85,6 +90,9 @@ export async function GET(req: Request) {
       else if (classification === "TECHNICAL") controlIds = [...PURE_TECHNICAL_IDS];
       else controlIds = [...ALL_CONTROL_IDS];
     }
+    // Always exclude architecture-level N/A controls from governance lists
+    controlIds = controlIds.filter((id) => !NA_CONTROL_SET.has(id));
+
     if (domain && FAMILY_PREFIX[domain]) {
       const prefix = FAMILY_PREFIX[domain];
       controlIds = controlIds.filter((id) => getControlFamilyPrefix(id) === prefix);

@@ -69,22 +69,28 @@ export async function POST(req: Request) {
     const baseUrl = process.env.NEXTAUTH_URL ?? "https://example.com";
     const responseLink = `${baseUrl}/subcontractor-response/${token}`;
 
-    if (process.env.RESEND_API_KEY) {
+    if (!process.env.RESEND_API_KEY) {
+      console.error("[supply-chain/invite] RESEND_API_KEY is not set — invitation email was NOT sent to", email);
+    } else {
       const resend = new Resend(process.env.RESEND_API_KEY);
-      const from = process.env.RESEND_FROM ?? "CMMC OS <onboarding@resend.dev>";
-      await resend.emails.send({
-        from,
-        to: email,
-        subject: `${primeName} has invited you to respond to flow-down requirements`,
-        html: `
-          <p>Hello,</p>
-          <p><strong>${primeName}</strong> has invited you to respond to their CMMC flow-down requirements.</p>
-          <p>You can either link your CMMC OS workspace (if you have an account) or submit a manual attestation.</p>
-          <p><a href="${responseLink}" style="display:inline-block; margin-top:12px; padding:10px 20px; background:#3B82F6; color:white; text-decoration:none; border-radius:6px;">Respond to flow-down request</a></p>
-          <p>Or copy this link: ${responseLink}</p>
-          <p>This link is unique and should not be shared.</p>
-        `,
-      });
+      const from = process.env.RESEND_FROM ?? "CMMC OS <no-reply@mactechsolutionsllc.com>";
+      try {
+        await resend.emails.send({
+          from,
+          to: email,
+          subject: `${primeName} has invited you to respond to flow-down requirements`,
+          html: `
+            <p>Hello,</p>
+            <p><strong>${primeName}</strong> has invited you to respond to their CMMC flow-down requirements.</p>
+            <p>You can either link your CMMC OS workspace (if you have an account) or submit a manual attestation.</p>
+            <p><a href="${responseLink}" style="display:inline-block; margin-top:12px; padding:10px 20px; background:#3B82F6; color:white; text-decoration:none; border-radius:6px;">Respond to flow-down request</a></p>
+            <p>Or copy this link: ${responseLink}</p>
+            <p>This link is unique and should not be shared.</p>
+          `,
+        });
+      } catch (emailErr) {
+        console.error("[supply-chain/invite] Failed to send email to", email, emailErr);
+      }
     }
 
     return NextResponse.json({ success: true, relationship });

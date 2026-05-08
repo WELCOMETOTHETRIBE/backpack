@@ -6,7 +6,7 @@
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 
 export const PURE_GOV_CONTROL_IDS = [
-  "3.1.4", "3.2.1", "3.2.2", "3.2.3", "3.3.3", "3.4.3", "3.4.4",
+  "3.1.4", "3.2.1", "3.2.2", "3.2.3", "3.3.3", "3.4.4",
   "3.6.1", "3.6.2", "3.6.3", "3.7.6", "3.9.1", "3.9.2", "3.11.1",
   "3.12.1", "3.12.2", "3.12.3", "3.12.4",
 ];
@@ -18,8 +18,8 @@ export const PURE_GOV_CONTROL_IDS = [
  */
 export const HYBRID_GOV_CONTROL_IDS = [
   "3.1.1", "3.1.2", "3.1.3", "3.1.5", "3.1.6", "3.1.7",
+  "3.4.3", "3.4.5", "3.7.5",
   "3.5.1", "3.5.2", "3.5.3", "3.5.7",
-  "3.4.5", "3.7.5",
   "3.13.2", "3.13.3", "3.13.8", "3.13.11",
   "3.14.3",
 ];
@@ -134,6 +134,24 @@ export const REGISTER_KEYS = [
   "audit_log_review_records",
   "visitor_log",
   "media_destruction_log",
+  "media_handling_log",
+  // Configuration drift register (Phase 2 of Register-Automation v1.1):
+  // Captures Sysmon-detected baseline drift with no matching change_log entry.
+  "change_drift_log",
+  // Client-list registers (added to replace free-form uploads with structured data):
+  "privileged_user_list",
+  "mfa_enrollment_roster",
+  "service_account_inventory",
+  "mobile_device_authorization",
+  "wireless_ssid_authorization",
+  "remote_access_authorization",
+  "portable_storage_authorization",
+  "external_system_connections",
+  // Finding/remediation registers (referenced by CONTROL_INTELLIGENCE):
+  "vuln_remediation",
+  "assessment_findings",
+  // EnclaveWatch-collected identity inventory snapshots (3.5.1 primary):
+  "identity_inventory",
 ] as const;
 
 export type RegisterColumn = { key: string; label: string; type: string };
@@ -155,4 +173,23 @@ export const REGISTER_DEFINITIONS: { registerKey: string; name: string; descript
   { registerKey: "audit_log_review_records", name: "Audit Log Review Records", description: "Log audit log reviews, reviewers, and findings for audit and accountability evidence.", requiredColumns: [{ key: "review_date", label: "Review Date", type: "date" }, { key: "reviewer", label: "Reviewer", type: "string" }, { key: "findings", label: "Findings", type: "string" }], retainForDays: 365 * 3 },
   { registerKey: "visitor_log", name: "Visitor Log", description: "Record visitor dates, names, and purpose for physical security evidence.", requiredColumns: [{ key: "date", label: "Date", type: "date" }, { key: "visitor", label: "Visitor", type: "string" }, { key: "purpose", label: "Purpose", type: "string" }], retainForDays: 365 * 3 },
   { registerKey: "media_destruction_log", name: "Media Destruction Log", description: "Log media destruction date, type, and method for media protection evidence.", requiredColumns: [{ key: "date", label: "Date", type: "date" }, { key: "media", label: "Media", type: "string" }, { key: "method", label: "Method", type: "string" }], retainForDays: 365 * 7 },
+  { registerKey: "media_handling_log", name: "Media Handling Log", description: "ISSO-driven media-protection events: destruction, removable-media authorization, and periodic encryption attestations (MP family). Populated via the v1.1 ISSO weekly export.", requiredColumns: [{ key: "event_type", label: "Event Type", type: "string" }, { key: "media_id", label: "Media ID", type: "string" }, { key: "occurred_at", label: "Occurred At", type: "date" }], retainForDays: 365 * 7 },
+  { registerKey: "change_drift_log", name: "Configuration Drift Log", description: "Auto-detected configuration changes on baseline-protected resources that did not match any change_log entry within ±60 minutes. Drafted by EnclaveWatch's Sysmon-based ConfigurationDriftCollector; admin justifies within 72h or alert escalates to ISSO. Backs CM 3.4.1 / 3.4.2 / 3.4.3.", requiredColumns: [{ key: "actor_user", label: "Actor", type: "string" }, { key: "path", label: "Path", type: "string" }, { key: "change_type", label: "Change Type", type: "string" }, { key: "occurred_at", label: "Occurred At", type: "date" }], retainForDays: 365 * 3 },
+  // ── Client-list registers ─────────────────────────────────────────────────
+  // Replace free-form "upload a roster" artifacts with structured, in-app data
+  // entry. Each row below satisfies specific AC/IA/MP NIST controls.
+  { registerKey: "privileged_user_list", name: "Privileged User Register", description: "Every privileged account with written justification, approver, and periodic review (AC 3.1.5, 3.1.6).", requiredColumns: [{ key: "person", label: "Person", type: "string" }, { key: "account", label: "Account", type: "string" }, { key: "privilege_scope", label: "Privilege Scope", type: "string" }, { key: "justification", label: "Justification", type: "string" }, { key: "approver", label: "Approver", type: "string" }, { key: "granted_date", label: "Granted Date", type: "date" }, { key: "review_date", label: "Last Review Date", type: "date" }], retainForDays: 365 * 3 },
+  { registerKey: "mfa_enrollment_roster", name: "MFA Enrollment Register", description: "Per-user MFA factor enrollment; privileged accounts must use phishing-resistant factors (IA 3.5.3).", requiredColumns: [{ key: "person", label: "Person", type: "string" }, { key: "account", label: "Account", type: "string" }, { key: "factor_type", label: "Factor Type", type: "string" }, { key: "enrolled_date", label: "Enrolled Date", type: "date" }, { key: "phishing_resistant", label: "Phishing-Resistant", type: "boolean" }], retainForDays: 365 * 3 },
+  { registerKey: "service_account_inventory", name: "Service Account Register", description: "All non-interactive service / system accounts with owner and rotation schedule (IA 3.5.5).", requiredColumns: [{ key: "account_name", label: "Account Name", type: "string" }, { key: "purpose", label: "Purpose", type: "string" }, { key: "owner", label: "Owner", type: "string" }, { key: "rotation_cadence_days", label: "Rotation Cadence (days)", type: "number" }, { key: "last_rotated_date", label: "Last Rotated", type: "date" }], retainForDays: 365 * 3 },
+  { registerKey: "mobile_device_authorization", name: "Mobile Device Register", description: "Authorized mobile devices touching CUI with MDM enrollment evidence (AC 3.1.18, 3.1.19).", requiredColumns: [{ key: "user", label: "User", type: "string" }, { key: "device_model", label: "Device Model", type: "string" }, { key: "os_version", label: "OS Version", type: "string" }, { key: "mdm_enrolled_date", label: "MDM Enrolled Date", type: "date" }, { key: "approved_by", label: "Approved By", type: "string" }], retainForDays: 365 * 3 },
+  { registerKey: "wireless_ssid_authorization", name: "Wireless SSID Register", description: "Approved wireless SSIDs, authentication method, and approvers (AC 3.1.16, 3.1.17).", requiredColumns: [{ key: "ssid", label: "SSID", type: "string" }, { key: "purpose", label: "Purpose", type: "string" }, { key: "auth_method", label: "Authentication Method", type: "string" }, { key: "approved_by", label: "Approved By", type: "string" }, { key: "approved_date", label: "Approved Date", type: "date" }], retainForDays: 365 * 2 },
+  { registerKey: "remote_access_authorization", name: "Remote Access Authorization Register", description: "Per-user remote access authorizations with expiration (AC 3.1.12, 3.1.13, 3.1.14, 3.1.15).", requiredColumns: [{ key: "user", label: "User", type: "string" }, { key: "access_type", label: "Access Type", type: "string" }, { key: "approver", label: "Approver", type: "string" }, { key: "approved_date", label: "Approved Date", type: "date" }, { key: "expires_date", label: "Expires Date", type: "date" }], retainForDays: 365 * 3 },
+  { registerKey: "portable_storage_authorization", name: "Portable Storage Register", description: "Users authorized to use portable storage with CUI; empty register = prohibited (AC 3.1.21, MP 3.8.7, 3.8.8).", requiredColumns: [{ key: "user", label: "User", type: "string" }, { key: "media_type", label: "Media Type", type: "string" }, { key: "device_serial", label: "Device Serial", type: "string" }, { key: "approved_by", label: "Approved By", type: "string" }, { key: "approved_date", label: "Approved Date", type: "date" }], retainForDays: 365 * 3 },
+  { registerKey: "external_system_connections", name: "External System Connections / ISA Register", description: "Authorized external connections with ISA/MOU dates (AC 3.1.20, CA 3.12.5).", requiredColumns: [{ key: "partner_org", label: "Partner Organization", type: "string" }, { key: "system_name", label: "System Name", type: "string" }, { key: "isa_signed_date", label: "ISA Signed Date", type: "date" }, { key: "isa_expires_date", label: "ISA Expires Date", type: "date" }, { key: "approved_by", label: "Approved By", type: "string" }], retainForDays: 365 * 5 },
+  // ── Finding / remediation registers ──────────────────────────────────────
+  // Paired to controls that require ongoing remediation tracking or recorded
+  // assessment findings rather than a simple roster.
+  { registerKey: "vuln_remediation", name: "Vulnerability Remediation Register", description: "Tracks vulnerabilities and remediation status with SLAs (CM 3.4.4 security impact analysis, SI 3.14.1 flaw remediation, RA 3.11.3 scan findings).", requiredColumns: [{ key: "finding", label: "Finding", type: "string" }, { key: "source", label: "Source", type: "string" }, { key: "severity", label: "Severity", type: "string" }, { key: "identified_date", label: "Identified Date", type: "date" }, { key: "target_date", label: "Target Resolution Date", type: "date" }, { key: "remediation", label: "Remediation", type: "string" }, { key: "resolved_date", label: "Resolved Date", type: "date" }], retainForDays: 365 * 3 },
+  { registerKey: "assessment_findings", name: "Assessment Findings Register", description: "Records self-assessment and assessor findings per control (CA 3.12.1).", requiredColumns: [{ key: "control_id", label: "Control ID", type: "string" }, { key: "finding", label: "Finding", type: "string" }, { key: "status", label: "Status", type: "string" }, { key: "assessment_date", label: "Assessment Date", type: "date" }, { key: "assessor", label: "Assessor", type: "string" }, { key: "remediation", label: "Remediation", type: "string" }], retainForDays: 365 * 3 },
+  { registerKey: "identity_inventory", name: "Identity Inventory Snapshots", description: "Weekly EnclaveWatch-collected snapshot of every user, service principal/managed identity, and device with vault scope. Each entry is a full point-in-time inventory; diffs between consecutive entries surface adds/removes for review. Primary evidence for §3.5.1 (identify users, processes, devices); incidental for §3.5.6 / §3.1.5 / §3.1.6.", requiredColumns: [{ key: "snapshot_id", label: "Snapshot ID", type: "string" }, { key: "collected_at", label: "Collected At", type: "date" }, { key: "user_count", label: "User Count", type: "number" }, { key: "service_principal_count", label: "Service Principal Count", type: "number" }, { key: "device_count", label: "Device Count", type: "number" }], retainForDays: 365 * 3 },
 ];

@@ -57,7 +57,7 @@ export function getEnclaveEntry(id: string): OsEvidenceControlEntry | undefined 
   return byNistReq.get(id) ?? byControlId.get(id);
 }
 
-/** Control is governance-only (18): no OS evidence in 73 manifest. Overlap: 3.4.3 is in both pure list and manifest; treat as requiring governance + evidence. */
+/** Control is governance-only (17): no OS evidence in 73 manifest. */
 export function isGovernanceOnly(id: string): boolean {
   return PURE_GOV_CONTROL_IDS.includes(id) && !byNistReq.has(id);
 }

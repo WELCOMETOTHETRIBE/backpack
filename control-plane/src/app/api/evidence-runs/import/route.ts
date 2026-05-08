@@ -1,12 +1,8 @@
 import { createHash } from "crypto";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import {
-  evidenceRuns,
-  evidenceFiles,
-  evidenceControlTechnicalStatus,
-} from "@/db/schema";
-import { getPortalControlSchema } from "@/lib/compliance/schemas";
+import { evidenceRuns, evidenceFiles } from "@/db/schema";
+import { persistFilePresenceForRun } from "@/lib/evidence/per-control-file-presence";
 
 function legacyRunFingerprint(runId: string, files: Array<{ path: string; sha256: string }>): string {
   const canonical = [...files]
@@ -72,46 +68,17 @@ export async function POST(req: Request) {
     }))
   );
 
-  const portal = getPortalControlSchema();
-  const present = new Set<string>(
-    body.files.map((f) => (f.path || "").replaceAll("\\", "/"))
+  // Per-control file-presence evaluator — shared with /api/evidence/v2/ingest
+  // so any path that lands a manifest produces the per-control aggregate.
+  const technicalControlsEvaluated = await persistFilePresenceForRun(
+    run.id,
+    body.files
   );
-
-  const statuses: Array<{
-    evidenceRunId: string;
-    controlId: string;
-    technicalOk: boolean;
-    missingFiles: string[];
-    presentFiles: string[];
-  }> = [];
-  const controls = (portal.controls ?? []) as Array<{
-    control_id: string;
-    technical_validation?: { required_files?: string[] };
-  }>;
-  for (const c of controls) {
-    const requiredFiles: string[] = c?.technical_validation?.required_files ?? [];
-    if (!requiredFiles.length) continue;
-
-    const missing = requiredFiles.filter((p) => !present.has(p));
-    const ok = missing.length === 0;
-
-    statuses.push({
-      evidenceRunId: run.id,
-      controlId: c.control_id,
-      technicalOk: ok,
-      missingFiles: missing,
-      presentFiles: requiredFiles.filter((p) => present.has(p)),
-    });
-  }
-
-  if (statuses.length) {
-    await db.insert(evidenceControlTechnicalStatus).values(statuses);
-  }
 
   return NextResponse.json({
     ok: true,
     evidence_run_id: run.id,
     run_id: body.run_id,
-    technical_controls_evaluated: statuses.length,
+    technical_controls_evaluated: technicalControlsEvaluated,
   });
 }

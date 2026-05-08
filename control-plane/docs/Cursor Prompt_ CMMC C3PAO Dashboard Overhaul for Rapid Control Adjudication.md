@@ -8,6 +8,35 @@ The current technology stack is **Next.js (App Router)**, **Tailwind CSS**, **Dr
 
 ---
 
+## Evidence Engine: Input Artifacts & Rules
+
+**INPUT ARTIFACTS** (all under `src/data/cmmc/`):
+
+- `cmmc_l2_register_evidence_map.v1.json`
+- `register_entry_schemas.v1.json`
+- `register_field_labels_and_summaries.v1.json`
+- `register_cadence_rules.v1.json`
+- `control_assessment_logic.v1.json`
+- `control_responsibility_templates.v1.json`
+- `ssp_narrative_templates.v1.json`
+
+**Rules:**
+
+- All Evidence Engine logic must be **artifact-driven**. No hardcoded control lists or register schemas.
+- **Register health** drives dashboard red / yellow / green:
+  - `registerHealth` = `healthy` | `due` | `overdue`
+  - If no entry ever → `overdue`
+  - If `lastEntry > cadence` (no final entry within cadence window) → `overdue`
+  - If within warning window (e.g. due_soon_days) → `due`
+  - Else → `healthy`
+- **Evidence Confidence Score** (per control, for auditors):
+  - **100%** — finalized entries + cadence met
+  - **75%** — finalized entries but cadence late
+  - **50%** — draft entries only
+  - **0%** — no evidence
+
+---
+
 ## Design Philosophy & Principles
 
 ### Core Principles

@@ -1,31 +1,50 @@
 /**
  * C3PAO-aligned SCTM satisfaction source bins:
- * - 73 OS: controls met by OS configuration (enclave / windows_server_hardening)
- * - 12 Cloud: 5 inherited (3.10.1–3.10.5) + 7 Azure/Entra
- * - 18 Governance: true governance only (PURE_GOV – policy/documentation)
- * - Hybrid: 31 OS partial (OS + gov docs to close) + 6 delta (not OS/Cloud/N/A/Governance)
- * - 7 N/A: often not applicable (wireless, alternate work sites, VoIP, etc.)
+ * - 73 OS: controls met by OS configuration (enclave / windows_server_hardening,
+ *   validated by Test-CuiHardening.ps1 -- 53 PASS / 0 FAIL on the live VM
+ *   covering 43 distinct NIST controls; rest are PARTIAL or N/A).
+ * - 21 Cloud: 4 strict-inherited (3.10.1, .2, .4, .5 from Microsoft Azure
+ *   FedRAMP High) + 2 customer-attested-inherited (3.10.3, 3.10.6 via the
+ *   attestation flow) + 15 Azure/Entra validated by validate_azure_entra.py
+ *   v1.5+. Every entry here maps to a real validator check.
+ * - 17 Governance: true governance only (PURE_GOV -- policy/documentation)
+ * - Hybrid: 31 OS partial (OS + gov docs to close) + delta (not OS/Cloud/N/A/Governance)
+ * - 6 N/A: architecture-static N/A (wireless, off-site maintenance, VoIP, etc.)
  */
 
 import { ENCLAVE_73_NIST_IDS, ENCLAVE_OS_PARTIAL_31_NIST_IDS } from "@/lib/compliance/os-evidence-manifest";
 import { AZURE_ENTRA_7_CONTROL_IDS } from "@/lib/compliance/azure-entra-controls";
 import { AZURE_INHERITED_3_10_CONTROL_IDS } from "@/lib/compliance/azure-inherited-controls";
+import { CUSTOMER_ATTESTED_INHERITED } from "@/lib/compliance/outstanding-controls";
 import { LIKELY_NA_CONTROL_IDS } from "@/lib/compliance/likely-na-controls";
 import { PURE_GOV_CONTROL_IDS } from "@/lib/governance/seed-data";
 
 /** 73 controls met by OS configuration (enclave baseline). */
 export const OS_73_CONTROL_IDS = new Set(ENCLAVE_73_NIST_IDS);
 
-/** 12 controls met by cloud: 5 inherited (3.10.1–3.10.5) + 7 Azure/Entra. */
+/**
+ * 21 controls met by cloud:
+ *   4 strict-inherited (3.10.1, .2, .4, .5 -- Microsoft Azure FedRAMP High)
+ * + 2 customer-attested-inherited (3.10.3 visitor records, 3.10.6 alt work
+ *   sites -- inherited contingent on customer attestation; stay PARTIAL until
+ *   signed via the Outstanding Wizard)
+ * + 15 Azure/Entra validated (validate_azure_entra.py v1.5+, including
+ *   the v1.5 additions: 3.1.18, 3.1.19, 3.8.9)
+ * = 21 distinct cloud controls
+ *
+ * The set name CLOUD_12_CONTROL_IDS is legacy and kept for backward-compat;
+ * the actual size is 21. Renaming is a separate sweep.
+ */
 export const CLOUD_12_CONTROL_IDS = new Set([
   ...AZURE_INHERITED_3_10_CONTROL_IDS,
-  ...AZURE_ENTRA_7_CONTROL_IDS,
+  ...CUSTOMER_ATTESTED_INHERITED.map((c) => c.controlId),
+  ...AZURE_ENTRA_7_CONTROL_IDS, // legacy export name; resolves to the reconciled 15 IDs
 ]);
 
 /** 7 controls often not applicable. */
 export const NA_7_CONTROL_IDS = new Set<string>(LIKELY_NA_CONTROL_IDS as readonly string[]);
 
-/** 18 true governance controls (policy/documentation only). */
+/** True governance controls (policy/documentation only; 3.4.3 is hybrid so 17). */
 export const GOVERNANCE_18_CONTROL_IDS = new Set(PURE_GOV_CONTROL_IDS);
 
 /** 31 controls in the 73 with support_level PARTIAL (OS evidence + gov docs to close). */
@@ -87,9 +106,19 @@ export interface C3PAOValidationResult {
 }
 
 const EXPECTED_OS = 73;
-const EXPECTED_CLOUD = 12;
-const EXPECTED_NA = 7;
-const EXPECTED_GOVERNANCE = 18;
+// CLOUD set: 4 strict-inherited (3.10.1, .2, .4, .5) + 2 customer-attested
+// (3.10.3, 3.10.6) + 15 Azure/Entra validated by validate_azure_entra.py
+// v1.5+ = 21 distinct cloud controls.
+//
+// Validator v1.5 (2026-05-01c) added 3 checks closing the Bin 8 gap:
+//   3.1.18 (mobile device control via Conditional Access)
+//   3.1.19 (mobile encryption by exclusion via 3.1.18)
+//   3.8.9  (backup confidentiality via storage encryption + Key Vault)
+const EXPECTED_CLOUD = 21;
+// Was 7 prior to 2026-05-01b. 3.10.6 moved out — it's customer-attested-inherited
+// via the attest_no_alternate_work_sites template, not a generic "often N/A".
+const EXPECTED_NA = 6;
+const EXPECTED_GOVERNANCE = 17;
 const EXPECTED_OS_PARTIAL = 31;
 const EXPECTED_TOTAL_CMMC_L2 = 110;
 

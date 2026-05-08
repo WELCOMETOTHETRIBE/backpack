@@ -7,6 +7,8 @@ import {
   mockAssessmentResponses,
 } from "@/db/schema";
 import { eq, and, asc } from "drizzle-orm";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
+import { DataUnavailable } from "@/components/ui/DataUnavailable";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -20,36 +22,65 @@ export default async function MockAssessmentResultsPage({ params }: PageProps) {
 
   const { id } = await params;
 
-  const [assessment] = await db
-    .select({
-      id: mockAssessments.id,
-      status: mockAssessments.status,
-      createdAt: mockAssessments.createdAt,
-      completedAt: mockAssessments.completedAt,
-    })
-    .from(mockAssessments)
-    .where(
-      and(
-        eq(mockAssessments.id, id),
-        eq(mockAssessments.organizationId, orgId)
+  let assessment:
+    | {
+        id: string;
+        status: string;
+        createdAt: Date;
+        completedAt: Date | null;
+      }
+    | undefined;
+  let responses: Array<{
+    id: string;
+    controlId: string;
+    questionText: string;
+    userResponse: string | null;
+    llmEvaluation: string | null;
+    score: string | null;
+  }> = [];
+  try {
+    [assessment] = await db
+      .select({
+        id: mockAssessments.id,
+        status: mockAssessments.status,
+        createdAt: mockAssessments.createdAt,
+        completedAt: mockAssessments.completedAt,
+      })
+      .from(mockAssessments)
+      .where(
+        and(
+          eq(mockAssessments.id, id),
+          eq(mockAssessments.organizationId, orgId)
+        )
       )
-    )
-    .limit(1);
+      .limit(1);
+
+    if (assessment) {
+      responses = await db
+        .select({
+          id: mockAssessmentResponses.id,
+          controlId: mockAssessmentResponses.controlId,
+          questionText: mockAssessmentResponses.questionText,
+          userResponse: mockAssessmentResponses.userResponse,
+          llmEvaluation: mockAssessmentResponses.llmEvaluation,
+          score: mockAssessmentResponses.score,
+        })
+        .from(mockAssessmentResponses)
+        .where(eq(mockAssessmentResponses.mockAssessmentId, id))
+        .orderBy(asc(mockAssessmentResponses.createdAt));
+    }
+  } catch (err) {
+    console.error("Mock-assessment results primary fetch failed:", err);
+    return (
+      <DataUnavailable
+        resource="mock assessment"
+        backTo="/dashboard/readiness/mock-assessment"
+        backLabel="Back to Mock Assessments"
+      />
+    );
+  }
 
   if (!assessment) notFound();
-
-  const responses = await db
-    .select({
-      id: mockAssessmentResponses.id,
-      controlId: mockAssessmentResponses.controlId,
-      questionText: mockAssessmentResponses.questionText,
-      userResponse: mockAssessmentResponses.userResponse,
-      llmEvaluation: mockAssessmentResponses.llmEvaluation,
-      score: mockAssessmentResponses.score,
-    })
-    .from(mockAssessmentResponses)
-    .where(eq(mockAssessmentResponses.mockAssessmentId, id))
-    .orderBy(asc(mockAssessmentResponses.createdAt));
 
   const responsesOrdered = responses;
 
@@ -62,6 +93,17 @@ export default async function MockAssessmentResultsPage({ params }: PageProps) {
   return (
     <div className="space-y-6">
       <div>
+        <Breadcrumbs
+          items={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Readiness", href: "/dashboard/readiness" },
+            {
+              label: "Mock assessments",
+              href: "/dashboard/readiness/mock-assessment",
+            },
+            { label: "Results" },
+          ]}
+        />
         <h1 className="text-3xl font-bold text-[#0F172A]">Mock Assessment Results</h1>
         <p className="mt-2 text-gray-600">
           Completed{" "}

@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { governanceDocuments, governanceDocumentVersions, users } from "@/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { requireOrg, requireRole } from "@/lib/auth";
+import { getStorageService } from "@/lib/storage";
 import { logGovernanceAudit } from "@/lib/governance/audit";
 
 /**
@@ -97,6 +98,58 @@ export async function PATCH(
     return NextResponse.json({ ok: true });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Failed to update document";
+    return NextResponse.json({ error: msg }, { status: 401 });
+  }
+}
+
+/**
+ * DELETE /api/governance/documents/[docId] — delete document and its versions (storage best-effort).
+ */
+export async function DELETE(
+  _req: Request,
+  { params }: { params: Promise<{ docId: string }> }
+) {
+  try {
+    const orgId = await requireOrg();
+    const user = await requireRole(["Admin", "Compliance", "Assessor"]);
+    const { docId } = await params;
+    if (!docId) return NextResponse.json({ error: "docId required" }, { status: 400 });
+
+    const [doc] = await db
+      .select()
+      .from(governanceDocuments)
+      .where(
+        and(
+          eq(governanceDocuments.organizationId, orgId),
+          eq(governanceDocuments.id, docId)
+        )
+      );
+
+    if (!doc) return NextResponse.json({ error: "Document not found" }, { status: 404 });
+
+    const versions = await db
+      .select({ storageKey: governanceDocumentVersions.storageKey })
+      .from(governanceDocumentVersions)
+      .where(eq(governanceDocumentVersions.documentId, doc.id));
+
+    const storage = getStorageService();
+    for (const v of versions) {
+      if (v.storageKey) {
+        try {
+          await storage.delete(v.storageKey);
+        } catch {
+          // best-effort; continue to remove DB record
+        }
+      }
+    }
+
+    await db.delete(governanceDocuments).where(eq(governanceDocuments.id, doc.id));
+
+    await logGovernanceAudit(orgId, user.id ?? null, "governance_document_deleted", "governance_document", doc.id, { docId: doc.docId, title: doc.title });
+
+    return NextResponse.json({ deleted: true });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Failed to delete document";
     return NextResponse.json({ error: msg }, { status: 401 });
   }
 }

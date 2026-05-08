@@ -33,6 +33,9 @@ export async function GET() {
         id: controlRecords.id,
         controlId: controlRecords.controlId,
         implementationStatus: controlRecords.implementationStatus,
+        technicalStatus: controlRecords.technicalStatus,
+        policyDocRequired: controlRecords.policyDocRequired,
+        policyStatus: controlRecords.policyStatus,
         title: controls.title,
         roleName: roles.name,
       })
@@ -86,17 +89,24 @@ export async function GET() {
       const technicalEvidenceList = techList
         .map((t) => t.requirementId || t.description || "—")
         .join("; ");
+      // Dual-evidence lane columns
+      const techStatus = r?.technicalStatus ?? "not_started";
+      const polRequired = r?.policyDocRequired ?? false;
+      const polStatus = polRequired ? (r?.policyStatus ?? "missing") : "N/A";
+
       return {
         "Control ID": controlId,
         "Control Name": r?.title ?? controlId,
         "Implementation Status": r?.implementationStatus ?? "not_started",
+        "Technical Evidence Status": techStatus,
+        "Policy Doc Status": polStatus,
         "Responsible Role": r?.roleName ?? "",
         "Governance Artifacts": governanceArtifacts,
         "Technical Evidence": technicalEvidenceList,
       };
     });
 
-    const header = ["Control ID", "Control Name", "Implementation Status", "Responsible Role", "Governance Artifacts", "Technical Evidence"];
+    const header = ["Control ID", "Control Name", "Implementation Status", "Technical Evidence Status", "Policy Doc Status", "Responsible Role", "Governance Artifacts", "Technical Evidence"];
     const csvLines = [
       header.join(","),
       ...rows.map((r) =>

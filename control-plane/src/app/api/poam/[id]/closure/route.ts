@@ -63,12 +63,12 @@ export async function POST(
       await db
         .update(poamItems)
         .set({ status: "Closed", closedAt: new Date(), updatedAt: new Date() })
-        .where(eq(poamItems.id, id));
+        .where(and(eq(poamItems.id, id), eq(poamItems.organizationId, orgId)));
     } else {
       await db
         .update(poamItems)
         .set({ status: "Pending Closure", updatedAt: new Date() })
-        .where(eq(poamItems.id, id));
+        .where(and(eq(poamItems.id, id), eq(poamItems.organizationId, orgId)));
     }
 
     await writeAuditLog({

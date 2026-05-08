@@ -98,6 +98,15 @@ export const evidenceFindings = pgTable(
       .notNull()
       .references(() => evidenceRuns.id, { onDelete: "cascade" }),
     controlId: text("control_id").notNull(),
+    /**
+     * Per-check identity within a (run, control) tuple. A single control can
+     * be backed by multiple validator checks (e.g. Conditional Access state
+     * checks: 5 distinct checks all back §3.5.3). Each check gets its own row.
+     * Backward-compat: the migration backfills check_id = control_id for
+     * pre-existing rows; old collectors that don't send a check_id continue
+     * to land 1:1 against the control.
+     */
+    checkId: text("check_id").notNull(),
     pass: boolean("pass").notNull(),
     observed: text("observed").notNull(),
     expected: text("expected").notNull(),
@@ -110,7 +119,7 @@ export const evidenceFindings = pgTable(
     partial: boolean("partial").notNull().default(false),
   },
   (t) => ({
-    pk: primaryKey({ columns: [t.evidenceRunId, t.controlId] }),
+    pk: primaryKey({ columns: [t.evidenceRunId, t.controlId, t.checkId] }),
     controlIdx: index("evidence_finding_control_idx").on(t.controlId),
   })
 );

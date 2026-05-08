@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { boundaries, osAssets } from "@/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { syncOrgAzureInheritedControls } from "@/lib/compliance/azure-inherited-controls";
+import { validateScopeComponents } from "@/types/boundary";
 
 /**
  * GET /api/os-baselines/boundaries — list boundaries for the current org
@@ -52,7 +53,6 @@ export async function GET() {
   return NextResponse.json(withCounts);
 }
 
-const SCOPE_COMPONENT_VALUES = ["microsoft_office", "windows_server_vm", "azure_cloud"] as const;
 const AZURE_ENV_VALUES = ["gov", "commercial"] as const;
 const CLOUD_PROVIDER_VALUES = ["none", "microsoft", "google", "azure"] as const;
 
@@ -77,11 +77,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "name is required" }, { status: 400 });
   }
 
-  const scopeComponents =
-    Array.isArray(body.scope_components) &&
-    body.scope_components.every((s) => SCOPE_COMPONENT_VALUES.includes(s as (typeof SCOPE_COMPONENT_VALUES)[number]))
-      ? body.scope_components
-      : null;
+  let scopeComponents: string[] | null = null;
+  if (body.scope_components !== undefined) {
+    const result = validateScopeComponents(body.scope_components);
+    if (!result.ok) {
+      return NextResponse.json({ error: result.error }, { status: 400 });
+    }
+    scopeComponents = result.value.length > 0 ? result.value : null;
+  }
 
   const cloudProvider =
     body.cloud_provider && CLOUD_PROVIDER_VALUES.includes(body.cloud_provider as (typeof CLOUD_PROVIDER_VALUES)[number])

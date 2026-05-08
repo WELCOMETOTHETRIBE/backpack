@@ -10,7 +10,7 @@
         "mfa-in-path-attested.sig",
         "mfa-in-path-attested.txt"
       ],
-      "evidence_hint": "entra-signin.json; Conditional Access export; mfa-in-path-attested.txt + mfa-in-path-attested.sig (signed) or CA+sign-in MFA evidence",
+      "evidence_hint": "Entra sign-in export and Conditional Access policies. For MFA-in-path: signed attestation (mfa-in-path-attested.txt + .sig) or CA/sign-in MFA evidence.",
       "expected": "entra-signin or CA policy export present AND MFA in enclave access path (evidence or signed mfa-in-path-attested.txt + .sig)",
       "id": "ENTRA-MFA",
       "layer": "Identity/MFA",
@@ -22,7 +22,7 @@
       "pass": false,
       "provider_or_customer": "shared",
       "status": "partial",
-      "timestamp_utc": "2026-03-01T16:47:35.345793+00:00",
+      "timestamp_utc": "2026-04-18T06:55:23.645053+00:00",
       "title": "MFA for privileged accounts (Entra evidence)"
     },
     {
@@ -34,7 +34,7 @@
         "mfa-in-path-attested.sig",
         "mfa-in-path-attested.txt"
       ],
-      "evidence_hint": "entra-signin.json; MFA policy; mfa-in-path-attested.txt + mfa-in-path-attested.sig (signed) or CA+sign-in MFA evidence",
+      "evidence_hint": "Entra sign-in and MFA policy. For MFA-in-path: signed attestation (mfa-in-path-attested.txt + .sig) or CA/sign-in MFA evidence.",
       "expected": "Entra/MFA evidence AND MFA in enclave access path (evidence or attestation)",
       "id": "ENTRA-MFA-MA",
       "layer": null,
@@ -46,7 +46,7 @@
       "pass": false,
       "provider_or_customer": "shared",
       "status": "partial",
-      "timestamp_utc": "2026-03-01T16:47:35.345989+00:00",
+      "timestamp_utc": "2026-04-18T06:55:23.645212+00:00",
       "title": "MFA for nonlocal maintenance (Entra evidence)"
     },
     {
@@ -59,7 +59,7 @@
         "mfa-in-path-attested.sig",
         "mfa-in-path-attested.txt"
       ],
-      "evidence_hint": "entra-signin.json; role-assignments-all.json; mfa-in-path-attested.txt + mfa-in-path-attested.sig (signed) or CA+sign-in MFA evidence",
+      "evidence_hint": "Entra sign-in and role-assignments (or admin roles). For MFA-in-path: signed attestation (mfa-in-path-attested.txt + .sig) or CA/sign-in MFA evidence.",
       "expected": "Entra/role evidence AND MFA in enclave access path (evidence or attestation)",
       "id": "ENTRA-REPLAY",
       "layer": "Identity/AuthN",
@@ -71,7 +71,7 @@
       "pass": false,
       "provider_or_customer": "shared",
       "status": "partial",
-      "timestamp_utc": "2026-03-01T16:47:35.346254+00:00",
+      "timestamp_utc": "2026-04-18T06:55:23.647290+00:00",
       "title": "Replay-resistant authentication (Entra evidence)"
     },
     {
@@ -84,7 +84,7 @@
         "mfa-in-path-attested.sig",
         "mfa-in-path-attested.txt"
       ],
-      "evidence_hint": "entra-signin.json; role-assignments-all.json; mfa-in-path-attested.txt + mfa-in-path-attested.sig (signed) or CA+sign-in MFA evidence",
+      "evidence_hint": "Entra sign-in and role-assignments (or admin roles). For MFA-in-path: signed attestation (mfa-in-path-attested.txt + .sig) or CA/sign-in MFA evidence.",
       "expected": "Entra/role evidence AND MFA in enclave access path (evidence or attestation)",
       "id": "ENTRA-NO-REUSE",
       "layer": "Identity/AuthN",
@@ -96,7 +96,7 @@
       "pass": false,
       "provider_or_customer": "shared",
       "status": "partial",
-      "timestamp_utc": "2026-03-01T16:47:35.346262+00:00",
+      "timestamp_utc": "2026-04-18T06:55:23.647300+00:00",
       "title": "Prevent identifier reuse (Entra evidence)"
     },
     {
@@ -109,7 +109,7 @@
         "mfa-in-path-attested.sig",
         "mfa-in-path-attested.txt"
       ],
-      "evidence_hint": "entra-signin.json; role-assignments-all.json; mfa-in-path-attested.txt + mfa-in-path-attested.sig (signed) or CA+sign-in MFA evidence",
+      "evidence_hint": "Entra sign-in and role-assignments (or admin roles). For MFA-in-path: signed attestation (mfa-in-path-attested.txt + .sig) or CA/sign-in MFA evidence.",
       "expected": "Entra/role evidence AND MFA in enclave access path (evidence or attestation)",
       "id": "ENTRA-INACTIVITY",
       "layer": "Identity/Role-Governance",
@@ -121,7 +121,7 @@
       "pass": false,
       "provider_or_customer": "shared",
       "status": "partial",
-      "timestamp_utc": "2026-03-01T16:47:35.346265+00:00",
+      "timestamp_utc": "2026-04-18T06:55:23.647303+00:00",
       "title": "Disable identifiers after inactivity (Entra evidence)"
     },
     {
@@ -132,7 +132,7 @@
         "keyvault-codex-cui-kv-pilot-role-assignments.json",
         "keyvault-list.json"
       ],
-      "evidence_hint": "keyvault-list.json; keyvault-*-properties.json (optional); keyvault-*-access-policies.json; keyvault-*-role-assignments.json",
+      "evidence_hint": "keyvault-list.json; for each vault optionally keyvault-*-properties.json (soft delete, purge protection), keyvault-*-access-policies.json, keyvault-*-role-assignments.json.",
       "expected": "Azure Key Vault list; when keyvault-*-properties.json exported: soft delete and purge protection enabled per vault",
       "id": "AZ-KEYVAULT",
       "keyvault_details": [
@@ -150,7 +150,7 @@
       "pass": true,
       "provider_or_customer": "shared",
       "status": "pass",
-      "timestamp_utc": "2026-03-01T16:47:35.346985+00:00",
+      "timestamp_utc": "2026-04-18T06:55:23.652502+00:00",
       "title": "Cryptographic key management (Azure Key Vault evidence)"
     },
     {
@@ -164,7 +164,7 @@
         "network-bypass-attested.json",
         "nsg-rules-nsg-cui-pilot.json"
       ],
-      "evidence_hint": "nsg-list.json; nsg-rules-*.json; optional: bastion-only-attested.txt, jit-enabled-attested.txt, firewall-enforcement-attested.txt, network-bypass-attested.json",
+      "evidence_hint": "nsg-list.json and nsg-rules-*.json. If RDP is open to public, add one of: bastion-only-attested.txt, jit-enabled-attested.txt, firewall-enforcement-attested.txt, or network-bypass-attested.json.",
       "expected": "NSG list/rules present; RDP (3389) not allowed from public, or acceptable alternative (Bastion/JIT/Firewall) attested",
       "id": "AZ-NSG",
       "layer": "Network/Boundary",
@@ -175,11 +175,36 @@
       "provider_or_customer": "customer",
       "rationale": null,
       "status": "pass",
-      "timestamp_utc": "2026-03-01T16:47:35.347620+00:00",
+      "timestamp_utc": "2026-04-18T06:55:23.655085+00:00",
       "title": "Implement subnetworks (NSG evidence)"
+    },
+    {
+      "control": "AC.L2-3.1.14",
+      "evidence_files_used": [
+        "bastion-only-attested.txt",
+        "conditional-access-policies.json",
+        "entra-signin.json",
+        "firewall-enforcement-attested.txt",
+        "jit-enabled-attested.txt",
+        "network-bypass-attested.json",
+        "nsg-rules-nsg-cui-pilot.json",
+        "role-assignments-all.json"
+      ],
+      "evidence_hint": "nsg-list.json, nsg-rules-*.json; entra-signin.json or role-assignments-all.json (and optionally conditional-access-policies.json) to show managed access path.",
+      "expected": "NSG list/rules with RDP not from public (or attested alternative); Entra sign-in or role evidence for managed access path.",
+      "id": "AC-REMOTE-ACCESS",
+      "layer": "Access Control",
+      "observed": "NSG restricts public RDP=True; Entra/sign-in or role evidence=True \u2192 remote access routed through managed points",
+      "partial": false,
+      "partial_reason": null,
+      "pass": true,
+      "provider_or_customer": "shared",
+      "status": "pass",
+      "timestamp_utc": "2026-04-18T06:55:23.655096+00:00",
+      "title": "Remote Access Routing (managed access control points)"
     }
   ],
-  "generated_utc": "2026-03-01T16:47:35.347632+00:00",
+  "generated_utc": "2026-04-18T06:55:23.655104+00:00",
   "inputs": [
     {
       "filename": "entra-signin.json",
@@ -236,12 +261,13 @@
       "size": 3294
     }
   ],
-  "report_sha256": "e48f89674b407ad39b6869e8ae649a9a9a317a35eafae62a953e60cf04047395",
+  "report_sha256": "65a6a4e12ffa6bbeeef42a13cbd77d5d7040724e6e3616d3a4a639bfb996d06b",
   "run_id": "20260301-164651",
   "summary": {
     "azure_entra_dir": "/Users/patrick/cui-pilot/evidence/runs/20260301-164651/raw/azure",
     "computer": "Patricks-MacBook-Pro.local",
     "control_ids": [
+      "AC.L2-3.1.14",
       "IA.L2-3.5.3",
       "IA.L2-3.5.4",
       "IA.L2-3.5.5",
@@ -251,16 +277,16 @@
       "SC.L2-3.13.5"
     ],
     "fail_count": 0,
-    "generated_utc": "2026-03-01T16:47:35.347632+00:00",
+    "generated_utc": "2026-04-18T06:55:23.655104+00:00",
     "partial_count": 5,
-    "pass_count": 2,
+    "pass_count": 3,
     "run_id": "20260301-164651",
-    "total": 7,
+    "total": 8,
     "user": "patrick"
   },
   "validator": {
     "name": "validate_azure_entra",
-    "sha256": "190491800e2cc7da42316e72a0c4ec8a0a4e51e9175013ea13a1d2d6da41cc36",
-    "version": "1.2.0"
+    "sha256": "f3004dc5db72e98fa5c4e9f7b6b852f5e5b8bf4d340fc8c3db44bd43259c3d0f",
+    "version": "1.3.0"
   }
 }
