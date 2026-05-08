@@ -42,7 +42,7 @@
     "normalize-collector-run": "tsx src/scripts/normalize-collector-run.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.89.0",
+    "@anthropic-ai/sdk": "^0.91.1",
     "@aws-sdk/client-s3": "^3.995.0",
     "@aws-sdk/s3-request-presigner": "^3.995.0",
     "@azure/storage-blob": "^12.31.0",
