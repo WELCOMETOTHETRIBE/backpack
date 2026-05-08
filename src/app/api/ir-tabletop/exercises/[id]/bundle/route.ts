@@ -93,6 +93,7 @@ import {
   logIrAuditEvent,
   UploadBundleManifestSchema,
 } from "@/lib/ir-tabletop-bridge"
+import { controlIdToNist } from "@/lib/compliance/controlId"
 import { getIrTabletopStorage } from "@/lib/ir-tabletop-storage"
 import {
   emitPoamFromBundle,
@@ -615,6 +616,17 @@ bytesPersisted: body.vaultBytesPersisted ?? body.bytesPersisted ?? false,
         completionId: string
       }[] = []
       for (const link of linkedControls) {
+        // ir_exercise_controls.controlId stores the CMMC display form
+        // ("IR.L2-3.6.1") because that's what the TrainOS bridge schema
+        // accepts. control_records.controlId is canonically NIST form
+        // ("3.6.1") — every other surface (SCTM list, adjudication helpers,
+        // outstanding-bucket counts, evidence/findings) keys on the NIST
+        // shape. Normalize before the lookup/insert so we don't create
+        // orphan "IR.L2-3.6.1" rows alongside the canonical "3.6.1" row,
+        // which would surface as duplicate NOT STARTED rows on /dashboard/
+        // controls and skew the family progress count.
+        const normalizedControlId = controlIdToNist(link.controlId)
+
         // Resolve or lazy-create the org's control_record
         let [record] = await tx
           .select({ id: controlRecords.id })
@@ -622,7 +634,7 @@ bytesPersisted: body.vaultBytesPersisted ?? body.bytesPersisted ?? false,
           .where(
             and(
               eq(controlRecords.organizationId, auth.organizationId),
-              eq(controlRecords.controlId, link.controlId)
+              eq(controlRecords.controlId, normalizedControlId)
             )
           )
           .limit(1)
@@ -631,7 +643,7 @@ bytesPersisted: body.vaultBytesPersisted ?? body.bytesPersisted ?? false,
             .insert(controlRecords)
             .values({
               organizationId: auth.organizationId,
-              controlId: link.controlId,
+              controlId: normalizedControlId,
             })
             .returning({ id: controlRecords.id })
         }
@@ -640,9 +652,12 @@ bytesPersisted: body.vaultBytesPersisted ?? body.bytesPersisted ?? false,
         // when the manifest carries the breakdown; otherwise a single row
         // with objective_id=null. The artifact label encodes the objective so
         // the existing (control_record_id, artifact_label) uniqueness still
-        // dedupes idempotent re-archives.
+        // dedupes idempotent re-archives. Manifest keys may arrive in either
+        // CMMC or NIST form depending on TrainOS version — try both.
         const objectives =
-          objectivesPerControl[link.controlId] ?? [null as string | null]
+          objectivesPerControl[normalizedControlId] ??
+          objectivesPerControl[link.controlId] ??
+          [null as string | null]
         for (const objective of objectives) {
           const labelSuffix = objective ? `:${objective}` : ""
           const artifactLabel = `ir_tabletop_bundle:${bundle.id}${labelSuffix}`
@@ -675,7 +690,11 @@ bytesPersisted: body.vaultBytesPersisted ?? body.bytesPersisted ?? false,
             })
             .returning({ id: governanceArtifactCompletions.id })
           completionInserts.push({
-            controlId: link.controlId,
+            // Normalized NIST form so downstream revalidatePath
+            // (/dashboard/controls/{id}) hits the canonical route and the
+            // audit-log detail field stays consistent with every other
+            // controlId-keyed log.
+            controlId: normalizedControlId,
             objectiveId: objective ?? null,
             completionId: completion.id,
           })
