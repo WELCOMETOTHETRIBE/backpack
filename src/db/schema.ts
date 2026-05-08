@@ -2186,11 +2186,17 @@ export const riskAssessments = pgTable("risk_assessments", {
   assessmentName: text("assessment_name"),
   organizationName: text("organization_name"),
   systemName: text("system_name"),
+  /** Human-readable boundary label (distinct from system_name). */
+  systemBoundaryName: text("system_boundary_name"),
+  /** SSP section/version that anchors this assessment. */
+  sspReference: text("ssp_reference"),
   scopeType: varchar("scope_type", { length: 16 }).notNull().default("enclave"),
   methodology: text("methodology")
     .notNull()
     .default("NIST SP 800-30 Rev. 1 / CMMC Level 2"),
   definedFrequencyDays: integer("defined_frequency_days"),
+  /** WHY this cadence was chosen — defensibility narrative for objective [a]. */
+  frequencyRationale: text("frequency_rationale"),
   reviewPeriodStart: date("review_period_start"),
   reviewPeriodEnd: date("review_period_end"),
   nextDueDate: date("next_due_date"),

@@ -60,8 +60,11 @@ export async function ensureAssessmentEnvelope(input: {
   organizationId: string;
   boundaryId: string;
   assessmentPivotId: string;
+  assessmentName?: string | null;
   organizationName?: string | null;
   systemName?: string | null;
+  systemBoundaryName?: string | null;
+  sspReference?: string | null;
   assessorDisplayName?: string | null;
   reviewerDisplayName?: string | null;
   approverDisplayName?: string | null;
@@ -74,6 +77,8 @@ export async function ensureAssessmentEnvelope(input: {
    * `unknown`.
    */
   definedFrequencyDays?: number | null;
+  /** Defensibility narrative — WHY this cadence (objective [a] enrichment). */
+  frequencyRationale?: string | null;
   submittedByUserId?: string | null;
 }): Promise<RiskAssessmentRow> {
   const existing = await db
@@ -91,8 +96,12 @@ export async function ensureAssessmentEnvelope(input: {
     const [updated] = await db
       .update(riskAssessments)
       .set({
+        assessmentName: input.assessmentName ?? existing[0].assessmentName,
         organizationName: input.organizationName ?? existing[0].organizationName,
         systemName: input.systemName ?? existing[0].systemName,
+        systemBoundaryName:
+          input.systemBoundaryName ?? existing[0].systemBoundaryName,
+        sspReference: input.sspReference ?? existing[0].sspReference,
         assessorDisplayName:
           input.assessorDisplayName ?? existing[0].assessorDisplayName,
         reviewerDisplayName:
@@ -104,6 +113,8 @@ export async function ensureAssessmentEnvelope(input: {
         reviewPeriodEnd: input.reviewPeriodEnd ?? existing[0].reviewPeriodEnd,
         definedFrequencyDays:
           input.definedFrequencyDays ?? existing[0].definedFrequencyDays,
+        frequencyRationale:
+          input.frequencyRationale ?? existing[0].frequencyRationale,
         submittedByUserId:
           input.submittedByUserId ?? existing[0].submittedByUserId,
         submittedAt: existing[0].submittedAt ?? new Date(),
@@ -125,14 +136,18 @@ export async function ensureAssessmentEnvelope(input: {
       organizationId: input.organizationId,
       boundaryId: input.boundaryId,
       assessmentPivotId: input.assessmentPivotId,
+      assessmentName: input.assessmentName ?? null,
       organizationName: input.organizationName ?? null,
       systemName: input.systemName ?? null,
+      systemBoundaryName: input.systemBoundaryName ?? null,
+      sspReference: input.sspReference ?? null,
       assessorDisplayName: input.assessorDisplayName ?? null,
       reviewerDisplayName: input.reviewerDisplayName ?? null,
       approverDisplayName: input.approverDisplayName ?? null,
       reviewPeriodStart: input.reviewPeriodStart ?? null,
       reviewPeriodEnd: input.reviewPeriodEnd ?? null,
       definedFrequencyDays: input.definedFrequencyDays ?? null,
+      frequencyRationale: input.frequencyRationale ?? null,
       nextDueDate,
       status: "draft",
       submittedByUserId: input.submittedByUserId ?? null,

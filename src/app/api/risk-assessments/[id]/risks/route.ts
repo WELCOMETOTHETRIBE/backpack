@@ -157,6 +157,15 @@ async function handlePost(
     `)) as unknown as Array<{ id: string }>;
     const existingId = existingRows[0]?.id;
 
+    // risk_rating mirrors severity in the form the
+    // register_field_labels_and_summaries.v1.json template expects
+    // ("Risk {{risk_id}} identified by {{identified_by}} ({{risk_rating}})…").
+    // Without it the rendered summary line on /dashboard/evidence-engine/
+    // registers/risk_register reads "()" with nothing inside.
+    const riskRating =
+      r.riskRating ??
+      (r.severity ? r.severity : null);
+
     const entryData = {
       risk_id: r.riskExternalId,
       identified_at: now.toISOString(),
@@ -181,6 +190,33 @@ async function handlePost(
       preparer: envelope.assessorDisplayName,
       reviewer: envelope.reviewerDisplayName,
       approver: envelope.approverDisplayName,
+
+      // ── Defensibility / enrichment (v1.1, additive) ─────────────
+      // All optional. When present, surfaces inline on Codex without
+      // requiring the C3PAO to crack the vault zip.
+      risk_rating: riskRating,
+      severity: r.severity ?? null,
+      inherent_likelihood: r.inherentLikelihood ?? null,
+      inherent_impact: r.inherentImpact ?? null,
+      inherent_risk: r.inherentRisk ?? null,
+      residual_likelihood: r.residualLikelihood ?? null,
+      residual_impact: r.residualImpact ?? null,
+      residual_risk: r.residualRisk ?? null,
+      control_effectiveness: r.controlEffectiveness ?? null,
+      treatment_rationale: r.treatmentRationale ?? null,
+      acceptance_rationale: r.acceptanceRationale ?? null,
+      acceptance_review_date: r.acceptanceReviewDate ?? null,
+      acceptance_approver_display_name:
+        r.acceptanceApproverDisplayName ?? null,
+      transfer_mechanism: r.transferMechanism ?? null,
+      avoidance_description: r.avoidanceDescription ?? null,
+      impact_operations: r.impactOperations ?? null,
+      impact_mission: r.impactMission ?? null,
+      impact_image_reputation: r.impactImageReputation ?? null,
+      impact_assets: r.impactAssets ?? null,
+      impact_individuals: r.impactIndividuals ?? null,
+      relevant_cmmc_controls: r.relevantCmmcControls ?? null,
+      library_scenario_key: r.libraryScenarioKey ?? null,
     };
 
     if (existingId) {

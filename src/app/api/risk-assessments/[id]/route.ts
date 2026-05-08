@@ -138,12 +138,18 @@ export async function PATCH(
   // and the corresponding *_at column is null, stamp it.
   const now = new Date();
   const updates: Partial<typeof row> = {
+    assessmentName: parsed.data.assessmentName ?? row.assessmentName,
     organizationName:
       parsed.data.organizationName ?? row.organizationName,
     systemName: parsed.data.systemName ?? row.systemName,
+    systemBoundaryName:
+      parsed.data.systemBoundaryName ?? row.systemBoundaryName,
+    sspReference: parsed.data.sspReference ?? row.sspReference,
     scopeType: parsed.data.scopeType ?? row.scopeType,
     methodology: parsed.data.methodology ?? row.methodology,
     definedFrequencyDays: newFreq,
+    frequencyRationale:
+      parsed.data.frequencyRationale ?? row.frequencyRationale,
     reviewPeriodStart:
       parsed.data.reviewPeriodStart ?? row.reviewPeriodStart,
     reviewPeriodEnd: newPeriodEnd,

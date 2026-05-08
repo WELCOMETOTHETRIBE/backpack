@@ -69,12 +69,16 @@ export async function POST(req: NextRequest) {
     organizationId,
     boundaryId: boundary.id,
     assessmentPivotId: pivotId,
+    assessmentName: parsed.data.assessmentName ?? null,
     organizationName: parsed.data.organizationName ?? null,
     systemName: parsed.data.systemName ?? null,
+    systemBoundaryName: parsed.data.systemBoundaryName ?? null,
+    sspReference: parsed.data.sspReference ?? null,
     assessorDisplayName: parsed.data.assessorDisplayName ?? null,
     reviewPeriodStart: parsed.data.reviewPeriodStart ?? null,
     reviewPeriodEnd: parsed.data.reviewPeriodEnd ?? null,
     definedFrequencyDays: parsed.data.definedFrequencyDays ?? null,
+    frequencyRationale: parsed.data.frequencyRationale ?? null,
     submittedByUserId: auth.userId,
   });
 

@@ -286,11 +286,23 @@ export const CreateAssessmentSchema = z
      * itself), it can supply it here. Otherwise Codex generates one.
      */
     assessmentPivotId: z.string().uuid().optional(),
+    /** Human-readable assessment name (e.g. "FY26 Annual RA — CUI Vault"). */
+    assessmentName: z.string().min(1).max(255).optional(),
     organizationName: z.string().min(1).max(255).optional(),
     systemName: z.string().min(1).max(255).optional(),
+    /** Boundary label scoping the assessment, distinct from systemName. */
+    systemBoundaryName: z.string().min(1).max(255).optional(),
+    /** SSP section/version this assessment is anchored to. */
+    sspReference: z.string().min(1).max(500).optional(),
     scopeType: z.enum(["enterprise", "enclave", "system"]).optional(),
     methodology: z.string().min(2).max(255).optional(),
     definedFrequencyDays: z.number().int().positive().max(366).optional(),
+    /**
+     * WHY this cadence was chosen — defensibility narrative for
+     * objective [a]. The C3PAO asks "why annual?" and this is the
+     * answer that gets quoted back.
+     */
+    frequencyRationale: z.string().min(1).max(4000).optional(),
     reviewPeriodStart: z.string().regex(ISO_DATE).optional(),
     reviewPeriodEnd: z.string().regex(ISO_DATE).optional(),
     assessorDisplayName: z.string().min(2).max(255).optional(),
@@ -303,11 +315,15 @@ export const CreateAssessmentSchema = z
  */
 export const UpdateAssessmentSchema = z
   .object({
+    assessmentName: z.string().min(1).max(255).optional(),
     organizationName: z.string().min(1).max(255).optional(),
     systemName: z.string().min(1).max(255).optional(),
+    systemBoundaryName: z.string().min(1).max(255).optional(),
+    sspReference: z.string().min(1).max(500).optional(),
     scopeType: z.enum(["enterprise", "enclave", "system"]).optional(),
     methodology: z.string().min(2).max(255).optional(),
     definedFrequencyDays: z.number().int().positive().max(366).optional(),
+    frequencyRationale: z.string().min(1).max(4000).optional(),
     reviewPeriodStart: z.string().regex(ISO_DATE).optional(),
     reviewPeriodEnd: z.string().regex(ISO_DATE).optional(),
     assessorDisplayName: z.string().min(2).max(255).optional(),
@@ -359,6 +375,59 @@ export const RiskItemSchema = z
     notes: z.string().max(2000).nullable().optional(),
     threatSource: z.string().max(255).optional(),
     vulnerability: z.string().max(2000).optional(),
+
+    // ── Defensibility / enrichment fields (v1.1, additive) ────────
+    // Codex stores these in entry_data as-is; the registers UI surfaces
+    // them inline so adjudication doesn't have to crack the vault zip
+    // open just to see why a risk was scored / treated the way it was.
+
+    /** L (1-5) at the inherent (pre-control) layer. */
+    inherentLikelihood: z.number().int().min(1).max(5).optional(),
+    /** I (1-5) at the inherent (pre-control) layer. */
+    inherentImpact: z.number().int().min(1).max(5).optional(),
+    /** L*I (1-25) inherent score. */
+    inherentRisk: z.number().int().min(1).max(25).optional(),
+    /** L (1-5) after the existing controls land. */
+    residualLikelihood: z.number().int().min(1).max(5).optional(),
+    /** I (1-5) after the existing controls land. */
+    residualImpact: z.number().int().min(1).max(5).optional(),
+    /** L*I (1-25) residual score. */
+    residualRisk: z.number().int().min(1).max(25).optional(),
+    /** Bucket the residual maps into. The risk_register summary template
+     * renders {{risk_rating}} — we mirror this string to risk_rating in
+     * entry_data so the rendering pipeline picks it up. */
+    severity: z.enum(["LOW", "MODERATE", "HIGH", "CRITICAL"]).optional(),
+    /** Auditor-readable rating ("HIGH", "MODERATE: 9/25", etc.). */
+    riskRating: z.string().min(1).max(64).optional(),
+    /** How effective the existing controls are at the residual layer. */
+    controlEffectiveness: z
+      .enum(["strong", "moderate", "weak", "absent"])
+      .optional(),
+
+    /** WHY mitigate / transfer / accept / avoid was chosen — defensibility. */
+    treatmentRationale: z.string().max(4000).optional(),
+    /** ACCEPT — full executive acceptance rationale. ≥40 chars. */
+    acceptanceRationale: z.string().max(4000).optional(),
+    /** ACCEPT — when the acceptance is reviewed next. YYYY-MM-DD. */
+    acceptanceReviewDate: z.string().regex(ISO_DATE).optional(),
+    /** ACCEPT — name of the executive who signed the acceptance. */
+    acceptanceApproverDisplayName: z.string().max(255).optional(),
+    /** TRANSFER — what carries the risk (insurance / MSA / clause ref). */
+    transferMechanism: z.string().max(2000).optional(),
+    /** AVOID — what the org stops doing to remove the risk. */
+    avoidanceDescription: z.string().max(2000).optional(),
+
+    /** NIST SP 800-30 Rev 1 Table H-1 impact narratives. Five domains. */
+    impactOperations: z.string().max(2000).optional(),
+    impactMission: z.string().max(2000).optional(),
+    impactImageReputation: z.string().max(2000).optional(),
+    impactAssets: z.string().max(2000).optional(),
+    impactIndividuals: z.string().max(2000).optional(),
+
+    /** Which CMMC controls this risk implicates (for register cross-ref). */
+    relevantCmmcControls: z.array(z.string().max(64)).max(50).optional(),
+    /** Provenance — pre-authored library scenario key, if any. */
+    libraryScenarioKey: z.string().max(128).nullable().optional(),
   })
   .strict();
 
