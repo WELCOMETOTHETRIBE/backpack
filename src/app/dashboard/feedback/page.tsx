@@ -76,6 +76,15 @@ export default async function FeedbackPage({
   }, {})
   const totalCount = allRows.length
 
+  // Currently-running deploy SHA (Railway injects this at build time). Lets
+  // users compare "did my fix actually ship?" without leaving the page.
+  const deployedSha =
+    process.env.RAILWAY_GIT_COMMIT_SHA ||
+    process.env.VERCEL_GIT_COMMIT_SHA ||
+    process.env.GIT_COMMIT_SHA ||
+    null
+  const deployedShaShort = deployedSha ? deployedSha.slice(0, 7) : null
+
   const tabs = [
     { key: '', label: 'All', count: totalCount },
     { key: 'pending',  label: 'Pending',  count: counts['pending']  ?? 0 },
@@ -94,6 +103,16 @@ export default async function FeedbackPage({
           </p>
         </div>
         <div className="flex items-center gap-3 shrink-0">
+          {deployedShaShort && (
+            <div
+              className="flex items-center gap-1.5 rounded-xl bg-emerald-50 border border-emerald-200 px-3 py-2"
+              title={`Live deploy: ${deployedSha}`}
+            >
+              <GitCommit className="h-3.5 w-3.5 text-emerald-600" />
+              <span className="text-xs font-medium text-emerald-700">Live</span>
+              <span className="font-mono text-xs text-emerald-800">{deployedShaShort}</span>
+            </div>
+          )}
           <div className="flex items-center gap-2 rounded-xl bg-indigo-50 border border-indigo-200 px-4 py-2">
             <MessageSquare className="h-4 w-4 text-indigo-500" />
             <span className="text-sm font-semibold text-indigo-700">{counts['pending'] ?? 0} pending</span>
@@ -221,16 +240,32 @@ export default async function FeedbackPage({
                       </p>
                     )}
                     {row.resolutionCommitSha && row.resolutionCommitUrl && (
-                      <a
-                        href={row.resolutionCommitUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-white border border-emerald-200 px-2.5 py-1 text-xs font-mono text-emerald-700 hover:border-emerald-400 hover:text-emerald-900 transition-colors"
-                      >
-                        <GitCommit className="h-3 w-3" />
-                        {row.resolutionCommitSha.slice(0, 7)}
-                        <ExternalLink className="h-2.5 w-2.5" />
-                      </a>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <a
+                          href={row.resolutionCommitUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-white border border-emerald-200 px-2.5 py-1 text-xs font-mono text-emerald-700 hover:border-emerald-400 hover:text-emerald-900 transition-colors"
+                        >
+                          <GitCommit className="h-3 w-3" />
+                          {row.resolutionCommitSha.slice(0, 7)}
+                          <ExternalLink className="h-2.5 w-2.5" />
+                        </a>
+                        {deployedSha && row.resolutionCommitSha === deployedSha ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-semibold text-white">
+                            <CheckCircle2 className="h-2.5 w-2.5" />
+                            Live on prod
+                          </span>
+                        ) : deployedSha ? (
+                          <span
+                            className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-800 ring-1 ring-inset ring-amber-300"
+                            title={`Running deploy is ${deployedSha.slice(0, 7)}; this fix may be on a later or earlier commit`}
+                          >
+                            <Clock className="h-2.5 w-2.5" />
+                            Not the running deploy
+                          </span>
+                        ) : null}
+                      </div>
                     )}
                     {row.resolutionFiles && row.resolutionFiles.length > 0 && (
                       <div className="flex items-start gap-1.5 flex-wrap pt-1">
