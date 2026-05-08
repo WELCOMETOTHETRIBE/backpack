@@ -162,6 +162,216 @@
       "when": 1772387314091,
       "tag": "0022_thankful_jamie_braddock",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1772776975424,
+      "tag": "0023_legal_hammerhead",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1772800000000,
+      "tag": "0024_boundary_cloud_provider",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1772810000000,
+      "tag": "0025_governance_evidence_attestation",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1772820000000,
+      "tag": "0026_poam_entry_closeout",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1772830000000,
+      "tag": "0027_evidence_engine_register_entries",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1772840000000,
+      "tag": "0028_evidence_engine_immutability",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1772850000000,
+      "tag": "0029_governance_control_responsibilities",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1772860000000,
+      "tag": "0030_evidence_engine_boundary_aware",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1772870000000,
+      "tag": "0031_boundary_scoping_fields",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1772880000000,
+      "tag": "0032_control_impl_enhancements",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1772890000000,
+      "tag": "0033_dual_evidence_lanes",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1772900000000,
+      "tag": "0034_governance_manifest_runs",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1772910000000,
+      "tag": "0035_training_records",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1772920000000,
+      "tag": "0036_governance_docs_dedup",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1776021160751,
+      "tag": "0037_control_intelligence_register_control_ids",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1776057600000,
+      "tag": "0038_fix_missing_governance_register_control_ids",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1776061200000,
+      "tag": "0039_backfill_technical_status",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1776100000000,
+      "tag": "0040_feedback",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1776200000000,
+      "tag": "0041_trust_codex_onboarding_wizard",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1776300000000,
+      "tag": "0042_agent_run_events",
+      "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1776400000000,
+      "tag": "0043_feedback_resolution_provenance",
+      "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1776500000000,
+      "tag": "0044_artifacts_library",
+      "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1776600000000,
+      "tag": "0045_clerk_sso",
+      "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1776700000000,
+      "tag": "0046_ir_tabletop",
+      "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1776800000000,
+      "tag": "0047_ir_bundle_archived_state",
+      "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1776900000000,
+      "tag": "0048_ir_tabletop_phase11",
+      "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1777000000000,
+      "tag": "0049_ir_scenarios_org_scope",
+      "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1777100000000,
+      "tag": "0050_enclavewatch_api_token",
+      "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "7",
+      "when": 1777200000000,
+      "tag": "0051_enclavewatch_base_url",
+      "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "7",
+      "when": 1777300000000,
+      "tag": "0052_evidence_finding_multi_check",
+      "breakpoints": true
     }
   ]
 }

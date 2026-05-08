@@ -1,0 +1,53 @@
+{
+  "MAC-POL-228": [
+    "MAC-SCOPE-001",
+    "MAC-POL-211"
+  ],
+  "MAC-SOP-239": [
+    "MAC-SCOPE-001",
+    "MAC-POL-214",
+    "MAC-POL-215",
+    "MAC-POL-001"
+  ],
+  "MAC-SOP-240": [
+    "MAC-SCOPE-001",
+    "MAC-SOP-224",
+    "MAC-POL-001"
+  ],
+  "MAC-SOP-241": [
+    "MAC-SCOPE-001",
+    "MAC-POL-214",
+    "MAC-POL-220",
+    "MAC-POL-001"
+  ],
+  "MAC-SOP-242": [
+    "MAC-SCOPE-001",
+    "MAC-POL-211",
+    "MAC-SOP-224",
+    "MAC-POL-001"
+  ],
+  "MAC-SOP-243": [
+    "MAC-SCOPE-001",
+    "MAC-POL-210",
+    "MAC-SOP-235",
+    "MAC-POL-001"
+  ],
+  "MAC-SOP-244": [
+    "MAC-SCOPE-001",
+    "MAC-FRM-204",
+    "MAC-POL-220",
+    "MAC-POL-001"
+  ],
+  "MAC-SOP-245": [
+    "MAC-SCOPE-001",
+    "MAC-SOP-240",
+    "MAC-SOP-224",
+    "MAC-POL-001"
+  ],
+  "MAC-SOP-254": [
+    "MAC-POL-214",
+    "MAC-SOP-230",
+    "MAC-SCOPE-001",
+    "MAC-POL-001"
+  ]
+}

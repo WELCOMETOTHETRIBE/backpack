@@ -51,8 +51,14 @@ jobs:
           python TRUST_CODEX/tools/generate_closeout_from_sctm.py
 
       - name: Fail if EVIDENCE_INDEX.md is out of date (drift)
+        # `-I` ignores hunks whose every line matches the regex. The
+        # generator embeds `Generated (UTC): <now>` on every regen, so
+        # without -I the byte-diff is guaranteed to fail every run on
+        # the timestamp alone — even when there's no actual content
+        # drift. Excluding that one line lets us catch real source
+        # drift while ignoring the unavoidable timestamp churn.
         run: |
-          git diff --exit-code TRUST_CODEX/tables/EVIDENCE_INDEX.md || (
+          git diff --exit-code -I '^Generated \(UTC\):' TRUST_CODEX/tables/EVIDENCE_INDEX.md || (
             echo "::error::EVIDENCE_INDEX.md is out of date. Regenerate with: python TRUST_CODEX/tools/build_evidence_index_md.py"
             exit 1
           )

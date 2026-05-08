@@ -91,3 +91,85 @@ export function cleanDisplayText(text: string | null | undefined): string {
   if (!text) return "";
   return cleanChunk(text);
 }
+
+/** Strip leading stray parsing chars (e.g. "*:") from section body text; does not remove markdown **bold**. */
+function stripStraySectionPrefix(s: string): string {
+  return s.replace(/^\s*\*:\s*/i, "").trim();
+}
+
+/** Splits text on "How the Codex Accelerator Helps" so assessor content can be shown without product-specific copy. */
+export function extractCodexAcceleratorSection(text: string): { main: string; codex: string } {
+  const codexMarker = /\s*\*?\s*\*?How the Codex Accelerator Helps\*?\s*:?\s*/i;
+  const idx = text.search(codexMarker);
+  if (idx === -1) return { main: text, codex: "" };
+  const main = text.slice(0, idx).replace(/\s*$/, "");
+  const after = stripStraySectionPrefix(text.slice(idx).replace(codexMarker, "").trim());
+  return { main, codex: after };
+}
+
+const ASSESSOR_FALLBACK_LABELS = ["Potential assessment methods and objects", "Assessment objectives"];
+
+export type SctmAssessorInput = {
+  assessor_interrogation?: {
+    assessor_questions?: string;
+    examine_criteria?: string;
+    test_procedures?: string;
+  };
+} | null | undefined;
+
+/**
+ * Builds the full assessment guide section list: What assessors do (from SCTM or NIST fallback),
+ * How this platform helps, then remaining parsed NIST sections.
+ */
+export function buildAssessmentGuideSections(
+  controlId: string,
+  nistDiscussionGuidance: string | null | undefined,
+  sctmOptimized: SctmAssessorInput,
+  getPlatformHelp: (id: string) => string
+): GuideSection[] {
+  const guideSections = parseAssessmentGuideSections(nistDiscussionGuidance);
+  let whatAssessorsSection: GuideSection | null = null;
+  let remainingGuideSections = guideSections;
+
+  const hasAssessorContent =
+    sctmOptimized?.assessor_interrogation &&
+    (sctmOptimized.assessor_interrogation.assessor_questions ||
+      sctmOptimized.assessor_interrogation.examine_criteria ||
+      sctmOptimized.assessor_interrogation.test_procedures);
+
+  if (hasAssessorContent && sctmOptimized?.assessor_interrogation) {
+    const testProcedures = sctmOptimized.assessor_interrogation.test_procedures ?? "";
+    const { main: testMain } = extractCodexAcceleratorSection(testProcedures);
+    const body = [
+      sctmOptimized.assessor_interrogation.assessor_questions &&
+        `**Interview**\n\n${sctmOptimized.assessor_interrogation.assessor_questions}`,
+      sctmOptimized.assessor_interrogation.examine_criteria &&
+        `**Examine**\n\n${sctmOptimized.assessor_interrogation.examine_criteria}`,
+      testMain && `**Test**\n\n${testMain}`,
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+    if (body.trim()) {
+      whatAssessorsSection = { label: "What assessors do", body: body.trim() };
+    }
+  }
+
+  if (!whatAssessorsSection && guideSections.length > 0) {
+    const firstAssessor = guideSections.find((s) => ASSESSOR_FALLBACK_LABELS.includes(s.label));
+    if (firstAssessor?.body?.trim()) {
+      whatAssessorsSection = { label: "What assessors do", body: firstAssessor.body.trim() };
+      remainingGuideSections = guideSections.filter((s) => s !== firstAssessor);
+    }
+  }
+
+  const platformHelpSection: GuideSection = {
+    label: "How this platform helps",
+    body: getPlatformHelp(controlId),
+  };
+
+  return [
+    ...(whatAssessorsSection ? [whatAssessorsSection] : []),
+    platformHelpSection,
+    ...remainingGuideSections,
+  ];
+}

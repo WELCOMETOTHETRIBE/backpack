@@ -13,7 +13,8 @@ import {
 import { eq, and, inArray } from "drizzle-orm";
 
 const requestSchema = z.object({
-  scope: z.enum(["full", "focused"]),
+  scope: z.enum(["full", "focused", "family"]),
+  familyCode: z.string().trim().min(1).max(8).optional(),
 });
 
 // Sample test cases and interview questions for different control types (for backward-compat payload)
@@ -43,7 +44,11 @@ export async function POST(req: Request) {
   try {
     const orgId = await requireOrg();
     const body = await requestSchema.parseAsync(await req.json());
-    const { scope } = body;
+    const { scope, familyCode } = body;
+
+    if (scope === "family" && !familyCode) {
+      return NextResponse.json({ error: "familyCode is required when scope is 'family'" }, { status: 400 });
+    }
 
     // Fetch controls based on scope
     let allControlIds: string[] = [];
@@ -51,11 +56,15 @@ export async function POST(req: Request) {
       const rows = await db.select({ id: controls.id, controlId: controls.controlId }).from(controls);
       allControlIds = rows.map((c) => c.id);
     } else {
-      const focusedFamilies = await db
+      const familyCodes = scope === "focused" ? ["AC", "IA"] : [familyCode!.toUpperCase()];
+      const matchedFamilies = await db
         .select({ id: controlFamilies.id })
         .from(controlFamilies)
-        .where(inArray(controlFamilies.code, ["AC", "IA"]));
-      const familyIds = focusedFamilies.map((f) => f.id);
+        .where(inArray(controlFamilies.code, familyCodes));
+      const familyIds = matchedFamilies.map((f) => f.id);
+      if (familyIds.length === 0) {
+        return NextResponse.json({ error: `Unknown control family: ${familyCodes.join(", ")}` }, { status: 400 });
+      }
       const rows = await db
         .select({ id: controls.id, controlId: controls.controlId })
         .from(controls)
@@ -77,12 +86,14 @@ export async function POST(req: Request) {
 
     const storedControlIds = controlDetails.map((c) => c.controlId);
 
+    const storedScope = scope === "family" ? `family:${familyCode!.toUpperCase()}` : scope;
+
     const [assessment] = await db
       .insert(mockAssessments)
       .values({
         organizationId: orgId,
         status: "in_progress",
-        scope,
+        scope: storedScope,
         controlIds: storedControlIds,
       })
       .returning();

@@ -12,18 +12,34 @@ export type SCTMRecord = {
   responsibleRoleId: string | null;
   roleName: string | null;
   artifactCount: number;
-  /** True when latest 73-check run has this control as partial (evidence passed, gov docs needed). */
+  monitoringCadence?: string | null;
+  lastValidationDate?: Date | string | null;
+  validationMethod?: string | null;
+  sprs31311Condition?: string | null;
+  hybridSatisfaction?: { technical?: boolean; governance?: boolean } | null;
+  /** True when the latest OS-validator run flags this control as partial (OS evidence present, governance docs still needed to close). */
   evidencePartial?: boolean;
   /** True when control is in the 73 OS (enclave) set. */
   satisfiedByOs?: boolean;
-  /** True when control is in the 12 Cloud set (5 inherited + 7 Azure/Entra). */
+  /** True when control is in the 21 Cloud set (4 strict-inherited + 2 customer-attested-inherited + 15 Azure/Entra validated by validate_azure_entra v1.5+). */
   satisfiedByCloud?: boolean;
-  /** True when control is in the 18 true governance set (PURE_GOV). */
+  /** True when control is in the 17 PURE_GOV (true governance) set. */
   satisfiedByGovernance?: boolean;
-  /** True when control is Hybrid (31 OS partial + 6 delta). */
+  /** True when control is Hybrid (OS partial + delta). */
   satisfiedByHybrid?: boolean;
   /** True when control is in the 7 often-not-applicable set (still has a real satisfaction bin). */
   oftenNotApplicable?: boolean;
+  // Dual-evidence lanes
+  technicalStatus?: string | null;
+  policyDocRequired?: boolean;
+  policyStatus?: string | null;
+  policyDocNarrative?: string | null;
+  policyDocLinkedAt?: string | null;
+  // Register lane
+  registerRequired?: boolean;
+  registerKey?: string | null;
+  registerSchemaId?: string | null;
+  registerSatisfied?: boolean;
 };
 
 export function SCTMFilters({

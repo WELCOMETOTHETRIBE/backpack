@@ -23,7 +23,7 @@ export async function POST(req: Request) {
 
   const baseUrl = process.env.NEXTAUTH_URL ?? "https://example.com";
   const dashboardUrl = `${baseUrl}/dashboard/monitoring`;
-  const from = process.env.RESEND_FROM ?? "CMMC OS <onboarding@resend.dev>";
+  const from = process.env.RESEND_FROM ?? "CMMC OS <no-reply@mactechsolutionsllc.com>";
   const orgs = await db.select({ id: organizations.id, name: organizations.name }).from(organizations);
 
   const results: { orgId: string; orgName: string; emailed: string[]; error?: string }[] = [];

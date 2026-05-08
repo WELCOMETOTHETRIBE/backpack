@@ -2,6 +2,18 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { AlertTriangle } from "lucide-react";
+
+/**
+ * Detect a "pre-contract-award gap" POA&M -- one where the weakness is
+ * known + intentional during build-out but MUST close before CUI lands
+ * in production. We mark these by including a literal phrase in the
+ * weakness description so the detection is content-driven without
+ * needing a schema change. If you author a custom pre-CUI POAM, include
+ * the phrase "pre-contract-award" in the weakness description and the
+ * banner will surface automatically.
+ */
+const PRE_CONTRACT_MARKER = "pre-contract-award";
 
 type Milestone = {
   id: string;
@@ -124,8 +136,39 @@ export function PoamEntryClient({
     !entry.closureApprovals.some((a) => a.approverId === userId);
   const approvedByCurrentUser = entry.closureApprovals.some((a) => a.approverId === userId);
 
+  const isPreContractGap =
+    entry.status === "open" &&
+    (entry.weaknessDescription ?? "").toLowerCase().includes(PRE_CONTRACT_MARKER);
+
   return (
     <div className="space-y-6">
+      {isPreContractGap && (
+        <div className="rounded-lg border border-amber-300 bg-amber-50 p-4">
+          <div className="flex items-start gap-3">
+            <AlertTriangle
+              className="mt-0.5 h-5 w-5 shrink-0 text-amber-700"
+              aria-hidden
+            />
+            <div className="flex-1 min-w-0">
+              <h2 className="text-sm font-semibold text-amber-900">
+                Pre-contract-award gap — close before any CUI lands
+              </h2>
+              <p className="mt-1 text-sm text-amber-800">
+                This POA&amp;M documents a known partial implementation that is
+                acceptable today because the system has not yet processed CUI.
+                The C3PAO will challenge this control at assessment; the
+                milestones below must be complete (and the closeout signed)
+                <strong> before the contract goes live and any CUI is stored,
+                processed, or transmitted on this boundary.</strong> Do not
+                close this POA&amp;M as a paper exercise — verify the
+                remediation, re-run the relevant validator, and attach
+                operational evidence to the closeout before sign-off.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="rounded-lg border border-zinc-200 bg-white p-4">
         <h2 className="mb-3 font-medium text-zinc-800">Details</h2>
         <div className="grid gap-4 sm:grid-cols-2">

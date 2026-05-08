@@ -13,11 +13,15 @@ import {
 } from "@/lib/compliance/os-evidence-manifest";
 import { AZURE_INHERITED_3_10_CONTROL_IDS } from "@/lib/compliance/azure-inherited-controls";
 import { AZURE_ENTRA_7_CONTROL_IDS } from "@/lib/compliance/azure-entra-controls";
+import { CUSTOMER_ATTESTED_INHERITED } from "@/lib/compliance/outstanding-controls";
 
 const OS_73 = new Set(ENCLAVE_73_NIST_IDS);
 const OS_PARTIAL_31 = new Set(ENCLAVE_OS_PARTIAL_31_NIST_IDS);
+// CLOUD = strict-inherited (4) + customer-attested-inherited (2) + Azure-validated (15) = 21
+// Must match satisfaction-sources.ts CLOUD set so the two surfaces never disagree.
 const CLOUD_12 = new Set([
   ...AZURE_INHERITED_3_10_CONTROL_IDS,
+  ...CUSTOMER_ATTESTED_INHERITED.map((c) => c.controlId),
   ...AZURE_ENTRA_7_CONTROL_IDS,
 ]);
 const PURE_GOV = new Set(PURE_GOV_CONTROL_IDS);
@@ -28,10 +32,10 @@ export type ControlBin =
   | "hybrid_technical"
   | "hybrid_governance";
 
-/** 18 controls satisfied only by policy/documentation (C3PAO governance-adjudicated). */
+/** 17 controls satisfied only by policy/documentation (C3PAO governance-adjudicated). */
 export const PURE_GOVERNANCE_IDS: string[] = [...PURE_GOV_CONTROL_IDS];
 
-/** 30 controls: OS evidence + governance docs to close (enclave manifest PARTIAL; exclude pure gov e.g. 3.4.3). */
+/** 31 controls: OS evidence + governance docs to close (enclave manifest PARTIAL). */
 export const HYBRID_TECHNICAL_IDS: string[] = ALL_CONTROL_IDS.filter(
   (id) => !PURE_GOV.has(id) && OS_73.has(id) && OS_PARTIAL_31.has(id)
 );

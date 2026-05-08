@@ -1,0 +1,2349 @@
+{
+  "schema": "mactech.cmmc.control-responsibility-templates.v1",
+  "version": "1.0.0",
+  "generated_at": "2026-03-05T06:14:28Z",
+  "assumptions": {
+    "reference_offering": "MacTech CUI Vault (Azure Government, Windows Server 2025 Datacenter, Entra ID, Sentinel/Log Analytics, Defender stack)",
+    "responsibility_models": [
+      "azure_inherited",
+      "mactech_provided",
+      "customer_managed",
+      "shared"
+    ],
+    "note": "Templates are starting points. Final responsibility assignments may vary by boundary scope, customer tenancy, and contracted managed services."
+  },
+  "controls": [
+    {
+      "control_id": "3.1.1",
+      "family": "AC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Cloud access control primitives (NSG/RBAC/Entra) are provided by Azure (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "RBAC patterns for vault resources and least privilege role design recommendations",
+        "Hardened remote access patterns (VPN/Bastion) and privileged access pathways",
+        "Register workflows for access authorization and periodic reviews"
+      ],
+      "customer_required": [
+        "Approve access requests and assign roles",
+        "Perform periodic access reviews and remove unnecessary access",
+        "Authorize external connections/removable media exceptions (as applicable)"
+      ],
+      "evidence_registers": [
+        "access_authorization",
+        "termination"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.1.2",
+      "family": "AC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Cloud access control primitives (NSG/RBAC/Entra) are provided by Azure (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "RBAC patterns for vault resources and least privilege role design recommendations",
+        "Hardened remote access patterns (VPN/Bastion) and privileged access pathways",
+        "Register workflows for access authorization and periodic reviews"
+      ],
+      "customer_required": [
+        "Approve access requests and assign roles",
+        "Perform periodic access reviews and remove unnecessary access",
+        "Authorize external connections/removable media exceptions (as applicable)"
+      ],
+      "evidence_registers": [
+        "access_authorization",
+        "termination"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.1.3",
+      "family": "AC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Cloud access control primitives (NSG/RBAC/Entra) are provided by Azure (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "RBAC patterns for vault resources and least privilege role design recommendations",
+        "Hardened remote access patterns (VPN/Bastion) and privileged access pathways",
+        "Register workflows for access authorization and periodic reviews"
+      ],
+      "customer_required": [
+        "Approve access requests and assign roles",
+        "Perform periodic access reviews and remove unnecessary access",
+        "Authorize external connections/removable media exceptions (as applicable)"
+      ],
+      "evidence_registers": [
+        "control_monitoring"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.1.4",
+      "family": "AC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Cloud access control primitives (NSG/RBAC/Entra) are provided by Azure (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "RBAC patterns for vault resources and least privilege role design recommendations",
+        "Hardened remote access patterns (VPN/Bastion) and privileged access pathways",
+        "Register workflows for access authorization and periodic reviews"
+      ],
+      "customer_required": [
+        "Approve access requests and assign roles",
+        "Perform periodic access reviews and remove unnecessary access",
+        "Authorize external connections/removable media exceptions (as applicable)"
+      ],
+      "evidence_registers": [
+        "role_assignment_matrix",
+        "sod_matrix"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.1.5",
+      "family": "AC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Cloud access control primitives (NSG/RBAC/Entra) are provided by Azure (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "RBAC patterns for vault resources and least privilege role design recommendations",
+        "Hardened remote access patterns (VPN/Bastion) and privileged access pathways",
+        "Register workflows for access authorization and periodic reviews"
+      ],
+      "customer_required": [
+        "Approve access requests and assign roles",
+        "Perform periodic access reviews and remove unnecessary access",
+        "Authorize external connections/removable media exceptions (as applicable)"
+      ],
+      "evidence_registers": [
+        "access_authorization",
+        "role_assignment_matrix",
+        "termination"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.1.6",
+      "family": "AC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Cloud access control primitives (NSG/RBAC/Entra) are provided by Azure (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "RBAC patterns for vault resources and least privilege role design recommendations",
+        "Hardened remote access patterns (VPN/Bastion) and privileged access pathways",
+        "Register workflows for access authorization and periodic reviews"
+      ],
+      "customer_required": [
+        "Approve access requests and assign roles",
+        "Perform periodic access reviews and remove unnecessary access",
+        "Authorize external connections/removable media exceptions (as applicable)"
+      ],
+      "evidence_registers": [
+        "access_authorization",
+        "termination"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.1.7",
+      "family": "AC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Cloud access control primitives (NSG/RBAC/Entra) are provided by Azure (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "RBAC patterns for vault resources and least privilege role design recommendations",
+        "Hardened remote access patterns (VPN/Bastion) and privileged access pathways",
+        "Register workflows for access authorization and periodic reviews"
+      ],
+      "customer_required": [
+        "Approve access requests and assign roles",
+        "Perform periodic access reviews and remove unnecessary access",
+        "Authorize external connections/removable media exceptions (as applicable)"
+      ],
+      "evidence_registers": [
+        "access_authorization",
+        "termination"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.1.8",
+      "family": "AC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Cloud access control primitives (NSG/RBAC/Entra) are provided by Azure (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "RBAC patterns for vault resources and least privilege role design recommendations",
+        "Hardened remote access patterns (VPN/Bastion) and privileged access pathways",
+        "Register workflows for access authorization and periodic reviews"
+      ],
+      "customer_required": [
+        "Approve access requests and assign roles",
+        "Perform periodic access reviews and remove unnecessary access",
+        "Authorize external connections/removable media exceptions (as applicable)"
+      ],
+      "evidence_registers": [
+        "control_monitoring"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.1.9",
+      "family": "AC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Cloud access control primitives (NSG/RBAC/Entra) are provided by Azure (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "RBAC patterns for vault resources and least privilege role design recommendations",
+        "Hardened remote access patterns (VPN/Bastion) and privileged access pathways",
+        "Register workflows for access authorization and periodic reviews"
+      ],
+      "customer_required": [
+        "Approve access requests and assign roles",
+        "Perform periodic access reviews and remove unnecessary access",
+        "Authorize external connections/removable media exceptions (as applicable)"
+      ],
+      "evidence_registers": [
+        "control_monitoring"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.1.10",
+      "family": "AC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Cloud access control primitives (NSG/RBAC/Entra) are provided by Azure (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "RBAC patterns for vault resources and least privilege role design recommendations",
+        "Hardened remote access patterns (VPN/Bastion) and privileged access pathways",
+        "Register workflows for access authorization and periodic reviews"
+      ],
+      "customer_required": [
+        "Approve access requests and assign roles",
+        "Perform periodic access reviews and remove unnecessary access",
+        "Authorize external connections/removable media exceptions (as applicable)"
+      ],
+      "evidence_registers": [
+        "control_monitoring"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.1.11",
+      "family": "AC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Cloud access control primitives (NSG/RBAC/Entra) are provided by Azure (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "RBAC patterns for vault resources and least privilege role design recommendations",
+        "Hardened remote access patterns (VPN/Bastion) and privileged access pathways",
+        "Register workflows for access authorization and periodic reviews"
+      ],
+      "customer_required": [
+        "Approve access requests and assign roles",
+        "Perform periodic access reviews and remove unnecessary access",
+        "Authorize external connections/removable media exceptions (as applicable)"
+      ],
+      "evidence_registers": [
+        "control_monitoring"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.1.12",
+      "family": "AC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Cloud access control primitives (NSG/RBAC/Entra) are provided by Azure (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "RBAC patterns for vault resources and least privilege role design recommendations",
+        "Hardened remote access patterns (VPN/Bastion) and privileged access pathways",
+        "Register workflows for access authorization and periodic reviews"
+      ],
+      "customer_required": [
+        "Approve access requests and assign roles",
+        "Perform periodic access reviews and remove unnecessary access",
+        "Authorize external connections/removable media exceptions (as applicable)"
+      ],
+      "evidence_registers": [
+        "control_monitoring"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.1.13",
+      "family": "AC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Cloud access control primitives (NSG/RBAC/Entra) are provided by Azure (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "RBAC patterns for vault resources and least privilege role design recommendations",
+        "Hardened remote access patterns (VPN/Bastion) and privileged access pathways",
+        "Register workflows for access authorization and periodic reviews"
+      ],
+      "customer_required": [
+        "Approve access requests and assign roles",
+        "Perform periodic access reviews and remove unnecessary access",
+        "Authorize external connections/removable media exceptions (as applicable)"
+      ],
+      "evidence_registers": [
+        "control_monitoring"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.1.14",
+      "family": "AC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Cloud access control primitives (NSG/RBAC/Entra) are provided by Azure (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "RBAC patterns for vault resources and least privilege role design recommendations",
+        "Hardened remote access patterns (VPN/Bastion) and privileged access pathways",
+        "Register workflows for access authorization and periodic reviews"
+      ],
+      "customer_required": [
+        "Approve access requests and assign roles",
+        "Perform periodic access reviews and remove unnecessary access",
+        "Authorize external connections/removable media exceptions (as applicable)"
+      ],
+      "evidence_registers": [
+        "control_monitoring"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.1.15",
+      "family": "AC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Cloud access control primitives (NSG/RBAC/Entra) are provided by Azure (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "RBAC patterns for vault resources and least privilege role design recommendations",
+        "Hardened remote access patterns (VPN/Bastion) and privileged access pathways",
+        "Register workflows for access authorization and periodic reviews"
+      ],
+      "customer_required": [
+        "Approve access requests and assign roles",
+        "Perform periodic access reviews and remove unnecessary access",
+        "Authorize external connections/removable media exceptions (as applicable)"
+      ],
+      "evidence_registers": [
+        "access_authorization",
+        "change_log",
+        "termination"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.1.16",
+      "family": "AC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Cloud access control primitives (NSG/RBAC/Entra) are provided by Azure (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "RBAC patterns for vault resources and least privilege role design recommendations",
+        "Hardened remote access patterns (VPN/Bastion) and privileged access pathways",
+        "Register workflows for access authorization and periodic reviews"
+      ],
+      "customer_required": [
+        "Approve access requests and assign roles",
+        "Perform periodic access reviews and remove unnecessary access",
+        "Authorize external connections/removable media exceptions (as applicable)"
+      ],
+      "evidence_registers": [
+        "access_authorization",
+        "change_log",
+        "termination"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.1.17",
+      "family": "AC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Cloud access control primitives (NSG/RBAC/Entra) are provided by Azure (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "RBAC patterns for vault resources and least privilege role design recommendations",
+        "Hardened remote access patterns (VPN/Bastion) and privileged access pathways",
+        "Register workflows for access authorization and periodic reviews"
+      ],
+      "customer_required": [
+        "Approve access requests and assign roles",
+        "Perform periodic access reviews and remove unnecessary access",
+        "Authorize external connections/removable media exceptions (as applicable)"
+      ],
+      "evidence_registers": [
+        "control_monitoring"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.1.18",
+      "family": "AC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Cloud access control primitives (NSG/RBAC/Entra) are provided by Azure (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "RBAC patterns for vault resources and least privilege role design recommendations",
+        "Hardened remote access patterns (VPN/Bastion) and privileged access pathways",
+        "Register workflows for access authorization and periodic reviews"
+      ],
+      "customer_required": [
+        "Approve access requests and assign roles",
+        "Perform periodic access reviews and remove unnecessary access",
+        "Authorize external connections/removable media exceptions (as applicable)"
+      ],
+      "evidence_registers": [
+        "media_access"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.1.19",
+      "family": "AC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Cloud access control primitives (NSG/RBAC/Entra) are provided by Azure (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "RBAC patterns for vault resources and least privilege role design recommendations",
+        "Hardened remote access patterns (VPN/Bastion) and privileged access pathways",
+        "Register workflows for access authorization and periodic reviews"
+      ],
+      "customer_required": [
+        "Approve access requests and assign roles",
+        "Perform periodic access reviews and remove unnecessary access",
+        "Authorize external connections/removable media exceptions (as applicable)"
+      ],
+      "evidence_registers": [
+        "control_monitoring"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.1.20",
+      "family": "AC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Cloud access control primitives (NSG/RBAC/Entra) are provided by Azure (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "RBAC patterns for vault resources and least privilege role design recommendations",
+        "Hardened remote access patterns (VPN/Bastion) and privileged access pathways",
+        "Register workflows for access authorization and periodic reviews"
+      ],
+      "customer_required": [
+        "Approve access requests and assign roles",
+        "Perform periodic access reviews and remove unnecessary access",
+        "Authorize external connections/removable media exceptions (as applicable)"
+      ],
+      "evidence_registers": [
+        "access_authorization",
+        "change_log"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.1.21",
+      "family": "AC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Cloud access control primitives (NSG/RBAC/Entra) are provided by Azure (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "RBAC patterns for vault resources and least privilege role design recommendations",
+        "Hardened remote access patterns (VPN/Bastion) and privileged access pathways",
+        "Register workflows for access authorization and periodic reviews"
+      ],
+      "customer_required": [
+        "Approve access requests and assign roles",
+        "Perform periodic access reviews and remove unnecessary access",
+        "Authorize external connections/removable media exceptions (as applicable)"
+      ],
+      "evidence_registers": [
+        "media_access"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.1.22",
+      "family": "AC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Cloud access control primitives (NSG/RBAC/Entra) are provided by Azure (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "RBAC patterns for vault resources and least privilege role design recommendations",
+        "Hardened remote access patterns (VPN/Bastion) and privileged access pathways",
+        "Register workflows for access authorization and periodic reviews"
+      ],
+      "customer_required": [
+        "Approve access requests and assign roles",
+        "Perform periodic access reviews and remove unnecessary access",
+        "Authorize external connections/removable media exceptions (as applicable)"
+      ],
+      "evidence_registers": [
+        "control_monitoring"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.2.1",
+      "family": "AT",
+      "responsibility_model": "customer_managed",
+      "azure_inherited": [],
+      "mactech_provided": [
+        "Provide register tracking and optional training templates"
+      ],
+      "customer_required": [
+        "Deliver security awareness and role-based training",
+        "Maintain training records and completion attestations"
+      ],
+      "evidence_registers": [
+        "training_completion"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.2.2",
+      "family": "AT",
+      "responsibility_model": "customer_managed",
+      "azure_inherited": [],
+      "mactech_provided": [
+        "Provide register tracking and optional training templates"
+      ],
+      "customer_required": [
+        "Deliver security awareness and role-based training",
+        "Maintain training records and completion attestations"
+      ],
+      "evidence_registers": [
+        "training_completion"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.2.3",
+      "family": "AT",
+      "responsibility_model": "customer_managed",
+      "azure_inherited": [],
+      "mactech_provided": [
+        "Provide register tracking and optional training templates"
+      ],
+      "customer_required": [
+        "Deliver security awareness and role-based training",
+        "Maintain training records and completion attestations"
+      ],
+      "evidence_registers": [
+        "training_completion"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.3.1",
+      "family": "AU",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Logging platform availability and service controls for Azure Monitor/Log Analytics/Sentinel (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Deploy and configure vault logging stack (e.g., Azure Monitor/Log Analytics/Sentinel) per reference design",
+        "Maintain log source onboarding patterns and retention baselines",
+        "Provide audit review workflows and dashboards"
+      ],
+      "customer_required": [
+        "Perform routine log reviews per policy and document outcomes",
+        "Investigate alerts and record dispositions/incident escalation"
+      ],
+      "evidence_registers": [
+        "audit_config"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.3.2",
+      "family": "AU",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Logging platform availability and service controls for Azure Monitor/Log Analytics/Sentinel (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Deploy and configure vault logging stack (e.g., Azure Monitor/Log Analytics/Sentinel) per reference design",
+        "Maintain log source onboarding patterns and retention baselines",
+        "Provide audit review workflows and dashboards"
+      ],
+      "customer_required": [
+        "Perform routine log reviews per policy and document outcomes",
+        "Investigate alerts and record dispositions/incident escalation"
+      ],
+      "evidence_registers": [
+        "audit_config"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.3.3",
+      "family": "AU",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Logging platform availability and service controls for Azure Monitor/Log Analytics/Sentinel (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Deploy and configure vault logging stack (e.g., Azure Monitor/Log Analytics/Sentinel) per reference design",
+        "Maintain log source onboarding patterns and retention baselines",
+        "Provide audit review workflows and dashboards"
+      ],
+      "customer_required": [
+        "Perform routine log reviews per policy and document outcomes",
+        "Investigate alerts and record dispositions/incident escalation"
+      ],
+      "evidence_registers": [
+        "audit_config"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.3.4",
+      "family": "AU",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Logging platform availability and service controls for Azure Monitor/Log Analytics/Sentinel (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Deploy and configure vault logging stack (e.g., Azure Monitor/Log Analytics/Sentinel) per reference design",
+        "Maintain log source onboarding patterns and retention baselines",
+        "Provide audit review workflows and dashboards"
+      ],
+      "customer_required": [
+        "Perform routine log reviews per policy and document outcomes",
+        "Investigate alerts and record dispositions/incident escalation"
+      ],
+      "evidence_registers": [
+        "audit_config",
+        "incident_log"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.3.5",
+      "family": "AU",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Logging platform availability and service controls for Azure Monitor/Log Analytics/Sentinel (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Deploy and configure vault logging stack (e.g., Azure Monitor/Log Analytics/Sentinel) per reference design",
+        "Maintain log source onboarding patterns and retention baselines",
+        "Provide audit review workflows and dashboards"
+      ],
+      "customer_required": [
+        "Perform routine log reviews per policy and document outcomes",
+        "Investigate alerts and record dispositions/incident escalation"
+      ],
+      "evidence_registers": [
+        "audit_log_review",
+        "incident_log"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.3.6",
+      "family": "AU",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Logging platform availability and service controls for Azure Monitor/Log Analytics/Sentinel (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Deploy and configure vault logging stack (e.g., Azure Monitor/Log Analytics/Sentinel) per reference design",
+        "Maintain log source onboarding patterns and retention baselines",
+        "Provide audit review workflows and dashboards"
+      ],
+      "customer_required": [
+        "Perform routine log reviews per policy and document outcomes",
+        "Investigate alerts and record dispositions/incident escalation"
+      ],
+      "evidence_registers": [
+        "audit_config"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.3.7",
+      "family": "AU",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Logging platform availability and service controls for Azure Monitor/Log Analytics/Sentinel (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Deploy and configure vault logging stack (e.g., Azure Monitor/Log Analytics/Sentinel) per reference design",
+        "Maintain log source onboarding patterns and retention baselines",
+        "Provide audit review workflows and dashboards"
+      ],
+      "customer_required": [
+        "Perform routine log reviews per policy and document outcomes",
+        "Investigate alerts and record dispositions/incident escalation"
+      ],
+      "evidence_registers": [
+        "audit_config"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.3.8",
+      "family": "AU",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Logging platform availability and service controls for Azure Monitor/Log Analytics/Sentinel (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Deploy and configure vault logging stack (e.g., Azure Monitor/Log Analytics/Sentinel) per reference design",
+        "Maintain log source onboarding patterns and retention baselines",
+        "Provide audit review workflows and dashboards"
+      ],
+      "customer_required": [
+        "Perform routine log reviews per policy and document outcomes",
+        "Investigate alerts and record dispositions/incident escalation"
+      ],
+      "evidence_registers": [
+        "audit_config"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.3.9",
+      "family": "AU",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Logging platform availability and service controls for Azure Monitor/Log Analytics/Sentinel (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Deploy and configure vault logging stack (e.g., Azure Monitor/Log Analytics/Sentinel) per reference design",
+        "Maintain log source onboarding patterns and retention baselines",
+        "Provide audit review workflows and dashboards"
+      ],
+      "customer_required": [
+        "Perform routine log reviews per policy and document outcomes",
+        "Investigate alerts and record dispositions/incident escalation"
+      ],
+      "evidence_registers": [
+        "audit_config"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.4.1",
+      "family": "CM",
+      "responsibility_model": "shared",
+      "azure_inherited": [],
+      "mactech_provided": [
+        "Provide STIG-aligned baseline configuration templates for the vault",
+        "Provide change management workflows and baseline exception handling"
+      ],
+      "customer_required": [
+        "Approve changes, manage change tickets, and ensure changes follow policy",
+        "Operate configuration control board (if applicable)"
+      ],
+      "evidence_registers": [
+        "baseline_config",
+        "policy_review"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.4.2",
+      "family": "CM",
+      "responsibility_model": "shared",
+      "azure_inherited": [],
+      "mactech_provided": [
+        "Provide STIG-aligned baseline configuration templates for the vault",
+        "Provide change management workflows and baseline exception handling"
+      ],
+      "customer_required": [
+        "Approve changes, manage change tickets, and ensure changes follow policy",
+        "Operate configuration control board (if applicable)"
+      ],
+      "evidence_registers": [
+        "baseline_config",
+        "policy_review"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.4.3",
+      "family": "CM",
+      "responsibility_model": "shared",
+      "azure_inherited": [],
+      "mactech_provided": [
+        "Provide STIG-aligned baseline configuration templates for the vault",
+        "Provide change management workflows and baseline exception handling"
+      ],
+      "customer_required": [
+        "Approve changes, manage change tickets, and ensure changes follow policy",
+        "Operate configuration control board (if applicable)"
+      ],
+      "evidence_registers": [
+        "baseline_config",
+        "policy_review"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.4.4",
+      "family": "CM",
+      "responsibility_model": "shared",
+      "azure_inherited": [],
+      "mactech_provided": [
+        "Provide STIG-aligned baseline configuration templates for the vault",
+        "Provide change management workflows and baseline exception handling"
+      ],
+      "customer_required": [
+        "Approve changes, manage change tickets, and ensure changes follow policy",
+        "Operate configuration control board (if applicable)"
+      ],
+      "evidence_registers": [
+        "baseline_config",
+        "policy_review"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.4.5",
+      "family": "CM",
+      "responsibility_model": "shared",
+      "azure_inherited": [],
+      "mactech_provided": [
+        "Provide STIG-aligned baseline configuration templates for the vault",
+        "Provide change management workflows and baseline exception handling"
+      ],
+      "customer_required": [
+        "Approve changes, manage change tickets, and ensure changes follow policy",
+        "Operate configuration control board (if applicable)"
+      ],
+      "evidence_registers": [
+        "change_log",
+        "assessment_findings"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.4.6",
+      "family": "CM",
+      "responsibility_model": "shared",
+      "azure_inherited": [],
+      "mactech_provided": [
+        "Provide STIG-aligned baseline configuration templates for the vault",
+        "Provide change management workflows and baseline exception handling"
+      ],
+      "customer_required": [
+        "Approve changes, manage change tickets, and ensure changes follow policy",
+        "Operate configuration control board (if applicable)"
+      ],
+      "evidence_registers": [
+        "change_log",
+        "assessment_findings"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.4.7",
+      "family": "CM",
+      "responsibility_model": "shared",
+      "azure_inherited": [],
+      "mactech_provided": [
+        "Provide STIG-aligned baseline configuration templates for the vault",
+        "Provide change management workflows and baseline exception handling"
+      ],
+      "customer_required": [
+        "Approve changes, manage change tickets, and ensure changes follow policy",
+        "Operate configuration control board (if applicable)"
+      ],
+      "evidence_registers": [
+        "change_log",
+        "assessment_findings"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.4.8",
+      "family": "CM",
+      "responsibility_model": "shared",
+      "azure_inherited": [],
+      "mactech_provided": [
+        "Provide STIG-aligned baseline configuration templates for the vault",
+        "Provide change management workflows and baseline exception handling"
+      ],
+      "customer_required": [
+        "Approve changes, manage change tickets, and ensure changes follow policy",
+        "Operate configuration control board (if applicable)"
+      ],
+      "evidence_registers": [
+        "change_log",
+        "assessment_findings"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.4.9",
+      "family": "CM",
+      "responsibility_model": "shared",
+      "azure_inherited": [],
+      "mactech_provided": [
+        "Provide STIG-aligned baseline configuration templates for the vault",
+        "Provide change management workflows and baseline exception handling"
+      ],
+      "customer_required": [
+        "Approve changes, manage change tickets, and ensure changes follow policy",
+        "Operate configuration control board (if applicable)"
+      ],
+      "evidence_registers": [
+        "change_log",
+        "assessment_findings"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.5.1",
+      "family": "IA",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Entra ID / MFA platform capabilities (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Reference architecture for identity integration (Entra ID) and vault access paths (VPN/Bastion)",
+        "MFA enforcement patterns for vault access (where tenant licensing allows)",
+        "Authenticator management workflow support"
+      ],
+      "customer_required": [
+        "Manage identity lifecycle (joiners/movers/leavers) and enroll users in MFA",
+        "Approve and review privileged access assignments"
+      ],
+      "evidence_registers": [
+        "access_authorization",
+        "termination"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.5.2",
+      "family": "IA",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Entra ID / MFA platform capabilities (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Reference architecture for identity integration (Entra ID) and vault access paths (VPN/Bastion)",
+        "MFA enforcement patterns for vault access (where tenant licensing allows)",
+        "Authenticator management workflow support"
+      ],
+      "customer_required": [
+        "Manage identity lifecycle (joiners/movers/leavers) and enroll users in MFA",
+        "Approve and review privileged access assignments"
+      ],
+      "evidence_registers": [
+        "authenticator_mgmt",
+        "audit_log_review"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.5.3",
+      "family": "IA",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Entra ID / MFA platform capabilities (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Reference architecture for identity integration (Entra ID) and vault access paths (VPN/Bastion)",
+        "MFA enforcement patterns for vault access (where tenant licensing allows)",
+        "Authenticator management workflow support"
+      ],
+      "customer_required": [
+        "Manage identity lifecycle (joiners/movers/leavers) and enroll users in MFA",
+        "Approve and review privileged access assignments"
+      ],
+      "evidence_registers": [
+        "authenticator_mgmt",
+        "audit_log_review"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.5.4",
+      "family": "IA",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Entra ID / MFA platform capabilities (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Reference architecture for identity integration (Entra ID) and vault access paths (VPN/Bastion)",
+        "MFA enforcement patterns for vault access (where tenant licensing allows)",
+        "Authenticator management workflow support"
+      ],
+      "customer_required": [
+        "Manage identity lifecycle (joiners/movers/leavers) and enroll users in MFA",
+        "Approve and review privileged access assignments"
+      ],
+      "evidence_registers": [
+        "authenticator_mgmt"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.5.5",
+      "family": "IA",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Entra ID / MFA platform capabilities (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Reference architecture for identity integration (Entra ID) and vault access paths (VPN/Bastion)",
+        "MFA enforcement patterns for vault access (where tenant licensing allows)",
+        "Authenticator management workflow support"
+      ],
+      "customer_required": [
+        "Manage identity lifecycle (joiners/movers/leavers) and enroll users in MFA",
+        "Approve and review privileged access assignments"
+      ],
+      "evidence_registers": [
+        "authenticator_mgmt"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.5.6",
+      "family": "IA",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Entra ID / MFA platform capabilities (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Reference architecture for identity integration (Entra ID) and vault access paths (VPN/Bastion)",
+        "MFA enforcement patterns for vault access (where tenant licensing allows)",
+        "Authenticator management workflow support"
+      ],
+      "customer_required": [
+        "Manage identity lifecycle (joiners/movers/leavers) and enroll users in MFA",
+        "Approve and review privileged access assignments"
+      ],
+      "evidence_registers": [
+        "authenticator_mgmt"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.5.7",
+      "family": "IA",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Entra ID / MFA platform capabilities (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Reference architecture for identity integration (Entra ID) and vault access paths (VPN/Bastion)",
+        "MFA enforcement patterns for vault access (where tenant licensing allows)",
+        "Authenticator management workflow support"
+      ],
+      "customer_required": [
+        "Manage identity lifecycle (joiners/movers/leavers) and enroll users in MFA",
+        "Approve and review privileged access assignments"
+      ],
+      "evidence_registers": [
+        "authenticator_mgmt"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.5.8",
+      "family": "IA",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Entra ID / MFA platform capabilities (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Reference architecture for identity integration (Entra ID) and vault access paths (VPN/Bastion)",
+        "MFA enforcement patterns for vault access (where tenant licensing allows)",
+        "Authenticator management workflow support"
+      ],
+      "customer_required": [
+        "Manage identity lifecycle (joiners/movers/leavers) and enroll users in MFA",
+        "Approve and review privileged access assignments"
+      ],
+      "evidence_registers": [
+        "authenticator_mgmt"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.5.9",
+      "family": "IA",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Entra ID / MFA platform capabilities (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Reference architecture for identity integration (Entra ID) and vault access paths (VPN/Bastion)",
+        "MFA enforcement patterns for vault access (where tenant licensing allows)",
+        "Authenticator management workflow support"
+      ],
+      "customer_required": [
+        "Manage identity lifecycle (joiners/movers/leavers) and enroll users in MFA",
+        "Approve and review privileged access assignments"
+      ],
+      "evidence_registers": [
+        "authenticator_mgmt"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.5.10",
+      "family": "IA",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Entra ID / MFA platform capabilities (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Reference architecture for identity integration (Entra ID) and vault access paths (VPN/Bastion)",
+        "MFA enforcement patterns for vault access (where tenant licensing allows)",
+        "Authenticator management workflow support"
+      ],
+      "customer_required": [
+        "Manage identity lifecycle (joiners/movers/leavers) and enroll users in MFA",
+        "Approve and review privileged access assignments"
+      ],
+      "evidence_registers": [
+        "authenticator_mgmt"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.5.11",
+      "family": "IA",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Entra ID / MFA platform capabilities (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Reference architecture for identity integration (Entra ID) and vault access paths (VPN/Bastion)",
+        "MFA enforcement patterns for vault access (where tenant licensing allows)",
+        "Authenticator management workflow support"
+      ],
+      "customer_required": [
+        "Manage identity lifecycle (joiners/movers/leavers) and enroll users in MFA",
+        "Approve and review privileged access assignments"
+      ],
+      "evidence_registers": [
+        "authenticator_mgmt"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.6.1",
+      "family": "IR",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Platform-level security telemetry services used by Sentinel/Defender (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Provide incident logging workflows and templates",
+        "Provide detection stack integrations (Sentinel/Defender) and alert routing patterns for the vault"
+      ],
+      "customer_required": [
+        "Operate the incident response program, declare incidents, and coordinate communications",
+        "Run exercises/tabletops and retain reports"
+      ],
+      "evidence_registers": [
+        "incident_log"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.6.2",
+      "family": "IR",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Platform-level security telemetry services used by Sentinel/Defender (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Provide incident logging workflows and templates",
+        "Provide detection stack integrations (Sentinel/Defender) and alert routing patterns for the vault"
+      ],
+      "customer_required": [
+        "Operate the incident response program, declare incidents, and coordinate communications",
+        "Run exercises/tabletops and retain reports"
+      ],
+      "evidence_registers": [
+        "incident_log"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.6.3",
+      "family": "IR",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Platform-level security telemetry services used by Sentinel/Defender (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Provide incident logging workflows and templates",
+        "Provide detection stack integrations (Sentinel/Defender) and alert routing patterns for the vault"
+      ],
+      "customer_required": [
+        "Operate the incident response program, declare incidents, and coordinate communications",
+        "Run exercises/tabletops and retain reports"
+      ],
+      "evidence_registers": [
+        "incident_log",
+        "assessment_findings"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.7.1",
+      "family": "MA",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "CSP-maintained infrastructure maintenance for underlying platform components (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Provide hardened maintenance procedures for the vault",
+        "Provide maintenance logging workflows and remote maintenance supervision patterns"
+      ],
+      "customer_required": [
+        "Approve/coordinate maintenance windows and ensure authorized personnel",
+        "Maintain records for customer-performed maintenance and vendor activities"
+      ],
+      "evidence_registers": [
+        "maintenance_log"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.7.2",
+      "family": "MA",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "CSP-maintained infrastructure maintenance for underlying platform components (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Provide hardened maintenance procedures for the vault",
+        "Provide maintenance logging workflows and remote maintenance supervision patterns"
+      ],
+      "customer_required": [
+        "Approve/coordinate maintenance windows and ensure authorized personnel",
+        "Maintain records for customer-performed maintenance and vendor activities"
+      ],
+      "evidence_registers": [
+        "maintenance_log"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.7.3",
+      "family": "MA",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "CSP-maintained infrastructure maintenance for underlying platform components (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Provide hardened maintenance procedures for the vault",
+        "Provide maintenance logging workflows and remote maintenance supervision patterns"
+      ],
+      "customer_required": [
+        "Approve/coordinate maintenance windows and ensure authorized personnel",
+        "Maintain records for customer-performed maintenance and vendor activities"
+      ],
+      "evidence_registers": [
+        "maintenance_log",
+        "change_log"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.7.4",
+      "family": "MA",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "CSP-maintained infrastructure maintenance for underlying platform components (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Provide hardened maintenance procedures for the vault",
+        "Provide maintenance logging workflows and remote maintenance supervision patterns"
+      ],
+      "customer_required": [
+        "Approve/coordinate maintenance windows and ensure authorized personnel",
+        "Maintain records for customer-performed maintenance and vendor activities"
+      ],
+      "evidence_registers": [
+        "maintenance_log",
+        "change_log"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.7.5",
+      "family": "MA",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "CSP-maintained infrastructure maintenance for underlying platform components (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Provide hardened maintenance procedures for the vault",
+        "Provide maintenance logging workflows and remote maintenance supervision patterns"
+      ],
+      "customer_required": [
+        "Approve/coordinate maintenance windows and ensure authorized personnel",
+        "Maintain records for customer-performed maintenance and vendor activities"
+      ],
+      "evidence_registers": [
+        "maintenance_log"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.7.6",
+      "family": "MA",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "CSP-maintained infrastructure maintenance for underlying platform components (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Provide hardened maintenance procedures for the vault",
+        "Provide maintenance logging workflows and remote maintenance supervision patterns"
+      ],
+      "customer_required": [
+        "Approve/coordinate maintenance windows and ensure authorized personnel",
+        "Maintain records for customer-performed maintenance and vendor activities"
+      ],
+      "evidence_registers": [
+        "maintenance_log"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.8.1",
+      "family": "MP",
+      "responsibility_model": "shared",
+      "azure_inherited": [],
+      "mactech_provided": [
+        "Provide controls to restrict removable media and log usage within the vault",
+        "Provide media destruction/sanitization logging workflows"
+      ],
+      "customer_required": [
+        "Define and enforce media handling procedures for any removable media use",
+        "Approve exceptions and ensure appropriate labeling/handling"
+      ],
+      "evidence_registers": [
+        "media_access"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.8.2",
+      "family": "MP",
+      "responsibility_model": "shared",
+      "azure_inherited": [],
+      "mactech_provided": [
+        "Provide controls to restrict removable media and log usage within the vault",
+        "Provide media destruction/sanitization logging workflows"
+      ],
+      "customer_required": [
+        "Define and enforce media handling procedures for any removable media use",
+        "Approve exceptions and ensure appropriate labeling/handling"
+      ],
+      "evidence_registers": [
+        "media_access"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.8.3",
+      "family": "MP",
+      "responsibility_model": "shared",
+      "azure_inherited": [],
+      "mactech_provided": [
+        "Provide controls to restrict removable media and log usage within the vault",
+        "Provide media destruction/sanitization logging workflows"
+      ],
+      "customer_required": [
+        "Define and enforce media handling procedures for any removable media use",
+        "Approve exceptions and ensure appropriate labeling/handling"
+      ],
+      "evidence_registers": [
+        "media_access"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.8.4",
+      "family": "MP",
+      "responsibility_model": "shared",
+      "azure_inherited": [],
+      "mactech_provided": [
+        "Provide controls to restrict removable media and log usage within the vault",
+        "Provide media destruction/sanitization logging workflows"
+      ],
+      "customer_required": [
+        "Define and enforce media handling procedures for any removable media use",
+        "Approve exceptions and ensure appropriate labeling/handling"
+      ],
+      "evidence_registers": [
+        "media_access"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.8.5",
+      "family": "MP",
+      "responsibility_model": "shared",
+      "azure_inherited": [],
+      "mactech_provided": [
+        "Provide controls to restrict removable media and log usage within the vault",
+        "Provide media destruction/sanitization logging workflows"
+      ],
+      "customer_required": [
+        "Define and enforce media handling procedures for any removable media use",
+        "Approve exceptions and ensure appropriate labeling/handling"
+      ],
+      "evidence_registers": [
+        "media_destruction"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.8.6",
+      "family": "MP",
+      "responsibility_model": "shared",
+      "azure_inherited": [],
+      "mactech_provided": [
+        "Provide controls to restrict removable media and log usage within the vault",
+        "Provide media destruction/sanitization logging workflows"
+      ],
+      "customer_required": [
+        "Define and enforce media handling procedures for any removable media use",
+        "Approve exceptions and ensure appropriate labeling/handling"
+      ],
+      "evidence_registers": [
+        "media_destruction"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.8.7",
+      "family": "MP",
+      "responsibility_model": "shared",
+      "azure_inherited": [],
+      "mactech_provided": [
+        "Provide controls to restrict removable media and log usage within the vault",
+        "Provide media destruction/sanitization logging workflows"
+      ],
+      "customer_required": [
+        "Define and enforce media handling procedures for any removable media use",
+        "Approve exceptions and ensure appropriate labeling/handling"
+      ],
+      "evidence_registers": [
+        "media_destruction"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.8.8",
+      "family": "MP",
+      "responsibility_model": "shared",
+      "azure_inherited": [],
+      "mactech_provided": [
+        "Provide controls to restrict removable media and log usage within the vault",
+        "Provide media destruction/sanitization logging workflows"
+      ],
+      "customer_required": [
+        "Define and enforce media handling procedures for any removable media use",
+        "Approve exceptions and ensure appropriate labeling/handling"
+      ],
+      "evidence_registers": [
+        "media_destruction"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.8.9",
+      "family": "MP",
+      "responsibility_model": "shared",
+      "azure_inherited": [],
+      "mactech_provided": [
+        "Provide controls to restrict removable media and log usage within the vault",
+        "Provide media destruction/sanitization logging workflows"
+      ],
+      "customer_required": [
+        "Define and enforce media handling procedures for any removable media use",
+        "Approve exceptions and ensure appropriate labeling/handling"
+      ],
+      "evidence_registers": [
+        "media_destruction"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.9.1",
+      "family": "PS",
+      "responsibility_model": "customer_managed",
+      "azure_inherited": [],
+      "mactech_provided": [
+        "Provide workflow and registers to record screening/offboarding evidence"
+      ],
+      "customer_required": [
+        "Personnel screening prior to access authorization",
+        "Offboarding/termination procedures and timely access revocation",
+        "Maintain HR records and screening attestations"
+      ],
+      "evidence_registers": [
+        "personnel_screening"
+      ],
+      "notes": [
+        "Personnel Security is inherently organizational; MacTech can provide tooling but customer executes."
+      ]
+    },
+    {
+      "control_id": "3.9.2",
+      "family": "PS",
+      "responsibility_model": "customer_managed",
+      "azure_inherited": [],
+      "mactech_provided": [
+        "Provide workflow and registers to record screening/offboarding evidence"
+      ],
+      "customer_required": [
+        "Personnel screening prior to access authorization",
+        "Offboarding/termination procedures and timely access revocation",
+        "Maintain HR records and screening attestations"
+      ],
+      "evidence_registers": [
+        "termination"
+      ],
+      "notes": [
+        "Personnel Security is inherently organizational; MacTech can provide tooling but customer executes."
+      ]
+    },
+    {
+      "control_id": "3.10.1",
+      "family": "PE",
+      "responsibility_model": "azure_inherited",
+      "azure_inherited": [
+        "Datacenter physical access controls (guards, badges, CCTV)",
+        "Visitor controls and physical access logging within Microsoft facilities",
+        "Environmental protections and physical boundary enforcement of Azure regions"
+      ],
+      "mactech_provided": [
+        "Define enclave physical scope as cloud-hosted; document inherited controls and applicable boundary statements"
+      ],
+      "customer_required": [
+        "Maintain physical security for any customer-controlled facilities/endpoints that access the enclave (out of boundary unless explicitly included)",
+        "Retain and present Azure Government inherited control evidence packages during assessment"
+      ],
+      "evidence_registers": [
+        "facility_access"
+      ],
+      "notes": [
+        "PE controls are typically inherited from the CSP for cloud-only boundaries; if customer adds on-prem in-scope facilities, responsibility becomes shared."
+      ]
+    },
+    {
+      "control_id": "3.10.2",
+      "family": "PE",
+      "responsibility_model": "azure_inherited",
+      "azure_inherited": [
+        "Datacenter physical access controls (guards, badges, CCTV)",
+        "Visitor controls and physical access logging within Microsoft facilities",
+        "Environmental protections and physical boundary enforcement of Azure regions"
+      ],
+      "mactech_provided": [
+        "Define enclave physical scope as cloud-hosted; document inherited controls and applicable boundary statements"
+      ],
+      "customer_required": [
+        "Maintain physical security for any customer-controlled facilities/endpoints that access the enclave (out of boundary unless explicitly included)",
+        "Retain and present Azure Government inherited control evidence packages during assessment"
+      ],
+      "evidence_registers": [
+        "facility_access"
+      ],
+      "notes": [
+        "PE controls are typically inherited from the CSP for cloud-only boundaries; if customer adds on-prem in-scope facilities, responsibility becomes shared."
+      ]
+    },
+    {
+      "control_id": "3.10.3",
+      "family": "PE",
+      "responsibility_model": "azure_inherited",
+      "azure_inherited": [
+        "Datacenter physical access controls (guards, badges, CCTV)",
+        "Visitor controls and physical access logging within Microsoft facilities",
+        "Environmental protections and physical boundary enforcement of Azure regions"
+      ],
+      "mactech_provided": [
+        "Define enclave physical scope as cloud-hosted; document inherited controls and applicable boundary statements"
+      ],
+      "customer_required": [
+        "Maintain physical security for any customer-controlled facilities/endpoints that access the enclave (out of boundary unless explicitly included)",
+        "Retain and present Azure Government inherited control evidence packages during assessment"
+      ],
+      "evidence_registers": [
+        "visitor_log"
+      ],
+      "notes": [
+        "PE controls are typically inherited from the CSP for cloud-only boundaries; if customer adds on-prem in-scope facilities, responsibility becomes shared."
+      ]
+    },
+    {
+      "control_id": "3.10.4",
+      "family": "PE",
+      "responsibility_model": "azure_inherited",
+      "azure_inherited": [
+        "Datacenter physical access controls (guards, badges, CCTV)",
+        "Visitor controls and physical access logging within Microsoft facilities",
+        "Environmental protections and physical boundary enforcement of Azure regions"
+      ],
+      "mactech_provided": [
+        "Define enclave physical scope as cloud-hosted; document inherited controls and applicable boundary statements"
+      ],
+      "customer_required": [
+        "Maintain physical security for any customer-controlled facilities/endpoints that access the enclave (out of boundary unless explicitly included)",
+        "Retain and present Azure Government inherited control evidence packages during assessment"
+      ],
+      "evidence_registers": [
+        "visitor_log",
+        "facility_access"
+      ],
+      "notes": [
+        "PE controls are typically inherited from the CSP for cloud-only boundaries; if customer adds on-prem in-scope facilities, responsibility becomes shared."
+      ]
+    },
+    {
+      "control_id": "3.10.5",
+      "family": "PE",
+      "responsibility_model": "azure_inherited",
+      "azure_inherited": [
+        "Datacenter physical access controls (guards, badges, CCTV)",
+        "Visitor controls and physical access logging within Microsoft facilities",
+        "Environmental protections and physical boundary enforcement of Azure regions"
+      ],
+      "mactech_provided": [
+        "Define enclave physical scope as cloud-hosted; document inherited controls and applicable boundary statements"
+      ],
+      "customer_required": [
+        "Maintain physical security for any customer-controlled facilities/endpoints that access the enclave (out of boundary unless explicitly included)",
+        "Retain and present Azure Government inherited control evidence packages during assessment"
+      ],
+      "evidence_registers": [
+        "visitor_log",
+        "facility_access"
+      ],
+      "notes": [
+        "PE controls are typically inherited from the CSP for cloud-only boundaries; if customer adds on-prem in-scope facilities, responsibility becomes shared."
+      ]
+    },
+    {
+      "control_id": "3.10.6",
+      "family": "PE",
+      "responsibility_model": "azure_inherited",
+      "azure_inherited": [
+        "Datacenter physical access controls (guards, badges, CCTV)",
+        "Visitor controls and physical access logging within Microsoft facilities",
+        "Environmental protections and physical boundary enforcement of Azure regions"
+      ],
+      "mactech_provided": [
+        "Define enclave physical scope as cloud-hosted; document inherited controls and applicable boundary statements"
+      ],
+      "customer_required": [
+        "Maintain physical security for any customer-controlled facilities/endpoints that access the enclave (out of boundary unless explicitly included)",
+        "Retain and present Azure Government inherited control evidence packages during assessment"
+      ],
+      "evidence_registers": [
+        "facility_access"
+      ],
+      "notes": [
+        "PE controls are typically inherited from the CSP for cloud-only boundaries; if customer adds on-prem in-scope facilities, responsibility becomes shared."
+      ]
+    },
+    {
+      "control_id": "3.11.1",
+      "family": "RA",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Underlying platform security monitoring and advisories for Azure services (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Provide vulnerability scanning/remediation tooling for the vault baseline",
+        "Provide risk register workflows and reporting"
+      ],
+      "customer_required": [
+        "Own and approve risk decisions (accept/transfer/avoid/mitigate)",
+        "Maintain enterprise risk posture and context"
+      ],
+      "evidence_registers": [
+        "risk_register"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.11.2",
+      "family": "RA",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Underlying platform security monitoring and advisories for Azure services (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Provide vulnerability scanning/remediation tooling for the vault baseline",
+        "Provide risk register workflows and reporting"
+      ],
+      "customer_required": [
+        "Own and approve risk decisions (accept/transfer/avoid/mitigate)",
+        "Maintain enterprise risk posture and context"
+      ],
+      "evidence_registers": [
+        "risk_register",
+        "vuln_remediation"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.11.3",
+      "family": "RA",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Underlying platform security monitoring and advisories for Azure services (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Provide vulnerability scanning/remediation tooling for the vault baseline",
+        "Provide risk register workflows and reporting"
+      ],
+      "customer_required": [
+        "Own and approve risk decisions (accept/transfer/avoid/mitigate)",
+        "Maintain enterprise risk posture and context"
+      ],
+      "evidence_registers": [
+        "risk_register"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.12.1",
+      "family": "CA",
+      "responsibility_model": "shared",
+      "azure_inherited": [],
+      "mactech_provided": [
+        "Provide evidence engine, scoring, SSP draft generation, and audit bundle exports",
+        "Provide baseline assessment scripts for vault technical checks"
+      ],
+      "customer_required": [
+        "Schedule/perform periodic self-assessments and maintain POA&M",
+        "Provide governance documentation and assessment records to auditors"
+      ],
+      "evidence_registers": [
+        "assessment_findings",
+        "control_monitoring"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.12.2",
+      "family": "CA",
+      "responsibility_model": "shared",
+      "azure_inherited": [],
+      "mactech_provided": [
+        "Provide evidence engine, scoring, SSP draft generation, and audit bundle exports",
+        "Provide baseline assessment scripts for vault technical checks"
+      ],
+      "customer_required": [
+        "Schedule/perform periodic self-assessments and maintain POA&M",
+        "Provide governance documentation and assessment records to auditors"
+      ],
+      "evidence_registers": [
+        "poam"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.12.3",
+      "family": "CA",
+      "responsibility_model": "shared",
+      "azure_inherited": [],
+      "mactech_provided": [
+        "Provide evidence engine, scoring, SSP draft generation, and audit bundle exports",
+        "Provide baseline assessment scripts for vault technical checks"
+      ],
+      "customer_required": [
+        "Schedule/perform periodic self-assessments and maintain POA&M",
+        "Provide governance documentation and assessment records to auditors"
+      ],
+      "evidence_registers": [
+        "assessment_findings",
+        "control_monitoring"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.12.4",
+      "family": "CA",
+      "responsibility_model": "shared",
+      "azure_inherited": [],
+      "mactech_provided": [
+        "Provide evidence engine, scoring, SSP draft generation, and audit bundle exports",
+        "Provide baseline assessment scripts for vault technical checks"
+      ],
+      "customer_required": [
+        "Schedule/perform periodic self-assessments and maintain POA&M",
+        "Provide governance documentation and assessment records to auditors"
+      ],
+      "evidence_registers": [
+        "policy_review"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.13.1",
+      "family": "SC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Platform network/security capabilities (VNets, NSGs, TLS endpoints, Azure crypto services)",
+        "Availability of FIPS-validated modules where applicable in Azure services (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Vault network segmentation and boundary architecture",
+        "Encryption configuration guidance (at rest/in transit) and secure admin paths",
+        "Baseline hardening and monitoring checks for communications protections"
+      ],
+      "customer_required": [
+        "Approve exceptions and ensure secure communications policies are followed",
+        "Maintain external connection approvals when required"
+      ],
+      "evidence_registers": [
+        "control_monitoring"
+      ],
+      "notes": [
+        "Some SC controls may be primarily technical; operational registers may be N/A but technical evidence is expected (baseline checks)."
+      ]
+    },
+    {
+      "control_id": "3.13.2",
+      "family": "SC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Platform network/security capabilities (VNets, NSGs, TLS endpoints, Azure crypto services)",
+        "Availability of FIPS-validated modules where applicable in Azure services (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Vault network segmentation and boundary architecture",
+        "Encryption configuration guidance (at rest/in transit) and secure admin paths",
+        "Baseline hardening and monitoring checks for communications protections"
+      ],
+      "customer_required": [
+        "Approve exceptions and ensure secure communications policies are followed",
+        "Maintain external connection approvals when required"
+      ],
+      "evidence_registers": [
+        "control_monitoring"
+      ],
+      "notes": [
+        "Some SC controls may be primarily technical; operational registers may be N/A but technical evidence is expected (baseline checks)."
+      ]
+    },
+    {
+      "control_id": "3.13.3",
+      "family": "SC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Platform network/security capabilities (VNets, NSGs, TLS endpoints, Azure crypto services)",
+        "Availability of FIPS-validated modules where applicable in Azure services (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Vault network segmentation and boundary architecture",
+        "Encryption configuration guidance (at rest/in transit) and secure admin paths",
+        "Baseline hardening and monitoring checks for communications protections"
+      ],
+      "customer_required": [
+        "Approve exceptions and ensure secure communications policies are followed",
+        "Maintain external connection approvals when required"
+      ],
+      "evidence_registers": [
+        "control_monitoring"
+      ],
+      "notes": [
+        "Some SC controls may be primarily technical; operational registers may be N/A but technical evidence is expected (baseline checks)."
+      ]
+    },
+    {
+      "control_id": "3.13.5",
+      "family": "SC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Platform network/security capabilities (VNets, NSGs, TLS endpoints, Azure crypto services)",
+        "Availability of FIPS-validated modules where applicable in Azure services (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Vault network segmentation and boundary architecture",
+        "Encryption configuration guidance (at rest/in transit) and secure admin paths",
+        "Baseline hardening and monitoring checks for communications protections"
+      ],
+      "customer_required": [
+        "Approve exceptions and ensure secure communications policies are followed",
+        "Maintain external connection approvals when required"
+      ],
+      "evidence_registers": [
+        "control_monitoring"
+      ],
+      "notes": [
+        "Some SC controls may be primarily technical; operational registers may be N/A but technical evidence is expected (baseline checks)."
+      ]
+    },
+    {
+      "control_id": "3.13.7",
+      "family": "SC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Platform network/security capabilities (VNets, NSGs, TLS endpoints, Azure crypto services)",
+        "Availability of FIPS-validated modules where applicable in Azure services (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Vault network segmentation and boundary architecture",
+        "Encryption configuration guidance (at rest/in transit) and secure admin paths",
+        "Baseline hardening and monitoring checks for communications protections"
+      ],
+      "customer_required": [
+        "Approve exceptions and ensure secure communications policies are followed",
+        "Maintain external connection approvals when required"
+      ],
+      "evidence_registers": [
+        "control_monitoring"
+      ],
+      "notes": [
+        "Some SC controls may be primarily technical; operational registers may be N/A but technical evidence is expected (baseline checks)."
+      ]
+    },
+    {
+      "control_id": "3.13.8",
+      "family": "SC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Platform network/security capabilities (VNets, NSGs, TLS endpoints, Azure crypto services)",
+        "Availability of FIPS-validated modules where applicable in Azure services (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Vault network segmentation and boundary architecture",
+        "Encryption configuration guidance (at rest/in transit) and secure admin paths",
+        "Baseline hardening and monitoring checks for communications protections"
+      ],
+      "customer_required": [
+        "Approve exceptions and ensure secure communications policies are followed",
+        "Maintain external connection approvals when required"
+      ],
+      "evidence_registers": [
+        "control_monitoring"
+      ],
+      "notes": [
+        "Some SC controls may be primarily technical; operational registers may be N/A but technical evidence is expected (baseline checks)."
+      ]
+    },
+    {
+      "control_id": "3.13.10",
+      "family": "SC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Platform network/security capabilities (VNets, NSGs, TLS endpoints, Azure crypto services)",
+        "Availability of FIPS-validated modules where applicable in Azure services (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Vault network segmentation and boundary architecture",
+        "Encryption configuration guidance (at rest/in transit) and secure admin paths",
+        "Baseline hardening and monitoring checks for communications protections"
+      ],
+      "customer_required": [
+        "Approve exceptions and ensure secure communications policies are followed",
+        "Maintain external connection approvals when required"
+      ],
+      "evidence_registers": [
+        "control_monitoring"
+      ],
+      "notes": [
+        "Some SC controls may be primarily technical; operational registers may be N/A but technical evidence is expected (baseline checks)."
+      ]
+    },
+    {
+      "control_id": "3.13.11",
+      "family": "SC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Platform network/security capabilities (VNets, NSGs, TLS endpoints, Azure crypto services)",
+        "Availability of FIPS-validated modules where applicable in Azure services (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Vault network segmentation and boundary architecture",
+        "Encryption configuration guidance (at rest/in transit) and secure admin paths",
+        "Baseline hardening and monitoring checks for communications protections"
+      ],
+      "customer_required": [
+        "Approve exceptions and ensure secure communications policies are followed",
+        "Maintain external connection approvals when required"
+      ],
+      "evidence_registers": [
+        "control_monitoring"
+      ],
+      "notes": [
+        "Some SC controls may be primarily technical; operational registers may be N/A but technical evidence is expected (baseline checks)."
+      ]
+    },
+    {
+      "control_id": "3.13.12",
+      "family": "SC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Platform network/security capabilities (VNets, NSGs, TLS endpoints, Azure crypto services)",
+        "Availability of FIPS-validated modules where applicable in Azure services (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Vault network segmentation and boundary architecture",
+        "Encryption configuration guidance (at rest/in transit) and secure admin paths",
+        "Baseline hardening and monitoring checks for communications protections"
+      ],
+      "customer_required": [
+        "Approve exceptions and ensure secure communications policies are followed",
+        "Maintain external connection approvals when required"
+      ],
+      "evidence_registers": [
+        "control_monitoring"
+      ],
+      "notes": [
+        "Some SC controls may be primarily technical; operational registers may be N/A but technical evidence is expected (baseline checks)."
+      ]
+    },
+    {
+      "control_id": "3.13.13",
+      "family": "SC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Platform network/security capabilities (VNets, NSGs, TLS endpoints, Azure crypto services)",
+        "Availability of FIPS-validated modules where applicable in Azure services (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Vault network segmentation and boundary architecture",
+        "Encryption configuration guidance (at rest/in transit) and secure admin paths",
+        "Baseline hardening and monitoring checks for communications protections"
+      ],
+      "customer_required": [
+        "Approve exceptions and ensure secure communications policies are followed",
+        "Maintain external connection approvals when required"
+      ],
+      "evidence_registers": [
+        "control_monitoring"
+      ],
+      "notes": [
+        "Some SC controls may be primarily technical; operational registers may be N/A but technical evidence is expected (baseline checks)."
+      ]
+    },
+    {
+      "control_id": "3.13.14",
+      "family": "SC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Platform network/security capabilities (VNets, NSGs, TLS endpoints, Azure crypto services)",
+        "Availability of FIPS-validated modules where applicable in Azure services (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Vault network segmentation and boundary architecture",
+        "Encryption configuration guidance (at rest/in transit) and secure admin paths",
+        "Baseline hardening and monitoring checks for communications protections"
+      ],
+      "customer_required": [
+        "Approve exceptions and ensure secure communications policies are followed",
+        "Maintain external connection approvals when required"
+      ],
+      "evidence_registers": [
+        "control_monitoring"
+      ],
+      "notes": [
+        "Some SC controls may be primarily technical; operational registers may be N/A but technical evidence is expected (baseline checks)."
+      ]
+    },
+    {
+      "control_id": "3.13.15",
+      "family": "SC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Platform network/security capabilities (VNets, NSGs, TLS endpoints, Azure crypto services)",
+        "Availability of FIPS-validated modules where applicable in Azure services (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Vault network segmentation and boundary architecture",
+        "Encryption configuration guidance (at rest/in transit) and secure admin paths",
+        "Baseline hardening and monitoring checks for communications protections"
+      ],
+      "customer_required": [
+        "Approve exceptions and ensure secure communications policies are followed",
+        "Maintain external connection approvals when required"
+      ],
+      "evidence_registers": [
+        "control_monitoring"
+      ],
+      "notes": [
+        "Some SC controls may be primarily technical; operational registers may be N/A but technical evidence is expected (baseline checks)."
+      ]
+    },
+    {
+      "control_id": "3.13.16",
+      "family": "SC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Platform network/security capabilities (VNets, NSGs, TLS endpoints, Azure crypto services)",
+        "Availability of FIPS-validated modules where applicable in Azure services (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Vault network segmentation and boundary architecture",
+        "Encryption configuration guidance (at rest/in transit) and secure admin paths",
+        "Baseline hardening and monitoring checks for communications protections"
+      ],
+      "customer_required": [
+        "Approve exceptions and ensure secure communications policies are followed",
+        "Maintain external connection approvals when required"
+      ],
+      "evidence_registers": [
+        "control_monitoring"
+      ],
+      "notes": [
+        "Some SC controls may be primarily technical; operational registers may be N/A but technical evidence is expected (baseline checks)."
+      ]
+    },
+    {
+      "control_id": "3.13.4",
+      "family": "SC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Platform network/security capabilities (VNets, NSGs, TLS endpoints, Azure crypto services)",
+        "Availability of FIPS-validated modules where applicable in Azure services (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Vault network segmentation and boundary architecture",
+        "Encryption configuration guidance (at rest/in transit) and secure admin paths",
+        "Baseline hardening and monitoring checks for communications protections"
+      ],
+      "customer_required": [
+        "Approve exceptions and ensure secure communications policies are followed",
+        "Maintain external connection approvals when required"
+      ],
+      "evidence_registers": [],
+      "notes": [
+        "Some SC controls may be primarily technical; operational registers may be N/A but technical evidence is expected (baseline checks).",
+        "No operational registers mapped; evidence is expected primarily via technical configuration/baseline checks and architectural documentation."
+      ]
+    },
+    {
+      "control_id": "3.13.6",
+      "family": "SC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Platform network/security capabilities (VNets, NSGs, TLS endpoints, Azure crypto services)",
+        "Availability of FIPS-validated modules where applicable in Azure services (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Vault network segmentation and boundary architecture",
+        "Encryption configuration guidance (at rest/in transit) and secure admin paths",
+        "Baseline hardening and monitoring checks for communications protections"
+      ],
+      "customer_required": [
+        "Approve exceptions and ensure secure communications policies are followed",
+        "Maintain external connection approvals when required"
+      ],
+      "evidence_registers": [],
+      "notes": [
+        "Some SC controls may be primarily technical; operational registers may be N/A but technical evidence is expected (baseline checks).",
+        "No operational registers mapped; evidence is expected primarily via technical configuration/baseline checks and architectural documentation."
+      ]
+    },
+    {
+      "control_id": "3.13.9",
+      "family": "SC",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Platform network/security capabilities (VNets, NSGs, TLS endpoints, Azure crypto services)",
+        "Availability of FIPS-validated modules where applicable in Azure services (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Vault network segmentation and boundary architecture",
+        "Encryption configuration guidance (at rest/in transit) and secure admin paths",
+        "Baseline hardening and monitoring checks for communications protections"
+      ],
+      "customer_required": [
+        "Approve exceptions and ensure secure communications policies are followed",
+        "Maintain external connection approvals when required"
+      ],
+      "evidence_registers": [],
+      "notes": [
+        "Some SC controls may be primarily technical; operational registers may be N/A but technical evidence is expected (baseline checks).",
+        "No operational registers mapped; evidence is expected primarily via technical configuration/baseline checks and architectural documentation."
+      ]
+    },
+    {
+      "control_id": "3.14.1",
+      "family": "SI",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Security service platform features (Defender, update services availability) where used (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Reference security tooling stack (Defender for Endpoint/Cloud, Sentinel) for the vault",
+        "Vulnerability remediation workflow and monitoring patterns"
+      ],
+      "customer_required": [
+        "Operate patch/vulnerability cycles and respond to findings",
+        "Approve risk acceptance where vulnerabilities cannot be remediated"
+      ],
+      "evidence_registers": [
+        "vuln_remediation",
+        "control_monitoring"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.14.2",
+      "family": "SI",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Security service platform features (Defender, update services availability) where used (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Reference security tooling stack (Defender for Endpoint/Cloud, Sentinel) for the vault",
+        "Vulnerability remediation workflow and monitoring patterns"
+      ],
+      "customer_required": [
+        "Operate patch/vulnerability cycles and respond to findings",
+        "Approve risk acceptance where vulnerabilities cannot be remediated"
+      ],
+      "evidence_registers": [
+        "vuln_remediation",
+        "control_monitoring"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.14.3",
+      "family": "SI",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Security service platform features (Defender, update services availability) where used (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Reference security tooling stack (Defender for Endpoint/Cloud, Sentinel) for the vault",
+        "Vulnerability remediation workflow and monitoring patterns"
+      ],
+      "customer_required": [
+        "Operate patch/vulnerability cycles and respond to findings",
+        "Approve risk acceptance where vulnerabilities cannot be remediated"
+      ],
+      "evidence_registers": [
+        "vuln_remediation",
+        "control_monitoring"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.14.4",
+      "family": "SI",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Security service platform features (Defender, update services availability) where used (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Reference security tooling stack (Defender for Endpoint/Cloud, Sentinel) for the vault",
+        "Vulnerability remediation workflow and monitoring patterns"
+      ],
+      "customer_required": [
+        "Operate patch/vulnerability cycles and respond to findings",
+        "Approve risk acceptance where vulnerabilities cannot be remediated"
+      ],
+      "evidence_registers": [
+        "vuln_remediation",
+        "control_monitoring"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.14.5",
+      "family": "SI",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Security service platform features (Defender, update services availability) where used (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Reference security tooling stack (Defender for Endpoint/Cloud, Sentinel) for the vault",
+        "Vulnerability remediation workflow and monitoring patterns"
+      ],
+      "customer_required": [
+        "Operate patch/vulnerability cycles and respond to findings",
+        "Approve risk acceptance where vulnerabilities cannot be remediated"
+      ],
+      "evidence_registers": [
+        "vuln_remediation",
+        "control_monitoring"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.14.6",
+      "family": "SI",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Security service platform features (Defender, update services availability) where used (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Reference security tooling stack (Defender for Endpoint/Cloud, Sentinel) for the vault",
+        "Vulnerability remediation workflow and monitoring patterns"
+      ],
+      "customer_required": [
+        "Operate patch/vulnerability cycles and respond to findings",
+        "Approve risk acceptance where vulnerabilities cannot be remediated"
+      ],
+      "evidence_registers": [
+        "vuln_remediation",
+        "control_monitoring"
+      ],
+      "notes": []
+    },
+    {
+      "control_id": "3.14.7",
+      "family": "SI",
+      "responsibility_model": "shared",
+      "azure_inherited": [
+        "Security service platform features (Defender, update services availability) where used (shared responsibility)"
+      ],
+      "mactech_provided": [
+        "Reference security tooling stack (Defender for Endpoint/Cloud, Sentinel) for the vault",
+        "Vulnerability remediation workflow and monitoring patterns"
+      ],
+      "customer_required": [
+        "Operate patch/vulnerability cycles and respond to findings",
+        "Approve risk acceptance where vulnerabilities cannot be remediated"
+      ],
+      "evidence_registers": [
+        "vuln_remediation",
+        "control_monitoring",
+        "incident_log"
+      ],
+      "notes": []
+    }
+  ]
+}

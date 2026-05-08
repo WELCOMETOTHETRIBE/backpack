@@ -23,6 +23,7 @@ export const PARTIAL_DOCS_TO_CLOSE: Record<string, PartialDocSpec[]> = {
     { label: "Procedures for Remote Access", type: "UPLOAD" },
     { label: "Procedures for Authenticator Management", type: "UPLOAD" },
     { label: "Identification and Authentication Policy", type: "UPLOAD" },
+    { label: "MFA Implementation Standard / Guide", type: "UPLOAD" },
   ],
   "3.5.4": [
     { label: "Identification and Authentication Policy", type: "UPLOAD" },

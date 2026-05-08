@@ -26,3 +26,20 @@ yarn-debug.log*
 coverage/
 __pycache__/
 *.pyc
+
+# CUI evidence collection outputs — runtime data, never in git.
+# These directories are written by the canonical-cadence collectors
+# and are CUI-bearing; they belong on the vault, not in the repo.
+evidence/runs/
+TRUST_CODEX/_working/
+control-plane/MacTech_CUI_Enclave_Governance_Bundle_*/
+migration-backup-*/
+
+# Agent worktree state
+.claude/
+**/.claude/
+
+# Per-customer CUI exports (governance bundle archives + control matrices)
+control-plane/MacTech_CUI_Enclave_Governance_Bundle_*.zip
+control-plane/MacTech_CUI_Vault_Control_Intelligence_Matrix.xlsx
+control-plane/Quality_App_Governance_Documents_*.zip

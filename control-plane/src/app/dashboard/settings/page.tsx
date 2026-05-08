@@ -5,6 +5,10 @@ import { organizations, users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import SettingsForm from "./SettingsForm";
 import InviteTeamSection from "./InviteTeamSection";
+import ScopingPresetsCard from "./ScopingPresetsCard";
+import AdminUserManagement from "./AdminUserManagement";
+import SystemIdentificationForm from "./SystemIdentificationForm";
+import { ALL_PRESETS } from "@/lib/compliance/scoping-presets";
 
 export default async function SettingsPage() {
   const session = await auth();
@@ -26,7 +30,7 @@ export default async function SettingsPage() {
     .where(eq(users.id, user.id!))
     .limit(1);
 
-  const cardClass = "rounded-xl border border-slate-200 bg-white p-6 shadow-sm";
+  const cardClass = "rounded-2xl border border-slate-200 bg-white p-6 shadow-sm";
 
   return (
     <div>
@@ -35,7 +39,7 @@ export default async function SettingsPage() {
         <p className="mt-2 text-gray-600">Manage your organization and account settings.</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-6">
+      <div className="grid grid-cols-1 gap-4">
         <div className={cardClass}>
           <h2 className="mb-4 text-sm font-semibold text-slate-800">Organization & account</h2>
           <SettingsForm
@@ -46,9 +50,52 @@ export default async function SettingsPage() {
         </div>
 
         {(user.role === "Admin" || user.role === "Compliance") && (
-          <div className={cardClass}>
+          <div id="system-identification" className={cardClass}>
+            <SystemIdentificationForm
+              initial={{
+                systemName: org?.systemName ?? null,
+                systemOwnerName: org?.systemOwnerName ?? null,
+                systemOwnerEmail: org?.systemOwnerEmail ?? null,
+                issoName: org?.issoName ?? null,
+                issoEmail: org?.issoEmail ?? null,
+                authorizationBoundaryStatement: org?.authorizationBoundaryStatement ?? null,
+                boundaryScopingCompletedAt: org?.boundaryScopingCompletedAt
+                  ? new Date(org.boundaryScopingCompletedAt).toISOString()
+                  : null,
+              }}
+            />
+          </div>
+        )}
+
+        {(user.role === "Admin" || user.role === "Compliance") && (
+          <div id="invite-team" className={cardClass}>
             <h2 className="mb-4 text-sm font-semibold text-slate-800">Invite team</h2>
             <InviteTeamSection />
+          </div>
+        )}
+
+        {user.role === "Admin" && (
+          <div id="user-management" className={cardClass}>
+            <div className="mb-4">
+              <h2 className="text-sm font-semibold text-slate-800">User Management</h2>
+              <p className="mt-1 text-xs text-slate-500">
+                Manage user accounts and classify users as General or Privileged for CMMC training compliance tracking.
+              </p>
+            </div>
+            <AdminUserManagement />
+          </div>
+        )}
+
+        {(user.role === "Admin" || user.role === "Compliance") && (
+          <div className={cardClass}>
+            <h2 className="mb-1 text-sm font-semibold text-slate-800">Architecture scoping presets</h2>
+            <p className="mb-4 text-xs text-slate-500">
+              Apply Not Applicable designations based on your system architecture. Only controls in{" "}
+              <span className="font-medium">Not Started</span> or{" "}
+              <span className="font-medium">In Progress</span> status are affected — Assessed, Inherited,
+              and Implemented controls are never overwritten.
+            </p>
+            <ScopingPresetsCard presets={ALL_PRESETS} />
           </div>
         )}
       </div>

@@ -1,0 +1,1492 @@
+{
+  "schema": "mactech.cmmc.evidence-map.v1",
+  "framework": {
+    "name": "NIST SP 800-171 Rev.2",
+    "profile": "CMMC Level 2 (110 controls)",
+    "control_id_format": "3.x.y"
+  },
+  "registers": [
+    {
+      "id": "access_authorization",
+      "name": "Access Authorization Register",
+      "cadence_hint": "Per request + periodic access reviews (e.g., quarterly)"
+    },
+    {
+      "id": "role_assignment_matrix",
+      "name": "Role Assignment Matrix",
+      "cadence_hint": "Update on role changes; review quarterly"
+    },
+    {
+      "id": "sod_matrix",
+      "name": "Separation of Duties Matrix",
+      "cadence_hint": "Update on role/process changes; review annually"
+    },
+    {
+      "id": "authenticator_mgmt",
+      "name": "Authenticator Management Register",
+      "cadence_hint": "Per issuance/reset/revocation event"
+    },
+    {
+      "id": "training_completion",
+      "name": "Training Completion Register",
+      "cadence_hint": "Per hire + annually (or per policy)"
+    },
+    {
+      "id": "personnel_screening",
+      "name": "Personnel Screening Log",
+      "cadence_hint": "Per onboarding event"
+    },
+    {
+      "id": "termination",
+      "name": "Termination Log",
+      "cadence_hint": "Per offboarding event (same-day recommended)"
+    },
+    {
+      "id": "audit_log_review",
+      "name": "Audit Log Review Records",
+      "cadence_hint": "Daily/weekly (per policy) + after alerts"
+    },
+    {
+      "id": "audit_config",
+      "name": "Audit Configuration Register",
+      "cadence_hint": "On onboarding new log sources; review quarterly"
+    },
+    {
+      "id": "control_monitoring",
+      "name": "Control Monitoring Log",
+      "cadence_hint": "Weekly/monthly attestations + automated checks"
+    },
+    {
+      "id": "incident_log",
+      "name": "Incident Log Register",
+      "cadence_hint": "Per incident + exercises/tests"
+    },
+    {
+      "id": "maintenance_log",
+      "name": "Maintenance Activity Log",
+      "cadence_hint": "Per maintenance event"
+    },
+    {
+      "id": "media_access",
+      "name": "Media Access Log",
+      "cadence_hint": "Per removable media use/exception approval"
+    },
+    {
+      "id": "media_destruction",
+      "name": "Media Destruction Log",
+      "cadence_hint": "Per sanitization/destruction event"
+    },
+    {
+      "id": "visitor_log",
+      "name": "Visitor Log",
+      "cadence_hint": "Per visitor entry"
+    },
+    {
+      "id": "facility_access",
+      "name": "Facility Access Log",
+      "cadence_hint": "Continuous via badge system; reviewed monthly"
+    },
+    {
+      "id": "baseline_config",
+      "name": "Baseline Configuration Register",
+      "cadence_hint": "Per baseline version + after major changes"
+    },
+    {
+      "id": "change_log",
+      "name": "Change Log",
+      "cadence_hint": "Per change request/approval/implementation"
+    },
+    {
+      "id": "risk_register",
+      "name": "Risk Register",
+      "cadence_hint": "Monthly/quarterly updates + after major events"
+    },
+    {
+      "id": "assessment_findings",
+      "name": "Security Assessment Findings Register",
+      "cadence_hint": "Per assessment + retests"
+    },
+    {
+      "id": "poam",
+      "name": "POA&M Tracker",
+      "cadence_hint": "Weekly/biweekly updates until closure"
+    },
+    {
+      "id": "vuln_remediation",
+      "name": "Vulnerability Remediation Register",
+      "cadence_hint": "Continuous + patch/vuln cycle"
+    },
+    {
+      "id": "policy_review",
+      "name": "Policy Review Log",
+      "cadence_hint": "Annually + after major changes/incidents"
+    },
+    {
+      "id": "technical_compliance_run",
+      "name": "Technical Compliance Run",
+      "cadence_hint": "Event-driven (per collector run)."
+    }
+  ],
+  "controls": [
+    {
+      "control_id": "3.1.1",
+      "family": "AC",
+      "registers": [
+        "access_authorization",
+        "termination"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.1.2",
+      "family": "AC",
+      "registers": [
+        "access_authorization",
+        "termination"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.1.3",
+      "family": "AC",
+      "registers": [
+        "control_monitoring"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.1.4",
+      "family": "AC",
+      "registers": [
+        "role_assignment_matrix",
+        "sod_matrix"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.1.5",
+      "family": "AC",
+      "registers": [
+        "identity_inventory",
+        "access_authorization",
+        "role_assignment_matrix",
+        "termination"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": "Identity inventory snapshots surface the full role-assignment graph per cycle; high-cardinality assignments (e.g., user with Owner on the RG) are flagged for review."
+    },
+    {
+      "control_id": "3.1.6",
+      "family": "AC",
+      "registers": [
+        "identity_inventory",
+        "access_authorization",
+        "termination"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": "Identity inventory snapshots track every privileged-role-holder per cycle alongside their last-sign-in metadata."
+    },
+    {
+      "control_id": "3.1.7",
+      "family": "AC",
+      "registers": [
+        "access_authorization",
+        "termination"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.1.8",
+      "family": "AC",
+      "registers": [
+        "control_monitoring"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.1.9",
+      "family": "AC",
+      "registers": [
+        "control_monitoring"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.1.10",
+      "family": "AC",
+      "registers": [
+        "control_monitoring"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.1.11",
+      "family": "AC",
+      "registers": [
+        "control_monitoring"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.1.12",
+      "family": "AC",
+      "registers": [
+        "control_monitoring"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.1.13",
+      "family": "AC",
+      "registers": [
+        "control_monitoring"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.1.14",
+      "family": "AC",
+      "registers": [
+        "control_monitoring"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.1.15",
+      "family": "AC",
+      "registers": [
+        "access_authorization",
+        "change_log",
+        "termination"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.1.16",
+      "family": "AC",
+      "registers": [
+        "access_authorization",
+        "change_log",
+        "termination"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.1.17",
+      "family": "AC",
+      "registers": [
+        "control_monitoring"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.1.18",
+      "family": "AC",
+      "registers": [
+        "media_access"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.1.19",
+      "family": "AC",
+      "registers": [
+        "control_monitoring"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.1.20",
+      "family": "AC",
+      "registers": [
+        "access_authorization",
+        "change_log"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.1.21",
+      "family": "AC",
+      "registers": [
+        "media_access"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.1.22",
+      "family": "AC",
+      "registers": [
+        "control_monitoring"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.2.1",
+      "family": "AT",
+      "registers": [
+        "training_completion"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.2.2",
+      "family": "AT",
+      "registers": [
+        "training_completion"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.2.3",
+      "family": "AT",
+      "registers": [
+        "training_completion"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.3.1",
+      "family": "AU",
+      "registers": [
+        "audit_config"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.3.2",
+      "family": "AU",
+      "registers": [
+        "audit_config"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.3.3",
+      "family": "AU",
+      "registers": [
+        "audit_config"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.3.4",
+      "family": "AU",
+      "registers": [
+        "audit_config",
+        "incident_log"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.3.5",
+      "family": "AU",
+      "registers": [
+        "audit_log_review",
+        "incident_log"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.3.6",
+      "family": "AU",
+      "registers": [
+        "audit_config"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.3.7",
+      "family": "AU",
+      "registers": [
+        "audit_config"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.3.8",
+      "family": "AU",
+      "registers": [
+        "audit_config"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.3.9",
+      "family": "AU",
+      "registers": [
+        "audit_config"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.4.1",
+      "family": "CM",
+      "registers": [
+        "baseline_config",
+        "policy_review"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.4.2",
+      "family": "CM",
+      "registers": [
+        "baseline_config",
+        "policy_review"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.4.3",
+      "family": "CM",
+      "registers": [
+        "baseline_config",
+        "policy_review"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.4.4",
+      "family": "CM",
+      "registers": [
+        "baseline_config",
+        "policy_review"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.4.5",
+      "family": "CM",
+      "registers": [
+        "change_log",
+        "assessment_findings"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.4.6",
+      "family": "CM",
+      "registers": [
+        "change_log",
+        "assessment_findings"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.4.7",
+      "family": "CM",
+      "registers": [
+        "change_log",
+        "assessment_findings"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.4.8",
+      "family": "CM",
+      "registers": [
+        "change_log",
+        "assessment_findings"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.4.9",
+      "family": "CM",
+      "registers": [
+        "change_log",
+        "assessment_findings"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.5.1",
+      "family": "IA",
+      "registers": [
+        "identity_inventory",
+        "access_authorization",
+        "termination"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": "weekly"
+      },
+      "notes": "Primary evidence: identity_inventory weekly snapshots from EnclaveWatch's azure_identity_inventory collector — each entry is a full point-in-time inventory of users/SPs/devices with vault scope. Diffs between consecutive snapshots show adds/removes for review. access_authorization and termination registers are corroborating evidence of join/leave events between snapshots."
+    },
+    {
+      "control_id": "3.5.2",
+      "family": "IA",
+      "registers": [
+        "authenticator_mgmt",
+        "audit_log_review"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.5.3",
+      "family": "IA",
+      "registers": [
+        "authenticator_mgmt",
+        "audit_log_review"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.5.4",
+      "family": "IA",
+      "registers": [
+        "authenticator_mgmt"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.5.5",
+      "family": "IA",
+      "registers": [
+        "authenticator_mgmt"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.5.6",
+      "family": "IA",
+      "registers": [
+        "identity_inventory",
+        "authenticator_mgmt"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": "Identity inventory snapshots include last_sign_in_at per user; accounts with last_sign_in_at > 90 days AND account_enabled = true are surfaced as findings for review."
+    },
+    {
+      "control_id": "3.5.7",
+      "family": "IA",
+      "registers": [
+        "authenticator_mgmt"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.5.8",
+      "family": "IA",
+      "registers": [
+        "authenticator_mgmt"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.5.9",
+      "family": "IA",
+      "registers": [
+        "authenticator_mgmt"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.5.10",
+      "family": "IA",
+      "registers": [
+        "authenticator_mgmt"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.5.11",
+      "family": "IA",
+      "registers": [
+        "authenticator_mgmt"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.6.1",
+      "family": "IR",
+      "registers": [
+        "incident_log"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.6.2",
+      "family": "IR",
+      "registers": [
+        "incident_log"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.6.3",
+      "family": "IR",
+      "registers": [
+        "incident_log",
+        "assessment_findings"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.7.1",
+      "family": "MA",
+      "registers": [
+        "maintenance_log"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.7.2",
+      "family": "MA",
+      "registers": [
+        "maintenance_log"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.7.3",
+      "family": "MA",
+      "registers": [
+        "maintenance_log",
+        "change_log"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.7.4",
+      "family": "MA",
+      "registers": [
+        "maintenance_log",
+        "change_log"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.7.5",
+      "family": "MA",
+      "registers": [
+        "maintenance_log"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.7.6",
+      "family": "MA",
+      "registers": [
+        "maintenance_log"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.8.1",
+      "family": "MP",
+      "registers": [
+        "media_access"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.8.2",
+      "family": "MP",
+      "registers": [
+        "media_access"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.8.3",
+      "family": "MP",
+      "registers": [
+        "media_access"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.8.4",
+      "family": "MP",
+      "registers": [
+        "media_access"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.8.5",
+      "family": "MP",
+      "registers": [
+        "media_destruction"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.8.6",
+      "family": "MP",
+      "registers": [
+        "media_destruction"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.8.7",
+      "family": "MP",
+      "registers": [
+        "media_destruction"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.8.8",
+      "family": "MP",
+      "registers": [
+        "media_destruction"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.8.9",
+      "family": "MP",
+      "registers": [
+        "media_destruction"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.9.1",
+      "family": "PS",
+      "registers": [
+        "personnel_screening"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.9.2",
+      "family": "PS",
+      "registers": [
+        "termination"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.10.1",
+      "family": "PE",
+      "registers": [
+        "facility_access"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.10.2",
+      "family": "PE",
+      "registers": [
+        "facility_access"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.10.3",
+      "family": "PE",
+      "registers": [
+        "visitor_log"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.10.4",
+      "family": "PE",
+      "registers": [
+        "visitor_log",
+        "facility_access"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.10.5",
+      "family": "PE",
+      "registers": [
+        "visitor_log",
+        "facility_access"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.10.6",
+      "family": "PE",
+      "registers": [
+        "facility_access"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.11.1",
+      "family": "RA",
+      "registers": [
+        "risk_register"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.11.2",
+      "family": "RA",
+      "registers": [
+        "risk_register",
+        "vuln_remediation"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.11.3",
+      "family": "RA",
+      "registers": [
+        "risk_register"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.12.1",
+      "family": "CA",
+      "registers": [
+        "assessment_findings",
+        "control_monitoring"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.12.2",
+      "family": "CA",
+      "registers": [
+        "poam"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.12.3",
+      "family": "CA",
+      "registers": [
+        "assessment_findings",
+        "control_monitoring"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.12.4",
+      "family": "CA",
+      "registers": [
+        "policy_review"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.13.1",
+      "family": "SC",
+      "registers": [
+        "control_monitoring"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.13.2",
+      "family": "SC",
+      "registers": [
+        "control_monitoring"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.13.3",
+      "family": "SC",
+      "registers": [
+        "control_monitoring"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.13.5",
+      "family": "SC",
+      "registers": [
+        "control_monitoring"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.13.7",
+      "family": "SC",
+      "registers": [
+        "control_monitoring"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.13.8",
+      "family": "SC",
+      "registers": [
+        "control_monitoring"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.13.10",
+      "family": "SC",
+      "registers": [
+        "control_monitoring"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.13.11",
+      "family": "SC",
+      "registers": [
+        "control_monitoring"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.13.12",
+      "family": "SC",
+      "registers": [
+        "control_monitoring"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.13.13",
+      "family": "SC",
+      "registers": [
+        "control_monitoring"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.13.14",
+      "family": "SC",
+      "registers": [
+        "control_monitoring"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.13.15",
+      "family": "SC",
+      "registers": [
+        "control_monitoring"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.13.16",
+      "family": "SC",
+      "registers": [
+        "control_monitoring"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.13.4",
+      "family": "SC",
+      "registers": [],
+      "operational_evidence": {
+        "register_entries_required": false,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.13.6",
+      "family": "SC",
+      "registers": [],
+      "operational_evidence": {
+        "register_entries_required": false,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.13.9",
+      "family": "SC",
+      "registers": [],
+      "operational_evidence": {
+        "register_entries_required": false,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.14.1",
+      "family": "SI",
+      "registers": [
+        "vuln_remediation",
+        "control_monitoring"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.14.2",
+      "family": "SI",
+      "registers": [
+        "vuln_remediation",
+        "control_monitoring"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.14.3",
+      "family": "SI",
+      "registers": [
+        "vuln_remediation",
+        "control_monitoring"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.14.4",
+      "family": "SI",
+      "registers": [
+        "vuln_remediation",
+        "control_monitoring"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.14.5",
+      "family": "SI",
+      "registers": [
+        "vuln_remediation",
+        "control_monitoring"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.14.6",
+      "family": "SI",
+      "registers": [
+        "vuln_remediation",
+        "control_monitoring"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    },
+    {
+      "control_id": "3.14.7",
+      "family": "SI",
+      "registers": [
+        "vuln_remediation",
+        "control_monitoring",
+        "incident_log"
+      ],
+      "operational_evidence": {
+        "register_entries_required": true,
+        "cadence_hint": null
+      },
+      "notes": ""
+    }
+  ]
+}

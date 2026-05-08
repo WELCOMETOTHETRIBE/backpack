@@ -5,9 +5,19 @@ import { eq, and, like, desc, inArray } from "drizzle-orm";
 import { requireOrg, requireRole } from "@/lib/auth";
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { controlIdToNist } from "@/lib/compliance/controlId";
-import { syncOrgAzureInheritedControls } from "@/lib/compliance/azure-inherited-controls";
+// syncOrgAzureInheritedControls intentionally NOT imported -- inherited flips
+// happen via cloud evidence upload or the manual /dashboard/boundary button,
+// never as a side effect of reading control records.
 import { getSatisfactionSources } from "@/lib/compliance/satisfaction-sources";
 import { isHybridControl } from "@/lib/compliance/control-bins";
+import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
+import { governanceRegisters, governanceRegisterEntries, boundaries } from "@/db/schema";
+import { sql } from "drizzle-orm";
+import {
+  isRegisterLaneSatisfied,
+  finalCountForSchemaId,
+  isProvisionedForSchemaId,
+} from "@/lib/registers/compliance-health";
 
 const CONTROL_FAMILY_PREFIX: Record<string, string> = {
   AC: "3.1",
@@ -40,12 +50,19 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: message }, { status: 401 });
   }
 
-  try {
-    // Ensure 3.10.1–3.10.5 inherited status is in sync with any Azure boundary (non-blocking)
-    await syncOrgAzureInheritedControls(db, orgId);
-  } catch {
-    // Sync failure should not block listing control records
-  }
+  // INTENTIONALLY DO NOT auto-sync inherited controls on read.
+  //
+  // A previous version called syncOrgAzureInheritedControls() here, which
+  // flipped 3.10.1, .2, .4, .5 to status='inherited' on every dashboard
+  // page load. That contradicted the "0/110 adjudicated post-onboarding"
+  // architecture (commit c8e5453) -- a fresh org would land on the
+  // dashboard and see 4 controls already inherited before uploading any
+  // evidence. Adjudication progresses with EVIDENCE, not with reads.
+  //
+  // Inherited controls flip when the customer uploads cloud evidence
+  // (validate_azure_entra report verifies the boundary is actually on
+  // Azure Gov), or via the manual "Re-sync inherited controls" button on
+  // /dashboard/boundary.
 
   try {
     const { searchParams } = new URL(req.url);
@@ -59,14 +76,17 @@ export async function GET(req: Request) {
         .filter(Boolean) ?? null;
 
     if (!family && !controlIdsList?.length) {
+      // Auto-provision any missing seed rows so the SCTM always renders the full
+      // 110 NIST SP 800-171 controls, not just whichever rows happen to exist.
       const existing = await db
-        .select({ id: controlRecords.id })
+        .select({ controlId: controlRecords.controlId })
         .from(controlRecords)
-        .where(eq(controlRecords.organizationId, orgId))
-        .limit(1);
-      if (existing.length === 0) {
+        .where(eq(controlRecords.organizationId, orgId));
+      const existingSet = new Set(existing.map((r) => r.controlId));
+      const missing = ALL_CONTROL_IDS.filter((id) => !existingSet.has(id));
+      if (missing.length > 0) {
         await db.insert(controlRecords).values(
-          ALL_CONTROL_IDS.map((controlId) => ({ organizationId: orgId, controlId }))
+          missing.map((controlId) => ({ organizationId: orgId, controlId }))
         );
       }
     }
@@ -102,7 +122,13 @@ export async function GET(req: Request) {
       sprs31311Condition: string | null;
       lastValidationDate: Date | null;
       monitoringCadence: string | null;
+      validationMethod: string | null;
       hybridSatisfaction: { technical?: boolean; governance?: boolean } | null;
+      technicalStatus: string | null;
+      policyDocRequired: boolean;
+      policyStatus: string | null;
+      policyDocNarrative: string | null;
+      policyDocLinkedAt: Date | null;
     };
     let records: RecordRow[];
     try {
@@ -117,14 +143,20 @@ export async function GET(req: Request) {
           sprs31311Condition: controlRecords.sprs31311Condition,
           lastValidationDate: controlRecords.lastValidationDate,
           monitoringCadence: controlRecords.monitoringCadence,
+          validationMethod: controlRecords.validationMethod,
           hybridSatisfaction: controlRecords.hybridSatisfaction,
+          technicalStatus: controlRecords.technicalStatus,
+          policyDocRequired: controlRecords.policyDocRequired,
+          policyStatus: controlRecords.policyStatus,
+          policyDocNarrative: controlRecords.policyDocNarrative,
+          policyDocLinkedAt: controlRecords.policyDocLinkedAt,
         })
         .from(controlRecords)
         .leftJoin(roles, eq(controlRecords.responsibleRoleId, roles.id))
         .where(conditions);
     } catch (selectErr) {
       const msg = selectErr instanceof Error ? selectErr.message : String(selectErr);
-      if (msg.includes("hybrid_satisfaction")) {
+      if (msg.includes("hybrid_satisfaction") || msg.includes("technical_status") || msg.includes("policy_doc_required")) {
         const rows = await db
           .select({
             id: controlRecords.id,
@@ -136,11 +168,20 @@ export async function GET(req: Request) {
             sprs31311Condition: controlRecords.sprs31311Condition,
             lastValidationDate: controlRecords.lastValidationDate,
             monitoringCadence: controlRecords.monitoringCadence,
+            validationMethod: controlRecords.validationMethod,
           })
           .from(controlRecords)
           .leftJoin(roles, eq(controlRecords.responsibleRoleId, roles.id))
           .where(conditions);
-        records = rows.map((r) => ({ ...r, hybridSatisfaction: null }));
+        records = rows.map((r) => ({
+          ...r,
+          hybridSatisfaction: null,
+          technicalStatus: "not_started",
+          policyDocRequired: false,
+          policyStatus: "not_required",
+          policyDocNarrative: null,
+          policyDocLinkedAt: null,
+        }));
       } else {
         throw selectErr;
       }
@@ -185,8 +226,69 @@ export async function GET(req: Request) {
       }
     }
 
+    // ── Register satisfaction per control ──
+    // Build a map: controlId → boolean (true if all required registers have finalized entries)
+    const intelMap = new Map(CONTROL_INTELLIGENCE.map((c) => [c.controlId, c]));
+    const orgRegisters = await db
+      .select({
+        id: governanceRegisters.id,
+        registerKey: governanceRegisters.registerKey,
+        controlIds: governanceRegisters.controlIds,
+      })
+      .from(governanceRegisters)
+      .where(eq(governanceRegisters.organizationId, orgId));
+
+    const orgBoundaries = await db
+      .select({ id: boundaries.id })
+      .from(boundaries)
+      .where(eq(boundaries.organizationId, orgId));
+    const boundaryIds = orgBoundaries.map((b) => b.id);
+
+    // Count finalized entries per register
+    const registerFinalCounts = new Map<string, number>();
+    if (boundaryIds.length > 0) {
+      for (const reg of orgRegisters) {
+        const [row] = await db
+          .select({ cnt: sql<number>`count(*)::int` })
+          .from(governanceRegisterEntries)
+          .where(
+            and(
+              eq(governanceRegisterEntries.registerId, reg.id),
+              eq(governanceRegisterEntries.status, "final"),
+              sql`${governanceRegisterEntries.boundaryId} IN (${sql.join(
+                boundaryIds.map((id) => sql`${id}`),
+                sql`, `
+              )})`
+            )
+          );
+        registerFinalCounts.set(reg.registerKey, row?.cnt ?? 0);
+      }
+    }
+
+    // Build controlId → registerSatisfied map. Register schema ids
+    // (CONTROL_INTELLIGENCE.registerSchemaId) don't always match the
+    // seed-data registerKey that's on governance_registers rows, so go
+    // through the alias-aware helpers.
+    const orgProvisionedRegisterKeys = new Set(orgRegisters.map((r) => r.registerKey));
+    const registerSatisfiedMap = new Map<string, boolean>();
+    for (const [controlId, intel] of intelMap) {
+      if (!intel.registerRequired || !intel.registerSchemaId) {
+        registerSatisfiedMap.set(controlId, true); // no register needed
+        continue;
+      }
+      registerSatisfiedMap.set(
+        controlId,
+        isRegisterLaneSatisfied({
+          registerSchemaId: intel.registerSchemaId,
+          finalEntryCount: finalCountForSchemaId(registerFinalCounts, intel.registerSchemaId),
+          orgProvisioned: isProvisionedForSchemaId(orgProvisionedRegisterKeys, intel.registerSchemaId),
+        })
+      );
+    }
+
     const enriched = withArtifactCount.map((r) => {
       const sources = getSatisfactionSources(r.controlId);
+      const intel = intelMap.get(r.controlId);
       return {
         ...r,
         evidencePartial: partialControlIds.has(r.controlId),
@@ -195,6 +297,10 @@ export async function GET(req: Request) {
         satisfiedByGovernance: sources.governance,
         satisfiedByHybrid: isHybridControl(r.controlId),
         oftenNotApplicable: sources.oftenNotApplicable,
+        registerRequired: intel?.registerRequired ?? false,
+        registerKey: intel?.registerKey ?? null,
+        registerSchemaId: intel?.registerSchemaId ?? null,
+        registerSatisfied: registerSatisfiedMap.get(r.controlId) ?? true,
       };
     });
 

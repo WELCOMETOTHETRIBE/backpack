@@ -54,3 +54,26 @@ textarea:focus-visible {
   outline: var(--focus-ring);
   outline-offset: 2px;
 }
+
+/* ─── Clerk SignIn / SignUp polish ──────────────────────────────────────── */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: #f3f4f6 !important;
+  -webkit-box-shadow: 0 0 0 1000px #0A0A0A inset !important;
+  caret-color: #f3f4f6 !important;
+  transition: background-color 9999s ease-in-out 0s !important;
+}
+/* "Secured by Clerk" branding is hidden via the dashboard toggle (Settings
+   → Branding → Remove Secured by Clerk branding). No CSS hack needed. */
+/* Newer @clerk/nextjs renders an inner .cl-card with its own border on
+   top of our cardBox styling, creating a visible double-border. Force
+   the inner card to be transparent so cardBox owns the visual frame. */
+.cl-card,
+.cl-main {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}

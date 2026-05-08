@@ -3,6 +3,13 @@
  * Used by evidence import to accept report payloads.
  */
 
+/** Normalize validator evidence_hint for UI: strip leading "Hint:" and trim. Use with label "To satisfy this control:". */
+export function displayEvidenceHint(raw: string): string {
+  const t = raw.trim();
+  if (/^Hint:\s*/i.test(t)) return t.replace(/^Hint:\s*/i, "").trim();
+  return t;
+}
+
 export type ValidatorReportCheck = {
   control: string;
   pass: boolean;

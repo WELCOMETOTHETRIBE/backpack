@@ -1,26 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { ALL_CONTROL_IDS, getRequiredUploadArtifactLabels } from "@/lib/artifact-guide";
-import { CONTROL_FAMILIES } from "@/components/governance-wizard/constants";
+import { getRequiredUploadArtifactLabels } from "@/lib/artifact-guide";
+import { getControlIdsForDocument } from "@/lib/governance/governance-document-matrix";
+import { parseGovernanceFilename } from "@/lib/governance/document-naming";
 import { X, ChevronDown, ChevronRight, FileUp } from "lucide-react";
-
-const FAMILY_PREFIX: Record<string, string> = {
-  AC: "3.1",
-  AT: "3.2",
-  AU: "3.3",
-  CM: "3.4",
-  IA: "3.5",
-  IR: "3.6",
-  MA: "3.7",
-  MP: "3.8",
-  PS: "3.9",
-  PE: "3.10",
-  RA: "3.11",
-  CA: "3.12",
-  SC: "3.13",
-  SI: "3.14",
-};
 
 type ControlOption = {
   controlId: string;
@@ -47,11 +31,12 @@ function slug(s: string): string {
 export function GovernanceDocumentUploadModal({
   onClose,
   onSaved,
+  initialArtifactLabel,
 }: {
   onClose: () => void;
-  onSaved: () => void;
+  onSaved: (controlIdsMapped?: string[]) => void;
+  initialArtifactLabel?: string;
 }) {
-  const [activeFamily, setActiveFamily] = useState("AC");
   const [records, setRecords] = useState<{ id: string; controlId: string }[]>([]);
   const [nist, setNist] = useState<NistRow[]>([]);
   const [uploadedLabels, setUploadedLabels] = useState<string[]>([]);
@@ -60,8 +45,13 @@ export function GovernanceDocumentUploadModal({
   const [file, setFile] = useState<File | null>(null);
   const [version, setVersion] = useState("");
   const [approvalDate, setApprovalDate] = useState("");
-  const [artifactLabel, setArtifactLabel] = useState("");
+  const [artifactLabel, setArtifactLabel] = useState(initialArtifactLabel ?? "");
   const [uploading, setUploading] = useState(false);
+  const [mappingInferredFromFilename, setMappingInferredFromFilename] = useState(false);
+
+  useEffect(() => {
+    if (initialArtifactLabel) setArtifactLabel(initialArtifactLabel);
+  }, [initialArtifactLabel]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -88,17 +78,46 @@ export function GovernanceDocumentUploadModal({
 
   const nistByControlId = Object.fromEntries(nist.map((n) => [n.controlId, n]));
   const recordByControlId = Object.fromEntries(records.map((r) => [r.controlId, r]));
+  const recordById = Object.fromEntries(records.map((r) => [r.id, r]));
 
-  const familyControls: ControlOption[] = (() => {
-    const prefix = FAMILY_PREFIX[activeFamily];
-    if (!prefix) return [];
-    const controlIds = ALL_CONTROL_IDS.filter((id) => id.startsWith(prefix + "."));
+  // When file or records change, try to infer mapping from filename
+  useEffect(() => {
+    if (!file?.name || records.length === 0) return;
+    const parsed = parseGovernanceFilename(file.name);
+    if (parsed.controlIds.length > 0) {
+      if (parsed.artifactLabel) setArtifactLabel(parsed.artifactLabel);
+      const ids = parsed.controlIds.map((cid) => recordByControlId[cid]?.id).filter(Boolean) as string[];
+      if (ids.length > 0) {
+        setSelectedRecordIds(new Set(ids));
+        setMappingInferredFromFilename(true);
+      }
+    } else {
+      setMappingInferredFromFilename(false);
+    }
+  }, [file?.name, records]);
+
+  // When artifact label changes, set controls satisfied by this document and pre-select them
+  const labelTrimmed = artifactLabel.trim();
+  useEffect(() => {
+    if (!labelTrimmed || records.length === 0) return;
+    const controlIds = getControlIdsForDocument(labelTrimmed);
+    const ids = controlIds.map((cid) => recordByControlId[cid]?.id).filter(Boolean) as string[];
+    setSelectedRecordIds((prev) => {
+      const next = new Set(ids);
+      if (next.size === 0) return prev;
+      return next;
+    });
+  }, [labelTrimmed, records]);
+
+  /** Controls that this document type satisfies — only these are shown and selectable. */
+  const documentControls: ControlOption[] = (() => {
+    if (!labelTrimmed) return [];
+    const controlIds = getControlIdsForDocument(labelTrimmed);
     const out: ControlOption[] = [];
     for (const controlId of controlIds) {
-      const labels = getRequiredUploadArtifactLabels(controlId);
-      if (labels.length === 0) continue;
       const rec = recordByControlId[controlId];
       if (!rec) continue;
+      const labels = getRequiredUploadArtifactLabels(controlId);
       const n = nistByControlId[controlId];
       const firstLabel = labels[0];
       out.push({
@@ -107,7 +126,7 @@ export function GovernanceDocumentUploadModal({
         title: n?.title ?? null,
         nistDiscussionGuidance: n?.nistDiscussionGuidance ?? null,
         uploadLabels: labels,
-        suggestedName: `${controlId.replace(".", "-")}-${slug(firstLabel)}-v1.pdf`,
+        suggestedName: `${controlId.replace(".", "-")}-${slug(firstLabel ?? "document")}-v1.pdf`,
       });
     }
     return out;
@@ -138,12 +157,14 @@ export function GovernanceDocumentUploadModal({
         body: formData,
       });
       if (res.ok) {
-        onSaved();
+        const controlIdsMapped = [...selectedRecordIds].map((id) => recordById[id]?.controlId).filter(Boolean) as string[];
+        onSaved(controlIdsMapped);
         setFile(null);
         setVersion("");
         setApprovalDate("");
         setArtifactLabel("");
         setSelectedRecordIds(new Set());
+        setMappingInferredFromFilename(false);
       }
     } finally {
       setUploading(false);
@@ -176,31 +197,8 @@ export function GovernanceDocumentUploadModal({
           </button>
         </div>
 
-        {/* Body: sidebar + scrollable content */}
+        {/* Body: scrollable content */}
         <div className="flex min-h-0 flex-1 overflow-hidden">
-          {/* Left: family tabs */}
-          <div
-            className="flex w-16 shrink-0 flex-col border-r border-slate-200 bg-slate-50/80 py-2"
-            aria-label="Control family"
-          >
-            {CONTROL_FAMILIES.map((f) => (
-              <button
-                key={f.code}
-                type="button"
-                onClick={() => setActiveFamily(f.code)}
-                title={f.name}
-                className={`border-l-2 py-2.5 text-center text-sm font-medium transition-colors ${
-                  activeFamily === f.code
-                    ? "border-[#3B82F6] bg-white text-[#3B82F6]"
-                    : "border-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                }`}
-              >
-                {f.code}
-              </button>
-            ))}
-          </div>
-
-          {/* Right: scrollable main content */}
           <div className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden">
             {loading ? (
               <div className="flex items-center justify-center py-16">
@@ -208,8 +206,13 @@ export function GovernanceDocumentUploadModal({
               </div>
             ) : (
               <div className="flex flex-col gap-6 p-6">
+                {mappingInferredFromFilename && (
+                  <p className="rounded-lg border border-[var(--color-blue-accent)]/30 bg-[var(--color-blue-accent)]/5 px-3 py-2 text-sm text-slate-700">
+                    Mapping inferred from filename. You can adjust below.
+                  </p>
+                )}
                 <p className="text-sm text-slate-600">
-                  Select one or more controls to map this document to. Add file and metadata above, then choose controls below.
+                  Enter the document type above; the list below shows the controls this document satisfies and maps to.
                 </p>
 
                 {/* Upload form: compact grid */}
@@ -249,33 +252,46 @@ export function GovernanceDocumentUploadModal({
                       <span className="block text-xs font-medium text-slate-700 mb-1">File</span>
                       <input
                         type="file"
-                        onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                        onChange={(e) => {
+                          const f = e.target.files?.[0] ?? null;
+                          setFile(f);
+                          if (!f) setMappingInferredFromFilename(false);
+                        }}
                         className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-200 file:px-3 file:py-2 file:text-sm file:font-medium file:text-slate-700 hover:file:bg-slate-300"
                       />
                     </label>
                   </div>
                 </section>
 
-                {/* Map to controls */}
+                {/* Controls satisfied by this document — only the list for this document type */}
                 <section>
                   <h3 className="mb-3 text-sm font-semibold text-slate-800">
-                    Map to controls — {CONTROL_FAMILIES.find((f) => f.code === activeFamily)?.name ?? activeFamily}
+                    Controls satisfied by this document
                   </h3>
-                  {familyControls.length === 0 ? (
+                  {!labelTrimmed ? (
                     <p className="rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-6 text-sm text-slate-500">
-                      No controls in this family require upload artifacts.
+                      Enter a document type above (e.g. Access Control Policy) to see which controls this document satisfies and maps to.
+                    </p>
+                  ) : documentControls.length === 0 ? (
+                    <p className="rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-6 text-sm text-slate-500">
+                      No controls require &quot;{labelTrimmed}&quot;. Check the document type or choose another.
                     </p>
                   ) : (
-                    <ul className="space-y-2">
-                      {familyControls.map((opt) => (
-                        <ControlRow
-                          key={opt.controlRecordId}
-                          opt={opt}
-                          selected={selectedRecordIds.has(opt.controlRecordId)}
-                          onToggle={() => toggleRecord(opt.controlRecordId)}
-                        />
-                      ))}
-                    </ul>
+                    <>
+                      <p className="mb-3 text-xs text-slate-500">
+                        This document type satisfies the following controls. All are selected by default; you can deselect if needed.
+                      </p>
+                      <ul className="space-y-2">
+                        {documentControls.map((opt) => (
+                          <ControlRow
+                            key={opt.controlRecordId}
+                            opt={opt}
+                            selected={selectedRecordIds.has(opt.controlRecordId)}
+                            onToggle={() => toggleRecord(opt.controlRecordId)}
+                          />
+                        ))}
+                      </ul>
+                    </>
                   )}
                 </section>
               </div>

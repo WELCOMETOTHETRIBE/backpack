@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Search, LayoutList, LayoutGrid } from "lucide-react";
-import { getSpecForControl, ALL_CONTROL_IDS } from "@/lib/artifact-guide";
+import { Search, LayoutList, LayoutGrid, Layers, Sparkles, ChevronDown, ArrowLeft } from "lucide-react";
+import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { CONTROL_FAMILIES, getControlFamilyPrefix } from "@/components/governance-wizard/constants";
 import { StatusBadge } from "@/components/governance-wizard/StatusBadge";
 import { type SCTMRecord } from "./SCTMFilters";
@@ -11,7 +11,92 @@ import { SCTMControlDetail, type NistRow } from "./SCTMControlDetail";
 import type { SctmOptimizedControl } from "@/lib/sctm-optimized-types";
 import { getOptimizedByControlId } from "@/lib/sctm-optimized-types";
 
-const ADJUDICATED = ["implemented", "assessed", "inherited", "not_applicable"];
+
+/** Get color classes based on implementation percentage — 5-tier spectrum */
+function getPercentageColors(pct: number, isActive: boolean): {
+  bg: string;
+  bgActive: string;
+  border: string;
+  borderActive: string;
+  text: string;
+  textActive: string;
+  icon: string;
+  iconActive: string;
+  progress: string;
+  progressActive: string;
+} {
+  if (pct === 100) {
+    // 100% — muted teal (fully adjudicated)
+    return {
+      bg: "bg-teal-50",
+      bgActive: "bg-teal-700",
+      border: "border-teal-200",
+      borderActive: "border-teal-700",
+      text: "text-teal-700",
+      textActive: "text-white",
+      icon: "bg-teal-100 text-teal-600",
+      iconActive: "bg-white/20",
+      progress: "bg-teal-500",
+      progressActive: "bg-white/70",
+    };
+  } else if (pct >= 67) {
+    // 67-99% — slate blue (strong progress)
+    return {
+      bg: "bg-sky-50",
+      bgActive: "bg-sky-700",
+      border: "border-sky-200",
+      borderActive: "border-sky-700",
+      text: "text-sky-700",
+      textActive: "text-white",
+      icon: "bg-sky-100 text-sky-600",
+      iconActive: "bg-white/20",
+      progress: "bg-sky-500",
+      progressActive: "bg-white/70",
+    };
+  } else if (pct >= 34) {
+    // 34-66% — amber/orange (moderate progress)
+    return {
+      bg: "bg-amber-50",
+      bgActive: "bg-amber-600",
+      border: "border-amber-200",
+      borderActive: "border-amber-600",
+      text: "text-amber-700",
+      textActive: "text-white",
+      icon: "bg-amber-100 text-amber-600",
+      iconActive: "bg-white/20",
+      progress: "bg-amber-500",
+      progressActive: "bg-white/70",
+    };
+  } else if (pct > 0) {
+    // 1-33% — rose (low progress)
+    return {
+      bg: "bg-rose-50",
+      bgActive: "bg-rose-600",
+      border: "border-rose-200",
+      borderActive: "border-rose-600",
+      text: "text-rose-700",
+      textActive: "text-white",
+      icon: "bg-rose-100 text-rose-600",
+      iconActive: "bg-white/20",
+      progress: "bg-rose-500",
+      progressActive: "bg-white/70",
+    };
+  } else {
+    // 0% — gray (not started)
+    return {
+      bg: "bg-gray-50",
+      bgActive: "bg-gray-600",
+      border: "border-gray-200",
+      borderActive: "border-gray-600",
+      text: "text-gray-600",
+      textActive: "text-white",
+      icon: "bg-gray-100 text-gray-500",
+      iconActive: "bg-white/20",
+      progress: "bg-gray-400",
+      progressActive: "bg-white/70",
+    };
+  }
+}
 
 /** Sort control IDs numerically (3.1.1, 3.1.2, … 3.1.9, 3.1.10) instead of lexicographically. */
 function compareControlIds(a: string, b: string): number {
@@ -34,21 +119,37 @@ const FAMILY_CONTROL_COUNTS: Record<string, number> = (() => {
   return counts;
 })();
 
-export function SCTMPage() {
+export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const family = searchParams.get("family");
   const type = (searchParams.get("type") as "all" | "configuration" | "governance" | "partial") || "all";
+  const statusFilter = (searchParams.get("status") as "implemented" | "inherited" | "not_applicable" | "outstanding" | null) ?? null;
   const controlId = searchParams.get("control");
 
   const [records, setRecords] = useState<SCTMRecord[]>([]);
   const [nistList, setNistList] = useState<NistRow[]>([]);
   const [uploadedLabels, setUploadedLabels] = useState<string[]>([]);
   const [optimizedList, setOptimizedList] = useState<SctmOptimizedControl[]>([]);
+  // Server-computed adjudicated set -- the canonical answer from
+  // adjudication-helpers.ts. SCTM used to recompute this client-side with a
+  // local helper that diverged from the dashboard Overview (split count of
+  // 88 vs 70). Now both surfaces read the same number from the same helper.
+  const [adjudicatedSet, setAdjudicatedSet] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+  const [bulkLoading, setBulkLoading] = useState(false);
+  const [bulkResult, setBulkResult] = useState<{ updated: number; total: number } | null>(null);
+  const [familiesOpen, setFamiliesOpen] = useState(true);
+
+  // Auto-collapse families when a control is selected to maximize detail panel space.
+  // User can still manually re-expand.
+  useEffect(() => {
+    if (controlId) setFamiliesOpen(false);
+    else setFamiliesOpen(true);
+  }, [controlId]);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(searchQuery.trim()), 300);
@@ -63,10 +164,11 @@ export function SCTMPage() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [recRes, nistRes, labelsRes, ultimateRes, fallbackRes] = await Promise.all([
+      const [recRes, nistRes, labelsRes, adjRes, ultimateRes, fallbackRes] = await Promise.all([
         fetch("/api/control-records"),
         fetch("/api/controls/nist"),
         fetch("/api/governance-documents/uploaded-labels"),
+        fetch("/api/control-records/adjudicated-ids"),
         fetch("/CMMC_SCTM_Ultimate_Onboarding_Data.json").catch(() => null),
         fetch("/CMMC_SCTM_UI_Optimized.json").catch(() => null),
       ]);
@@ -75,6 +177,10 @@ export function SCTMPage() {
       if (labelsRes.ok) {
         const d = await labelsRes.json().catch(() => ({}));
         setUploadedLabels(d.uploadedLabels ?? []);
+      }
+      if (adjRes.ok) {
+        const d = (await adjRes.json()) as { adjudicatedControlIds?: string[] };
+        setAdjudicatedSet(new Set(d.adjudicatedControlIds ?? []));
       }
       const optArr = ultimateRes?.ok ? await ultimateRes.json() : fallbackRes?.ok ? await fallbackRes.json() : null;
       if (Array.isArray(optArr) && optArr.length > 0) setOptimizedList(optArr);
@@ -98,13 +204,24 @@ export function SCTMPage() {
     if (type !== "all") {
       if (type === "partial") {
         list = list.filter((r) => r.evidencePartial === true);
-      } else {
-        list = list.filter((r) => {
-          const spec = getSpecForControl(r.controlId);
-          if (!spec) return type === "configuration";
-          if (type === "governance") return spec.satisfactionType === "Governance-Centric";
-          return spec.satisfactionType === "Technical-Centric" || spec.satisfactionType === "Hybrid";
-        });
+      } else if (type === "governance") {
+        list = list.filter((r) => r.satisfiedByGovernance === true);
+      } else if (type === "configuration") {
+        list = list.filter(
+          (r) =>
+            r.satisfiedByOs === true || r.satisfiedByCloud === true || r.satisfiedByHybrid === true
+        );
+      }
+    }
+    if (statusFilter) {
+      if (statusFilter === "implemented") {
+        list = list.filter((r) => r.implementationStatus === "implemented" || r.implementationStatus === "assessed");
+      } else if (statusFilter === "inherited") {
+        list = list.filter((r) => r.implementationStatus === "inherited");
+      } else if (statusFilter === "not_applicable") {
+        list = list.filter((r) => r.implementationStatus === "not_applicable");
+      } else if (statusFilter === "outstanding") {
+        list = list.filter((r) => r.implementationStatus === "not_started" || r.implementationStatus === "in_progress");
       }
     }
     const byControlId = new Map<string, SCTMRecord>();
@@ -134,7 +251,7 @@ export function SCTMPage() {
       });
     }
     return result;
-  }, [records, family, type, debouncedSearch, optimizedByControlId, nistByControlId]);
+  }, [records, family, type, statusFilter, debouncedSearch, optimizedByControlId, nistByControlId]);
 
   const selectedRecord = useMemo(
     () => (controlId ? records.find((r) => r.controlId === controlId) ?? null : null),
@@ -142,29 +259,41 @@ export function SCTMPage() {
   );
   const selectedNist = selectedRecord ? nistByControlId[selectedRecord.controlId] : undefined;
 
+  // Adjudicated set comes from /api/control-records/adjudicated-ids, which
+  // applies the canonical isControlAdjudicated() helper from
+  // adjudication-helpers.ts. Same source of truth the dashboard Overview
+  // uses -- previously SCTM had its own inline check that diverged from
+  // the canonical helper, producing the 88-vs-70 split count. Don't
+  // reintroduce a local check here.
+  function isFullyAdjudicated(r: (typeof records)[0]): boolean {
+    return adjudicatedSet.has(r.controlId);
+  }
+
   const familyStats = useMemo(() => {
-    const adjudicatedControlIds = new Set(
-      records.filter((r) => ADJUDICATED.includes(r.implementationStatus)).map((r) => r.controlId)
-    );
     return CONTROL_FAMILIES.map((f) => {
       const total = FAMILY_CONTROL_COUNTS[f.code] ?? 0;
       const inFamilyIds = ALL_CONTROL_IDS.filter((id) => getControlFamilyPrefix(id) === f.controlPrefix);
-      const adj = inFamilyIds.filter((id) => adjudicatedControlIds.has(id)).length;
-      return { code: f.code, plainName: f.plainName, name: f.name, total, adjudicated: adj };
+      const adj = inFamilyIds.filter((id) => adjudicatedSet.has(id)).length;
+      const pct = total ? Math.round((adj / total) * 100) : 0;
+      return { code: f.code, plainName: f.plainName, name: f.name, total, adjudicated: adj, pct, icon: f.icon };
     });
-  }, [records]);
+  }, [adjudicatedSet]);
 
-  const adjudicatedControlIds = useMemo(
-    () => new Set(records.filter((r) => ADJUDICATED.includes(r.implementationStatus)).map((r) => r.controlId)),
-    [records]
-  );
+  const adjudicatedControlIds = adjudicatedSet;
+  // `partialControlIds` is informational metadata (amber badge on the row)
+  // signalling "OS hardening run produced a partial finding here". It does
+  // NOT participate in the headline math — the canonical truth is binary:
+  // a control is either in `adjudicatedSet` (canonical helper says closed
+  // via at least one operational lane) or it's outstanding. Same formula
+  // the dashboard Overview uses; both surfaces now derive from
+  // `/api/control-records/adjudicated-ids` with no local overrides.
   const partialControlIds = useMemo(
     () => new Set(records.filter((r) => r.evidencePartial === true).map((r) => r.controlId)),
     [records]
   );
   const adjudicatedCount = adjudicatedControlIds.size;
   const partialCount = partialControlIds.size;
-  const outstandingCount = Math.max(0, 110 - adjudicatedCount - partialCount);
+  const outstandingCount = Math.max(0, 110 - adjudicatedCount);
 
   function setFamily(code: string | null) {
     const u = new URLSearchParams(searchParams.toString());
@@ -176,6 +305,13 @@ export function SCTMPage() {
   function setType(t: "all" | "configuration" | "governance" | "partial") {
     const u = new URLSearchParams(searchParams.toString());
     u.set("type", t);
+    u.delete("control");
+    router.replace(`/dashboard/controls?${u.toString()}`, { scroll: false });
+  }
+  function setStatus(s: "implemented" | "inherited" | "not_applicable" | "outstanding" | null) {
+    const u = new URLSearchParams(searchParams.toString());
+    if (s) u.set("status", s);
+    else u.delete("status");
     u.delete("control");
     router.replace(`/dashboard/controls?${u.toString()}`, { scroll: false });
   }
@@ -194,45 +330,132 @@ export function SCTMPage() {
     );
   }
 
+  const STATUS_LABELS: Record<string, string> = {
+    implemented: "Implemented / Assessed",
+    inherited: "Inherited",
+    not_applicable: "Not Applicable",
+    outstanding: "Outstanding (not started / in progress)",
+  };
+
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-gradient-to-b from-[var(--color-gray-50)]/30 to-transparent">
-      {/* Header: fixed at top of page (no sticky), compact */}
-      <header className="border-b border-white/20 bg-white/60 backdrop-blur-xl px-3 py-2.5">
-        <div className="flex flex-col gap-2">
-          <div>
-            <p className="text-[10px] font-medium uppercase tracking-widest text-[var(--color-gray-400)] mb-1.5">Control families</p>
-            <div className="flex flex-wrap gap-1.5">
-              {familyStats.map((f) => {
-                const isActive = family === f.code;
-                const pct = f.total ? Math.round((f.adjudicated / f.total) * 100) : 0;
-                return (
-                  <button
-                    key={f.code}
-                    type="button"
-                    onClick={() => setFamily(isActive ? null : f.code)}
-                    title={`${f.name}: ${f.adjudicated}/${f.total}`}
-                    className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-xs font-medium transition-all duration-200 border ${
-                      isActive
-                        ? "bg-[var(--color-primary)]/90 text-white border-white/30 shadow-lg shadow-[var(--color-primary)]/10 backdrop-blur-sm"
-                        : "bg-white/50 text-[var(--color-gray-700)] border-white/40 hover:bg-white/70 hover:border-white/50 backdrop-blur-sm"
-                    }`}
-                  >
-                    <span className="font-mono font-semibold tabular-nums shrink-0">{f.code}</span>
-                    <span className={`whitespace-nowrap ${isActive ? "text-white/95" : "text-[var(--color-gray-600)]"}`}>
-                      {f.name}
+      {/* Active status filter banner */}
+      {statusFilter && (
+        <div className="flex items-center gap-3 border-b border-blue-200 bg-blue-50 px-4 py-2 dark:border-blue-800/40 dark:bg-blue-950/20">
+          <span className="text-xs font-medium text-blue-800 dark:text-blue-300">
+            Filtered: <strong>{STATUS_LABELS[statusFilter]}</strong> — {filteredRecords.length} control{filteredRecords.length !== 1 ? "s" : ""}
+          </span>
+          <button
+            onClick={() => setStatus(null)}
+            className="ml-auto text-xs font-medium text-blue-700 hover:underline dark:text-blue-400"
+          >
+            Clear filter ×
+          </button>
+        </div>
+      )}
+      {/* Header: Compact toolbar + collapsible family cards */}
+      <header className="border-b border-[var(--color-border)]/80 bg-white/80 backdrop-blur-xl shadow-sm shadow-black/[0.02]">
+        <div className="px-4 py-3 flex flex-col gap-3">
+          {/* Control families — collapsible section */}
+          <section>
+            <button
+              type="button"
+              onClick={() => setFamiliesOpen(!familiesOpen)}
+              className="w-full flex items-center gap-2 text-left"
+            >
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+                <Layers className="h-3.5 w-3.5" aria-hidden />
+              </div>
+              <h2 className="text-sm font-semibold tracking-tight text-[var(--color-gray-900)]">Control families</h2>
+              {/* Compact summary when collapsed */}
+              {!familiesOpen && (
+                <div className="flex items-center gap-2 ml-1">
+                  {family ? (
+                    (() => {
+                      const activeFam = familyStats.find((f) => f.code === family);
+                      if (!activeFam) return null;
+                      const colors = getPercentageColors(activeFam.pct, false);
+                      return (
+                        <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium ${colors.bg} ${colors.border} ${colors.text}`}>
+                          {activeFam.code} — {activeFam.name}
+                          <span className="text-[10px] opacity-70">{activeFam.adjudicated}/{activeFam.total}</span>
+                        </span>
+                      );
+                    })()
+                  ) : (
+                    <span className="text-xs text-[var(--color-gray-500)]">
+                      {adjudicatedCount}/110 adjudicated
                     </span>
-                    <span className={`tabular-nums shrink-0 ${isActive ? "text-white/80" : "text-[var(--color-gray-500)]"}`}>
-                      {f.adjudicated}/{f.total}
-                    </span>
-                    {pct > 0 && (
-                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isActive ? "bg-white/60" : "bg-[var(--color-primary)]/50"}`} aria-hidden />
-                    )}
-                  </button>
-                );
-              })}
+                  )}
+                </div>
+              )}
+              <ChevronDown className={`ml-auto h-4 w-4 text-[var(--color-gray-400)] transition-transform ${familiesOpen ? "rotate-180" : ""}`} />
+            </button>
+            {/* Expandable family cards grid */}
+            <div className={`grid transition-[grid-template-rows] duration-200 ${familiesOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+              <div className="overflow-hidden">
+                <div className="pt-3 space-y-2">
+                  {/* Legend */}
+                  <div className="flex flex-wrap items-center gap-3 text-[10px] text-[var(--color-gray-500)]">
+                    <div className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-gray-400" /><span>0%</span></div>
+                    <div className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-rose-500" /><span>1-33%</span></div>
+                    <div className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-amber-500" /><span>34-66%</span></div>
+                    <div className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-sky-500" /><span>67-99%</span></div>
+                    <div className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-teal-500" /><span>100%</span></div>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-2">
+                    {familyStats.map((f) => {
+                      const isActive = family === f.code;
+                      const Icon = f.icon;
+                      const colors = getPercentageColors(f.pct, isActive);
+                      return (
+                        <button
+                          key={f.code}
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); setFamily(isActive ? null : f.code); }}
+                          title={`${f.name}: ${f.adjudicated}/${f.total} adjudicated (${f.pct}%)`}
+                          className={`group relative flex min-h-[72px] flex-col items-start rounded-xl border px-3 py-2.5 text-left transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2 ${
+                            isActive
+                              ? `${colors.bgActive} ${colors.borderActive} text-white shadow-md`
+                              : `${colors.bg} ${colors.border} hover:shadow-md hover:shadow-black/[0.04]`
+                          }`}
+                        >
+                          <div className="flex w-full items-center gap-2">
+                            <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md transition-colors ${isActive ? colors.iconActive : colors.icon}`}>
+                              <Icon className="h-3.5 w-3.5" aria-hidden />
+                            </div>
+                            <span className={`font-mono text-xs font-bold tabular-nums truncate ${isActive ? colors.textActive : colors.text}`}>{f.code}</span>
+                          </div>
+                          <span className={`mt-1 line-clamp-2 text-[11px] leading-tight ${isActive ? "text-white/95" : colors.text}`}>
+                            {f.name}
+                          </span>
+                          <div className="mt-2 w-full space-y-1">
+                            <div className="flex justify-between text-[10px] tabular-nums">
+                              <span className={isActive ? "text-white/80" : "text-[var(--color-gray-500)]"}>
+                                {f.adjudicated}/{f.total}
+                              </span>
+                              {f.total > 0 && (
+                                <span className={isActive ? "text-white/70" : "text-[var(--color-gray-400)]"}>{f.pct}%</span>
+                              )}
+                            </div>
+                            <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/10">
+                              <div
+                                className={`h-full rounded-full transition-all duration-300 ${isActive ? colors.progressActive : colors.progress}`}
+                                style={{ width: `${Math.min(100, f.pct)}%` }}
+                                aria-hidden
+                              />
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
+          </section>
+          {/* Stats + filters row */}
+          <div className="flex flex-wrap items-center gap-3 border-t border-[var(--color-border)]/60 pt-3">
             <span className="text-xs text-[var(--color-gray-500)]">
               <strong className="text-[var(--color-gray-800)]">{adjudicatedCount}</strong> adjudicated
               {partialCount > 0 && (
@@ -244,6 +467,39 @@ export function SCTMPage() {
               <span className="mx-1.5 text-[var(--color-gray-300)]">·</span>
               <strong className="text-[var(--color-gray-800)]">{outstandingCount}</strong> outstanding
             </span>
+            <div className="h-3 w-px bg-[var(--color-border)]/60" aria-hidden />
+            {/* Bulk load vault narratives */}
+            {userRole !== "Assessor" && outstandingCount > 0 && (
+              <button
+                type="button"
+                disabled={bulkLoading}
+                onClick={async () => {
+                  setBulkLoading(true);
+                  setBulkResult(null);
+                  try {
+                    const res = await fetch("/api/control-records/bulk-load-vault", { method: "POST" });
+                    if (res.ok) {
+                      const data = await res.json();
+                      setBulkResult(data);
+                      // Refresh control records
+                      const rr = await fetch("/api/control-records");
+                      if (rr.ok) { const d = await rr.json(); setRecords(d); }
+                    }
+                  } finally {
+                    setBulkLoading(false);
+                  }
+                }}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-100 disabled:opacity-60 transition-colors"
+              >
+                <Sparkles className="h-3 w-3" />
+                {bulkLoading ? "Loading…" : "Load Vault narratives"}
+              </button>
+            )}
+            {bulkResult && (
+              <span className="text-xs text-teal-700 font-medium">
+                ✓ {bulkResult.updated} narratives loaded
+              </span>
+            )}
             <div className="h-3 w-px bg-[var(--color-border)]/60" aria-hidden />
             <div className="flex items-center gap-1">
               {(["all", "configuration", "governance", "partial"] as const).map((t) => (
@@ -258,6 +514,18 @@ export function SCTMPage() {
                   {t === "all" ? "All" : t === "configuration" ? "Configuration" : t === "governance" ? "Governance" : "Partial"}
                 </button>
               ))}
+            </div>
+            {/* Search input */}
+            <div className="relative ml-auto">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--color-gray-400)]" aria-hidden />
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search controls…"
+                className="w-56 rounded-lg border border-[var(--color-border)] bg-white py-1.5 pl-8 pr-2.5 text-xs text-[var(--color-gray-900)] placeholder:text-[var(--color-gray-400)] focus:border-[var(--color-blue-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--color-blue-accent)]/20"
+                aria-label="Search controls"
+              />
             </div>
             <div className="flex items-center gap-0.5">
               <button
@@ -283,118 +551,263 @@ export function SCTMPage() {
         </div>
       </header>
 
-      <div className="flex min-h-0 flex-1 min-w-0">
-        {/* Left: narrow control list — minimal width, compact cards */}
-        <aside className="w-[13rem] shrink-0 flex flex-col border-r border-white/20 bg-white/40 backdrop-blur-md">
-          <div className="px-2 py-1.5 border-b border-white/30">
-            <div className="relative">
-              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-[var(--color-gray-400)]" aria-hidden />
-              <input
-                type="search"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search…"
-                className="w-full rounded-lg border border-white/50 bg-white/60 py-1 pl-7 pr-2 text-xs text-[var(--color-gray-900)] placeholder:text-[var(--color-gray-400)] focus:border-[var(--color-blue-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--color-blue-accent)]/20 backdrop-blur-sm"
-                aria-label="Search controls"
-              />
-            </div>
-          </div>
-          <div className="px-2 py-1 border-b border-white/30 flex items-baseline justify-between gap-1">
-            <h2 className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-gray-500)]">Controls</h2>
-            <span className="text-[10px] text-[var(--color-gray-500)] tabular-nums">{family ? filteredRecords.length : "—"}</span>
-          </div>
-          {!family && type !== "partial" ? (
-            <div className="flex-1 flex items-center justify-center px-3 py-6 text-center">
-              <p className="text-xs text-[var(--color-gray-500)] leading-snug">Select a control family above to view controls.</p>
-            </div>
-          ) : (
-          <ul
-            className={`flex-1 overflow-y-auto overscroll-contain px-1.5 py-1 ${viewMode === "grid" ? "grid grid-cols-1 gap-1" : "space-y-1"}`}
-            role="list"
-          >
-            {filteredRecords.map((r) => {
-              const opt = optimizedByControlId[r.controlId];
-              const nist = nistByControlId[r.controlId];
-              const title = opt?.title ?? nist?.title ?? r.controlId;
-              const description = opt?.summary ?? nist?.nistExactText?.replace(/\s+/g, " ").trim().slice(0, 120);
-              const isSelected = r.controlId === controlId;
-              return (
-                <li key={r.controlId} className={viewMode === "grid" ? "min-w-0" : undefined}>
-                  <button
-                    type="button"
-                    onClick={() => setControl(isSelected ? null : r.controlId)}
-                    className={`w-full text-left rounded-lg border transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-1 ${
-                      viewMode === "grid" ? "p-1.5" : "px-2 py-1.5"
-                    } ${
-                      isSelected
-                        ? "bg-white/90 border-[var(--color-primary)]/40 shadow ring-1 ring-[var(--color-primary)]/20 backdrop-blur-sm"
-                        : "bg-white/50 border-white/40 hover:bg-white/70 backdrop-blur-sm"
-                    }`}
-                  >
-                    <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
-                      <span className="font-mono text-xs font-semibold text-[var(--color-navy-primary)] shrink-0">{r.controlId}</span>
-                      {r.evidencePartial ? (
-                        <>
-                          <StatusBadge status="in_progress" />
-                          <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-800" title="Technical evidence passed; accompanying gov docs, logs, or records required.">
-                            Partial
-                          </span>
-                        </>
-                      ) : (
-                        <StatusBadge status={r.implementationStatus} />
-                      )}
-                      {r.satisfiedByHybrid ? (
-                        <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-teal-100 text-teal-800" title="OS evidence + gov docs, or policy + technical (hybrid).">
-                          Hybrid
-                        </span>
-                      ) : (
-                        <>
-                          {r.satisfiedByOs && (
-                            <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-slate-100 text-slate-700" title="Met by OS configuration (73 enclave controls).">
-                              OS
-                            </span>
-                          )}
-                          {r.satisfiedByCloud && (
-                            <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-sky-100 text-sky-800" title="Met by cloud (5 inherited + 7 Azure/Entra).">
-                              Cloud
-                            </span>
-                          )}
-                          {r.satisfiedByGovernance && (
-                            <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-violet-100 text-violet-800" title="Met by governance (18 policy/documentation).">
-                              Governance
-                            </span>
-                          )}
-                        </>
-                      )}
-                    </div>
-                    <p className="mt-0.5 font-medium text-[var(--color-gray-900)] leading-tight line-clamp-2 text-xs min-w-0">
-                      {title}
-                    </p>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-          )}
-        </aside>
-
-        {/* Detail — wide content area, minimal outer margin */}
-        <main className="min-w-0 flex-1 overflow-y-auto px-3 py-3">
-          {selectedRecord ? (
+      {/* Master-detail: control grid (default) OR detail panel (when control selected) */}
+      <main className="min-w-0 flex-1 overflow-y-auto">
+        {selectedRecord ? (
+          <div className="mx-auto max-w-5xl w-full px-5 py-4">
+            {/* Back button */}
+            <button
+              type="button"
+              onClick={() => setControl(null)}
+              className="mb-4 inline-flex items-center gap-1.5 text-xs font-medium text-[var(--color-gray-600)] hover:text-[var(--color-gray-900)] transition-colors"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              Back to controls
+              {family && (
+                <span className="text-[var(--color-gray-400)]">
+                  · {CONTROL_FAMILIES.find((f) => f.code === family)?.name}
+                </span>
+              )}
+            </button>
             <SCTMControlDetail
               record={selectedRecord}
               nist={selectedNist}
               sctmOptimized={optimizedByControlId[selectedRecord.controlId] ?? undefined}
               orgUploadedLabels={uploadedLabels}
               onSaved={fetchData}
+              userRole={userRole}
             />
-          ) : (
-            <div className="flex flex-col items-center justify-center min-h-[200px] text-center">
-              <p className="text-sm text-[var(--color-gray-500)]">Select a control to view the requirement, assessment guide, evidence, and adjudication.</p>
+          </div>
+        ) : (
+          <div className="px-5 py-4">
+            {/* Grid context header */}
+            <div className="mb-3 flex items-baseline justify-between">
+              <div>
+                <h2 className="text-sm font-semibold text-[var(--color-gray-900)]">
+                  {family
+                    ? `${CONTROL_FAMILIES.find((f) => f.code === family)?.name ?? family} · ${filteredRecords.length} control${filteredRecords.length !== 1 ? "s" : ""}`
+                    : statusFilter
+                    ? `${STATUS_LABELS[statusFilter]} · ${filteredRecords.length} control${filteredRecords.length !== 1 ? "s" : ""}`
+                    : `All controls · ${filteredRecords.length} of 110`}
+                </h2>
+                <p className="text-xs text-[var(--color-gray-500)] mt-0.5">Click a control to adjudicate.</p>
+              </div>
+              {(family || statusFilter || type !== "all" || debouncedSearch) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFamily(null);
+                    setStatus(null);
+                    setType("all");
+                    setSearchQuery("");
+                  }}
+                  className="text-xs text-[var(--color-gray-500)] hover:text-[var(--color-gray-900)] hover:underline"
+                >
+                  Clear all filters
+                </button>
+              )}
             </div>
-          )}
-        </main>
-      </div>
+
+            {filteredRecords.length === 0 ? (
+              <div className="flex items-center justify-center py-12 text-center">
+                <div>
+                  <p className="text-sm text-[var(--color-gray-600)]">No controls match the current filters.</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFamily(null);
+                      setStatus(null);
+                      setType("all");
+                      setSearchQuery("");
+                    }}
+                    className="mt-2 text-xs text-[var(--color-blue-accent)] hover:underline"
+                  >
+                    Clear filters
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <ul
+                className={
+                  viewMode === "grid"
+                    ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2"
+                    : "divide-y divide-[var(--color-border)] rounded-xl border border-[var(--color-border)] bg-white overflow-hidden"
+                }
+                role="list"
+              >
+                {filteredRecords.map((r) => {
+                  const opt = optimizedByControlId[r.controlId];
+                  const nist = nistByControlId[r.controlId];
+                  const title = opt?.title ?? nist?.title ?? r.controlId;
+                  const summary = opt?.summary ?? "";
+                  const family = r.controlId.startsWith("3.1") ? "AC"
+                    : r.controlId.startsWith("3.2") ? "AT"
+                    : r.controlId.startsWith("3.3") ? "AU"
+                    : r.controlId.startsWith("3.4") ? "CM"
+                    : r.controlId.startsWith("3.5") ? "IA"
+                    : r.controlId.startsWith("3.6") ? "IR"
+                    : r.controlId.startsWith("3.7") ? "MA"
+                    : r.controlId.startsWith("3.8") ? "MP"
+                    : r.controlId.startsWith("3.9") ? "PS"
+                    : r.controlId.startsWith("3.10") ? "PE"
+                    : r.controlId.startsWith("3.11") ? "RA"
+                    : r.controlId.startsWith("3.12") ? "CA"
+                    : r.controlId.startsWith("3.13") ? "SC"
+                    : r.controlId.startsWith("3.14") ? "SI"
+                    : "—";
+                  const validatedDays = r.lastValidationDate
+                    ? Math.floor(
+                        (Date.now() - new Date(r.lastValidationDate).getTime()) /
+                          (1000 * 60 * 60 * 24),
+                      )
+                    : null;
+                  const validatedLabel = validatedDays === null
+                    ? null
+                    : validatedDays === 0
+                      ? "today"
+                      : validatedDays === 1
+                        ? "yesterday"
+                        : validatedDays < 30
+                          ? `${validatedDays}d ago`
+                          : validatedDays < 365
+                            ? `${Math.floor(validatedDays / 30)}mo ago`
+                            : `${Math.floor(validatedDays / 365)}y ago`;
+                  return (
+                    <li key={r.controlId}>
+                      <button
+                        type="button"
+                        onClick={() => setControl(r.controlId)}
+                        className={
+                          viewMode === "grid"
+                            ? "w-full text-left rounded-xl border border-[var(--color-border)] bg-white px-3 py-2.5 hover:border-[var(--color-primary)]/40 hover:shadow-md hover:shadow-black/[0.04] transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue-accent)] focus-visible:ring-offset-2"
+                            : "group w-full text-left px-4 py-3 hover:bg-[var(--color-gray-50)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--color-blue-accent)]"
+                        }
+                      >
+                        {viewMode === "grid" ? (
+                          // Grid card: vertical stack (unchanged)
+                          <>
+                            <div className="flex items-center gap-2 min-w-0 flex-wrap mb-1">
+                              <span className="font-mono text-sm font-bold text-[var(--color-navy-primary)] shrink-0">
+                                {r.controlId}
+                              </span>
+                              {r.evidencePartial ? (
+                                <>
+                                  <StatusBadge status="in_progress" />
+                                  <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-800">Partial</span>
+                                </>
+                              ) : (
+                                <StatusBadge status={r.implementationStatus} />
+                              )}
+                              {r.satisfiedByHybrid ? (
+                                <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-teal-100 text-teal-800">H</span>
+                              ) : (
+                                <>
+                                  {r.satisfiedByOs && <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-slate-100 text-slate-700">OS</span>}
+                                  {r.satisfiedByCloud && <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-sky-100 text-sky-800">CL</span>}
+                                  {r.satisfiedByGovernance && <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-violet-100 text-violet-800">GV</span>}
+                                </>
+                              )}
+                              {r.registerRequired && (
+                                <span
+                                  title={r.registerSatisfied ? "Register requirement satisfied" : "Register requirement missing"}
+                                  className={`inline-flex items-center whitespace-nowrap shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${r.registerSatisfied ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}
+                                >
+                                  {r.registerSatisfied ? "Reg ✓" : "Reg Missing"}
+                                </span>
+                              )}
+                            </div>
+                            <p className="font-medium text-[var(--color-gray-900)] leading-snug text-[13px] line-clamp-2">{title}</p>
+                            {summary && (
+                              <p className="mt-1 text-[11px] text-[var(--color-gray-500)] line-clamp-2 leading-snug">{summary}</p>
+                            )}
+                          </>
+                        ) : (
+                          // List row: horizontal flex with three regions so the
+                          // full screen width earns its keep -- ID/badges left,
+                          // title + summary middle (grows), meta right.
+                          <div className="flex items-start gap-4 min-w-0">
+                            {/* Left: ID + family + status pills */}
+                            <div className="flex flex-col gap-1 shrink-0 min-w-[140px]">
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-mono text-sm font-bold text-[var(--color-navy-primary)]">{r.controlId}</span>
+                                <span className="inline-flex items-center rounded bg-[var(--color-gray-100)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--color-gray-600)]">
+                                  {family}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1 flex-wrap">
+                                {r.evidencePartial ? (
+                                  <>
+                                    <StatusBadge status="in_progress" />
+                                    <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-800">Partial</span>
+                                  </>
+                                ) : (
+                                  <StatusBadge status={r.implementationStatus} />
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Middle: title + summary (grows) */}
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-[var(--color-gray-900)] leading-snug text-[13px] truncate">
+                                {title}
+                              </p>
+                              {summary && (
+                                <p className="mt-0.5 text-[11px] text-[var(--color-gray-500)] line-clamp-1 leading-snug">
+                                  {summary}
+                                </p>
+                              )}
+                            </div>
+
+                            {/* Right: source + register + meta */}
+                            <div className="flex flex-col items-end gap-1 shrink-0 hidden md:flex">
+                              <div className="flex items-center gap-1">
+                                {r.satisfiedByHybrid ? (
+                                  <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-teal-100 text-teal-800">Hybrid</span>
+                                ) : (
+                                  <>
+                                    {r.satisfiedByOs && <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-slate-100 text-slate-700">OS</span>}
+                                    {r.satisfiedByCloud && <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-sky-100 text-sky-800">Cloud</span>}
+                                    {r.satisfiedByGovernance && <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-violet-100 text-violet-800">Gov</span>}
+                                  </>
+                                )}
+                                {r.registerRequired && (
+                                  <span
+                                    title={r.registerSatisfied ? "Register requirement satisfied" : "Register requirement missing"}
+                                    className={`inline-flex items-center whitespace-nowrap rounded px-1.5 py-0.5 text-[10px] font-medium ${r.registerSatisfied ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}
+                                  >
+                                    {r.registerSatisfied ? "Reg ✓" : "Reg !"}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 text-[11px] text-[var(--color-gray-500)]">
+                                {r.artifactCount > 0 && (
+                                  <span title="Artifacts attached to this control">
+                                    {r.artifactCount} artifact{r.artifactCount === 1 ? "" : "s"}
+                                  </span>
+                                )}
+                                {r.roleName && (
+                                  <span className="truncate max-w-[140px]" title={`Responsible: ${r.roleName}`}>
+                                    {r.roleName}
+                                  </span>
+                                )}
+                                {validatedLabel && (
+                                  <span title={`Last validated ${new Date(r.lastValidationDate!).toLocaleDateString()}`}>
+                                    validated {validatedLabel}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        )}
+      </main>
     </div>
   );
 }

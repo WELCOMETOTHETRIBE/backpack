@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "1.0.0",
+  "last_updated": "2026-05-05",
+  "source_repo": "https://github.com/mactech/cui-pilot-control-plane",
+  "source_path": "src/lib/governance/seed-data.ts (PURE_GOV_CONTROL_IDS)",
+  "description": "Authoritative list of pure-governance CMMC L2 / NIST 800-171 R2 controls — controls satisfied PRIMARILY by policy / procedure documents (not by OS configuration, cloud inheritance, or technical implementation). Codex's adjudication engine treats these as the doc-driven set; QMS's CMMC tagging admin UI uses this list to populate the per-control picker. Historical name 'Governance-18' is legacy — actual count is 17 (3.4.3 reclassified to hybrid).",
+  "count": 17,
+  "controls": [
+    { "controlId": "3.1.4",  "family": "AC", "title": "Separation of Duties" },
+    { "controlId": "3.2.1",  "family": "AT", "title": "Security Awareness Training" },
+    { "controlId": "3.2.2",  "family": "AT", "title": "Insider Threat Awareness" },
+    { "controlId": "3.2.3",  "family": "AT", "title": "Insider Threat Training (Authorized)" },
+    { "controlId": "3.3.3",  "family": "AU", "title": "Audit Reduction & Report Generation" },
+    { "controlId": "3.4.4",  "family": "CM", "title": "Security Impact of Vendor Changes" },
+    { "controlId": "3.6.1",  "family": "IR", "title": "Incident Response Capability" },
+    { "controlId": "3.6.2",  "family": "IR", "title": "Incident Reporting" },
+    { "controlId": "3.6.3",  "family": "IR", "title": "Incident Response Testing" },
+    { "controlId": "3.7.6",  "family": "MA", "title": "Maintenance Personnel" },
+    { "controlId": "3.9.1",  "family": "PS", "title": "Personnel Screening" },
+    { "controlId": "3.9.2",  "family": "PS", "title": "Personnel Termination" },
+    { "controlId": "3.11.1", "family": "RA", "title": "Risk Assessment" },
+    { "controlId": "3.12.1", "family": "CA", "title": "Security Assessment" },
+    { "controlId": "3.12.2", "family": "CA", "title": "POA&M Management" },
+    { "controlId": "3.12.3", "family": "CA", "title": "Continuous Monitoring" },
+    { "controlId": "3.12.4", "family": "CA", "title": "System Security Plan" }
+  ],
+  "consumer_notes": {
+    "qms": "Vendor a copy at server/src/lib/cmmc/governanceControls.json (or .ts re-export) with a `// SOURCE: codex repo @ <commit-sha> / governance-18-controls.json` header. Bumped via PR when codex publishes a new version.",
+    "drift_policy": "Codex side is authoritative. When the list changes (Rev 3 ships, control reclassified, etc.), codex bumps this JSON's version + last_updated, opens an issue against QMS to pull the new copy.",
+    "out_of_scope": "Hybrid-governance controls (3.4.3 + 16 others) are NOT in this list — they require BOTH OS evidence AND governance docs, and codex adjudicates them via a separate path. QMS does not need to track them in the CMMC tagging admin UI for v1."
+  }
+}

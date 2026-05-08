@@ -1,7 +1,21 @@
 /**
- * When a boundary uses Microsoft or Azure (Government or Commercial), the org
- * inherits controls 3.10.1–3.10.5 from the platform. This module applies or
- * clears that inherited status on control records.
+ * Strict-inherited 3.10 controls — the four physical-protection controls that
+ * Microsoft Azure handles 100% under FedRAMP High with no customer attestation
+ * needed.
+ *
+ * 3.10.3 (Visitor Records) and 3.10.6 (Alternate Work Sites) are deliberately
+ * NOT in this list — they're customer-attested-inherited. The customer must
+ * sign an attestation that the conditions hold (no on-site visitors with CUI
+ * access; no uncontrolled telework). See `CUSTOMER_ATTESTED_INHERITED` in
+ * src/lib/compliance/outstanding-controls.ts and the corresponding
+ * attestation templates (`attest_no_onsite_cui_visitors`,
+ * `attest_no_alternate_work_sites`). Until the customer signs, those two
+ * stay PARTIAL — the auto-sync below cannot grant them inherited status.
+ *
+ * Reconciled 2026-05-01: 3.10.3 was previously dual-classified (in this list
+ * AND in CUSTOMER_ATTESTED_INHERITED), causing the auto-sync to flip it to
+ * inherited before the customer ever signed the attestation. C3PAO concern:
+ * claim happened before proof. Fixed by removing 3.10.3 from this list.
  */
 import { db } from "@/db";
 import { controlRecords, boundaries } from "@/db/schema";
@@ -10,17 +24,15 @@ import { eq, and, inArray } from "drizzle-orm";
 export const AZURE_INHERITED_3_10_CONTROL_IDS = [
   "3.10.1",
   "3.10.2",
-  "3.10.3",
   "3.10.4",
   "3.10.5",
 ] as const;
 
-/** Display list for the Cloud hosting card (control ID + title). */
+/** Display list for the Cloud hosting card — strict-inherited only. */
 export const AZURE_INHERITED_3_10_BASELINE: { controlId: string; title: string }[] = [
   { controlId: "3.10.1", title: "Physical Access Authorizations" },
   { controlId: "3.10.2", title: "Physical Access Control" },
-  { controlId: "3.10.3", title: "Escort of Visitors / Visitor Access Records" },
-  { controlId: "3.10.4", title: "Visitor Physical Access" },
+  { controlId: "3.10.4", title: "Physical Access Logs" },
   { controlId: "3.10.5", title: "Physical Access Monitoring" },
 ];
 

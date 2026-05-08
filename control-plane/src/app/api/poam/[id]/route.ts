@@ -104,7 +104,7 @@ export async function PATCH(
     const [updated] = await db
       .update(poamItems)
       .set({ ...allowed, updatedAt: new Date() } as Record<string, unknown>)
-      .where(eq(poamItems.id, id))
+      .where(and(eq(poamItems.id, id), eq(poamItems.organizationId, orgId)))
       .returning();
 
     await writeAuditLog({

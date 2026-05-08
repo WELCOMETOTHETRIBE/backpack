@@ -33,9 +33,12 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
-# vercel
-.vercel
-
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# CUI evidence collection outputs (runtime data — vault-side only)
+MacTech_CUI_Enclave_Governance_Bundle_*/
+
+# Agent worktree state
+.claude/
