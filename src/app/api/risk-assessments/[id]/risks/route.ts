@@ -43,6 +43,33 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  // TEMPORARY debug wrapper — surfaces unhandled exceptions as JSON
+  // so opaque 500s during the TrainOS smoke test become diagnosable.
+  // Remove once the route is stable.
+  try {
+    return await handlePost(req, { params });
+  } catch (err) {
+    const detail =
+      err instanceof Error
+        ? {
+            name: err.name,
+            message: err.message,
+            stack: err.stack?.split("\n").slice(0, 12),
+          }
+        : { raw: String(err) };
+    // eslint-disable-next-line no-console
+    console.error("[risks route] uncaught error", detail);
+    return NextResponse.json(
+      { error: "risks_route_uncaught", detail },
+      { status: 500 },
+    );
+  }
+}
+
+async function handlePost(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
   const { id } = await params;
   const rawBody = await req.text();
   let auth: Awaited<ReturnType<typeof authorizeRiskRequest>>;
