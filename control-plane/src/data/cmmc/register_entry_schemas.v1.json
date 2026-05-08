@@ -1,0 +1,3101 @@
+{
+  "schema": "mactech.cmmc.register-entry-schemas.v1",
+  "version": "1.0.0",
+  "registerSchemas": [
+    {
+      "register_id": "access_authorization",
+      "description": "Operational record of who is authorized for access and when approvals/revocations occur.",
+      "default_cadence_days": 90,
+      "entry_types": [
+        {
+          "type": "grant_access",
+          "short_help": "Document approval to grant access to an in-scope system/resource.",
+          "required": [
+            "subject_user",
+            "system",
+            "requested_role",
+            "approver",
+            "approved_at",
+            "justification"
+          ],
+          "optional": [
+            "expires_at",
+            "request_ticket",
+            "requestor",
+            "access_method",
+            "notes"
+          ],
+          "enums": {
+            "requested_role": [
+              "viewer",
+              "standard_user",
+              "privileged_admin",
+              "auditor",
+              "custom"
+            ],
+            "access_method": [
+              "entra_id",
+              "local_account",
+              "vpn",
+              "bastion",
+              "application"
+            ]
+          },
+          "recommended_attachments": [
+            "ticket_link",
+            "approval_record",
+            "iam_export_or_screenshot"
+          ]
+        },
+        {
+          "type": "modify_access",
+          "short_help": "Document approved privilege/role change for an existing user.",
+          "required": [
+            "subject_user",
+            "system",
+            "change_summary",
+            "approver",
+            "approved_at",
+            "justification"
+          ],
+          "optional": [
+            "request_ticket",
+            "previous_role",
+            "new_role",
+            "expires_at",
+            "notes"
+          ],
+          "enums": {
+            "previous_role": [
+              "viewer",
+              "standard_user",
+              "privileged_admin",
+              "auditor",
+              "custom"
+            ],
+            "new_role": [
+              "viewer",
+              "standard_user",
+              "privileged_admin",
+              "auditor",
+              "custom"
+            ]
+          },
+          "recommended_attachments": [
+            "ticket_link",
+            "approval_record",
+            "iam_diff_or_screenshot"
+          ]
+        },
+        {
+          "type": "remove_access",
+          "short_help": "Document removal of access for least privilege / offboarding / review.",
+          "required": [
+            "subject_user",
+            "system",
+            "removed_at",
+            "removed_by",
+            "reason"
+          ],
+          "optional": [
+            "request_ticket",
+            "notes"
+          ],
+          "enums": {
+            "reason": [
+              "termination",
+              "role_change",
+              "access_review",
+              "contract_end",
+              "security_incident",
+              "other"
+            ]
+          },
+          "recommended_attachments": [
+            "ticket_link",
+            "iam_export_or_screenshot"
+          ]
+        },
+        {
+          "type": "access_review",
+          "short_help": "Periodic access review (e.g., quarterly) with findings and actions.",
+          "required": [
+            "system",
+            "review_period_start",
+            "review_period_end",
+            "reviewer",
+            "reviewed_at",
+            "findings"
+          ],
+          "optional": [
+            "actions_taken",
+            "review_ticket",
+            "notes"
+          ],
+          "enums": {},
+          "recommended_attachments": [
+            "access_list_export",
+            "signoff"
+          ]
+        },
+        {
+          "type": "weekly_review_finding",
+          "short_help": "ISSO-flagged anomaly during weekly review of access authorizations (dormant account, unjustified grant, missing approval, etc.).",
+          "required": [
+            "subject_user",
+            "finding_type",
+            "severity",
+            "recommended_action",
+            "observed_at",
+            "observed_by"
+          ],
+          "optional": [
+            "notes",
+            "ticket",
+            "manifest_id",
+            "vault_id"
+          ],
+          "enums": {
+            "finding_type": [
+              "dormant_account",
+              "unjustified_grant",
+              "missing_approval",
+              "stale_role",
+              "unauthorized_change",
+              "other"
+            ],
+            "severity": [
+              "critical",
+              "high",
+              "medium",
+              "low",
+              "informational"
+            ]
+          },
+          "recommended_attachments": [
+            "evidence_screenshot",
+            "ticket_link"
+          ]
+        },
+        {
+          "type": "privileged_grant_acknowledgment",
+          "short_help": "Auto-detected privileged role grant (Owner / Contributor / User Access Administrator) awaiting admin justification. Pattern A — admin justifies within 72h with intended business purpose, expected duration, and sunset plan, or the alert escalates to ISSO. Cross-references the underlying grant_access entry via evidence_refs[].",
+          "required": [
+            "actor_user",
+            "actor_user_id",
+            "event_type",
+            "event_classification",
+            "detected_at",
+            "occurred_at",
+            "signed_at",
+            "system",
+            "scope_arm",
+            "vault_id",
+            "boundary_id",
+            "business_justification",
+            "detection_method",
+            "outcome",
+            "actions_taken",
+            "evidence_refs",
+            "lifecycle_state",
+            "provenance"
+          ],
+          "required_at_finalize": [
+            "actor_user",
+            "actor_user_id",
+            "event_type",
+            "event_classification",
+            "detected_at",
+            "occurred_at",
+            "signed_at",
+            "system",
+            "scope_arm",
+            "vault_id",
+            "boundary_id",
+            "business_justification",
+            "detection_method",
+            "outcome",
+            "actions_taken",
+            "evidence_refs",
+            "lifecycle_state",
+            "provenance"
+          ],
+          "required_at_isso_verified": [
+            "verified_by",
+            "verified_at",
+            "verification_note"
+          ],
+          "optional": [
+            "expected_duration_days",
+            "sunset_plan",
+            "ticket_url",
+            "notes",
+            "detection_source",
+            "azure_role_name",
+            "azure_role_id",
+            "principal_id",
+            "principal_type",
+            "actor_id",
+            "actor_type",
+            "raw_correlation_id",
+            "alert_id",
+            "manifest_id",
+            "isso_outcome",
+            "isso_note",
+            "verified_by",
+            "verified_at",
+            "verification_note",
+            "dispute_filed",
+            "dispute_status",
+            "escalated_at",
+            "related_grant_entry_id"
+          ],
+          "enums": {
+            "event_type": [
+              "role_grant",
+              "role_modify",
+              "role_extend"
+            ],
+            "event_classification": [
+              "privileged_admin",
+              "privileged_security",
+              "privileged_billing"
+            ],
+            "detection_method": [
+              "azure_activity_log",
+              "manual_attestation"
+            ],
+            "outcome": [
+              "approved",
+              "approved_with_conditions",
+              "rolled_back",
+              "investigating"
+            ],
+            "lifecycle_state": [
+              "draft",
+              "admin_signed",
+              "isso_verified",
+              "escalated",
+              "disputed",
+              "resolved",
+              "void",
+              "auto_recorded",
+              "auto_recorded_legacy"
+            ],
+            "isso_outcome": [
+              "verified_timely",
+              "overdue_escalated",
+              "dispute_pending"
+            ]
+          },
+          "recommended_attachments": [
+            "ticket_link",
+            "approval_record",
+            "iam_export_or_screenshot"
+          ]
+        }
+      ],
+      "control_ids": [
+        "3.1.1",
+        "3.1.5",
+        "3.1.15",
+        "3.1.20",
+        "3.5.1",
+        "3.5.5",
+        "3.10.6"
+      ]
+    },
+    {
+      "register_id": "role_assignment_matrix",
+      "description": "Defines roles and maps users to roles; used to demonstrate least privilege and duty separation.",
+      "default_cadence_days": 90,
+      "entry_types": [
+        {
+          "type": "role_definition_update",
+          "short_help": "Update role definitions and privileges.",
+          "required": [
+            "role_name",
+            "scope",
+            "privileges_summary",
+            "updated_by",
+            "updated_at"
+          ],
+          "optional": [
+            "related_controls",
+            "notes"
+          ],
+          "enums": {},
+          "recommended_attachments": [
+            "rbac_matrix_export",
+            "approval_record"
+          ]
+        },
+        {
+          "type": "role_to_user_mapping_update",
+          "short_help": "Record updates to which users hold a role.",
+          "required": [
+            "role_name",
+            "affected_users",
+            "updated_by",
+            "updated_at",
+            "change_reason"
+          ],
+          "optional": [
+            "ticket",
+            "notes"
+          ],
+          "enums": {},
+          "recommended_attachments": [
+            "iam_export_or_screenshot",
+            "ticket_link"
+          ]
+        }
+      ],
+      "control_ids": [
+        "3.1.2"
+      ]
+    },
+    {
+      "register_id": "sod_matrix",
+      "description": "Identifies incompatible duties/roles and documents reviews and approved exceptions.",
+      "default_cadence_days": 365,
+      "entry_types": [
+        {
+          "type": "sod_matrix_review",
+          "short_help": "Annual or change-driven review of SoD matrix.",
+          "required": [
+            "review_period_start",
+            "review_period_end",
+            "reviewer",
+            "reviewed_at",
+            "result"
+          ],
+          "optional": [
+            "changes_required",
+            "notes"
+          ],
+          "enums": {
+            "result": [
+              "no_change",
+              "updated",
+              "exceptions_present"
+            ]
+          },
+          "recommended_attachments": [
+            "sod_matrix_file",
+            "signoff"
+          ]
+        },
+        {
+          "type": "sod_exception_approved",
+          "short_help": "Document an approved SoD exception with compensating controls.",
+          "required": [
+            "exception_id",
+            "roles_in_conflict",
+            "approved_by",
+            "approved_at",
+            "justification"
+          ],
+          "optional": [
+            "expires_at",
+            "mitigations",
+            "notes"
+          ],
+          "enums": {},
+          "recommended_attachments": [
+            "approval_record",
+            "mitigation_plan"
+          ]
+        }
+      ],
+      "control_ids": [
+        "3.1.4"
+      ]
+    },
+    {
+      "register_id": "authenticator_mgmt",
+      "description": "Operational record of MFA enrollment, credential issuance, resets, and revocations.",
+      "default_cadence_days": 30,
+      "entry_types": [
+        {
+          "type": "mfa_enrollment",
+          "short_help": "Record MFA enrollment event for a user.",
+          "required": [
+            "subject_user",
+            "authenticator_type",
+            "enrolled_at",
+            "enrolled_by"
+          ],
+          "optional": [
+            "device_identifier",
+            "notes"
+          ],
+          "enums": {
+            "authenticator_type": [
+              "fido2",
+              "authenticator_app",
+              "sms",
+              "voice",
+              "certificate",
+              "smartcard",
+              "other"
+            ]
+          },
+          "recommended_attachments": [
+            "idp_enrollment_record",
+            "conditional_access_policy_ref"
+          ]
+        },
+        {
+          "type": "password_reset",
+          "short_help": "Record password reset with verification method.",
+          "required": [
+            "subject_user",
+            "reset_at",
+            "reset_by",
+            "verification_method",
+            "reason"
+          ],
+          "optional": [
+            "ticket",
+            "notes"
+          ],
+          "enums": {
+            "verification_method": [
+              "in_person",
+              "id_verification",
+              "manager_approval",
+              "helpdesk_knowledge",
+              "other"
+            ],
+            "reason": [
+              "forgotten",
+              "compromise_suspected",
+              "routine_rotation",
+              "policy_violation",
+              "other"
+            ]
+          },
+          "recommended_attachments": [
+            "ticket_link",
+            "reset_audit_event"
+          ]
+        },
+        {
+          "type": "credential_revocation",
+          "short_help": "Record revocation of an authenticator/credential.",
+          "required": [
+            "subject_user",
+            "credential_type",
+            "revoked_at",
+            "revoked_by",
+            "reason"
+          ],
+          "optional": [
+            "ticket",
+            "notes"
+          ],
+          "enums": {
+            "credential_type": [
+              "password",
+              "mfa_token",
+              "certificate",
+              "smartcard",
+              "api_key",
+              "ssh_key",
+              "other"
+            ],
+            "reason": [
+              "termination",
+              "lost_device",
+              "compromise",
+              "role_change",
+              "expired",
+              "other"
+            ]
+          },
+          "recommended_attachments": [
+            "ticket_link",
+            "idp_audit_event"
+          ]
+        },
+        {
+          "type": "privileged_auth_check",
+          "short_help": "Periodic check that privileged access requires MFA/strong auth where applicable.",
+          "required": [
+            "system",
+            "check_at",
+            "checked_by",
+            "result"
+          ],
+          "optional": [
+            "notes"
+          ],
+          "enums": {
+            "result": [
+              "compliant",
+              "noncompliant",
+              "partial"
+            ]
+          },
+          "recommended_attachments": [
+            "idp_policy_screenshot",
+            "system_setting_screenshot"
+          ]
+        }
+      ],
+      "control_ids": [
+        "3.5.3"
+      ]
+    },
+    {
+      "register_id": "training_completion",
+      "description": "Tracks completion of security awareness and role-based training.",
+      "default_cadence_days": 365,
+      "entry_types": [
+        {
+          "type": "initial_training_completion",
+          "short_help": "Record initial security awareness training completion.",
+          "required": [
+            "subject_user",
+            "hire_date",
+            "training_name",
+            "completed_at",
+            "delivery_method"
+          ],
+          "optional": [
+            "score",
+            "certificate_id",
+            "notes"
+          ],
+          "enums": {
+            "delivery_method": [
+              "lms",
+              "in_person",
+              "virtual",
+              "self_study",
+              "other"
+            ]
+          },
+          "recommended_attachments": [
+            "training_certificate",
+            "lms_record"
+          ]
+        },
+        {
+          "type": "annual_training_completion",
+          "short_help": "Record annual recurring training completion.",
+          "required": [
+            "subject_user",
+            "training_year",
+            "training_name",
+            "completed_at",
+            "delivery_method"
+          ],
+          "optional": [
+            "score",
+            "certificate_id",
+            "notes"
+          ],
+          "enums": {},
+          "recommended_attachments": [
+            "training_certificate",
+            "lms_record"
+          ]
+        },
+        {
+          "type": "role_based_training_completion",
+          "short_help": "Record role-specific training (admins, IR team, etc.).",
+          "required": [
+            "subject_user",
+            "role",
+            "training_name",
+            "completed_at",
+            "required_by"
+          ],
+          "optional": [
+            "score",
+            "certificate_id",
+            "notes"
+          ],
+          "enums": {},
+          "recommended_attachments": [
+            "training_certificate",
+            "lms_record"
+          ]
+        }
+      ],
+      "control_ids": [
+        "3.2.1",
+        "3.2.2",
+        "3.2.3"
+      ]
+    },
+    {
+      "register_id": "personnel_screening",
+      "description": "Records required pre-employment/personnel screening activities.",
+      "default_cadence_days": 9999,
+      "entry_types": [
+        {
+          "type": "screening_completed",
+          "short_help": "Record that required screening was completed prior to access.",
+          "required": [
+            "subject_user",
+            "screening_type",
+            "completed_at",
+            "verified_by",
+            "result"
+          ],
+          "optional": [
+            "provider",
+            "notes"
+          ],
+          "enums": {
+            "screening_type": [
+              "background_check",
+              "identity_verification",
+              "employment_verification",
+              "reference_check",
+              "other"
+            ],
+            "result": [
+              "passed",
+              "failed",
+              "conditional",
+              "pending"
+            ]
+          },
+          "recommended_attachments": [
+            "screening_attestation",
+            "provider_receipt_or_letter"
+          ]
+        },
+        {
+          "type": "personnel_event",
+          "short_help": "Personnel lifecycle event observed during weekly review (hire, termination, role change). Pairs with HR record where applicable.",
+          "required": [
+            "subject_user",
+            "event_type",
+            "occurred_at",
+            "observed_at",
+            "observed_by"
+          ],
+          "optional": [
+            "screening_status",
+            "previous_role",
+            "new_role",
+            "ticket",
+            "notes",
+            "manifest_id",
+            "vault_id"
+          ],
+          "enums": {
+            "event_type": [
+              "hire",
+              "terminate",
+              "role_change",
+              "transfer",
+              "leave_of_absence",
+              "return_from_leave"
+            ],
+            "screening_status": [
+              "passed",
+              "pending",
+              "n_a",
+              "waived"
+            ]
+          },
+          "recommended_attachments": [
+            "hr_record",
+            "termination_checklist"
+          ]
+        }
+      ],
+      "control_ids": [
+        "3.7.6",
+        "3.9.1"
+      ]
+    },
+    {
+      "register_id": "termination",
+      "description": "Tracks termination/offboarding actions and timely access revocation.",
+      "default_cadence_days": 0,
+      "entry_types": [
+        {
+          "type": "offboarding_completed",
+          "short_help": "Record offboarding and access revocation actions.",
+          "required": [
+            "subject_user",
+            "termination_type",
+            "effective_date",
+            "completed_at",
+            "completed_by",
+            "access_revoked_confirmed"
+          ],
+          "optional": [
+            "assets_returned",
+            "badge_returned",
+            "notes",
+            "ticket"
+          ],
+          "enums": {
+            "termination_type": [
+              "voluntary",
+              "involuntary",
+              "contract_end",
+              "role_change",
+              "transfer"
+            ],
+            "access_revoked_confirmed": [
+              "yes",
+              "no",
+              "partial"
+            ]
+          },
+          "recommended_attachments": [
+            "offboarding_checklist",
+            "iam_disable_screenshot",
+            "ticket_link"
+          ]
+        },
+        {
+          "type": "account_disablement",
+          "short_help": "Record disablement of an account on a system.",
+          "required": [
+            "subject_user",
+            "system",
+            "disabled_at",
+            "disabled_by",
+            "reason"
+          ],
+          "optional": [
+            "ticket",
+            "notes"
+          ],
+          "enums": {
+            "reason": [
+              "termination",
+              "role_change",
+              "compromise",
+              "access_review",
+              "other"
+            ]
+          },
+          "recommended_attachments": [
+            "iam_event",
+            "ticket_link"
+          ]
+        }
+      ],
+      "control_ids": [
+        "3.9.2"
+      ]
+    },
+    {
+      "register_id": "audit_log_review",
+      "description": "Documents routine audit log/SIEM reviews and investigations.",
+      "default_cadence_days": 7,
+      "entry_types": [
+        {
+          "type": "daily_review",
+          "short_help": "Routine daily audit/siem review record.",
+          "required": [
+            "reviewed_at",
+            "reviewed_by",
+            "log_sources",
+            "time_window",
+            "summary"
+          ],
+          "optional": [
+            "alerts_investigated",
+            "tickets_created",
+            "notes"
+          ],
+          "enums": {},
+          "recommended_attachments": [
+            "siem_query_link",
+            "review_signoff"
+          ]
+        },
+        {
+          "type": "weekly_review",
+          "short_help": "Weekly review summary and findings.",
+          "required": [
+            "review_period_start",
+            "review_period_end",
+            "reviewed_at",
+            "reviewed_by",
+            "summary"
+          ],
+          "optional": [
+            "findings",
+            "tickets_created",
+            "notes"
+          ],
+          "enums": {},
+          "recommended_attachments": [
+            "siem_dashboard_export",
+            "review_signoff"
+          ]
+        },
+        {
+          "type": "alert_investigation",
+          "short_help": "Investigation record for a specific alert.",
+          "required": [
+            "alert_id",
+            "detected_at",
+            "investigated_at",
+            "investigated_by",
+            "disposition"
+          ],
+          "optional": [
+            "incident_id",
+            "notes"
+          ],
+          "enums": {
+            "disposition": [
+              "true_positive",
+              "false_positive",
+              "benign",
+              "needs_monitoring",
+              "escalated_to_incident"
+            ]
+          },
+          "recommended_attachments": [
+            "siem_alert_link",
+            "incident_link",
+            "ticket_link"
+          ]
+        }
+      ],
+      "control_ids": [
+        "3.1.7",
+        "3.1.12",
+        "3.3.2",
+        "3.3.3",
+        "3.14.3",
+        "3.14.7"
+      ]
+    },
+    {
+      "register_id": "audit_config",
+      "description": "Tracks audit logging configuration, retention, protection, and time-sync validation.",
+      "default_cadence_days": 90,
+      "entry_types": [
+        {
+          "type": "log_source_onboarded",
+          "short_help": "Record onboarding of a new log source into SIEM/log analytics.",
+          "required": [
+            "source_name",
+            "source_type",
+            "onboarded_at",
+            "onboarded_by",
+            "retention_days"
+          ],
+          "optional": [
+            "forwarding_destination",
+            "notes"
+          ],
+          "enums": {
+            "source_type": [
+              "windows_event",
+              "linux_syslog",
+              "network_device",
+              "cloud_service",
+              "application",
+              "other"
+            ]
+          },
+          "recommended_attachments": [
+            "config_screenshot",
+            "architecture_diagram_snippet"
+          ]
+        },
+        {
+          "type": "retention_policy_change",
+          "short_help": "Record change to log retention settings.",
+          "required": [
+            "system",
+            "changed_at",
+            "changed_by",
+            "old_retention_days",
+            "new_retention_days",
+            "justification"
+          ],
+          "optional": [
+            "ticket",
+            "notes"
+          ],
+          "enums": {},
+          "recommended_attachments": [
+            "policy_screenshot",
+            "ticket_link"
+          ]
+        },
+        {
+          "type": "time_sync_validation",
+          "short_help": "Periodic validation of time sync across relevant systems.",
+          "required": [
+            "validated_at",
+            "validated_by",
+            "systems_validated",
+            "result"
+          ],
+          "optional": [
+            "notes"
+          ],
+          "enums": {
+            "result": [
+              "compliant",
+              "noncompliant",
+              "partial"
+            ]
+          },
+          "recommended_attachments": [
+            "ntp_config_screenshots",
+            "time_drift_report"
+          ]
+        }
+      ],
+      "control_ids": [
+        "3.13.10"
+      ]
+    },
+    {
+      "register_id": "control_monitoring",
+      "description": "Continuous monitoring/attestation records supporting ongoing control effectiveness.",
+      "default_cadence_days": 30,
+      "entry_types": [
+        {
+          "type": "control_check",
+          "short_help": "Periodic operational check for a specific control.",
+          "required": [
+            "control_id",
+            "checked_at",
+            "checked_by",
+            "method",
+            "result"
+          ],
+          "optional": [
+            "notes",
+            "related_ticket"
+          ],
+          "enums": {
+            "method": [
+              "automated",
+              "manual_review",
+              "sampling",
+              "interview"
+            ],
+            "result": [
+              "pass",
+              "fail",
+              "partial",
+              "not_applicable"
+            ]
+          },
+          "recommended_attachments": [
+            "check_output",
+            "evidence_link"
+          ]
+        },
+        {
+          "type": "system_health_attestation",
+          "short_help": "Attestation that a system remains within baseline/required posture.",
+          "required": [
+            "system",
+            "attested_at",
+            "attested_by",
+            "scope",
+            "result"
+          ],
+          "optional": [
+            "notes"
+          ],
+          "enums": {
+            "scope": [
+              "logging",
+              "mfa",
+              "patching",
+              "backups",
+              "network",
+              "endpoint_protection",
+              "other"
+            ],
+            "result": [
+              "pass",
+              "fail",
+              "partial"
+            ]
+          },
+          "recommended_attachments": [
+            "dashboard_screenshot",
+            "report_export"
+          ]
+        },
+        {
+          "type": "exception_review",
+          "short_help": "Review ongoing exceptions and compensating controls.",
+          "required": [
+            "exception_id",
+            "reviewed_at",
+            "reviewed_by",
+            "decision"
+          ],
+          "optional": [
+            "expires_at",
+            "notes"
+          ],
+          "enums": {
+            "decision": [
+              "continue",
+              "remediate_now",
+              "expire_exception",
+              "escalate"
+            ]
+          },
+          "recommended_attachments": [
+            "exception_record",
+            "approval_record"
+          ]
+        }
+      ],
+      "control_ids": [
+        "3.12.3",
+        "3.14.6",
+        "3.10.1",
+        "3.10.2",
+        "3.10.4",
+        "3.10.5"
+      ]
+    },
+    {
+      "register_id": "incident_log",
+      "description": "Tracks incidents and IR exercises/tests with severity, actions, and outcomes.",
+      "default_cadence_days": 0,
+      "entry_types": [
+        {
+          "type": "incident_opened",
+          "short_help": "Record incident detection and initial triage.",
+          "required": [
+            "incident_id",
+            "detected_at",
+            "detected_by",
+            "severity",
+            "summary",
+            "scope"
+          ],
+          "optional": [
+            "affected_assets",
+            "initial_actions",
+            "notes"
+          ],
+          "enums": {
+            "severity": [
+              "critical",
+              "high",
+              "medium",
+              "low"
+            ],
+            "detected_by": [
+              "siem",
+              "edr",
+              "user_report",
+              "third_party",
+              "other"
+            ]
+          },
+          "recommended_attachments": [
+            "edr_alert",
+            "siem_incident_link",
+            "ticket_link"
+          ]
+        },
+        {
+          "type": "incident_update",
+          "short_help": "Ongoing incident lifecycle updates.",
+          "required": [
+            "incident_id",
+            "updated_at",
+            "updated_by",
+            "status",
+            "update_summary"
+          ],
+          "optional": [
+            "notes"
+          ],
+          "enums": {
+            "status": [
+              "triage",
+              "containment",
+              "eradication",
+              "recovery",
+              "closed"
+            ]
+          },
+          "recommended_attachments": [
+            "forensic_notes",
+            "change_records"
+          ]
+        },
+        {
+          "type": "tabletop_or_test",
+          "short_help": "Incident response test/tabletop activity record.",
+          "required": [
+            "exercise_id",
+            "performed_at",
+            "performed_by",
+            "scenario",
+            "result_summary"
+          ],
+          "optional": [
+            "findings",
+            "improvements",
+            "notes"
+          ],
+          "enums": {},
+          "recommended_attachments": [
+            "exercise_report",
+            "attendance_record"
+          ]
+        },
+        {
+          "type": "defender_alert_acknowledgment",
+          "short_help": "Auto-detected high or critical Microsoft Defender for Endpoint alert (malware, credential theft, privilege escalation, lateral movement, exfil) awaiting admin investigation acknowledgment. Pattern A — admin acks within 24h with investigation outcome (true_positive_remediated / true_positive_in_progress / false_positive_investigated / risk_accepted) or alert escalates to ISSO. Phase 3 of Register-Automation v1.1.",
+          "required": [
+            "actor_alert_id",
+            "actor_alert_title",
+            "event_type",
+            "event_classification",
+            "detected_at",
+            "occurred_at",
+            "signed_at",
+            "system",
+            "vault_id",
+            "boundary_id",
+            "business_justification",
+            "detection_method",
+            "outcome",
+            "actions_taken",
+            "evidence_refs",
+            "lifecycle_state",
+            "provenance"
+          ],
+          "required_at_finalize": [
+            "actor_alert_id",
+            "actor_alert_title",
+            "event_type",
+            "event_classification",
+            "detected_at",
+            "occurred_at",
+            "signed_at",
+            "system",
+            "vault_id",
+            "boundary_id",
+            "business_justification",
+            "detection_method",
+            "outcome",
+            "actions_taken",
+            "evidence_refs",
+            "lifecycle_state",
+            "provenance"
+          ],
+          "required_at_isso_verified": [
+            "verified_by",
+            "verified_at",
+            "verification_note"
+          ],
+          "optional": [
+            "ticket_url",
+            "notes",
+            "detection_source",
+            "alert_id",
+            "manifest_id",
+            "severity",
+            "category",
+            "affected_assets",
+            "mitre_techniques",
+            "graph_alert_url",
+            "raw_alert_id",
+            "isso_outcome",
+            "isso_note",
+            "verified_by",
+            "verified_at",
+            "verification_note",
+            "dispute_filed",
+            "dispute_status",
+            "escalated_at",
+            "scope_arm",
+            "actor_user",
+            "actor_user_id"
+          ],
+          "enums": {
+            "event_type": [
+              "malware_detected",
+              "credential_theft_attempt",
+              "privilege_escalation_attempt",
+              "lateral_movement_attempt",
+              "data_exfiltration_attempt",
+              "suspicious_process",
+              "other"
+            ],
+            "event_classification": [
+              "endpoint_threat_high",
+              "endpoint_threat_critical"
+            ],
+            "severity": [
+              "high",
+              "critical"
+            ],
+            "detection_method": [
+              "defender_for_endpoint",
+              "manual_attestation"
+            ],
+            "outcome": [
+              "true_positive_remediated",
+              "true_positive_in_progress",
+              "false_positive_investigated",
+              "risk_accepted"
+            ],
+            "lifecycle_state": [
+              "draft",
+              "admin_signed",
+              "isso_verified",
+              "escalated",
+              "disputed",
+              "resolved",
+              "void",
+              "auto_recorded",
+              "auto_recorded_legacy"
+            ],
+            "isso_outcome": [
+              "verified_timely",
+              "overdue_escalated",
+              "dispute_pending"
+            ]
+          },
+          "recommended_attachments": [
+            "defender_alert_screenshot",
+            "investigation_notes",
+            "ticket_link"
+          ]
+        }
+      ],
+      "control_ids": [
+        "3.6.1",
+        "3.6.2",
+        "3.6.3",
+        "3.14.2",
+        "3.14.6"
+      ]
+    },
+    {
+      "register_id": "maintenance_log",
+      "description": "Records maintenance activities including remote sessions and approvals.",
+      "default_cadence_days": 0,
+      "entry_types": [
+        {
+          "type": "scheduled_maintenance",
+          "short_help": "Record planned maintenance activities.",
+          "required": [
+            "system",
+            "performed_at",
+            "performed_by",
+            "maintenance_type",
+            "summary",
+            "approved_by"
+          ],
+          "optional": [
+            "ticket",
+            "downtime_window",
+            "notes"
+          ],
+          "enums": {
+            "maintenance_type": [
+              "patching",
+              "hardware",
+              "firmware",
+              "configuration",
+              "backup_restore_test",
+              "other"
+            ]
+          },
+          "recommended_attachments": [
+            "ticket_link",
+            "maintenance_report",
+            "verification_evidence"
+          ]
+        },
+        {
+          "type": "emergency_maintenance",
+          "short_help": "Record emergency maintenance with justification and approval.",
+          "required": [
+            "system",
+            "performed_at",
+            "performed_by",
+            "reason",
+            "summary",
+            "approved_by"
+          ],
+          "optional": [
+            "ticket",
+            "notes"
+          ],
+          "enums": {},
+          "recommended_attachments": [
+            "approval_record",
+            "maintenance_report"
+          ]
+        },
+        {
+          "type": "remote_maintenance_session",
+          "short_help": "Record remote maintenance session details and supervision.",
+          "required": [
+            "system",
+            "session_start",
+            "session_end",
+            "technician",
+            "access_method",
+            "supervised_by"
+          ],
+          "optional": [
+            "notes"
+          ],
+          "enums": {
+            "access_method": [
+              "vpn",
+              "bastion",
+              "vendor_portal",
+              "other"
+            ]
+          },
+          "recommended_attachments": [
+            "session_log",
+            "approval_record"
+          ]
+        },
+        {
+          "type": "break_glass_acknowledgment",
+          "short_help": "Acknowledge a detected break-glass account sign-in. Created as draft by EnclaveWatch detection; admin completes acknowledgment fields to finalize.",
+          "required": [
+            "alert_id",
+            "upn",
+            "detected_at",
+            "source",
+            "acknowledged_by",
+            "purpose_of_session",
+            "actions_taken",
+            "affected_systems",
+            "before_state",
+            "after_state",
+            "signed_at"
+          ],
+          "optional": [
+            "client_ip",
+            "duration_seconds",
+            "session_correlation_id",
+            "actions_observed",
+            "ip_classification",
+            "ticket",
+            "notes",
+            "manifest_id",
+            "isso_outcome",
+            "isso_note",
+            "isso_verified_at",
+            "dispute_filed",
+            "dispute_status",
+            "escalated_at"
+          ],
+          "enums": {
+            "source": ["azure", "vault"],
+            "ip_classification": ["private", "corp", "unknown_or_shared"],
+            "isso_outcome": ["verified_timely", "overdue_escalated", "dispute_pending"]
+          },
+          "recommended_attachments": [
+            "session_recording",
+            "ticket_link",
+            "approval_record"
+          ]
+        }
+      ],
+      "control_ids": [
+        "3.7.1",
+        "3.7.2",
+        "3.7.5"
+      ]
+    },
+    {
+      "register_id": "media_access",
+      "description": "Tracks approved removable media use and external system connections.",
+      "default_cadence_days": 30,
+      "entry_types": [
+        {
+          "type": "removable_media_use",
+          "short_help": "Record approved removable media use and purpose.",
+          "required": [
+            "subject_user",
+            "media_type",
+            "system",
+            "used_at",
+            "purpose",
+            "approved_by"
+          ],
+          "optional": [
+            "media_identifier",
+            "notes",
+            "ticket"
+          ],
+          "enums": {
+            "media_type": [
+              "usb_drive",
+              "external_hdd",
+              "sd_card",
+              "mobile_device",
+              "optical_media",
+              "other"
+            ]
+          },
+          "recommended_attachments": [
+            "approval_record",
+            "device_encryption_proof",
+            "ticket_link"
+          ]
+        },
+        {
+          "type": "external_system_connection",
+          "short_help": "Record approved connection to external systems.",
+          "required": [
+            "subject_user",
+            "external_system",
+            "connected_at",
+            "purpose",
+            "approved_by"
+          ],
+          "optional": [
+            "connection_method",
+            "notes"
+          ],
+          "enums": {
+            "connection_method": [
+              "vpn",
+              "trusted_connection",
+              "data_transfer",
+              "application_access",
+              "other"
+            ]
+          },
+          "recommended_attachments": [
+            "approval_record",
+            "connection_log"
+          ]
+        },
+        {
+          "type": "media_inventory_update",
+          "short_help": "Periodic inventory/update of controlled media (if used).",
+          "required": [
+            "inventory_period_start",
+            "inventory_period_end",
+            "updated_at",
+            "updated_by",
+            "summary"
+          ],
+          "optional": [
+            "notes"
+          ],
+          "enums": {},
+          "recommended_attachments": [
+            "inventory_list"
+          ]
+        }
+      ],
+      "control_ids": [
+        "3.8.5"
+      ]
+    },
+    {
+      "register_id": "media_destruction",
+      "description": "Tracks sanitization and destruction of media containing CUI or sensitive data.",
+      "default_cadence_days": 0,
+      "entry_types": [
+        {
+          "type": "sanitized",
+          "short_help": "Record media sanitization event.",
+          "required": [
+            "media_identifier",
+            "media_type",
+            "sanitized_at",
+            "sanitization_method",
+            "performed_by",
+            "witness"
+          ],
+          "optional": [
+            "notes"
+          ],
+          "enums": {
+            "media_type": [
+              "hdd",
+              "ssd",
+              "usb_drive",
+              "tape",
+              "paper",
+              "mobile_device",
+              "other"
+            ],
+            "sanitization_method": [
+              "cryptographic_erase",
+              "secure_wipe",
+              "degauss",
+              "other"
+            ]
+          },
+          "recommended_attachments": [
+            "wipe_report",
+            "certificate_of_sanitization"
+          ]
+        },
+        {
+          "type": "destroyed",
+          "short_help": "Record media destruction event.",
+          "required": [
+            "media_identifier",
+            "media_type",
+            "destroyed_at",
+            "destruction_method",
+            "performed_by",
+            "witness"
+          ],
+          "optional": [
+            "vendor",
+            "notes"
+          ],
+          "enums": {
+            "destruction_method": [
+              "shred",
+              "pulverize",
+              "incinerate",
+              "other"
+            ]
+          },
+          "recommended_attachments": [
+            "certificate_of_destruction",
+            "vendor_receipt"
+          ]
+        },
+        {
+          "type": "returned_to_vendor",
+          "short_help": "Record return of media/device to vendor with chain-of-custody info.",
+          "required": [
+            "media_identifier",
+            "vendor",
+            "returned_at",
+            "returned_by",
+            "reason"
+          ],
+          "optional": [
+            "tracking_number",
+            "notes"
+          ],
+          "enums": {},
+          "recommended_attachments": [
+            "shipping_receipt",
+            "vendor_rma"
+          ]
+        }
+      ],
+      "control_ids": [
+        "3.7.3",
+        "3.8.3"
+      ]
+    },
+    {
+      "register_id": "visitor_log",
+      "description": "Tracks visitors to controlled areas including purpose, host, and access scope.",
+      "default_cadence_days": 0,
+      "entry_types": [
+        {
+          "type": "visitor_entry",
+          "short_help": "Record visitor entry/exit and access scope.",
+          "required": [
+            "visitor_name",
+            "organization",
+            "arrived_at",
+            "host",
+            "purpose",
+            "area_accessed"
+          ],
+          "optional": [
+            "departed_at",
+            "badge_id",
+            "notes"
+          ],
+          "enums": {},
+          "recommended_attachments": [
+            "photo_id_check_attestation",
+            "sign_in_sheet_scan"
+          ]
+        },
+        {
+          "type": "visitor_exception",
+          "short_help": "Document exceptions to standard visitor procedures.",
+          "required": [
+            "visitor_name",
+            "exception_type",
+            "approved_by",
+            "approved_at",
+            "justification"
+          ],
+          "optional": [
+            "notes"
+          ],
+          "enums": {
+            "exception_type": [
+              "after_hours",
+              "escorted_override",
+              "restricted_area_access",
+              "other"
+            ]
+          },
+          "recommended_attachments": [
+            "approval_record"
+          ]
+        }
+      ],
+      "control_ids": [
+        "3.10.3"
+      ]
+    },
+    {
+      "register_id": "facility_access",
+      "description": "Captures facility access control reviews and physical access/security issues.",
+      "default_cadence_days": 30,
+      "entry_types": [
+        {
+          "type": "badge_access_review",
+          "short_help": "Periodic review of facility badge access rights.",
+          "required": [
+            "review_period_start",
+            "review_period_end",
+            "reviewed_at",
+            "reviewed_by",
+            "result_summary"
+          ],
+          "optional": [
+            "actions_taken",
+            "notes"
+          ],
+          "enums": {},
+          "recommended_attachments": [
+            "badge_access_report",
+            "signoff"
+          ]
+        },
+        {
+          "type": "physical_access_issue",
+          "short_help": "Record physical security issues and remediation.",
+          "required": [
+            "reported_at",
+            "reported_by",
+            "issue_type",
+            "location",
+            "summary",
+            "status"
+          ],
+          "optional": [
+            "resolved_at",
+            "notes"
+          ],
+          "enums": {
+            "issue_type": [
+              "door_left_open",
+              "badge_misuse",
+              "tailgating",
+              "alarm",
+              "camera_outage",
+              "other"
+            ],
+            "status": [
+              "open",
+              "in_progress",
+              "closed"
+            ]
+          },
+          "recommended_attachments": [
+            "camera_clip_link",
+            "work_order",
+            "incident_link"
+          ]
+        }
+      ],
+      "control_ids": []
+    },
+    {
+      "register_id": "baseline_config",
+      "description": "Tracks baseline configurations (e.g., STIG-aligned) and approved deviations.",
+      "default_cadence_days": 180,
+      "entry_types": [
+        {
+          "type": "baseline_created",
+          "short_help": "Create/approve a new baseline version.",
+          "required": [
+            "system_or_template",
+            "baseline_version",
+            "created_at",
+            "created_by",
+            "scope",
+            "approval_authority",
+            "approved_at"
+          ],
+          "optional": [
+            "stigs_applied",
+            "notes"
+          ],
+          "enums": {},
+          "recommended_attachments": [
+            "baseline_document",
+            "stig_checklist",
+            "approval_record"
+          ]
+        },
+        {
+          "type": "baseline_update",
+          "short_help": "Update a baseline with documented approvals and rationale.",
+          "required": [
+            "system_or_template",
+            "old_baseline_version",
+            "new_baseline_version",
+            "updated_at",
+            "updated_by",
+            "reason",
+            "approved_by",
+            "approved_at"
+          ],
+          "optional": [
+            "notes",
+            "ticket"
+          ],
+          "enums": {},
+          "recommended_attachments": [
+            "diff_report",
+            "approval_record",
+            "ticket_link"
+          ]
+        },
+        {
+          "type": "baseline_exception",
+          "short_help": "Record approved deviation from baseline with compensating controls.",
+          "required": [
+            "exception_id",
+            "system",
+            "baseline_version",
+            "control_impact",
+            "approved_by",
+            "approved_at",
+            "justification"
+          ],
+          "optional": [
+            "expires_at",
+            "compensating_controls",
+            "notes"
+          ],
+          "enums": {},
+          "recommended_attachments": [
+            "exception_record",
+            "approval_record"
+          ]
+        }
+      ],
+      "control_ids": [
+        "3.4.1",
+        "3.4.6",
+        "3.7.4"
+      ]
+    },
+    {
+      "register_id": "change_log",
+      "description": "Records change management lifecycle: request, approval, implementation, rollback.",
+      "default_cadence_days": 0,
+      "entry_types": [
+        {
+          "type": "change_request",
+          "short_help": "Record a change request with risk and planned window.",
+          "required": [
+            "change_id",
+            "requested_at",
+            "requested_by",
+            "system",
+            "change_summary",
+            "risk_assessment",
+            "planned_window"
+          ],
+          "optional": [
+            "rollback_plan",
+            "notes"
+          ],
+          "enums": {},
+          "recommended_attachments": [
+            "change_ticket",
+            "impact_analysis"
+          ]
+        },
+        {
+          "type": "change_approved",
+          "short_help": "Document approval decision for a change.",
+          "required": [
+            "change_id",
+            "approved_at",
+            "approved_by",
+            "approval_decision"
+          ],
+          "optional": [
+            "conditions",
+            "notes"
+          ],
+          "enums": {
+            "approval_decision": [
+              "approved",
+              "rejected",
+              "deferred"
+            ]
+          },
+          "recommended_attachments": [
+            "approval_record"
+          ]
+        },
+        {
+          "type": "change_implemented",
+          "short_help": "Record implementation and verification outcome.",
+          "required": [
+            "change_id",
+            "implemented_at",
+            "implemented_by",
+            "implementation_summary",
+            "verification_result"
+          ],
+          "optional": [
+            "rollback_executed",
+            "notes"
+          ],
+          "enums": {
+            "verification_result": [
+              "pass",
+              "fail",
+              "partial"
+            ]
+          },
+          "recommended_attachments": [
+            "implementation_log",
+            "verification_evidence"
+          ]
+        },
+        {
+          "type": "change_backout",
+          "short_help": "Record backout/rollback activity.",
+          "required": [
+            "change_id",
+            "backed_out_at",
+            "backed_out_by",
+            "reason",
+            "result"
+          ],
+          "optional": [
+            "notes"
+          ],
+          "enums": {
+            "result": [
+              "restored",
+              "partial_restore",
+              "failed"
+            ]
+          },
+          "recommended_attachments": [
+            "rollback_log",
+            "incident_link"
+          ]
+        }
+      ],
+      "control_ids": [
+        "3.4.2",
+        "3.4.3"
+      ]
+    },
+    {
+      "register_id": "change_drift_log",
+      "description": "Records configuration changes detected outside the change_log: events where EnclaveWatch's Sysmon-based collector saw a baseline-protected file/registry/service modification but found no matching change_log entry within ±60 minutes. Pattern A — admin justifies (\"intended, ticket #X\" / \"false positive, investigated\") within 72h or alert escalates to ISSO.",
+      "default_cadence_days": 0,
+      "entry_types": [
+        {
+          "type": "change_drift_acknowledgment",
+          "short_help": "Auto-detected configuration drift on a baseline-protected resource that did not match any logged change. Pattern A — admin justifies within 72h with intended business purpose / outcome / actions taken, or alert escalates to ISSO on next weekly review.",
+          "required": [
+            "actor_user",
+            "actor_user_id",
+            "event_type",
+            "event_classification",
+            "detected_at",
+            "occurred_at",
+            "signed_at",
+            "system",
+            "scope_arm",
+            "vault_id",
+            "boundary_id",
+            "business_justification",
+            "detection_method",
+            "outcome",
+            "actions_taken",
+            "evidence_refs",
+            "lifecycle_state",
+            "provenance",
+            "path",
+            "change_type"
+          ],
+          "required_at_finalize": [
+            "actor_user",
+            "actor_user_id",
+            "event_type",
+            "event_classification",
+            "detected_at",
+            "occurred_at",
+            "signed_at",
+            "system",
+            "scope_arm",
+            "vault_id",
+            "boundary_id",
+            "business_justification",
+            "detection_method",
+            "outcome",
+            "actions_taken",
+            "evidence_refs",
+            "lifecycle_state",
+            "provenance",
+            "path",
+            "change_type"
+          ],
+          "required_at_isso_verified": [
+            "verified_by",
+            "verified_at",
+            "verification_note"
+          ],
+          "optional": [
+            "ticket_url",
+            "notes",
+            "detection_source",
+            "alert_id",
+            "manifest_id",
+            "sysmon_event_id",
+            "sysmon_event_record_id",
+            "process_image",
+            "process_id",
+            "prior_value_hash",
+            "new_value_hash",
+            "isso_outcome",
+            "isso_note",
+            "verified_by",
+            "verified_at",
+            "verification_note",
+            "dispute_filed",
+            "dispute_status",
+            "escalated_at",
+            "related_change_log_entry_id",
+            "host"
+          ],
+          "enums": {
+            "event_type": [
+              "file_create",
+              "file_modify",
+              "file_delete",
+              "registry_set_value",
+              "registry_delete_value",
+              "service_change",
+              "binary_replaced"
+            ],
+            "event_classification": [
+              "baseline_drift",
+              "self_protection_breach",
+              "service_change",
+              "config_change"
+            ],
+            "change_type": [
+              "file_create",
+              "file_modify",
+              "file_delete",
+              "registry_set_value",
+              "registry_delete_value",
+              "service_modify",
+              "binary_replaced"
+            ],
+            "detection_method": [
+              "sysmon",
+              "manual_attestation"
+            ],
+            "outcome": [
+              "intended_change_with_change_log_match",
+              "intended_change_no_change_log",
+              "false_positive",
+              "unauthorized_change_remediated",
+              "investigating"
+            ],
+            "lifecycle_state": [
+              "draft",
+              "admin_signed",
+              "isso_verified",
+              "escalated",
+              "disputed",
+              "resolved",
+              "void",
+              "auto_recorded",
+              "auto_recorded_legacy"
+            ],
+            "isso_outcome": [
+              "verified_timely",
+              "overdue_escalated",
+              "dispute_pending"
+            ]
+          },
+          "recommended_attachments": [
+            "change_ticket_link",
+            "investigation_notes",
+            "approval_record"
+          ]
+        }
+      ],
+      "control_ids": [
+        "3.4.1",
+        "3.4.2",
+        "3.4.3"
+      ]
+    },
+    {
+      "register_id": "risk_register",
+      "description": "Tracks risks, treatments, owners, and periodic reviews.",
+      "default_cadence_days": 90,
+      "entry_types": [
+        {
+          "type": "risk_identified",
+          "short_help": "Record new risk with likelihood/impact and owner.",
+          "required": [
+            "risk_id",
+            "identified_at",
+            "identified_by",
+            "risk_statement",
+            "likelihood",
+            "impact",
+            "owner"
+          ],
+          "optional": [
+            "affected_systems",
+            "notes"
+          ],
+          "enums": {
+            "likelihood": [
+              "rare",
+              "unlikely",
+              "possible",
+              "likely",
+              "almost_certain"
+            ],
+            "impact": [
+              "low",
+              "moderate",
+              "high",
+              "critical"
+            ]
+          },
+          "recommended_attachments": [
+            "risk_assessment_workpaper"
+          ]
+        },
+        {
+          "type": "risk_treatment_update",
+          "short_help": "Update risk treatment and status.",
+          "required": [
+            "risk_id",
+            "updated_at",
+            "updated_by",
+            "treatment_strategy",
+            "status"
+          ],
+          "optional": [
+            "mitigations",
+            "target_date",
+            "notes"
+          ],
+          "enums": {
+            "treatment_strategy": [
+              "mitigate",
+              "accept",
+              "transfer",
+              "avoid"
+            ],
+            "status": [
+              "open",
+              "in_progress",
+              "accepted",
+              "closed"
+            ]
+          },
+          "recommended_attachments": [
+            "treatment_plan",
+            "approval_record"
+          ]
+        },
+        {
+          "type": "risk_review",
+          "short_help": "Periodic review of risk register and status.",
+          "required": [
+            "review_period_start",
+            "review_period_end",
+            "reviewed_at",
+            "reviewed_by",
+            "summary"
+          ],
+          "optional": [
+            "notes"
+          ],
+          "enums": {},
+          "recommended_attachments": [
+            "risk_register_export",
+            "signoff"
+          ]
+        }
+      ],
+      "control_ids": [
+        "3.11.1"
+      ]
+    },
+    {
+      "register_id": "assessment_findings",
+      "description": "Tracks assessments, findings, severities, owners, and retest outcomes.",
+      "default_cadence_days": 180,
+      "entry_types": [
+        {
+          "type": "assessment_performed",
+          "short_help": "Record an assessment event and scope.",
+          "required": [
+            "assessment_id",
+            "assessment_type",
+            "performed_at",
+            "performed_by",
+            "scope",
+            "summary"
+          ],
+          "optional": [
+            "notes"
+          ],
+          "enums": {
+            "assessment_type": [
+              "internal",
+              "external",
+              "c3pao_preassessment",
+              "vulnerability_assessment",
+              "penetration_test",
+              "configuration_audit"
+            ]
+          },
+          "recommended_attachments": [
+            "assessment_report",
+            "scope_document"
+          ]
+        },
+        {
+          "type": "finding_recorded",
+          "short_help": "Record a specific finding mapped to a control.",
+          "required": [
+            "assessment_id",
+            "finding_id",
+            "control_id",
+            "severity",
+            "finding_statement",
+            "owner",
+            "status"
+          ],
+          "optional": [
+            "recommended_fix",
+            "target_date",
+            "notes"
+          ],
+          "enums": {
+            "severity": [
+              "critical",
+              "high",
+              "medium",
+              "low"
+            ],
+            "status": [
+              "open",
+              "in_progress",
+              "remediated",
+              "risk_accepted",
+              "closed"
+            ]
+          },
+          "recommended_attachments": [
+            "evidence_screenshot",
+            "ticket_link"
+          ]
+        },
+        {
+          "type": "retest_result",
+          "short_help": "Record retest results for a finding.",
+          "required": [
+            "finding_id",
+            "retested_at",
+            "retested_by",
+            "result",
+            "notes"
+          ],
+          "optional": [],
+          "enums": {
+            "result": [
+              "pass",
+              "fail",
+              "partial"
+            ]
+          },
+          "recommended_attachments": [
+            "retest_evidence",
+            "updated_report"
+          ]
+        },
+        {
+          "type": "review_observation",
+          "short_help": "ISSO weekly review observation about a control (lighter-weight than a formal assessment finding; captures notes, watch-list items, suggested follow-ups).",
+          "required": [
+            "observation_id",
+            "control_id",
+            "finding_type",
+            "severity",
+            "summary",
+            "recommended_action",
+            "observed_at",
+            "observed_by"
+          ],
+          "optional": [
+            "notes",
+            "ticket",
+            "manifest_id",
+            "vault_id"
+          ],
+          "enums": {
+            "finding_type": [
+              "drift_detected",
+              "evidence_gap",
+              "process_lapse",
+              "watchlist_item",
+              "improvement_opportunity",
+              "other"
+            ],
+            "severity": [
+              "critical",
+              "high",
+              "medium",
+              "low",
+              "informational"
+            ]
+          },
+          "recommended_attachments": [
+            "evidence_screenshot",
+            "ticket_link"
+          ]
+        }
+      ],
+      "control_ids": [
+        "3.12.1"
+      ]
+    },
+    {
+      "register_id": "poam",
+      "description": "Plan of Action & Milestones tracking for remediation activities.",
+      "default_cadence_days": 14,
+      "entry_types": [
+        {
+          "type": "poam_item_created",
+          "short_help": "Create a POA&M item for a control deficiency.",
+          "required": [
+            "poam_id",
+            "control_id",
+            "created_at",
+            "created_by",
+            "weakness_description",
+            "planned_milestones",
+            "target_completion_date"
+          ],
+          "optional": [
+            "risk_rating",
+            "notes"
+          ],
+          "enums": {
+            "risk_rating": [
+              "low",
+              "moderate",
+              "high",
+              "critical"
+            ]
+          },
+          "recommended_attachments": [
+            "poam_workpaper",
+            "ticket_link"
+          ]
+        },
+        {
+          "type": "poam_item_updated",
+          "short_help": "Update POA&M progress and status.",
+          "required": [
+            "poam_id",
+            "updated_at",
+            "updated_by",
+            "status",
+            "progress_update"
+          ],
+          "optional": [
+            "notes",
+            "revised_target_date"
+          ],
+          "enums": {
+            "status": [
+              "open",
+              "in_progress",
+              "blocked",
+              "ready_for_validation",
+              "closed"
+            ]
+          },
+          "recommended_attachments": [
+            "progress_evidence",
+            "change_ticket"
+          ]
+        },
+        {
+          "type": "poam_item_closed",
+          "short_help": "Close POA&M item with validation evidence.",
+          "required": [
+            "poam_id",
+            "closed_at",
+            "closed_by",
+            "closure_summary",
+            "validation_method"
+          ],
+          "optional": [
+            "notes"
+          ],
+          "enums": {
+            "validation_method": [
+              "retest",
+              "evidence_review",
+              "configuration_validation",
+              "other"
+            ]
+          },
+          "recommended_attachments": [
+            "closure_evidence",
+            "retest_report"
+          ]
+        }
+      ],
+      "control_ids": [
+        "3.12.2"
+      ]
+    },
+    {
+      "register_id": "vuln_remediation",
+      "description": "Tracks vulnerability lifecycle: detect, remediate, verify, or accept risk.",
+      "default_cadence_days": 7,
+      "entry_types": [
+        {
+          "type": "vulnerability_detected",
+          "short_help": "Record detection of a vulnerability on an asset.",
+          "required": [
+            "asset",
+            "vuln_id",
+            "severity",
+            "detected_at",
+            "detection_source"
+          ],
+          "optional": [
+            "cve",
+            "cvss",
+            "owner",
+            "sla_due_at",
+            "notes",
+            "ticket"
+          ],
+          "enums": {
+            "severity": [
+              "critical",
+              "high",
+              "medium",
+              "low",
+              "informational"
+            ],
+            "detection_source": [
+              "scanner",
+              "edr",
+              "siem",
+              "manual",
+              "vendor_advisory",
+              "other"
+            ]
+          },
+          "recommended_attachments": [
+            "scanner_report",
+            "ticket_link"
+          ]
+        },
+        {
+          "type": "patched_or_remediated",
+          "short_help": "Record remediation/patch and verification.",
+          "required": [
+            "asset",
+            "vuln_id",
+            "remediated_at",
+            "remediated_by",
+            "change_record",
+            "verification_method",
+            "verification_result"
+          ],
+          "optional": [
+            "patch_kb",
+            "fix_version",
+            "notes"
+          ],
+          "enums": {
+            "verification_method": [
+              "rescan",
+              "log_validation",
+              "manual_check",
+              "vendor_confirmation"
+            ],
+            "verification_result": [
+              "pass",
+              "fail",
+              "partial"
+            ]
+          },
+          "recommended_attachments": [
+            "change_ticket",
+            "patch_report",
+            "verification_evidence"
+          ]
+        },
+        {
+          "type": "risk_accepted",
+          "short_help": "Record formal risk acceptance/exception for a vulnerability.",
+          "required": [
+            "asset",
+            "vuln_id",
+            "accepted_at",
+            "accepted_by",
+            "justification",
+            "expiration_or_review_date"
+          ],
+          "optional": [
+            "compensating_controls",
+            "notes"
+          ],
+          "enums": {},
+          "recommended_attachments": [
+            "risk_acceptance_form",
+            "approval_record"
+          ]
+        },
+        {
+          "type": "verification_observed",
+          "short_help": "ISSO confirms the verification status of a previously detected vulnerability during weekly review.",
+          "required": [
+            "vuln_id",
+            "asset",
+            "status_observed",
+            "observed_at",
+            "observed_by"
+          ],
+          "optional": [
+            "notes",
+            "ticket",
+            "manifest_id",
+            "vault_id"
+          ],
+          "enums": {
+            "status_observed": [
+              "remediated",
+              "in_progress",
+              "risk_accepted",
+              "regressed"
+            ]
+          },
+          "recommended_attachments": [
+            "scanner_output",
+            "ticket_link"
+          ]
+        }
+      ],
+      "control_ids": [
+        "3.4.4",
+        "3.11.2",
+        "3.11.3",
+        "3.14.1"
+      ]
+    },
+    {
+      "register_id": "policy_review",
+      "description": "Tracks periodic reviews of policies/procedures and approved governance exceptions.",
+      "default_cadence_days": 365,
+      "entry_types": [
+        {
+          "type": "policy_review_completed",
+          "short_help": "Record annual (or event-driven) policy review.",
+          "required": [
+            "policy_id",
+            "policy_name",
+            "review_period_start",
+            "review_period_end",
+            "reviewed_at",
+            "reviewed_by",
+            "result"
+          ],
+          "optional": [
+            "changes_summary",
+            "notes"
+          ],
+          "enums": {
+            "result": [
+              "no_change",
+              "updated",
+              "retired",
+              "superseded"
+            ]
+          },
+          "recommended_attachments": [
+            "policy_pdf_or_link",
+            "signoff"
+          ]
+        },
+        {
+          "type": "procedure_review_completed",
+          "short_help": "Record procedure/SOP review.",
+          "required": [
+            "procedure_id",
+            "procedure_name",
+            "reviewed_at",
+            "reviewed_by",
+            "result"
+          ],
+          "optional": [
+            "changes_summary",
+            "notes"
+          ],
+          "enums": {
+            "result": [
+              "no_change",
+              "updated",
+              "retired",
+              "superseded"
+            ]
+          },
+          "recommended_attachments": [
+            "procedure_doc_or_link",
+            "signoff"
+          ]
+        },
+        {
+          "type": "governance_exception_recorded",
+          "short_help": "Record approved governance exception (policy/control deviation).",
+          "required": [
+            "exception_id",
+            "related_policy_or_control",
+            "approved_by",
+            "approved_at",
+            "justification"
+          ],
+          "optional": [
+            "expires_at",
+            "compensating_controls",
+            "notes"
+          ],
+          "enums": {},
+          "recommended_attachments": [
+            "exception_record",
+            "approval_record"
+          ]
+        },
+        {
+          "type": "stale_document_flag",
+          "short_help": "ISSO-flagged policy/procedure document approaching or past its review cadence. Drives admin reminder / re-review workflow.",
+          "required": [
+            "doc_code",
+            "last_reviewed_at",
+            "days_since_review",
+            "recommended_action",
+            "observed_at",
+            "observed_by"
+          ],
+          "optional": [
+            "notes",
+            "ticket",
+            "manifest_id",
+            "vault_id"
+          ],
+          "enums": {
+            "recommended_action": [
+              "re_review_now",
+              "schedule_review",
+              "retire",
+              "supersede",
+              "extend_via_exception"
+            ]
+          },
+          "recommended_attachments": [
+            "policy_link",
+            "review_history"
+          ]
+        }
+      ],
+      "control_ids": [
+        "3.12.4"
+      ]
+    },
+    {
+      "register_id": "technical_compliance_run",
+      "description": "Technical compliance collector run (event-driven). One entry per run.",
+      "default_cadence_days": 0,
+      "entry_types": [
+        {
+          "type": "collector_run",
+          "short_help": "Ingested collector run with run_manifest, control_results, evidence_index.",
+          "required": [
+            "run_id",
+            "overall_status",
+            "checks_total",
+            "pass",
+            "fail",
+            "warn",
+            "error",
+            "na",
+            "collector_version",
+            "vault_outputs_root"
+          ],
+          "optional": [
+            "boundary_id",
+            "run_manifest_summary"
+          ],
+          "enums": {
+            "overall_status": [
+              "pass",
+              "fail",
+              "warn",
+              "error"
+            ]
+          },
+          "recommended_attachments": []
+        }
+      ],
+      "control_ids": []
+    },
+    {
+      "register_id": "remote_access_authorization",
+      "description": "Documents who is authorized to access the CUI Vault remotely (Azure Bastion, VPN, or any other channel) and the conditions of that access. Required by 3.1.12, 3.1.13, 3.1.14, 3.1.15.",
+      "default_cadence_days": 365,
+      "entry_types": [
+        {
+          "type": "authorize_remote_access",
+          "short_help": "Document approval for a user to access CUI Vault remotely.",
+          "required": [
+            "subject_user",
+            "remote_access_method",
+            "approved_by",
+            "approved_at",
+            "business_justification",
+            "review_due_at"
+          ],
+          "optional": [
+            "device_compliance_attestation",
+            "conditional_access_policy_ref",
+            "session_recording_required",
+            "expires_at",
+            "notes"
+          ],
+          "enums": {
+            "remote_access_method": [
+              "azure_bastion",
+              "azure_pim",
+              "vpn",
+              "rdp_through_bastion",
+              "ssh_through_bastion",
+              "other"
+            ]
+          },
+          "recommended_attachments": [
+            "conditional_access_policy_export",
+            "approval_record",
+            "iam_screenshot"
+          ]
+        },
+        {
+          "type": "annual_remote_access_review",
+          "short_help": "Annual recertification that each remote-access authorization is still valid.",
+          "required": [
+            "subject_user",
+            "remote_access_method",
+            "reviewer",
+            "reviewed_at",
+            "decision"
+          ],
+          "optional": [
+            "next_review_due_at",
+            "notes"
+          ],
+          "enums": {
+            "decision": [
+              "retained",
+              "modified",
+              "revoked"
+            ]
+          },
+          "recommended_attachments": [
+            "review_log_export"
+          ]
+        }
+      ],
+      "control_ids": [
+        "3.1.12",
+        "3.1.13",
+        "3.1.14",
+        "3.1.15"
+      ]
+    },
+    {
+      "register_id": "external_system_connections",
+      "description": "Inventory of every external (non-org-owned) system permitted to interact with the CUI boundary, including the data shared, the authorization basis, and the trust relationship. Required by 3.1.20.",
+      "default_cadence_days": 365,
+      "entry_types": [
+        {
+          "type": "authorize_external_connection",
+          "short_help": "Document approval for an external system to connect to the CUI Vault.",
+          "required": [
+            "external_system_name",
+            "external_org",
+            "connection_type",
+            "data_categories_shared",
+            "authorization_basis",
+            "approved_by",
+            "approved_at",
+            "review_due_at"
+          ],
+          "optional": [
+            "trust_agreement_ref",
+            "encryption_in_transit",
+            "fedramp_authorization_level",
+            "data_flow_diagram_ref",
+            "expires_at",
+            "notes"
+          ],
+          "enums": {
+            "connection_type": [
+              "api_inbound",
+              "api_outbound",
+              "sftp",
+              "vpn_site_to_site",
+              "express_route",
+              "saml_federation",
+              "scim_provisioning",
+              "other"
+            ],
+            "authorization_basis": [
+              "fedramp_high_inheritance",
+              "fedramp_moderate_inheritance",
+              "trust_codex_acceptance",
+              "interconnection_security_agreement",
+              "data_sharing_agreement",
+              "no_cui_in_scope"
+            ],
+            "fedramp_authorization_level": [
+              "high",
+              "moderate",
+              "low",
+              "not_authorized",
+              "not_applicable"
+            ]
+          },
+          "recommended_attachments": [
+            "trust_agreement_pdf",
+            "interconnection_diagram",
+            "fedramp_authorization_letter"
+          ]
+        },
+        {
+          "type": "decommission_external_connection",
+          "short_help": "Record removal of an external system connection.",
+          "required": [
+            "external_system_name",
+            "decommissioned_by",
+            "decommissioned_at",
+            "decommission_reason"
+          ],
+          "optional": [
+            "data_purge_attestation",
+            "notes"
+          ],
+          "enums": {
+            "decommission_reason": [
+              "agreement_expired",
+              "no_longer_needed",
+              "trust_violation",
+              "vendor_disqualified",
+              "other"
+            ]
+          },
+          "recommended_attachments": [
+            "data_purge_evidence"
+          ]
+        }
+      ],
+      "control_ids": [
+        "3.1.20"
+      ]
+    },
+    {
+      "register_id": "portable_storage_authorization",
+      "description": "Per-event approval log for any use of portable storage media (USB, optical, removable drive) within the CUI boundary. Default architecture has portable storage prohibited; this register exists to document approved exceptions. Required by 3.1.21, 3.8.7, 3.8.8.",
+      "default_cadence_days": 0,
+      "entry_types": [
+        {
+          "type": "authorize_portable_storage_exception",
+          "short_help": "Approve a one-time or scoped use of portable storage in the CUI boundary.",
+          "required": [
+            "subject_user",
+            "device_type",
+            "device_owner",
+            "purpose",
+            "approved_by",
+            "approved_at",
+            "expires_at",
+            "encryption_method"
+          ],
+          "optional": [
+            "device_serial_or_id",
+            "data_categories",
+            "supervisor_present",
+            "notes"
+          ],
+          "enums": {
+            "device_type": [
+              "encrypted_usb",
+              "external_hdd",
+              "optical_disc",
+              "sd_card",
+              "other"
+            ],
+            "device_owner": [
+              "organization",
+              "individual_employee",
+              "third_party_vendor",
+              "auditor"
+            ],
+            "encryption_method": [
+              "fips_140_2_validated",
+              "fips_140_3_validated",
+              "bitlocker_to_go",
+              "other"
+            ]
+          },
+          "recommended_attachments": [
+            "device_encryption_certificate",
+            "approval_record",
+            "data_categories_attestation"
+          ]
+        },
+        {
+          "type": "revoke_portable_storage_exception",
+          "short_help": "Revoke a previously-approved portable storage exception.",
+          "required": [
+            "subject_user",
+            "device_type",
+            "revoked_by",
+            "revoked_at",
+            "revocation_reason"
+          ],
+          "optional": [
+            "device_returned_at",
+            "data_purge_attestation",
+            "notes"
+          ],
+          "enums": {
+            "revocation_reason": [
+              "exception_expired",
+              "user_left_organization",
+              "policy_change",
+              "compromise_suspected",
+              "other"
+            ]
+          },
+          "recommended_attachments": [
+            "data_purge_evidence",
+            "device_return_receipt"
+          ]
+        }
+      ],
+      "control_ids": [
+        "3.1.21",
+        "3.8.7",
+        "3.8.8"
+      ]
+    },
+    {
+      "register_id": "identity_inventory",
+      "description": "Periodic snapshots of every user, service principal/managed identity, and device with vault scope. Each entry is one cadence run's full inventory at a point in time; the register's history is the audit trail of identity-set changes. Diffs between consecutive snapshots surface adds/removes for review. Primary evidence for §3.5.1 (identify users, processes, devices); incidental evidence for §3.5.6, §3.1.5, §3.1.6.",
+      "default_cadence_days": 7,
+      "entry_types": [
+        {
+          "type": "inventory_snapshot",
+          "short_help": "Full point-in-time inventory of users, service principals, and devices with vault scope.",
+          "required": [
+            "snapshot_id",
+            "collected_at",
+            "source",
+            "scope",
+            "users",
+            "service_principals",
+            "devices",
+            "totals"
+          ],
+          "optional": [
+            "diff_from_previous",
+            "graph_api_roles_granted",
+            "collector_version",
+            "vault_id"
+          ],
+          "enums": {
+            "source": [
+              "azure_identity_inventory",
+              "manual_export"
+            ]
+          },
+          "recommended_attachments": [
+            "az_role_assignment_list_export"
+          ]
+        }
+      ],
+      "control_ids": [
+        "3.5.1",
+        "3.5.6",
+        "3.1.5",
+        "3.1.6"
+      ]
+    },
+    {
+      "register_id": "media_handling_log",
+      "description": "Tracks media protection events: destruction, removable-media authorization, and periodic encryption attestations.",
+      "default_cadence_days": 0,
+      "entry_types": [
+        {
+          "type": "media_destroyed",
+          "short_help": "Record destruction of media containing CUI per approved destruction method.",
+          "required": [
+            "media_id",
+            "media_type",
+            "destruction_method",
+            "destroyed_at",
+            "destroyed_by",
+            "witnessed_by"
+          ],
+          "optional": [
+            "ticket",
+            "notes",
+            "manifest_id",
+            "vault_id"
+          ],
+          "enums": {
+            "media_type": [
+              "hard_drive",
+              "ssd",
+              "usb",
+              "optical",
+              "magnetic_tape",
+              "paper",
+              "other"
+            ],
+            "destruction_method": [
+              "shred",
+              "degauss",
+              "cryptographic_erase",
+              "physical_destruction",
+              "secure_overwrite",
+              "vendor_certified_destruction"
+            ]
+          },
+          "recommended_attachments": [
+            "destruction_certificate",
+            "chain_of_custody"
+          ]
+        },
+        {
+          "type": "removable_media_authorized",
+          "short_help": "Record temporary authorization for removable media (USB / external drive) connection to a CUI system.",
+          "required": [
+            "subject_user",
+            "media_id",
+            "media_type",
+            "authorized_at",
+            "authorized_by",
+            "expires_at",
+            "justification"
+          ],
+          "optional": [
+            "encryption_required",
+            "ticket",
+            "notes",
+            "manifest_id",
+            "vault_id"
+          ],
+          "enums": {
+            "media_type": [
+              "usb",
+              "external_drive",
+              "sd_card",
+              "optical",
+              "other"
+            ]
+          },
+          "recommended_attachments": [
+            "authorization_form",
+            "encryption_attestation"
+          ]
+        },
+        {
+          "type": "bitlocker_attestation",
+          "short_help": "Periodic confirmation that BitLocker (or platform-equivalent) is enabled on every endpoint in scope.",
+          "required": [
+            "scanned_at",
+            "scanned_by",
+            "endpoints_total",
+            "endpoints_encrypted",
+            "result"
+          ],
+          "optional": [
+            "non_compliant_endpoints",
+            "notes",
+            "manifest_id",
+            "vault_id"
+          ],
+          "enums": {
+            "result": [
+              "all_compliant",
+              "exceptions_documented",
+              "non_compliant"
+            ]
+          },
+          "recommended_attachments": [
+            "scan_export",
+            "remediation_ticket"
+          ]
+        }
+      ],
+      "control_ids": [
+        "3.8.1",
+        "3.8.2",
+        "3.8.3",
+        "3.8.6",
+        "3.8.7",
+        "3.8.9"
+      ]
+    }
+  ]
+}

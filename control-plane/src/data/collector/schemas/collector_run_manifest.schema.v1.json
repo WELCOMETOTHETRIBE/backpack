@@ -1,0 +1,184 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mactech.collector.run-manifest.schema.v1",
+  "title": "MacTech Collector Run Manifest v1",
+  "type": "object",
+  "required": [
+    "schema",
+    "version",
+    "run_id",
+    "boundary_id",
+    "organization_id",
+    "collector",
+    "host",
+    "timing",
+    "summary"
+  ],
+  "properties": {
+    "schema": {
+      "const": "mactech.collector.run-manifest.v1"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 8
+    },
+    "organization_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "boundary_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "collector": {
+      "type": "object",
+      "required": [
+        "name",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "git_commit": {
+          "type": "string"
+        },
+        "command": {
+          "type": "string"
+        },
+        "toolchain": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "host": {
+      "type": "object",
+      "required": [
+        "hostname",
+        "os"
+      ],
+      "properties": {
+        "hostname": {
+          "type": "string"
+        },
+        "os": {
+          "type": "string"
+        },
+        "cloud": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "tags": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "timing": {
+      "type": "object",
+      "required": [
+        "started_at",
+        "ended_at",
+        "duration_seconds"
+      ],
+      "properties": {
+        "started_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "ended_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "duration_seconds": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "checks_total",
+        "pass",
+        "fail",
+        "warn",
+        "error",
+        "na"
+      ],
+      "properties": {
+        "checks_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pass": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "fail": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "warn": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "error": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "na": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "overall_status": {
+          "type": "string",
+          "enum": [
+            "pass",
+            "fail",
+            "warn",
+            "error"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "artifacts": {
+      "type": "object",
+      "properties": {
+        "control_results_path": {
+          "type": "string"
+        },
+        "evidence_index_path": {
+          "type": "string"
+        },
+        "outputs_root": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": false
+}

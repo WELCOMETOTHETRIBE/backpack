@@ -1,0 +1,130 @@
+{
+  "schema": "outstanding-36-snapshot.v1",
+  "version": "2026-04-30.1",
+  "title": "MacTech CUI Vault — Outstanding-36 Canonical Snapshot",
+  "description": "Single source of truth for the 74-adjudicated / 36-outstanding split for a CUI Vault customer (Win 2025 Datacenter on Azure Government, signed MacTech governance bundle, OS evidence ingested). Reconciled from MacTech_CUI_Vault_Control_Intelligence_Matrix.xlsx and src/data/cmmc/control-intelligence.ts with explicit C3PAO-defensible disposition overrides.",
+  "totals": {
+    "total": 110,
+    "implemented": 68,
+    "partial": 26,
+    "not_applicable": 10,
+    "inherited": 6,
+    "adjudicated": 74,
+    "outstanding": 36
+  },
+  "adjudicated_breakdown": {
+    "implemented": 68,
+    "inherited": 6,
+    "rationale": "Implemented = auto-closed by OS Collector evidence + signed MacTech governance bundle. Inherited = full 3.10 Physical Protection family, fully provided by Azure Government FedRAMP High."
+  },
+  "outstanding_breakdown": {
+    "partial": 26,
+    "not_applicable_needing_attestation": 10,
+    "rationale": "Partial = needs both technical evidence AND a register entry / governance artifact. N/A = needs a one-time customer attestation that the control does not apply in their environment."
+  },
+  "inherited_controls": [
+    { "controlId": "3.10.1", "title": "Physical Access Authorizations", "source": "Azure Government FedRAMP High", "rationale": "Datacenter physical access fully managed by Microsoft." },
+    { "controlId": "3.10.2", "title": "Physical Access Control",         "source": "Azure Government FedRAMP High", "rationale": "Datacenter physical access fully managed by Microsoft." },
+    { "controlId": "3.10.3", "title": "Visitor Records",                  "source": "Azure Government FedRAMP High + customer attestation", "rationale": "Datacenter visitor records maintained by Microsoft. C3PAO-defensible inheritance requires customer attestation: 'no on-site visitors with CUI access at our offices' OR signed customer-side visitor log register (MAC-SOP-249).", "requiresCustomerAttestation": true, "attestationTemplateId": "attest_no_onsite_cui_visitors" },
+    { "controlId": "3.10.4", "title": "Physical Access Logs",             "source": "Azure Government FedRAMP High", "rationale": "Datacenter physical access logs maintained by Microsoft." },
+    { "controlId": "3.10.5", "title": "Physical Access Monitoring",       "source": "Azure Government FedRAMP High", "rationale": "Datacenter monitoring (CCTV, security personnel) provided by Microsoft." },
+    { "controlId": "3.10.6", "title": "Alternate Work Site",              "source": "Azure Government FedRAMP High + customer attestation", "rationale": "C3PAO-defensible inheritance requires customer attestation: 'no telework / no alternate work sites where CUI is accessed' OR sign the Remote Work Authorization Policy and maintain the corresponding register.", "requiresCustomerAttestation": true, "attestationTemplateId": "attest_no_alternate_work_sites" }
+  ],
+  "not_applicable_controls": [
+    { "controlId": "3.1.16",  "title": "Wireless Access Authorization",   "rationale": "No wireless infrastructure within the CUI boundary. Wired LAN / Azure Bastion only." },
+    { "controlId": "3.1.17",  "title": "Wireless Access Protection",      "rationale": "Same as 3.1.16. No wireless infrastructure to protect." },
+    { "controlId": "3.7.3",   "title": "Equipment Sanitization",          "rationale": "No physical equipment in the CUI boundary. Disposal handled via Azure-managed deletion (FedRAMP-validated)." },
+    { "controlId": "3.7.4",   "title": "Maintenance Tools",               "rationale": "No on-prem maintenance permitted. All maintenance via Azure PIM-elevated cloud admins; no physical tools transit the boundary." },
+    { "controlId": "3.7.6",   "title": "Maintenance Personnel",           "rationale": "No third-party maintenance personnel. All maintenance performed by org-internal admins via Azure PIM." },
+    { "controlId": "3.8.4",   "title": "Media Marking",                   "rationale": "No physical media. All CUI is digital with metadata tagging at the file/blob layer." },
+    { "controlId": "3.8.5",   "title": "Media Accountability",            "rationale": "No physical media transport. All CUI access is via Azure Bastion → managed Windows endpoint." },
+    { "controlId": "3.13.7",  "title": "Split Tunneling Prohibition",     "rationale": "VPN client policy forbids split tunneling. All traffic routes through Azure Bastion to the enclave." },
+    { "controlId": "3.13.12", "title": "Collaborative Device Prohibition","rationale": "No collaborative computing devices (smart TVs, video conferencing systems, interactive whiteboards) within the CUI boundary." },
+    { "controlId": "3.13.14", "title": "VoIP Protection",                 "rationale": "No VoIP infrastructure within the CUI boundary. CUI not transmitted via voice." }
+  ],
+  "outstanding_controls": [
+    { "controlId": "3.1.4",   "bucket": "B", "title": "Separation of Duties",                  "primaryAction": "Maintain Duties Separation Matrix register",      "registerSchemaId": "sod_matrix",                                     "registerSchemaExists": true,  "effortMinutes": 30 },
+    { "controlId": "3.1.15",  "bucket": "B", "title": "Remote Access Authorization",           "primaryAction": "Authorize and log every remote-access user",      "registerSchemaId": "remote_access_authorization",                    "registerSchemaExists": true,  "effortMinutes": 20 },
+    { "controlId": "3.1.20",  "bucket": "B", "title": "External System Connections",           "primaryAction": "Inventory and authorize external system connections", "registerSchemaId": "external_system_connections",                "registerSchemaExists": true,  "effortMinutes": 30 },
+    { "controlId": "3.2.1",   "bucket": "A", "title": "Security Awareness Training",           "primaryAction": "Push completions from training.mactechsolutionsllc.com via /api/training/completion", "trainingCourseId": "security_awareness", "effortMinutes": 0 },
+    { "controlId": "3.2.2",   "bucket": "A", "title": "Insider Threat Awareness",              "primaryAction": "Push insider-threat completions",                "trainingCourseId": "insider_threat",                                  "effortMinutes": 0 },
+    { "controlId": "3.2.3",   "bucket": "A", "title": "Insider Threat Training (Authorized)",  "primaryAction": "Push role-based training completions",            "trainingCourseId": "role_based_authorized_user",                     "effortMinutes": 0 },
+    { "controlId": "3.3.5",   "bucket": "C", "title": "Audit Log Review & Failure Response",   "primaryAction": "Sign 'audit log review SOP & failure response in place' attestation",       "attestationTemplateId": "audit_log_review_sop",                      "effortMinutes": 5 },
+    { "controlId": "3.4.2",   "bucket": "B", "title": "Configuration Change Control",          "primaryAction": "Log every configuration change",                  "registerSchemaId": "change_log",                                     "registerSchemaExists": true,  "effortMinutes": 15 },
+    { "controlId": "3.4.3",   "bucket": "B", "title": "Security Impact Analysis",              "primaryAction": "Attach SIA to every change record",               "registerSchemaId": "change_log",                                     "registerSchemaExists": true,  "effortMinutes": 15 },
+    { "controlId": "3.4.4",   "bucket": "B", "title": "Security Impact of Vendor Changes",     "primaryAction": "Track vendor patches in vuln remediation",        "registerSchemaId": "vuln_remediation",                               "registerSchemaExists": true,  "effortMinutes": 20 },
+    { "controlId": "3.6.1",   "bucket": "A", "title": "Incident Response Capability",          "primaryAction": "IR Plan signed (governance bundle); register active",  "operationalEvidence": "ir_tabletop_aar",                          "effortMinutes": 0 },
+    { "controlId": "3.6.2",   "bucket": "A", "title": "Incident Reporting",                    "primaryAction": "IR reporting procedure signed; logged via incident_log",  "operationalEvidence": "ir_tabletop_aar",                       "effortMinutes": 0 },
+    { "controlId": "3.6.3",   "bucket": "A", "title": "Incident Response Testing",             "primaryAction": "Run IR tabletop exercise; AAR auto-attaches",     "operationalEvidence": "ir_tabletop_aar",                              "effortMinutes": 0 },
+    { "controlId": "3.7.1",   "bucket": "B", "title": "System Maintenance",                    "primaryAction": "Log every maintenance event (per-event)",         "registerSchemaId": "maintenance_log",                                "registerSchemaExists": true,  "effortMinutes": 10 },
+    { "controlId": "3.8.1",   "bucket": "C", "title": "Media Protection",                      "primaryAction": "Sign 'all CUI is digital, BitLocker-protected' attestation", "attestationTemplateId": "digital_only_media",                "effortMinutes": 5 },
+    { "controlId": "3.8.3",   "bucket": "C", "title": "Media Sanitization",                    "primaryAction": "Sign 'Azure-managed disposal' attestation",        "attestationTemplateId": "azure_managed_disposal",                    "effortMinutes": 5 },
+    { "controlId": "3.8.7",   "bucket": "B", "title": "Removable Media Use",                   "primaryAction": "Authorize each removable storage exception",      "registerSchemaId": "portable_storage_authorization",                 "registerSchemaExists": true,  "effortMinutes": 15 },
+    { "controlId": "3.9.1",   "bucket": "B", "title": "Personnel Screening",                   "primaryAction": "Record screening completion per hire",            "registerSchemaId": "personnel_screening",                            "registerSchemaExists": true,  "effortMinutes": 10 },
+    { "controlId": "3.9.2",   "bucket": "B", "title": "Personnel Termination",                 "primaryAction": "Record termination action within 24h",            "registerSchemaId": "termination",                                    "registerSchemaExists": true,  "effortMinutes": 10 },
+    { "controlId": "3.11.1",  "bucket": "C", "title": "Risk Assessment",                       "primaryAction": "Sign 'Annual risk assessment program' attestation",                "attestationTemplateId": "risk_assessment_program",                  "effortMinutes": 5 },
+    { "controlId": "3.11.2",  "bucket": "C", "title": "Vulnerability Scanning",                "primaryAction": "Sign 'MDVM vulnerability scanning program' attestation",           "attestationTemplateId": "vulnerability_scanning_program",           "effortMinutes": 5 },
+    { "controlId": "3.11.3",  "bucket": "C", "title": "Vulnerability Remediation",             "primaryAction": "Sign 'MDVM vulnerability scanning program' attestation",           "attestationTemplateId": "vulnerability_scanning_program",           "effortMinutes": 5 },
+    { "controlId": "3.12.1",  "bucket": "B", "title": "Security Assessment",                   "primaryAction": "Annual self-assessment",                          "registerSchemaId": "assessment_findings",                            "registerSchemaExists": true,  "effortMinutes": 90 },
+    { "controlId": "3.12.4",  "bucket": "B", "title": "System Security Plan",                  "primaryAction": "Annual SSP review (auto-generated draft)",        "registerSchemaId": "policy_review",                                  "registerSchemaExists": true,  "effortMinutes": 45 },
+    { "controlId": "3.13.3",  "bucket": "C", "title": "Role Separation",                       "primaryAction": "Sign architectural-isolation attestation",         "attestationTemplateId": "architectural_isolation",                  "effortMinutes": 5 },
+    { "controlId": "3.14.1",  "bucket": "B", "title": "Flaw Remediation",                      "primaryAction": "Monthly patch management log",                    "registerSchemaId": "vuln_remediation",                               "registerSchemaExists": true,  "effortMinutes": 20 },
+
+    { "controlId": "3.5.3",   "bucket": "C", "title": "Multifactor Authentication",            "primaryAction": "Sign 'MFA in our enclave access path' attestation",                "attestationTemplateId": "mfa_in_path",                              "effortMinutes": 5 },
+    { "controlId": "3.5.4",   "bucket": "C", "title": "Replay-Resistant Authentication",       "primaryAction": "Sign 'MFA in our enclave access path' attestation",                "attestationTemplateId": "mfa_in_path",                              "effortMinutes": 5 },
+    { "controlId": "3.5.5",   "bucket": "C", "title": "Identifier Management",                 "primaryAction": "Sign 'MFA in our enclave access path' attestation",                "attestationTemplateId": "mfa_in_path",                              "effortMinutes": 5 },
+    { "controlId": "3.5.6",   "bucket": "C", "title": "Authenticator Management",              "primaryAction": "Sign 'MFA in our enclave access path' attestation",                "attestationTemplateId": "mfa_in_path",                              "effortMinutes": 5 },
+    { "controlId": "3.1.18",  "bucket": "C", "title": "Mobile Device Connection Control",      "primaryAction": "Sign 'Mobile devices blocked at Conditional Access' attestation",  "attestationTemplateId": "mobile_blocked_at_ca",                     "effortMinutes": 5 },
+    { "controlId": "3.1.19",  "bucket": "C", "title": "Mobile Device CUI Encryption",          "primaryAction": "Sign 'Mobile devices blocked at Conditional Access' attestation",  "attestationTemplateId": "mobile_blocked_at_ca",                     "effortMinutes": 5 },
+    { "controlId": "3.3.2",   "bucket": "C", "title": "Audit Record Content (User Traceability)","primaryAction": "Sign 'EnclaveWatch is our audit program' attestation",            "attestationTemplateId": "enclavewatch_audit_program",               "effortMinutes": 5 },
+    { "controlId": "3.3.3",   "bucket": "C", "title": "Audit Reduction & Report Generation",   "primaryAction": "Sign 'EnclaveWatch is our audit program' attestation",            "attestationTemplateId": "enclavewatch_audit_program",               "effortMinutes": 5 },
+    { "controlId": "3.12.3",  "bucket": "C", "title": "Continuous Monitoring",                 "primaryAction": "Sign 'EnclaveWatch is our audit program' attestation",            "attestationTemplateId": "enclavewatch_audit_program",               "effortMinutes": 5 },
+    { "controlId": "3.12.2",  "bucket": "C", "title": "POA&M Management",                      "primaryAction": "Sign 'Trust Codex is our POA&M program' attestation",             "attestationTemplateId": "codex_poam_program",                       "effortMinutes": 5 },
+
+    { "controlId": "3.1.16",  "bucket": "E", "title": "Wireless Access Authorization",         "primaryAction": "Sign N/A attestation (no wireless)",              "attestationTemplateId": "na_no_wireless",                            "effortMinutes": 5 },
+    { "controlId": "3.1.17",  "bucket": "E", "title": "Wireless Access Protection",            "primaryAction": "Sign N/A attestation (no wireless)",              "attestationTemplateId": "na_no_wireless",                            "effortMinutes": 5 },
+    { "controlId": "3.7.3",   "bucket": "E", "title": "Equipment Sanitization",                "primaryAction": "Sign N/A attestation (Azure-managed disposal)",    "attestationTemplateId": "na_azure_managed_disposal",                "effortMinutes": 5 },
+    { "controlId": "3.7.4",   "bucket": "E", "title": "Maintenance Tools",                     "primaryAction": "Sign N/A attestation (no on-prem maintenance)",    "attestationTemplateId": "na_no_onprem_maintenance",                 "effortMinutes": 5 },
+    { "controlId": "3.7.6",   "bucket": "E", "title": "Maintenance Personnel",                 "primaryAction": "Sign N/A attestation (no third-party maintenance)","attestationTemplateId": "na_no_thirdparty_maintenance",            "effortMinutes": 5 },
+    { "controlId": "3.8.4",   "bucket": "E", "title": "Media Marking",                         "primaryAction": "Sign N/A attestation (digital-only)",              "attestationTemplateId": "na_digital_only_media",                    "effortMinutes": 5 },
+    { "controlId": "3.8.5",   "bucket": "E", "title": "Media Accountability",                  "primaryAction": "Sign N/A attestation (no media transport)",        "attestationTemplateId": "na_no_media_transport",                    "effortMinutes": 5 },
+    { "controlId": "3.13.7",  "bucket": "E", "title": "Split Tunneling Prohibition",           "primaryAction": "Sign N/A attestation (split tunneling forbidden)", "attestationTemplateId": "na_no_split_tunneling",                   "effortMinutes": 5 },
+    { "controlId": "3.13.12", "bucket": "E", "title": "Collaborative Device Prohibition",      "primaryAction": "Sign N/A attestation (no collaborative devices)",  "attestationTemplateId": "na_no_collaborative_devices",             "effortMinutes": 5 },
+    { "controlId": "3.13.14", "bucket": "E", "title": "VoIP Protection",                       "primaryAction": "Sign N/A attestation (no VoIP)",                   "attestationTemplateId": "na_no_voip",                              "effortMinutes": 5 }
+  ],
+  "architecture_static_disposition_overrides": [
+    { "controlId": "3.7.3",   "from": "partial",        "to": "not_applicable",  "reason": "No physical media in the CUI Vault architecture; Azure-managed deletion handles disposal." },
+    { "controlId": "3.7.4",   "from": "partial",        "to": "not_applicable",  "reason": "No on-prem maintenance permitted in the CUI Vault architecture; all maintenance via Azure PIM." },
+    { "controlId": "3.7.6",   "from": "partial",        "to": "not_applicable",  "reason": "No third-party maintenance personnel; all maintenance performed by org-internal admins via Azure PIM." },
+    { "controlId": "3.8.4",   "from": "partial",        "to": "not_applicable",  "reason": "No physical media to mark; CUI is digital with metadata tagging at the file/blob layer." },
+    { "controlId": "3.8.5",   "from": "partial",        "to": "not_applicable",  "reason": "No physical media transport; all CUI access via Azure Bastion." },
+    { "controlId": "3.13.7",  "from": "implemented",    "to": "not_applicable",  "reason": "VPN client policy forbids split tunneling; control does not apply." },
+    { "controlId": "3.1.18",  "from": "not_applicable", "to": "implemented",     "reason": "Mobile devices technically blocked via Entra Conditional Access (compliant Windows devices only) — this is an active technical control, not 'doesn't apply'." },
+    { "controlId": "3.1.19",  "from": "not_applicable", "to": "implemented",     "reason": "Same as 3.1.18: mobile-device data protection enforced via managed-device-only access policy." }
+  ],
+  "customer_attested_inherited": [
+    { "controlId": "3.10.3",  "intelligenceDisposition": "partial", "snapshotDisposition": "inherited", "attestationTemplateId": "attest_no_onsite_cui_visitors", "fallbackRegisterSchemaId": "visitor_log", "reason": "Inheritance is conditional on customer attestation that no on-site visitors have CUI access at customer offices. If the customer cannot attest, control reverts to PARTIAL with a customer-side visitor log register." },
+    { "controlId": "3.10.6",  "intelligenceDisposition": "partial", "snapshotDisposition": "inherited", "attestationTemplateId": "attest_no_alternate_work_sites", "fallbackRegisterSchemaId": "access_authorization", "reason": "Inheritance is conditional on customer attestation that no telework or alternate work sites exist. If the customer cannot attest, control reverts to PARTIAL with a Remote Work Authorization Register." }
+  ],
+  "register_schema_gaps": [],
+  "attestation_templates_needed": [
+    { "templateId": "digital_only_media",                "neededFor": ["3.8.1"],   "phase": "C" },
+    { "templateId": "azure_managed_disposal",            "neededFor": ["3.8.3"],   "phase": "C" },
+    { "templateId": "architectural_isolation",           "neededFor": ["3.13.3"],  "phase": "C" },
+    { "templateId": "na_no_wireless",                    "neededFor": ["3.1.16", "3.1.17"], "phase": "C" },
+    { "templateId": "na_azure_managed_disposal",         "neededFor": ["3.7.3"],   "phase": "C" },
+    { "templateId": "na_no_onprem_maintenance",          "neededFor": ["3.7.4"],   "phase": "C" },
+    { "templateId": "na_no_thirdparty_maintenance",      "neededFor": ["3.7.6"],   "phase": "C" },
+    { "templateId": "na_digital_only_media",             "neededFor": ["3.8.4"],   "phase": "C" },
+    { "templateId": "na_no_media_transport",             "neededFor": ["3.8.5"],   "phase": "C" },
+    { "templateId": "na_no_split_tunneling",             "neededFor": ["3.13.7"],  "phase": "C" },
+    { "templateId": "na_no_collaborative_devices",       "neededFor": ["3.13.12"], "phase": "C" },
+    { "templateId": "na_no_voip",                        "neededFor": ["3.13.14"], "phase": "C" }
+  ],
+  "bucket_summary": {
+    "A_existing_flow":            { "count": 6,  "controls": ["3.2.1", "3.2.2", "3.2.3", "3.6.1", "3.6.2", "3.6.3"] },
+    "B_existing_register":        { "count": 16, "controls": ["3.1.4", "3.1.15", "3.1.20", "3.4.2", "3.4.3", "3.4.4", "3.7.1", "3.8.7", "3.9.1", "3.9.2", "3.11.1", "3.11.2", "3.11.3", "3.12.1", "3.12.4", "3.14.1"] },
+    "C_new_template_or_attestation": { "count": 4, "controls": ["3.3.5", "3.8.1", "3.8.3", "3.13.3"] },
+    "E_na_attestation":           { "count": 10, "controls": ["3.1.16", "3.1.17", "3.7.3", "3.7.4", "3.7.6", "3.8.4", "3.8.5", "3.13.7", "3.13.12", "3.13.14"] }
+  }
+}

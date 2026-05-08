@@ -36,3 +36,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# CUI evidence collection outputs (runtime data — vault-side only)
+MacTech_CUI_Enclave_Governance_Bundle_*/
+
+# Agent worktree state
+.claude/
