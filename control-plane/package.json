@@ -52,7 +52,7 @@
     "ajv-formats": "^3.0.1",
     "archiver": "^7.0.0",
     "cmdk": "^1.1.1",
-    "drizzle-orm": "^0.38.0",
+    "drizzle-orm": "^0.45.2",
     "jszip": "^3.10.1",
     "lucide-react": "^0.575.0",
     "mermaid": "^11.0.0",
