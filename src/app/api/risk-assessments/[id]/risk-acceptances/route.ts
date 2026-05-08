@@ -131,7 +131,8 @@ export async function POST(
   }
 
   // The risk must exist in the register pinned to this assessment.
-  const riskExists = await db.execute(sql`
+  // postgres-js returns rows directly — not wrapped in { rows }.
+  const riskExists = (await db.execute(sql`
     SELECT 1
     FROM ${governanceRegisterEntries} gre
     JOIN ${governanceRegisters} gr ON gr.id = gre.register_id
@@ -141,11 +142,8 @@ export async function POST(
       AND gre.entry_data ->> 'risk_id' = ${parsed.data.riskExternalId}
       AND gre.status = 'final'
     LIMIT 1
-  `);
-  if (
-    !(riskExists as unknown as { rows: unknown[] }).rows ||
-    (riskExists as unknown as { rows: unknown[] }).rows.length === 0
-  ) {
+  `)) as unknown as Array<unknown>;
+  if (riskExists.length === 0) {
     return NextResponse.json(
       {
         error:

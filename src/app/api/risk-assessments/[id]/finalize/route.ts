@@ -96,7 +96,8 @@ export async function POST(
 
   // Unresolved high/critical risks WITHOUT a treatment record.
   // "No treatment record" means: not in risk_poam_links AND not in risk_acceptances.
-  const unresolved = await db.execute(sql`
+  // postgres-js returns rows directly — not wrapped in { rows }.
+  const unresolvedRows = (await db.execute(sql`
     SELECT count(*)::int AS n
     FROM ${governanceRegisterEntries} gre
     JOIN ${governanceRegisters} gr ON gr.id = gre.register_id
@@ -115,10 +116,8 @@ export async function POST(
         WHERE ra.risk_assessment_id = ${row.id}
           AND ra.risk_external_id = gre.entry_data ->> 'risk_id'
       )
-  `);
-  const unresolvedCount = Number(
-    (unresolved as unknown as { rows: { n: number }[] }).rows?.[0]?.n ?? 0,
-  );
+  `)) as unknown as Array<{ n: number }>;
+  const unresolvedCount = Number(unresolvedRows[0]?.n ?? 0);
 
   const blockers = blockerListForFinalize(row, {
     unresolvedHighCriticalWithoutTreatment: unresolvedCount,

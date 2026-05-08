@@ -110,7 +110,11 @@ export async function POST(
   }
 
   // Verify the risk exists in this assessment's register pivot.
-  const riskExists = await db.execute(sql`
+  // postgres-js returns rows directly as an array — not wrapped in
+  // { rows }. Same bug fixed in the /risks route during the smoke
+  // test; mirroring the fix here so this route doesn't always 422
+  // ("Risk not found") even when the risk is genuinely there.
+  const riskExists = (await db.execute(sql`
     SELECT 1 FROM ${governanceRegisterEntries} gre
     JOIN ${governanceRegisters} gr ON gr.id = gre.register_id
     WHERE gr.organization_id = ${orgId}
@@ -119,11 +123,8 @@ export async function POST(
       AND gre.entry_data ->> 'risk_id' = ${parsed.data.riskExternalId}
       AND gre.status = 'final'
     LIMIT 1
-  `);
-  if (
-    !(riskExists as unknown as { rows: unknown[] }).rows ||
-    (riskExists as unknown as { rows: unknown[] }).rows.length === 0
-  ) {
+  `)) as unknown as Array<unknown>;
+  if (riskExists.length === 0) {
     return NextResponse.json(
       {
         error:

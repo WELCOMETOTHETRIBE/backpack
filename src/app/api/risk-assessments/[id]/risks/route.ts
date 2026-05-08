@@ -140,7 +140,13 @@ async function handlePost(
   let inserted = 0;
   let updated = 0;
   for (const r of parsed.data.risks) {
-    const existing = await db.execute(sql`
+    // postgres-js returns rows DIRECTLY as an array — not wrapped in
+    // a { rows } object like node-postgres does. Indexing [0] on the
+    // result IS the row, not `result.rows[0]`. Wrong shape here was
+    // throwing "Cannot read properties of undefined (reading '0')"
+    // and crashing the route with an opaque 500 during the TrainOS
+    // smoke test.
+    const existingRows = (await db.execute(sql`
       SELECT id
       FROM ${governanceRegisterEntries}
       WHERE register_id = ${register.id}
@@ -148,10 +154,8 @@ async function handlePost(
         AND entry_data ->> 'assessment_id' = ${envelope.assessmentPivotId}
         AND entry_data ->> 'risk_id' = ${r.riskExternalId}
       LIMIT 1
-    `);
-    const existingId = (
-      existing as unknown as { rows: { id: string }[] }
-    ).rows[0]?.id;
+    `)) as unknown as Array<{ id: string }>;
+    const existingId = existingRows[0]?.id;
 
     const entryData = {
       risk_id: r.riskExternalId,
