@@ -79,7 +79,7 @@ export async function GET() {
       controlId: "3.11.1",
       status: "incomplete",
       reason:
-        "No risk assessment on file. Open the wizard at /dashboard/readiness/risk-assessment to begin.",
+        "No risk assessment on file. Run the wizard in MacTech Training; the bridge populates this card once you finalize.",
       readinessScore: 0,
     });
   }

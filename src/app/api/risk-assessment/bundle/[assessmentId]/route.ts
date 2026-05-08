@@ -14,7 +14,7 @@ import {
   type RiskRecord,
   type AssessmentMeta,
 } from "@/lib/risk-assessment/bundle-builder";
-import { scenarioById } from "@/app/dashboard/readiness/risk-assessment/threat-scenarios";
+import { scenarioById } from "@/lib/risk-assessment/threat-scenarios";
 
 /**
  * GET /api/risk-assessment/bundle/:assessmentId

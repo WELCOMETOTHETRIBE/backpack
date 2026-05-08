@@ -25,8 +25,11 @@ import {
   governanceRegisterEntries,
   governanceRegisters,
 } from "@/db/schema";
-import { requireOrg, requireRole } from "@/lib/auth";
-import { writeAuditLog } from "@/lib/audit";
+import {
+  authorizeRiskRequest,
+  bridgeErrorResponse,
+  logRaAuditEvent,
+} from "@/lib/risk-assessment-bridge";
 import { TERMINAL_STATUSES } from "@/lib/risk-assessment/lifecycle";
 
 const SeverityEnum = z.enum(["low", "medium", "high", "critical"]);
@@ -57,26 +60,18 @@ export async function POST(
 ) {
   const { id } = await params;
 
-  let orgId: string;
-  let user: Awaited<ReturnType<typeof requireRole>>;
+  const rawBody = await req.text();
+  let auth: Awaited<ReturnType<typeof authorizeRiskRequest>>;
+  let parsed: ReturnType<typeof LinkSchema.safeParse>;
   try {
-    orgId = await requireOrg();
-    user = await requireRole(["Admin", "Compliance"]);
+    auth = await authorizeRiskRequest(req, rawBody);
+    const json = rawBody.length > 0 ? JSON.parse(rawBody) : {};
+    parsed = LinkSchema.safeParse(json);
+    if (!parsed.success) return bridgeErrorResponse(parsed.error);
   } catch (e) {
-    return NextResponse.json(
-      { error: e instanceof Error ? e.message : "Unauthorized" },
-      { status: 401 },
-    );
+    return bridgeErrorResponse(e);
   }
-
-  const raw = await req.json().catch(() => null);
-  const parsed = LinkSchema.safeParse(raw);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Invalid body", issues: parsed.error.flatten() },
-      { status: 400 },
-    );
-  }
+  const orgId = auth.organizationId;
 
   // Parent assessment must exist, belong to org, not be finalized.
   const [assessment] = await db
@@ -173,9 +168,9 @@ export async function POST(
     })
     .returning();
 
-  await writeAuditLog({
+  await logRaAuditEvent({
     organizationId: orgId,
-    userId: user.id,
+    userId: auth.userId,
     action: "risk_assessment.poam_linked",
     resourceType: "risk_poam_link",
     resourceId: created.id,
@@ -186,8 +181,11 @@ export async function POST(
       poamEntryId: created.poamEntryId,
       poamExternalRef: created.poamExternalRef,
       poamSource: created.poamSource,
+      mode: auth.mode,
+      serviceCaller: auth.serviceCaller ?? null,
       controlId: "3.11.1",
     },
+    req,
   });
 
   revalidatePath(`/dashboard/controls/3.11.1`);

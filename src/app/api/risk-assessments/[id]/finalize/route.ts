@@ -24,7 +24,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { and, eq, sql } from "drizzle-orm";
-import { z } from "zod";
 
 import { db } from "@/db";
 import {
@@ -34,8 +33,12 @@ import {
   riskPoamLinks,
   riskAcceptances,
 } from "@/db/schema";
-import { requireOrg, requireRole } from "@/lib/auth";
-import { writeAuditLog } from "@/lib/audit";
+import {
+  authorizeRiskRequest,
+  bridgeErrorResponse,
+  FinalizeSchema,
+  logRaAuditEvent,
+} from "@/lib/risk-assessment-bridge";
 import {
   blockerListForFinalize,
   evaluateObjectiveA,
@@ -43,45 +46,28 @@ import {
   TERMINAL_STATUSES,
 } from "@/lib/risk-assessment/lifecycle";
 
-const SHA256_RE = /^[a-f0-9]{64}$/i;
-
-const FinalizeSchema = z
-  .object({
-    finalReportSha256: z.string().regex(SHA256_RE),
-    packageSha256: z.string().regex(SHA256_RE),
-    evidenceManifestSha256: z.string().regex(SHA256_RE).optional(),
-    vaultArtifactPointer: z.string().min(1).optional(),
-    immutableManifestPointer: z.string().min(1).optional(),
-    overrideObjectiveBNotApplicable: z.boolean().optional(),
-  })
-  .strict();
-
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
 
-  let orgId: string;
-  let user: Awaited<ReturnType<typeof requireRole>>;
-  try {
-    orgId = await requireOrg();
-    user = await requireRole(["Admin"]);
-  } catch (e) {
-    return NextResponse.json(
-      { error: e instanceof Error ? e.message : "Unauthorized" },
-      { status: 401 },
-    );
-  }
+  // Read raw body once — HMAC verification needs the exact bytes the
+  // client signed; Zod parses the same string. Don't req.json() before
+  // this or the body stream is gone.
+  const rawBody = await req.text();
 
-  const raw = await req.json().catch(() => null);
-  const parsed = FinalizeSchema.safeParse(raw);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Invalid body", issues: parsed.error.flatten() },
-      { status: 400 },
-    );
+  let auth: Awaited<ReturnType<typeof authorizeRiskRequest>>;
+  let parsed: ReturnType<typeof FinalizeSchema.safeParse>;
+  try {
+    auth = await authorizeRiskRequest(req, rawBody);
+    const json = rawBody.length > 0 ? JSON.parse(rawBody) : {};
+    parsed = FinalizeSchema.safeParse(json);
+    if (!parsed.success) return bridgeErrorResponse(parsed.error);
+  } catch (e) {
+    return bridgeErrorResponse(e);
   }
+  const orgId = auth.organizationId;
 
   const [row] = await db
     .select()
@@ -180,7 +166,7 @@ export async function POST(
       objectiveBRationale: parsed.data.overrideObjectiveBNotApplicable
         ? "Marked not_applicable by admin override at finalization."
         : objB.rationale,
-      approvedByUserId: row.approvedByUserId ?? user.id,
+      approvedByUserId: row.approvedByUserId ?? auth.userId,
       approvedAt: row.approvedAt ?? new Date(),
     })
     .where(eq(riskAssessments.id, row.id))
@@ -202,9 +188,9 @@ export async function POST(
       ),
     );
 
-  await writeAuditLog({
+  await logRaAuditEvent({
     organizationId: orgId,
-    userId: user.id,
+    userId: auth.userId,
     action: "risk_assessment.finalized",
     resourceType: "risk_assessment",
     resourceId: updated.id,
@@ -214,8 +200,11 @@ export async function POST(
       packageSha256: updated.packageSha256,
       objectiveA: updated.objectiveAStatus,
       objectiveB: updated.objectiveBStatus,
+      mode: auth.mode,
+      serviceCaller: auth.serviceCaller ?? null,
       controlId: "3.11.1",
     },
+    req,
   });
 
   revalidatePath("/dashboard");

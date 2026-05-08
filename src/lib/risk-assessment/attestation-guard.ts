@@ -150,7 +150,7 @@ async function guardRiskAssessmentProgram(
     evidenceLookedFor:
       "risk_assessments row with status='finalized' and finalized_at >= now() - 365d",
     remediation:
-      "Open the Risk Assessment wizard at /dashboard/readiness/risk-assessment, complete a cycle, and finalize. After finalization the attestation can be attempted again. For the deferral path supply { deferralRationale: '<≥40 chars explaining why>' } in the request body.",
+      "Run the Risk Assessment wizard in the MacTech Training app and finalize the cycle; TrainOS will POST the bundle to /api/risk-assessments/[id]/finalize, after which this attestation can be attempted again. For the deferral path supply { deferralRationale: '<≥40 chars explaining why>' } in the request body.",
     detail: {
       controlId: "3.11.1",
       cycleRequirement: "annual (≤365d)",

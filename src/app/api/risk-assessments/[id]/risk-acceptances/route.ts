@@ -31,8 +31,11 @@ import {
   governanceRegisterEntries,
   governanceRegisters,
 } from "@/db/schema";
-import { requireOrg, requireRole } from "@/lib/auth";
-import { writeAuditLog } from "@/lib/audit";
+import {
+  authorizeRiskRequest,
+  bridgeErrorResponse,
+  logRaAuditEvent,
+} from "@/lib/risk-assessment-bridge";
 import { TERMINAL_STATUSES } from "@/lib/risk-assessment/lifecycle";
 
 const SeverityEnum = z.enum(["low", "medium", "high", "critical"]);
@@ -63,46 +66,49 @@ export async function POST(
 ) {
   const { id } = await params;
 
-  let orgId: string;
-  let user: Awaited<ReturnType<typeof requireRole>>;
+  const rawBody = await req.text();
+  let auth: Awaited<ReturnType<typeof authorizeRiskRequest>>;
+  let parsed: ReturnType<typeof AcceptSchema.safeParse>;
   try {
-    orgId = await requireOrg();
-    user = await requireRole(["Admin", "Compliance"]);
+    auth = await authorizeRiskRequest(req, rawBody);
+    const json = rawBody.length > 0 ? JSON.parse(rawBody) : {};
+    parsed = AcceptSchema.safeParse(json);
+    if (!parsed.success) return bridgeErrorResponse(parsed.error);
   } catch (e) {
-    return NextResponse.json(
-      { error: e instanceof Error ? e.message : "Unauthorized" },
-      { status: 401 },
-    );
+    return bridgeErrorResponse(e);
   }
-
-  const raw = await req.json().catch(() => null);
-  const parsed = AcceptSchema.safeParse(raw);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Invalid body", issues: parsed.error.flatten() },
-      { status: 400 },
-    );
-  }
+  const orgId = auth.organizationId;
 
   const isHighCritical = parsed.data.severity === "high" || parsed.data.severity === "critical";
   if (isHighCritical) {
-    if (user.role !== "Admin") {
-      return NextResponse.json(
-        {
-          error:
-            "High/critical risk acceptance requires an Admin (executive) signer.",
-        },
-        { status: 403 },
-      );
-    }
+    // Service-mode (TrainOS) calls require executiveApproval=true in
+    // the body; we trust the upstream wizard to enforce that an
+    // executive role signed it. Session-mode (Codex UI) requires the
+    // session user to actually be Admin — covers the "compliance manager
+    // sneaks in via UI" path.
     if (!parsed.data.executiveApproval) {
       return NextResponse.json(
         {
           error:
             "executiveApproval=true is required when accepting a high or critical risk.",
+          contractVersion: "risk-assessment.v1",
         },
         { status: 400 },
       );
+    }
+    if (auth.mode === "session") {
+      const { auth: sessionAuth } = await import("@/lib/auth");
+      const session = await sessionAuth();
+      if (session?.user?.role !== "Admin") {
+        return NextResponse.json(
+          {
+            error:
+              "High/critical risk acceptance via the Codex UI requires Admin role.",
+            contractVersion: "risk-assessment.v1",
+          },
+          { status: 403 },
+        );
+      }
     }
   }
 
@@ -161,7 +167,7 @@ export async function POST(
       severity: parsed.data.severity,
       residualRisk: parsed.data.residualRisk,
       acceptanceRationaleSummary: parsed.data.acceptanceRationaleSummary,
-      approverUserId: user.id,
+      approverUserId: auth.userId,
       approverDisplayName: parsed.data.approverDisplayName,
       approverRole: parsed.data.approverRole ?? null,
       nextReviewDate: parsed.data.nextReviewDate,
@@ -174,7 +180,7 @@ export async function POST(
         severity: parsed.data.severity,
         residualRisk: parsed.data.residualRisk,
         acceptanceRationaleSummary: parsed.data.acceptanceRationaleSummary,
-        approverUserId: user.id,
+        approverUserId: auth.userId,
         approverDisplayName: parsed.data.approverDisplayName,
         approverRole: parsed.data.approverRole ?? null,
         approvedAt: new Date(),
@@ -186,9 +192,9 @@ export async function POST(
     })
     .returning();
 
-  await writeAuditLog({
+  await logRaAuditEvent({
     organizationId: orgId,
-    userId: user.id,
+    userId: auth.userId,
     action: "risk_assessment.acceptance_recorded",
     resourceType: "risk_acceptance",
     resourceId: created.id,
@@ -199,8 +205,11 @@ export async function POST(
       severity: created.severity,
       residualRisk: created.residualRisk,
       approverDisplayName: created.approverDisplayName,
+      mode: auth.mode,
+      serviceCaller: auth.serviceCaller ?? null,
       controlId: "3.11.1",
     },
+    req,
   });
 
   revalidatePath(`/dashboard/controls/3.11.1`);
