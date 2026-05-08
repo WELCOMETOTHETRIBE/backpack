@@ -29,6 +29,7 @@ export function AttestNoEventsButton({ registerKey, registerName, boundaryId }: 
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [justSubmitted, setJustSubmitted] = useState(false);
 
   // Default period: the previous 90 days ending today — a sane default for
   // a quarterly attestation cadence. User can widen or narrow.
@@ -66,7 +67,11 @@ export function AttestNoEventsButton({ registerKey, registerName, boundaryId }: 
       }
       setOpen(false);
       setConfirmed(false);
+      setJustSubmitted(true);
       router.refresh();
+      // Auto-clear the success banner after a few seconds so the page
+      // settles back to its normal state once the new row is visible.
+      setTimeout(() => setJustSubmitted(false), 6000);
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Network error");
     } finally {
@@ -84,6 +89,12 @@ export function AttestNoEventsButton({ registerKey, registerName, boundaryId }: 
         <ShieldCheck className="h-3.5 w-3.5" />
         Attest — no events this period
       </button>
+      {justSubmitted && (
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-800">
+          <CheckCircle2 className="h-3.5 w-3.5" />
+          Attestation recorded — see new row in the entries table below.
+        </span>
+      )}
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">

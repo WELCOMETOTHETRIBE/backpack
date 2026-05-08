@@ -19,6 +19,15 @@ export function getFieldLabel(fieldKey: string): string {
 }
 
 /**
+ * Universal "no events this period" attestation summary. The attestation is
+ * register-agnostic (it can be filed against any event-driven register), so a
+ * single template here keeps the row body readable without polluting every
+ * per-register block in the JSON artifact.
+ */
+const NO_EVENTS_ATTESTATION_TEMPLATE =
+  "No-events attestation for {{period_start}}…{{period_end}} (signed by {{attested_by_name}}).";
+
+/**
  * Get summary template for register_id and entry_type.
  * Returns null if no template (caller should use fallback).
  * Note: summary_templates may use keys like "vuln_detected" while schema uses "vulnerability_detected".
@@ -27,6 +36,7 @@ export function getSummaryTemplate(
   registerId: string,
   entryType: string
 ): string | null {
+  if (entryType === "no_events_attestation") return NO_EVENTS_ATTESTATION_TEMPLATE;
   const byRegister = fieldLabelsAndSummaries.summary_templates[registerId];
   if (!byRegister) return null;
   return byRegister[entryType] ?? null;

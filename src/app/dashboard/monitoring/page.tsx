@@ -39,6 +39,7 @@ import {
 import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
 import { getVulnStatsForOrg } from "@/lib/sctm/vuln-stats";
 import { AttentionResolveButton } from "./AttentionResolveButton";
+import { CollapsibleMonitoringSection } from "./CollapsibleMonitoringSection";
 import { getRecentThreatNarratives } from "@/lib/evidence-engine/correlation/threat-narratives";
 
 /**
@@ -1489,70 +1490,8 @@ export default async function MonitoringPage() {
         </section>
       )}
 
-      {/* ── Section 0c: Recent ISSO weekly exports ─────────────────── */}
-      {recentManifests.length > 0 && (
-        <section>
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">
-              Recent ISSO weekly exports
-            </h2>
-            <span className="inline-flex items-center gap-1 rounded-full bg-[var(--color-gray-100)] px-2 py-0.5 text-[10px] font-medium text-[var(--color-gray-700)]">
-              last {recentManifests.length}
-            </span>
-          </div>
-          <div className={`${cardClass} p-4`}>
-            <p className="text-xs text-[var(--color-gray-600)]">
-              Each row is a signed weekly export from EnclaveWatch. The
-              ISSO&apos;s signature on the manifest is the attestation that
-              the listed controls were observed operating during the review
-              window — replaces individual cadenced attestations.
-            </p>
-            <ul className="mt-3 divide-y divide-[var(--color-border-muted)]">
-              {recentManifests.map((m) => {
-                const controlsTouched = Array.isArray(m.controlsTouched)
-                  ? (m.controlsTouched as string[])
-                  : [];
-                const sectionsProcessed = Array.isArray(m.sectionsProcessed)
-                  ? (m.sectionsProcessed as string[])
-                  : [];
-                return (
-                  <li key={m.manifestId} className="flex flex-wrap items-center gap-3 py-2.5 text-sm">
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-gray-100)]">
-                      <ScrollText className="h-3.5 w-3.5 text-[var(--color-gray-700)]" aria-hidden />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-baseline gap-2">
-                        <span className="font-medium text-[var(--color-navy-primary)]">
-                          {new Date(m.reviewPeriodEnd).toLocaleDateString()}
-                        </span>
-                        <span className="text-[11px] uppercase tracking-wide text-[var(--color-gray-500)]">
-                          v{m.manifestVersion}
-                        </span>
-                        <span className="text-[11px] text-[var(--color-gray-500)]">
-                          ingested {new Date(m.receivedAt).toLocaleString()}
-                        </span>
-                      </div>
-                      <p className="mt-0.5 text-xs text-[var(--color-gray-600)]">
-                        {controlsTouched.length} control{controlsTouched.length === 1 ? "" : "s"} refreshed ·{" "}
-                        {sectionsProcessed.length} section{sectionsProcessed.length === 1 ? "" : "s"} ({sectionsProcessed.join(", ")})
-                      </p>
-                      <p className="mt-0.5 font-mono text-[10px] text-[var(--color-gray-400)] break-words">
-                        {m.manifestId}
-                      </p>
-                    </div>
-                    <Link
-                      href={`/dashboard/monitoring/manifests/${encodeURIComponent(m.manifestId)}`}
-                      className="shrink-0 inline-flex items-center gap-1 rounded border border-[var(--color-border)] bg-white px-2 py-0.5 text-[11px] font-medium text-[var(--color-blue-accent)] hover:bg-[var(--color-gray-50)]"
-                    >
-                      View detail <ExternalLink className="h-3 w-3" />
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        </section>
-      )}
+      {/* "Recent ISSO weekly exports" lives at the bottom of the page now;
+          see the collapsed section just above the footer note. */}
 
       {/* ── Section 0d: ISSO observations rollup ───────────────────── */}
       {issoObservations.total > 0 && (
@@ -1896,20 +1835,23 @@ export default async function MonitoringPage() {
       )}
 
       {/* ── Section 3: Cadence history (last 15 runs) ─────────────── */}
-      <section>
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">
-            Cadence history
-          </h2>
-          {totalRuns > recentRuns.length && (
+      <CollapsibleMonitoringSection
+        title="Cadence history"
+        badge={
+          totalRuns > recentRuns.length ? (
             <Link
               href="/dashboard/evidence/upload-manifest"
               className="text-xs font-medium text-[var(--color-blue-accent)] hover:underline"
             >
               View all {totalRuns} uploads <ExternalLink className="ml-0.5 inline h-3 w-3" />
             </Link>
-          )}
-        </div>
+          ) : (
+            <span className="inline-flex items-center gap-1 rounded-full bg-[var(--color-gray-100)] px-2 py-0.5 text-[10px] font-medium text-[var(--color-gray-700)]">
+              last {recentRuns.length}
+            </span>
+          )
+        }
+      >
         <div className={`${cardClass} overflow-hidden p-0`}>
           {recentRuns.length === 0 ? (
             <div className="flex flex-col items-center gap-2 px-6 py-12 text-center">
@@ -1989,7 +1931,73 @@ export default async function MonitoringPage() {
             </div>
           )}
         </div>
-      </section>
+      </CollapsibleMonitoringSection>
+
+      {/* ── Section 4: Recent ISSO weekly exports (collapsed; moved to
+              bottom per UX feedback — it's a deep-detail audit drawer,
+              not headline data, so it shouldn't push live signal down). */}
+      {recentManifests.length > 0 && (
+        <CollapsibleMonitoringSection
+          title="Recent ISSO weekly exports"
+          badge={
+            <span className="inline-flex items-center gap-1 rounded-full bg-[var(--color-gray-100)] px-2 py-0.5 text-[10px] font-medium text-[var(--color-gray-700)]">
+              last {recentManifests.length}
+            </span>
+          }
+        >
+          <div className={`${cardClass} p-4`}>
+            <p className="text-xs text-[var(--color-gray-600)]">
+              Each row is a signed weekly export from EnclaveWatch. The
+              ISSO&apos;s signature on the manifest is the attestation that
+              the listed controls were observed operating during the review
+              window — replaces individual cadenced attestations.
+            </p>
+            <ul className="mt-3 divide-y divide-[var(--color-border-muted)]">
+              {recentManifests.map((m) => {
+                const controlsTouched = Array.isArray(m.controlsTouched)
+                  ? (m.controlsTouched as string[])
+                  : [];
+                const sectionsProcessed = Array.isArray(m.sectionsProcessed)
+                  ? (m.sectionsProcessed as string[])
+                  : [];
+                return (
+                  <li key={m.manifestId} className="flex flex-wrap items-center gap-3 py-2.5 text-sm">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-gray-100)]">
+                      <ScrollText className="h-3.5 w-3.5 text-[var(--color-gray-700)]" aria-hidden />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-baseline gap-2">
+                        <span className="font-medium text-[var(--color-navy-primary)]">
+                          {new Date(m.reviewPeriodEnd).toLocaleDateString()}
+                        </span>
+                        <span className="text-[11px] uppercase tracking-wide text-[var(--color-gray-500)]">
+                          v{m.manifestVersion}
+                        </span>
+                        <span className="text-[11px] text-[var(--color-gray-500)]">
+                          ingested {new Date(m.receivedAt).toLocaleString()}
+                        </span>
+                      </div>
+                      <p className="mt-0.5 text-xs text-[var(--color-gray-600)]">
+                        {controlsTouched.length} control{controlsTouched.length === 1 ? "" : "s"} refreshed ·{" "}
+                        {sectionsProcessed.length} section{sectionsProcessed.length === 1 ? "" : "s"} ({sectionsProcessed.join(", ")})
+                      </p>
+                      <p className="mt-0.5 font-mono text-[10px] text-[var(--color-gray-400)] break-words">
+                        {m.manifestId}
+                      </p>
+                    </div>
+                    <Link
+                      href={`/dashboard/monitoring/manifests/${encodeURIComponent(m.manifestId)}`}
+                      className="shrink-0 inline-flex items-center gap-1 rounded border border-[var(--color-border)] bg-white px-2 py-0.5 text-[11px] font-medium text-[var(--color-blue-accent)] hover:bg-[var(--color-gray-50)]"
+                    >
+                      View detail <ExternalLink className="h-3 w-3" />
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </CollapsibleMonitoringSection>
+      )}
 
       {/* ── Footer note: what an assessor sees ──────────────────────── */}
       <p className="text-xs text-[var(--color-gray-500)]">

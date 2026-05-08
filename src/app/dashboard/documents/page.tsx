@@ -5,6 +5,8 @@ import {
   qmsGovernanceManifests,
   qmsGovernanceManifestDocuments,
   controlObservedImplementations,
+  controlImplementations,
+  controls,
   organizations,
 } from "@/db/schema";
 import { and, eq, desc, isNotNull } from "drizzle-orm";
@@ -142,6 +144,29 @@ export default async function DocumentsPage() {
     .where(eq(organizations.id, orgId))
     .limit(1);
 
+  // /dashboard/controls/[id] expects a control_implementations.id (UUID),
+  // but controls referenced from QMS docs and OIS rows arrive as control
+  // codes (e.g. "AC.L2-3.1.1" or short "3.1.1"). Build a code → UUID map
+  // for this org so the client can render real, working hrefs instead of
+  // 404-bound code-strings.
+  const implRows = await db
+    .select({
+      implId: controlImplementations.id,
+      controlCode: controls.controlId,
+    })
+    .from(controlImplementations)
+    .innerJoin(controls, eq(controlImplementations.controlId, controls.id))
+    .where(eq(controlImplementations.organizationId, orgId));
+
+  const controlCodeToImplId: Record<string, string> = {};
+  for (const r of implRows) {
+    controlCodeToImplId[r.controlCode] = r.implId;
+    // Also key by the bare requirement number ("3.1.1") so docs that
+    // reference the short form still resolve.
+    const bare = r.controlCode.replace(/^[A-Z]{2,3}\.L\d+-/, "");
+    if (bare && bare !== r.controlCode) controlCodeToImplId[bare] = r.implId;
+  }
+
   return (
     <QmsBundleDocumentsClient
       orgName={org?.name ?? "Your org"}
@@ -215,6 +240,7 @@ export default async function DocumentsPage() {
           }) satisfies OisImpact,
       )}
       controlsWithBackingCount={controlsWithBacking.size}
+      controlCodeToImplId={controlCodeToImplId}
     />
   );
 }

@@ -68,6 +68,21 @@ interface Props {
   docs: QmsDoc[];
   oisImpact: OisImpact[];
   controlsWithBackingCount: number;
+  /**
+   * Map of control code (e.g. "AC.L2-3.1.1" or bare "3.1.1") to this org's
+   * control_implementations.id, which is what /dashboard/controls/[id]
+   * expects. Codes missing from the map fall back to the legacy code-as-id
+   * URL — still 404, but at least visibly distinguishable.
+   */
+  controlCodeToImplId: Record<string, string>;
+}
+
+function controlHref(code: string, map: Record<string, string>): string {
+  const id = map[code];
+  if (id) return `/dashboard/controls/${encodeURIComponent(id)}`;
+  // Fall back to the public controls index with the code as a hash so the
+  // user lands somewhere coherent even if no impl row exists for this org.
+  return `/dashboard/controls#${encodeURIComponent(code)}`;
 }
 
 // QMS public surface — used to deep-link doc cards back to the source.
@@ -157,6 +172,7 @@ export default function QmsBundleDocumentsClient({
   docs,
   oisImpact,
   controlsWithBackingCount,
+  controlCodeToImplId,
 }: Props) {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
@@ -409,7 +425,7 @@ export default function QmsBundleDocumentsClient({
             {oisImpact.map((o) => (
               <Link
                 key={o.controlId}
-                href={`/dashboard/controls/${encodeURIComponent(o.controlId)}`}
+                href={controlHref(o.controlId, controlCodeToImplId)}
                 className="inline-flex items-center gap-1 rounded-full border border-emerald-300 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-800 transition hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 dark:hover:bg-emerald-900/50"
                 title={`refreshed ${fmtDateTime(o.generatedAt)}`}
               >
@@ -463,7 +479,11 @@ export default function QmsBundleDocumentsClient({
         ) : (
           <ul className="divide-y divide-gray-100 dark:divide-gray-800">
             {filteredDocs.map((d) => (
-              <DocRow key={d.documentNumber} doc={d} />
+              <DocRow
+                key={d.documentNumber}
+                doc={d}
+                controlCodeToImplId={controlCodeToImplId}
+              />
             ))}
           </ul>
         )}
@@ -474,7 +494,13 @@ export default function QmsBundleDocumentsClient({
 
 // ── Per-doc row ──────────────────────────────────────────────────────────────
 
-function DocRow({ doc }: { doc: QmsDoc }) {
+function DocRow({
+  doc,
+  controlCodeToImplId,
+}: {
+  doc: QmsDoc;
+  controlCodeToImplId: Record<string, string>;
+}) {
   const [expanded, setExpanded] = useState(false);
   // Link to the read-only "presentation view" on QMS (C3PAO-friendly,
   // beautifully-rendered MD with the full signature chain visible). Not
@@ -521,7 +547,7 @@ function DocRow({ doc }: { doc: QmsDoc }) {
               doc.controlsMapped.map((c) => (
                 <Link
                   key={c}
-                  href={`/dashboard/controls/${encodeURIComponent(c)}`}
+                  href={controlHref(c, controlCodeToImplId)}
                   className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 transition hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/40"
                 >
                   {c}
