@@ -1010,6 +1010,128 @@ export const sspSections = pgTable("ssp_sections", {
   version: integer("version").default(1).notNull(),
 });
 
+/**
+ * Phase C0 SSP rebuild — versioned envelope.
+ *
+ * One row per generated SSP version. Carries:
+ *   - canonical machine-readable + human-readable serializations
+ *     (payload_json, payload_md) — both deterministically derived
+ *     from the same generation inputs so re-running the generator
+ *     against unchanged evidence reproduces an identical SHA-256
+ *   - cryptographic provenance (payload_sha256 + Codex signature)
+ *   - generation provenance (controls_covered + per-met_via tally)
+ *   - lifecycle (draft / signed / superseded / revoked) + supersession
+ *     trail
+ *
+ * Customer countersignature (Posture C) lands in the customer_signature_json
+ * column when ready; today the AO sign-off is captured as a separate
+ * ssp_signoffs row bound to the same payload_sha256.
+ */
+export const sspDocuments = pgTable("ssp_documents", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  boundaryId: uuid("boundary_id")
+    .notNull()
+    .references(() => boundaries.id, { onDelete: "restrict" }),
+  versionNumber: integer("version_number").notNull(),
+  status: varchar("status", { length: 16 }).notNull().default("draft"),
+  generatedAt: timestamp("generated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  generatedFromSnapshotAt: timestamp("generated_from_snapshot_at", {
+    withTimezone: true,
+  }).notNull(),
+  payloadJson: jsonb("payload_json").notNull(),
+  payloadMd: text("payload_md").notNull(),
+  pdfStorageUri: text("pdf_storage_uri"),
+  payloadSha256: varchar("payload_sha256", { length: 64 }).notNull(),
+  signatureAlg: varchar("signature_alg", { length: 32 }),
+  signatureKid: varchar("signature_kid", { length: 64 }),
+  signatureValue: text("signature_value"),
+  signedAt: timestamp("signed_at", { withTimezone: true }),
+  signedByUserId: uuid("signed_by_user_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  customerSignatureJson: jsonb("customer_signature_json"),
+  supersededAt: timestamp("superseded_at", { withTimezone: true }),
+  supersededById: uuid("superseded_by_id"),
+  controlsCovered: integer("controls_covered").notNull().default(0),
+  controlsMet: integer("controls_met").notNull().default(0),
+  controlsNotMet: integer("controls_not_met").notNull().default(0),
+  controlsNa: integer("controls_na").notNull().default(0),
+  controlsMetViaEvidence: integer("controls_met_via_evidence").notNull().default(0),
+  controlsMetViaEsp: integer("controls_met_via_esp").notNull().default(0),
+  controlsMetViaEnduringException: integer("controls_met_via_enduring_exception")
+    .notNull()
+    .default(0),
+  controlsMetViaDodCio: integer("controls_met_via_dod_cio").notNull().default(0),
+  controlsMetViaOpPlan: integer("controls_met_via_op_plan").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+/**
+ * Per-section content for a generated SSP version. Section taxonomy
+ * matches the AG-mandated SSP structure [AG pp.209–210]:
+ * system_id / scope / environment / security_reqs / control /
+ * connections / update_freq / appendix / personnel / esp.
+ *
+ * For control sections, section_key is the NIST control_id ("3.1.1")
+ * and the row carries the canonical state at gen time
+ * (aggregate_finding, met_via, objective_verdicts) so the SSP renders
+ * verdicts without re-querying.
+ */
+export const sspSectionRevisions = pgTable("ssp_section_revisions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  sspDocumentId: uuid("ssp_document_id")
+    .notNull()
+    .references(() => sspDocuments.id, { onDelete: "cascade" }),
+  sectionKind: varchar("section_kind", { length: 32 }).notNull(),
+  sectionKey: text("section_key").notNull(),
+  orderIndex: integer("order_index").notNull(),
+  title: text("title").notNull(),
+  bodyMd: text("body_md").notNull(),
+  bodyJson: jsonb("body_json"),
+  evidencePinnedSha256: varchar("evidence_pinned_sha256", { length: 64 }).notNull(),
+  aggregateFinding: varchar("aggregate_finding", { length: 16 }),
+  metVia: varchar("met_via", { length: 40 }),
+  objectiveVerdicts: jsonb("objective_verdicts"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+/**
+ * Denormalized hash-pinned evidence-citation list. Every cited
+ * evidence row gets one row here with its SHA-256 captured at
+ * generation time. The drift-detect endpoint walks these to find
+ * rows that have changed since the SSP was signed.
+ */
+export const sspEvidenceCitations = pgTable("ssp_evidence_citations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  sspDocumentId: uuid("ssp_document_id")
+    .notNull()
+    .references(() => sspDocuments.id, { onDelete: "cascade" }),
+  sspSectionRevisionId: uuid("ssp_section_revision_id")
+    .notNull()
+    .references(() => sspSectionRevisions.id, { onDelete: "cascade" }),
+  controlId: varchar("control_id", { length: 20 }),
+  evidenceKind: varchar("evidence_kind", { length: 40 }).notNull(),
+  evidenceId: text("evidence_id").notNull(),
+  evidenceSha256: varchar("evidence_sha256", { length: 64 }),
+  supportsObjectives: jsonb("supports_objectives").notNull().default([]),
+  evidenceExcerpt: text("evidence_excerpt"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 export const assets = pgTable("assets", {
   id: uuid("id").primaryKey().defaultRandom(),
   organizationId: uuid("organization_id").references(() => organizations.id).notNull(),
