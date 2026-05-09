@@ -1,292 +1,292 @@
-import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
-import { db } from "@/db";
-import { controlRecords, controls, organizations } from "@/db/schema";
-import { eq } from "drizzle-orm";
 import Link from "next/link";
-import { FileText, Download, CheckCircle2, AlertTriangle, ExternalLink } from "lucide-react";
-import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
-import SspDownloadButton from "./SspDownloadButton";
+import { redirect } from "next/navigation";
+import { and, desc, eq } from "drizzle-orm";
+import { ArrowRight, FileSignature, Plus, ShieldCheck, Sparkles } from "lucide-react";
 
-const CONTROL_FAMILIES = [
-  { prefix: "3.1", name: "Access Control" },
-  { prefix: "3.2", name: "Awareness & Training" },
-  { prefix: "3.3", name: "Audit & Accountability" },
-  { prefix: "3.4", name: "Configuration Management" },
-  { prefix: "3.5", name: "Identification & Authentication" },
-  { prefix: "3.6", name: "Incident Response" },
-  { prefix: "3.7", name: "Maintenance" },
-  { prefix: "3.8", name: "Media Protection" },
-  { prefix: "3.9", name: "Personnel Security" },
-  { prefix: "3.10", name: "Physical Protection" },
-  { prefix: "3.11", name: "Risk Assessment" },
-  { prefix: "3.12", name: "Security Assessment" },
-  { prefix: "3.13", name: "System & Communications Protection" },
-  { prefix: "3.14", name: "System & Information Integrity" },
-];
+import { auth } from "@/lib/auth";
+import { db } from "@/db";
+import {
+  organizations,
+  sspDocuments,
+  sspSignoffs,
+} from "@/db/schema";
+import { GenerateSspButton } from "./GenerateSspButton";
 
-function StatusPill({ status }: { status: string }) {
-  const map: Record<string, string> = {
-    implemented: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300",
-    assessed: "bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-300",
-    inherited: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
-    not_applicable: "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400",
-    in_progress: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
-    not_started: "bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400",
-  };
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+/**
+ * /dashboard/ssp — SSP Versions page (Phase C).
+ *
+ * Replaces the legacy "authoring progress" page that read raw
+ * implementation_status. Now reads from ssp_documents (Phase C0
+ * schema) and renders one row per generated SSP version with:
+ *
+ *   - version number + lifecycle badge (draft / signed / superseded /
+ *     revoked)
+ *   - cryptographic provenance (payload_sha256 short form +
+ *     copy-to-clipboard via the page's data attributes)
+ *   - generation tally (MET / NOT MET / N/A) — these match the SCTM
+ *     and dashboard counts because they all read the canonical helper
+ *   - sign-off chain (which AO/system_owner/ISSO rows are bound to
+ *     this version's payload_sha256)
+ *   - drift status link to GET /api/ssp/[id]/verify
+ *
+ * Plus a "Generate new version" CTA — Admin-only — that POSTs to
+ * /api/ssp/generate. After the new version is issued the page revalidates.
+ */
+export default async function SspPage() {
+  const session = await auth();
+  const user = session?.user as
+    | { organizationId?: string; role?: string }
+    | undefined;
+  const orgId = user?.organizationId;
+  if (!orgId) redirect("/sign-in");
+
+  const isAdmin = user?.role === "Admin";
+
+  const [org] = await db
+    .select()
+    .from(organizations)
+    .where(eq(organizations.id, orgId))
+    .limit(1);
+
+  const versions = await db
+    .select({
+      id: sspDocuments.id,
+      versionNumber: sspDocuments.versionNumber,
+      status: sspDocuments.status,
+      generatedAt: sspDocuments.generatedAt,
+      generatedFromSnapshotAt: sspDocuments.generatedFromSnapshotAt,
+      payloadSha256: sspDocuments.payloadSha256,
+      signatureAlg: sspDocuments.signatureAlg,
+      signedAt: sspDocuments.signedAt,
+      controlsCovered: sspDocuments.controlsCovered,
+      controlsMet: sspDocuments.controlsMet,
+      controlsNotMet: sspDocuments.controlsNotMet,
+      controlsNa: sspDocuments.controlsNa,
+      controlsMetViaEvidence: sspDocuments.controlsMetViaEvidence,
+      controlsMetViaEsp: sspDocuments.controlsMetViaEsp,
+      controlsMetViaEnduringException: sspDocuments.controlsMetViaEnduringException,
+      controlsMetViaDodCio: sspDocuments.controlsMetViaDodCio,
+      controlsMetViaOpPlan: sspDocuments.controlsMetViaOpPlan,
+    })
+    .from(sspDocuments)
+    .where(eq(sspDocuments.organizationId, orgId))
+    .orderBy(desc(sspDocuments.versionNumber));
+
+  // Sign-off counts per version.
+  const signoffs = await db
+    .select({
+      sspDocumentId: sspSignoffs.sspDocumentId,
+      signoffKind: sspSignoffs.signoffKind,
+      signerDisplayName: sspSignoffs.signerDisplayName,
+      signedAt: sspSignoffs.signedAt,
+    })
+    .from(sspSignoffs)
+    .where(eq(sspSignoffs.organizationId, orgId));
+  const signoffsByDoc = new Map<string, typeof signoffs>();
+  for (const s of signoffs) {
+    if (!s.sspDocumentId) continue;
+    const arr = signoffsByDoc.get(s.sspDocumentId) ?? [];
+    arr.push(s);
+    signoffsByDoc.set(s.sspDocumentId, arr);
+  }
+
   return (
-    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${map[status] ?? map.not_started}`}>
-      {status.replace(/_/g, " ")}
+    <div className="mx-auto max-w-6xl space-y-8 p-8">
+      <header className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <div className="inline-flex items-center gap-2 rounded-full bg-sky-50 px-3 py-1 text-xs font-medium text-sky-700 ring-1 ring-sky-200">
+            <ShieldCheck className="h-3.5 w-3.5" />
+            CA.L2-3.12.4 — System Security Plan
+          </div>
+          <h1 className="mt-3 text-2xl font-semibold tracking-tight text-gray-900">
+            System Security Plan — {org?.name ?? org?.slug ?? "Your organization"}
+          </h1>
+          <p className="mt-1 text-sm text-gray-600">
+            One row per generated SSP version. Each version carries a
+            deterministic <code>payload_sha256</code> over the canonical
+            JSON and binds every cited evidence row by SHA-256.
+            The <em>verify</em> action re-derives current evidence
+            hashes and reports per-section drift — the C3PAO walkthrough
+            asks "is this signed SSP still defensible against current
+            state?" with one click.
+          </p>
+        </div>
+        {isAdmin && <GenerateSspButton />}
+      </header>
+
+      {versions.length === 0 ? (
+        <section className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-10 text-center">
+          <FileSignature className="mx-auto h-10 w-10 text-gray-400" />
+          <p className="mt-3 text-sm text-gray-700">
+            No SSP versions generated yet.
+          </p>
+          <p className="mt-1 text-xs text-gray-500">
+            {isAdmin
+              ? "Click “Generate new version” above to issue the first draft from current canonical state."
+              : "Ask an Admin to issue the first draft from current canonical state."}
+          </p>
+        </section>
+      ) : (
+        <ul className="space-y-3">
+          {versions.map((v) => {
+            const signs = signoffsByDoc.get(v.id) ?? [];
+            const defensible = v.controlsMet + v.controlsNa;
+            return (
+              <li
+                key={v.id}
+                className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm"
+              >
+                <div className="flex flex-wrap items-baseline justify-between gap-3">
+                  <div className="flex items-baseline gap-3">
+                    <h2 className="text-lg font-semibold text-gray-900">
+                      Version {v.versionNumber}
+                    </h2>
+                    <StatusBadge status={v.status} />
+                    <span
+                      className="font-mono text-xs text-gray-500"
+                      title={`payload_sha256: ${v.payloadSha256}`}
+                    >
+                      sha256:{v.payloadSha256.slice(0, 12)}…
+                    </span>
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    Generated {new Date(v.generatedAt).toISOString().slice(0, 16).replace("T", " ")} UTC
+                  </div>
+                </div>
+
+                <div className="mt-3 grid grid-cols-2 gap-3 text-xs sm:grid-cols-4">
+                  <Stat label="MET" value={v.controlsMet} tone="emerald" />
+                  <Stat label="NOT MET" value={v.controlsNotMet} tone="rose" />
+                  <Stat label="N/A" value={v.controlsNa} tone="gray" />
+                  <Stat label="Defensible" value={defensible} tone="sky" />
+                </div>
+
+                <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] text-gray-600 sm:grid-cols-5">
+                  <MetViaPill label="evidence" n={v.controlsMetViaEvidence} />
+                  <MetViaPill label="ESP" n={v.controlsMetViaEsp} />
+                  <MetViaPill label="enduring" n={v.controlsMetViaEnduringException} />
+                  <MetViaPill label="DoD CIO" n={v.controlsMetViaDodCio} />
+                  <MetViaPill label="op plan" n={v.controlsMetViaOpPlan} />
+                </div>
+
+                {v.status === "signed" && (
+                  <div className="mt-4 border-t border-gray-100 pt-3 text-xs">
+                    <span className="font-medium text-gray-700">Signed:</span>{" "}
+                    <span className="text-gray-600">
+                      {v.signedAt
+                        ? new Date(v.signedAt).toISOString().slice(0, 16).replace("T", " ") + " UTC"
+                        : "—"}
+                      {" · "}
+                      alg <code className="rounded bg-gray-100 px-1">{v.signatureAlg}</code>
+                    </span>
+                  </div>
+                )}
+
+                {signs.length > 0 && (
+                  <div className="mt-3 border-t border-gray-100 pt-3">
+                    <p className="text-xs font-medium text-gray-700">Sign-offs</p>
+                    <ul className="mt-1 space-y-1 text-xs text-gray-600">
+                      {signs.map((s, i) => (
+                        <li key={i}>
+                          <span className="font-medium">{s.signoffKind.replace(/_/g, " ")}</span>{" — "}
+                          {s.signerDisplayName} ·{" "}
+                          {s.signedAt ? new Date(s.signedAt).toISOString().slice(0, 10) : "—"}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                <div className="mt-4 flex flex-wrap gap-3 border-t border-gray-100 pt-3 text-xs">
+                  <a
+                    href={`/api/ssp/${v.id}?format=md`}
+                    className="inline-flex items-center gap-1 rounded-md bg-sky-50 px-2.5 py-1 font-medium text-sky-700 hover:bg-sky-100"
+                  >
+                    Download Markdown
+                  </a>
+                  <a
+                    href={`/api/ssp/${v.id}?format=raw`}
+                    className="inline-flex items-center gap-1 rounded-md bg-gray-50 px-2.5 py-1 font-medium text-gray-700 hover:bg-gray-100"
+                  >
+                    JSON payload
+                  </a>
+                  <Link
+                    href={`/api/ssp/${v.id}/verify`}
+                    className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2.5 py-1 font-medium text-emerald-700 hover:bg-emerald-100"
+                  >
+                    Verify against current evidence
+                    <ArrowRight className="h-3 w-3" />
+                  </Link>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      <p className="text-xs text-gray-500">
+        <Sparkles className="mr-1 inline h-3 w-3" />
+        Per CA.L2-3.12.4 [a]–[h] (CMMC L2 Assessment Guide v2.13), the SSP
+        is updated annually and on material change. Click <em>verify</em>
+        on any signed version to confirm it&rsquo;s still defensible
+        against current evidence; if drift is reported, generate a new
+        version to supersede.
+      </p>
+    </div>
+  );
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const cls =
+    status === "signed"
+      ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+      : status === "draft"
+        ? "bg-amber-50 text-amber-700 ring-amber-200"
+        : status === "superseded"
+          ? "bg-gray-100 text-gray-600 ring-gray-200"
+          : "bg-rose-50 text-rose-700 ring-rose-200";
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ring-1 ${cls}`}
+    >
+      {status}
     </span>
   );
 }
 
-export default async function SspDashboardPage() {
-  const session = await auth();
-  const user = session?.user as { organizationId?: string } | undefined;
-  const orgId = user?.organizationId;
-  if (!orgId) redirect("/auth/signin");
-
-  const [org, records, ctrlTitles] = await Promise.all([
-    db
-      .select({
-        name: organizations.name,
-        systemName: organizations.systemName,
-        systemOwnerName: organizations.systemOwnerName,
-        issoName: organizations.issoName,
-        authorizationBoundaryStatement: organizations.authorizationBoundaryStatement,
-        boundaryScopingCompletedAt: organizations.boundaryScopingCompletedAt,
-      })
-      .from(organizations)
-      .where(eq(organizations.id, orgId))
-      .limit(1),
-
-    db
-      .select({
-        controlId: controlRecords.controlId,
-        implementationStatus: controlRecords.implementationStatus,
-        governanceNarrative: controlRecords.governanceNarrative,
-        technicalNarrative: controlRecords.technicalNarrative,
-      })
-      .from(controlRecords)
-      .where(eq(controlRecords.organizationId, orgId)),
-
-    db
-      .select({ controlId: controls.controlId, title: controls.title })
-      .from(controls),
-  ]);
-
-  const orgMeta = org[0];
-  const recordMap = new Map(records.map((r) => [r.controlId, r]));
-  const titleMap = new Map(ctrlTitles.map((c) => [c.controlId, c.title]));
-
-  const withNarrative = records.filter((r) => r.governanceNarrative?.trim() || r.technicalNarrative?.trim()).length;
-  const implemented = records.filter((r) =>
-    ["implemented", "assessed", "inherited", "not_applicable"].includes(r.implementationStatus)
-  ).length;
-  const total = ALL_CONTROL_IDS.length;
-
-  // Metadata completeness checks
-  const metaChecks = [
-    { label: "System name", ok: !!orgMeta?.systemName },
-    { label: "System owner", ok: !!orgMeta?.systemOwnerName },
-    { label: "ISSO designated", ok: !!orgMeta?.issoName },
-    { label: "Authorization boundary statement", ok: !!orgMeta?.authorizationBoundaryStatement },
-    { label: "Boundary scoping completed", ok: !!orgMeta?.boundaryScopingCompletedAt },
-  ];
-  const metaDone = metaChecks.filter((c) => c.ok).length;
-
-  const card = "rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-900";
-
+function Stat({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number;
+  tone: "emerald" | "rose" | "gray" | "sky";
+}) {
+  const cls =
+    tone === "emerald"
+      ? "border-emerald-200 bg-emerald-50/40 text-emerald-900"
+      : tone === "rose"
+        ? "border-rose-200 bg-rose-50/40 text-rose-900"
+        : tone === "sky"
+          ? "border-sky-200 bg-sky-50/40 text-sky-900"
+          : "border-gray-200 bg-gray-50/40 text-gray-700";
   return (
-    <div className="min-h-0">
-      <div className="mx-auto max-w-5xl space-y-6">
-
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">System Security Plan</h1>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {orgMeta?.systemName
-                ? `${orgMeta.systemName} — NIST SP 800-171 Rev 2 / CMMC Level 2`
-                : "Complete org settings to populate system identification."}
-            </p>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <SspDownloadButton />
-            <Link
-              href="/assessor/ssp"
-              target="_blank"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
-            >
-              <ExternalLink className="h-3.5 w-3.5" aria-hidden />
-              Assessor preview
-            </Link>
-          </div>
-        </div>
-
-        {/* Progress summary */}
-        <div className="grid gap-4 sm:grid-cols-3">
-          <div className={card}>
-            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Metadata</p>
-            <p className={`mt-1 text-2xl font-bold ${metaDone === metaChecks.length ? "text-emerald-600" : "text-amber-600"}`}>
-              {metaDone}<span className="text-base font-normal text-gray-400"> / {metaChecks.length}</span>
-            </p>
-            <p className="text-xs text-gray-500">fields complete</p>
-          </div>
-          <div className={card}>
-            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Control narratives</p>
-            <p className={`mt-1 text-2xl font-bold ${withNarrative === total ? "text-emerald-600" : "text-blue-600"}`}>
-              {withNarrative}<span className="text-base font-normal text-gray-400"> / {total}</span>
-            </p>
-            <p className="text-xs text-gray-500">authored</p>
-          </div>
-          <div className={card}>
-            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Controls adjudicated</p>
-            <p className={`mt-1 text-2xl font-bold ${implemented === total ? "text-emerald-600" : "text-blue-600"}`}>
-              {implemented}<span className="text-base font-normal text-gray-400"> / {total}</span>
-            </p>
-            <p className="text-xs text-gray-500">implemented / assessed / inherited / N/A</p>
-          </div>
-        </div>
-
-        {/* Metadata checklist */}
-        <div className={card}>
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">System Identification Checklist</h2>
-            <Link
-              href="/dashboard/settings#system-identification"
-              className="text-xs text-blue-600 hover:underline dark:text-blue-400"
-            >
-              Edit in Settings →
-            </Link>
-          </div>
-          <ul className="space-y-1.5">
-            {metaChecks.map((c) => (
-              <li key={c.label} className="flex items-center gap-2 text-sm">
-                {c.ok ? (
-                  <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
-                ) : (
-                  <AlertTriangle className="h-4 w-4 shrink-0 text-amber-400" />
-                )}
-                <span className={c.ok ? "text-gray-700 dark:text-gray-300" : "text-amber-700 dark:text-amber-400"}>
-                  {c.label}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Control coverage by family */}
-        <div className={card}>
-          <h2 className="mb-4 text-sm font-semibold text-gray-900 dark:text-gray-100">
-            Control Implementation Statements — by Family
-          </h2>
-          <div className="space-y-3">
-            {CONTROL_FAMILIES.map(({ prefix, name }) => {
-              const familyIds = ALL_CONTROL_IDS.filter((id) => id.startsWith(prefix + "."));
-              const authored = familyIds.filter((id) => {
-                const r = recordMap.get(id);
-                return r?.governanceNarrative?.trim() || r?.technicalNarrative?.trim();
-              }).length;
-              const pct = familyIds.length > 0 ? Math.round((authored / familyIds.length) * 100) : 0;
-              const color = pct === 100 ? "bg-emerald-500" : pct > 0 ? "bg-blue-500" : "bg-gray-200 dark:bg-gray-700";
-
-              return (
-                <div key={prefix}>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-medium text-gray-700 dark:text-gray-300">
-                      <span className="font-mono text-gray-400">{prefix}</span>{" "}
-                      {name}
-                    </span>
-                    <span className={`font-medium ${pct === 100 ? "text-emerald-600" : "text-gray-500"}`}>
-                      {authored}/{familyIds.length}
-                    </span>
-                  </div>
-                  <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
-                    <div className={`h-full rounded-full transition-all ${color}`} style={{ width: `${pct}%` }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Control table — not started */}
-        {(() => {
-          const noNarrative = ALL_CONTROL_IDS.filter((id) => {
-            const r = recordMap.get(id);
-            return !r?.governanceNarrative?.trim() && !r?.technicalNarrative?.trim();
-          });
-          if (noNarrative.length === 0) return null;
-          return (
-            <div className={card}>
-              <h2 className="mb-1 text-sm font-semibold text-gray-900 dark:text-gray-100">
-                Controls Without Narratives
-                <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
-                  {noNarrative.length}
-                </span>
-              </h2>
-              <p className="mb-4 text-xs text-gray-500">
-                These controls need governance or technical narrative to complete the SSP. Click any control to author.
-              </p>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-200 dark:border-gray-700">
-                      <th className="pb-2 text-left text-xs font-medium uppercase tracking-wide text-gray-500 w-24">Control</th>
-                      <th className="pb-2 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Requirement</th>
-                      <th className="pb-2 text-left text-xs font-medium uppercase tracking-wide text-gray-500 w-32">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                    {noNarrative.map((id) => {
-                      const r = recordMap.get(id);
-                      return (
-                        <tr key={id}>
-                          <td className="py-2 pr-3">
-                            <Link
-                              href={`/dashboard/controls/${id}`}
-                              className="font-mono text-xs font-semibold text-blue-600 hover:underline dark:text-blue-400"
-                            >
-                              {id}
-                            </Link>
-                          </td>
-                          <td className="py-2 pr-4 text-xs text-gray-700 dark:text-gray-300">
-                            {titleMap.get(id) ?? id}
-                          </td>
-                          <td className="py-2">
-                            <StatusPill status={r?.implementationStatus ?? "not_started"} />
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          );
-        })()}
-
-        {/* Download banner */}
-        <div className="rounded-xl border border-blue-200 bg-blue-50 p-5 dark:border-blue-800/30 dark:bg-blue-950/20">
-          <div className="flex items-start gap-4">
-            <FileText className="h-6 w-6 shrink-0 text-blue-600 dark:text-blue-400 mt-0.5" aria-hidden />
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-blue-900 dark:text-blue-200">Download SSP for C3PAO Review</p>
-              <p className="mt-0.5 text-xs text-blue-700 dark:text-blue-400">
-                The download includes all system identification fields, authorization boundary, external service
-                providers, CUI categories, and all 110 control implementation statements. Format: Markdown
-                (.md) — open in Word or Google Docs to apply formatting.
-              </p>
-              <div className="mt-3">
-                <SspDownloadButton label="Download SSP (.md)" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div>
+    <div className={`rounded-md border p-2 ${cls}`}>
+      <p className="text-[10px] uppercase tracking-wide opacity-80">{label}</p>
+      <p className="mt-0.5 text-lg font-semibold">{value}</p>
     </div>
+  );
+}
+
+function MetViaPill({ label, n }: { label: string; n: number }) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-2 py-0.5">
+      <span className="font-medium text-gray-700">{n}</span>
+      <span className="opacity-70">via {label}</span>
+    </span>
   );
 }
