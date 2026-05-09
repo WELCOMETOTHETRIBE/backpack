@@ -1,37 +1,52 @@
 /**
  * POST /api/ssp/[id]/submit-to-doc-control
  *
- * Phase 1 of "Send to Doc Control for SSP release."
+ * Phase 1 + Phase 2-Codex-outbound of "Send to Doc Control for SSP release."
  *
  * Submits a Codex-signed SSP version to the MacTech Quality QMS for
- * formal release. Phase 1 records the submission row only — the
- * outbound HTTP bridge to QMS lands in Phase 2, and the inbound linker
- * (matching the released QMS doc back to this row) lands in Phase 3.
+ * formal Reviewer / Approver / Quality Release sign-off.
  *
- * Gates (any failure → 4xx with reason):
+ * Flow (atomic-as-possible):
+ *   1. Validate the request (5 gates, see below).
+ *   2. Insert ssp_doc_control_submissions row in 'submitted' state.
+ *   3. Render the signed SSP PDF (presentation projection of canonical JSON).
+ *   4. Build the bridge payload and POST to QMS via submitToQms().
+ *   5. UPDATE the staging row with QMS-side ids on success, or with
+ *      last_outbound_error on failure (the row stays in 'submitted'
+ *      state so the operator can retry).
+ *   6. Audit-log the result.
+ *
+ * Failure modes:
+ *   - QMS unreachable / 5xx → row persisted, last_outbound_error set,
+ *     202 returned with `transmitted=false` so the UI can render
+ *     "Submitted to Codex queue, awaiting QMS reachability." Retrying
+ *     the endpoint will re-attempt the POST (idempotent on QMS side).
+ *   - QMS auth misconfigured (env vars missing) → same as above with a
+ *     specific reason string.
+ *   - QMS rejects (4xx) → still returns 202; the operator-facing error
+ *     comes from the `bridge` field in the response so they know what
+ *     to fix.
+ *
+ * Five validation gates (any failure → structured 4xx with code):
  *   1. SSP exists and belongs to caller's org.
  *   2. status='signed' (drafts can't be submitted to Doc Control).
- *   3. All three sign-offs present: authorizing_official, system_owner,
- *      isso, each bound to the same payload_sha256 as the doc.
+ *   3. All three sign-offs present (AO + system_owner + ISSO), each
+ *      bound to the same payload_sha256 as the doc.
  *   4. Drift-clean (computeDriftReport → topLevel === 'identical').
- *      A drifting SSP shouldn't be released; the operator must
- *      regenerate first.
  *   5. No existing submission in 'submitted' state for this
- *      ssp_document_id (enforced by partial unique index on the
- *      table; we surface the duplicate explicitly here).
+ *      ssp_document_id.
  *
  * Auth: Admin only.
- *
- * Body: { notes?: string }
- *
- * Returns: { submission, sspDocumentId, payloadSha256, status }
  */
 import { NextRequest, NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
+import { renderToBuffer } from "@react-pdf/renderer";
+import { createHash } from "node:crypto";
 
 import { db } from "@/db";
 import {
+  boundaries,
   sspDocControlSubmissions,
   sspDocuments,
   sspSignoffs,
@@ -39,6 +54,15 @@ import {
 import { writeAuditLog } from "@/lib/audit";
 import { requireOrg, requireRole } from "@/lib/auth";
 import { computeDriftReport } from "@/lib/ssp/drift";
+import {
+  submitToQms,
+  type BridgeSignoffPayload,
+} from "@/lib/ssp/doc-control-bridge";
+import {
+  SspDocument,
+  type SspPdfMeta,
+  type SspPdfPayload,
+} from "@/lib/ssp/pdf/SspDocument";
 
 const REQUIRED_SIGNOFF_KINDS = [
   "authorizing_official",
@@ -78,13 +102,11 @@ export async function POST(
       );
     }
 
-    // 2. status='signed' gate. Doc Control releases only the
-    //    cryptographically-bound version.
+    // 2. status='signed' gate.
     if (doc.status !== "signed") {
       return NextResponse.json(
         {
-          error:
-            `SSP version is in status '${doc.status}'. Only 'signed' versions can be submitted to Doc Control.`,
+          error: `SSP version is in status '${doc.status}'. Only 'signed' versions can be submitted to Doc Control.`,
           code: "not_signed",
         },
         { status: 409 },
@@ -92,12 +114,15 @@ export async function POST(
     }
 
     // 3. All three sign-offs present, all bound to this doc's payload_sha256
-    const signoffs = await db
+    const signoffRows = await db
       .select({
         signoffKind: sspSignoffs.signoffKind,
         dataHash: sspSignoffs.dataHash,
         signerDisplayName: sspSignoffs.signerDisplayName,
+        signerTitle: sspSignoffs.signerTitle,
         signedAt: sspSignoffs.signedAt,
+        signatureAlg: sspSignoffs.signatureAlg,
+        signatureValue: sspSignoffs.signatureValue,
       })
       .from(sspSignoffs)
       .where(
@@ -107,7 +132,7 @@ export async function POST(
         ),
       );
 
-    const presentKinds = new Set(signoffs.map((s) => s.signoffKind));
+    const presentKinds = new Set(signoffRows.map((s) => s.signoffKind));
     const missingKinds = REQUIRED_SIGNOFF_KINDS.filter(
       (k) => !presentKinds.has(k),
     );
@@ -122,7 +147,7 @@ export async function POST(
         { status: 409 },
       );
     }
-    const wrongHash = signoffs.filter(
+    const wrongHash = signoffRows.filter(
       (s) =>
         REQUIRED_SIGNOFF_KINDS.includes(
           s.signoffKind as (typeof REQUIRED_SIGNOFF_KINDS)[number],
@@ -140,8 +165,7 @@ export async function POST(
       );
     }
 
-    // 4. Drift-clean. If any cited evidence row no longer matches its
-    //    pinned SHA, we'd be releasing a stale narrative.
+    // 4. Drift-clean.
     const drift = await computeDriftReport(sspDocumentId);
     if (!drift) {
       return NextResponse.json(
@@ -155,9 +179,7 @@ export async function POST(
       ).length;
       return NextResponse.json(
         {
-          error:
-            `SSP has drifted from current evidence (${driftedCount} section(s) changed). ` +
-            `Generate a new version that captures fresh evidence before submitting to Doc Control.`,
+          error: `SSP has drifted from current evidence (${driftedCount} section(s) changed). Generate a new version first.`,
           code: "drifted",
           topLevel: drift.topLevel,
           driftedSections: drift.sections
@@ -172,12 +194,19 @@ export async function POST(
       );
     }
 
-    // 5. No in-flight submission already (partial unique index enforces
-    //    this at the DB level too, but we surface a clean error here).
+    // 5. In-flight check.
+    //    - existing 'submitted' WITH qms_submission_id → truly in flight at QMS, 409
+    //    - existing 'submitted' WITHOUT qms_submission_id → bridge POST failed
+    //      previously; reuse the row and re-attempt the POST. QMS is
+    //      idempotent on (org, ssp_document_id, payload_sha256) so re-POSTing
+    //      after a transient failure is safe.
+    //    - none → insert a fresh row.
     const [existing] = await db
       .select({
         id: sspDocControlSubmissions.id,
         submittedAt: sspDocControlSubmissions.submittedAt,
+        qmsSubmissionId: sspDocControlSubmissions.qmsSubmissionId,
+        outboundAttemptCount: sspDocControlSubmissions.outboundAttemptCount,
       })
       .from(sspDocControlSubmissions)
       .where(
@@ -188,12 +217,13 @@ export async function POST(
         ),
       )
       .limit(1);
-    if (existing) {
+    if (existing && existing.qmsSubmissionId) {
       return NextResponse.json(
         {
-          error: "A submission for this SSP version is already in flight.",
+          error: "A submission for this SSP version is already in flight at QMS.",
           code: "already_submitted",
           submissionId: existing.id,
+          qmsSubmissionId: existing.qmsSubmissionId,
           submittedAt: existing.submittedAt,
         },
         { status: 409 },
@@ -205,41 +235,203 @@ export async function POST(
     );
     const notes = parsed.success ? parsed.data.notes ?? null : null;
 
-    // Insert the submission row.
-    const [submission] = await db
-      .insert(sspDocControlSubmissions)
-      .values({
-        organizationId: orgId,
-        sspDocumentId,
-        status: "submitted",
-        submittedPayloadSha256: doc.payloadSha256,
-        submittedByUserId: user.id ?? null,
-        notes,
+    // ── Persist (or reuse) the staging row ────────────────────────────
+    // Reuse the existing row when a prior attempt failed to reach QMS;
+    // otherwise insert a fresh one. Either way, the QMS-side dedupe key
+    // (org, ssp_document_id, payload_sha256) keeps things idempotent.
+    const submission = existing
+      ? { id: existing.id, submittedAt: existing.submittedAt }
+      : (
+          await db
+            .insert(sspDocControlSubmissions)
+            .values({
+              organizationId: orgId,
+              sspDocumentId,
+              status: "submitted",
+              submittedPayloadSha256: doc.payloadSha256,
+              submittedByUserId: user.id ?? null,
+              notes,
+            })
+            .returning()
+        )[0];
+    const isRetry = !!existing;
+    const priorAttemptCount = existing?.outboundAttemptCount ?? 0;
+
+    // ── Resolve auxiliary data for the bridge payload ──────────────────
+    const [boundary] = await db
+      .select({ id: boundaries.id, name: boundaries.name })
+      .from(boundaries)
+      .where(eq(boundaries.id, doc.boundaryId))
+      .limit(1);
+
+    // Render the signed SSP PDF. Best-effort: if it fails, we can still
+    // record the staging row but the bridge will not transmit (operator
+    // sees the error and can retry).
+    let pdfBase64: string | null = null;
+    let pdfSha256: string | null = null;
+    let renderError: string | null = null;
+    try {
+      const meta: SspPdfMeta = {
+        payloadSha256: doc.payloadSha256,
+        signature:
+          doc.signatureValue && doc.signatureAlg && doc.signatureKid && doc.signedAt
+            ? {
+                alg: doc.signatureAlg,
+                kid: doc.signatureKid,
+                value: doc.signatureValue,
+                signedAt: doc.signedAt,
+              }
+            : null,
+        signoffs: signoffRows.map((s) => ({
+          signoffKind: s.signoffKind,
+          signerDisplayName: s.signerDisplayName,
+          signerTitle: s.signerTitle,
+          signedAt: s.signedAt,
+        })),
+      };
+      const buffer = await renderToBuffer(
+        SspDocument({
+          payload: doc.payloadJson as unknown as SspPdfPayload,
+          meta,
+        }) as unknown as Parameters<typeof renderToBuffer>[0],
+      );
+      pdfBase64 = buffer.toString("base64");
+      pdfSha256 = createHash("sha256").update(buffer).digest("hex");
+    } catch (err) {
+      renderError =
+        err instanceof Error ? err.message : "PDF render failed";
+    }
+
+    // Build controls_mapped from canonical JSON. Defensive default to
+    // [] if the payload shape doesn't match expectations — QMS-side
+    // gate will reject if <100, surfacing the issue.
+    const payloadJson = doc.payloadJson as { controls?: Array<{ control_id?: string }> };
+    const controlsMapped = (payloadJson.controls ?? [])
+      .map((c) => c.control_id)
+      .filter((s): s is string => typeof s === "string" && s.length > 0);
+
+    const canonicalJsonSha256 = createHash("sha256")
+      .update(JSON.stringify(doc.payloadJson))
+      .digest("hex");
+
+    // ── Build bridge payload ───────────────────────────────────────────
+    const signoffsPayload: BridgeSignoffPayload[] = signoffRows
+      .filter((s) =>
+        REQUIRED_SIGNOFF_KINDS.includes(
+          s.signoffKind as (typeof REQUIRED_SIGNOFF_KINDS)[number],
+        ),
+      )
+      .map((s) => ({
+        kind: s.signoffKind as BridgeSignoffPayload["kind"],
+        signer_display_name: s.signerDisplayName,
+        signer_title: s.signerTitle,
+        data_hash: s.dataHash,
+        signed_at: s.signedAt.toISOString(),
+        signature_alg: s.signatureAlg ?? null,
+        signature_value: s.signatureValue ?? null,
+      }));
+
+    // ── Attempt the QMS POST ───────────────────────────────────────────
+    let bridgeResult: Awaited<ReturnType<typeof submitToQms>> = {
+      ok: false,
+      status: 0,
+      reason: "Skipped — PDF render failed: " + (renderError ?? "unknown"),
+    };
+    if (!renderError && pdfBase64 && pdfSha256) {
+      bridgeResult = await submitToQms({
+        submission_id: submission.id,
+        organization_id: orgId,
+        ssp_document_id: sspDocumentId,
+        ssp_version_number: doc.versionNumber,
+        document_number: `SSP-${String(doc.versionNumber).padStart(3, "0")}`,
+        payload_sha256: doc.payloadSha256,
+        generated_at: doc.generatedAt.toISOString(),
+        generated_from_snapshot_at: doc.generatedFromSnapshotAt.toISOString(),
+        boundary_id: doc.boundaryId,
+        boundary_name: boundary?.name ?? "(unnamed boundary)",
+        tally: {
+          controls_covered: doc.controlsCovered,
+          controls_met: doc.controlsMet,
+          controls_not_met: doc.controlsNotMet,
+          controls_na: doc.controlsNa,
+          controls_met_via_evidence: doc.controlsMetViaEvidence,
+          controls_met_via_esp: doc.controlsMetViaEsp,
+          controls_met_via_enduring_exception: doc.controlsMetViaEnduringException,
+          controls_met_via_dod_cio: doc.controlsMetViaDodCio,
+          controls_met_via_op_plan: doc.controlsMetViaOpPlan,
+        },
+        controls_mapped: controlsMapped,
+        signoffs: signoffsPayload,
+        artifacts: {
+          pdf_base64: pdfBase64,
+          pdf_sha256: pdfSha256,
+          canonical_json: doc.payloadJson,
+          canonical_json_sha256: canonicalJsonSha256,
+        },
+      });
+    }
+
+    // ── Stamp bridge result onto the staging row ───────────────────────
+    const now = new Date();
+    await db
+      .update(sspDocControlSubmissions)
+      .set({
+        qmsSubmissionId: bridgeResult.ok
+          ? bridgeResult.qmsSubmissionId ?? null
+          : null,
+        qmsDocumentNumber: bridgeResult.ok
+          ? bridgeResult.qmsDocumentNumber ?? null
+          : null,
+        outboundAttemptCount: priorAttemptCount + 1,
+        lastOutboundAttemptAt: now,
+        lastOutboundError: bridgeResult.ok
+          ? null
+          : (bridgeResult.reason ?? `HTTP ${bridgeResult.status}`),
+        updatedAt: now,
       })
-      .returning();
+      .where(eq(sspDocControlSubmissions.id, submission.id));
 
     await writeAuditLog({
       organizationId: orgId,
       userId: user.id,
-      action: "ssp.submit_to_doc_control",
+      action: isRetry
+        ? "ssp.submit_to_doc_control.retry"
+        : "ssp.submit_to_doc_control",
       resourceType: "ssp_document",
       resourceId: sspDocumentId,
       details: {
         submission_id: submission.id,
         ssp_version: doc.versionNumber,
         payload_sha256: doc.payloadSha256,
-        signoff_count: signoffs.length,
+        signoff_count: signoffRows.length,
+        attempt_count: priorAttemptCount + 1,
+        bridge_ok: bridgeResult.ok,
+        bridge_status: bridgeResult.status,
+        bridge_reason: bridgeResult.reason ?? null,
+        qms_submission_id: bridgeResult.qmsSubmissionId ?? null,
       },
     });
 
     return NextResponse.json(
       {
         ok: true,
-        submission,
+        submission: {
+          id: submission.id,
+          status: "submitted",
+          submittedAt: submission.submittedAt,
+        },
         sspDocumentId,
         sspVersion: doc.versionNumber,
         payloadSha256: doc.payloadSha256,
-        status: submission.status,
+        bridge: {
+          transmitted: bridgeResult.ok,
+          httpStatus: bridgeResult.status,
+          qmsSubmissionId: bridgeResult.qmsSubmissionId ?? null,
+          qmsDocumentNumber: bridgeResult.qmsDocumentNumber ?? null,
+          reviewWindowDaysEstimate:
+            bridgeResult.reviewWindowDaysEstimate ?? null,
+          reason: bridgeResult.ok ? null : bridgeResult.reason,
+        },
       },
       { status: 202 },
     );
@@ -247,9 +439,7 @@ export async function POST(
     if (err instanceof Response) return err;
     console.error("[POST /api/ssp/:id/submit-to-doc-control]", err);
     return NextResponse.json(
-      {
-        error: err instanceof Error ? err.message : "Submission failed",
-      },
+      { error: err instanceof Error ? err.message : "Submission failed" },
       { status: 500 },
     );
   }

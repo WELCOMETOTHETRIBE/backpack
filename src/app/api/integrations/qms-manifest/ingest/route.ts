@@ -38,6 +38,7 @@ import { writeAuditLog } from "@/lib/audit";
 import { regenerateOISForManifest } from "@/lib/evidence-engine/adjudication/qms-manifest-ois-bridge";
 import { bridgeQmsManifestToGovernance } from "@/lib/evidence-engine/adjudication/qms-manifest-status-bridge";
 import { scoreControlsAffectedBy } from "@/lib/canonical-state/rescore-trigger";
+import { linkFromManifestRun } from "@/lib/ssp/doc-control-linker";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -292,6 +293,37 @@ export async function POST(req: NextRequest) {
     // an admin can re-trigger by re-pushing. Log loudly.
     console.error(
       "[qms-manifest-ingest] status bridge failed (non-blocking):",
+      err,
+    );
+  }
+
+  // 9a-bis. SSP Doc Control round-trip (Phase 3-Codex-inbound).
+  //         For each manifest entry with document_type='ssp', match
+  //         back to the corresponding ssp_doc_control_submissions row
+  //         (status='submitted', submitted_payload_sha256 == sha256)
+  //         and flip it to 'released'. Mark prior release rows for the
+  //         same SSP version as 'superseded'.
+  //
+  //         Synchronous + best-effort: the HTTP response should
+  //         confirm the DocControlPanel will reflect 'released' on the
+  //         next page load, but a linker failure must NOT roll back
+  //         the manifest itself.
+  try {
+    const linkResult = await linkFromManifestRun(orgRow.id, envelope.run_id);
+    if (linkResult.released > 0 || linkResult.superseded > 0) {
+      console.log(
+        `[qms-manifest-ingest] doc-control linker: ${linkResult.released} released, ${linkResult.superseded} superseded, ${linkResult.unmatched.length} unmatched (of ${linkResult.considered} ssp-typed manifest docs)`,
+      );
+    }
+    if (linkResult.unmatched.length > 0) {
+      console.warn(
+        `[qms-manifest-ingest] doc-control linker: ${linkResult.unmatched.length} released SSP(s) had no matching Codex submission`,
+        linkResult.unmatched,
+      );
+    }
+  } catch (err) {
+    console.error(
+      "[qms-manifest-ingest] doc-control linker failed (non-blocking):",
       err,
     );
   }

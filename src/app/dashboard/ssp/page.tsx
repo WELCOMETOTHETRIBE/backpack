@@ -103,7 +103,8 @@ export default async function SspPage() {
   }
 
   // Doc Control submission state per version. Latest row per
-  // ssp_document_id wins; status drives the badge + button gating.
+  // ssp_document_id wins; status + bridge transmission state drive the
+  // badge + button gating.
   const versionIds = versions.map((v) => v.id);
   const submissions =
     versionIds.length > 0
@@ -114,9 +115,15 @@ export default async function SspPage() {
             status: sspDocControlSubmissions.status,
             submittedAt: sspDocControlSubmissions.submittedAt,
             qmsDocumentNumber: sspDocControlSubmissions.qmsDocumentNumber,
+            qmsSubmissionId: sspDocControlSubmissions.qmsSubmissionId,
             releasedAt: sspDocControlSubmissions.releasedAt,
             rejectedAt: sspDocControlSubmissions.rejectedAt,
             rejectedReason: sspDocControlSubmissions.rejectedReason,
+            outboundAttemptCount:
+              sspDocControlSubmissions.outboundAttemptCount,
+            lastOutboundError: sspDocControlSubmissions.lastOutboundError,
+            lastOutboundAttemptAt:
+              sspDocControlSubmissions.lastOutboundAttemptAt,
           })
           .from(sspDocControlSubmissions)
           .where(
@@ -407,9 +414,13 @@ function DocControlPanel({
     status: string;
     submittedAt: Date | string;
     qmsDocumentNumber: string | null;
+    qmsSubmissionId: string | null;
     releasedAt: Date | string | null;
     rejectedAt: Date | string | null;
     rejectedReason: string | null;
+    outboundAttemptCount: number;
+    lastOutboundError: string | null;
+    lastOutboundAttemptAt: Date | string | null;
   } | null;
   isAdmin: boolean;
   sspDocumentId: string;
@@ -432,12 +443,37 @@ function DocControlPanel({
             </p>
           )}
           {submission?.status === "submitted" && (
-            <p className="mt-1 text-xs text-violet-900/80">
-              <span className="font-medium">In flight with Doc Control</span>{" "}
-              since{" "}
-              {new Date(submission.submittedAt).toISOString().slice(0, 10)} —
-              awaiting Reviewer / Approver / Quality Release sign-off in QMS.
-            </p>
+            <div className="mt-1 space-y-1">
+              {submission.qmsSubmissionId ? (
+                <p className="text-xs text-violet-900/80">
+                  <span className="font-medium">In flight with Doc Control</span>{" "}
+                  since{" "}
+                  {new Date(submission.submittedAt).toISOString().slice(0, 10)} —
+                  awaiting Reviewer / Approver / Quality Release sign-off
+                  (QMS submission{" "}
+                  <code className="rounded bg-violet-100 px-1 font-mono text-[10px]">
+                    {submission.qmsSubmissionId.slice(0, 12)}…
+                  </code>
+                  ).
+                </p>
+              ) : (
+                <p className="text-xs text-amber-800">
+                  <span className="font-medium">Submitted (queued)</span> —
+                  Codex recorded the submission but the QMS bridge POST{" "}
+                  {submission.outboundAttemptCount > 0
+                    ? `failed on attempt ${submission.outboundAttemptCount}`
+                    : "has not run"}
+                  .{" "}
+                  {submission.lastOutboundError && (
+                    <span className="block mt-0.5 font-mono text-[10px] text-amber-900">
+                      {submission.lastOutboundError.slice(0, 200)}
+                    </span>
+                  )}
+                  Click <em>Submit to Doc Control</em> again to retry —
+                  the QMS endpoint is idempotent.
+                </p>
+              )}
+            </div>
           )}
           {submission?.status === "released" && (
             <p className="mt-1 text-xs text-emerald-900">
@@ -483,7 +519,10 @@ function DocControlPanel({
         {isAdmin &&
           (!submission ||
             submission.status === "rejected" ||
-            submission.status === "superseded") && (
+            submission.status === "superseded" ||
+            // Queued-but-not-transmitted: bridge POST failed; allow retry.
+            (submission.status === "submitted" &&
+              !submission.qmsSubmissionId)) && (
             <SubmitToDocControlButton
               sspDocumentId={sspDocumentId}
               canSubmit={canSubmit}

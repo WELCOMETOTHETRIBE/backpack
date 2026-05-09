@@ -252,6 +252,32 @@ const STMTS: { label: string; sql: string }[] = [
     sql: `CREATE INDEX IF NOT EXISTS ssp_doc_control_submissions_qms_match_idx
       ON ssp_doc_control_submissions (organization_id, qms_document_number, qms_sha256)`,
   },
+
+  // ── 0071a (Phase 2-Codex-outbound additions): outbound bridge state ───
+  // qms_submission_id captures the QMS-side staging-row id returned by
+  // POST /api/external-submissions/ssp. The diagnostics columns let the
+  // dashboard surface "QMS unreachable / retry needed" without spelunking
+  // in logs. All idempotent ALTERs.
+  {
+    label: "0071a qms_submission_id column",
+    sql: `ALTER TABLE ssp_doc_control_submissions
+      ADD COLUMN IF NOT EXISTS qms_submission_id text`,
+  },
+  {
+    label: "0071a outbound_attempt_count column",
+    sql: `ALTER TABLE ssp_doc_control_submissions
+      ADD COLUMN IF NOT EXISTS outbound_attempt_count integer NOT NULL DEFAULT 0`,
+  },
+  {
+    label: "0071a last_outbound_error column",
+    sql: `ALTER TABLE ssp_doc_control_submissions
+      ADD COLUMN IF NOT EXISTS last_outbound_error text`,
+  },
+  {
+    label: "0071a last_outbound_attempt_at column",
+    sql: `ALTER TABLE ssp_doc_control_submissions
+      ADD COLUMN IF NOT EXISTS last_outbound_attempt_at timestamptz`,
+  },
 ];
 
 async function run() {

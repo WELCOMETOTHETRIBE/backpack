@@ -1182,6 +1182,25 @@ export const sspDocControlSubmissions = pgTable("ssp_doc_control_submissions", {
   /** QMS document_number (e.g. "SSP-001"). Stable across SSP versions. */
   qmsDocumentNumber: text("qms_document_number"),
   qmsSha256: varchar("qms_sha256", { length: 64 }),
+  /**
+   * QMS-side staging-row id, returned by POST /api/external-submissions/ssp.
+   * Set when Phase 2-Codex-outbound successfully reaches QMS and the QMS
+   * accepts the submission. Null while the outbound POST is pending or
+   * has failed.
+   */
+  qmsSubmissionId: text("qms_submission_id"),
+  /**
+   * Diagnostics for the outbound POST. last_outbound_error captures the
+   * most recent failure reason (truncated to a few hundred chars) so the
+   * dashboard can surface "QMS unreachable" without burying it in logs.
+   * outbound_attempt_count + last_outbound_attempt_at let an operator
+   * decide whether to retry.
+   */
+  outboundAttemptCount: integer("outbound_attempt_count").notNull().default(0),
+  lastOutboundError: text("last_outbound_error"),
+  lastOutboundAttemptAt: timestamp("last_outbound_attempt_at", {
+    withTimezone: true,
+  }),
   releasedAt: timestamp("released_at", { withTimezone: true }),
   supersededAt: timestamp("superseded_at", { withTimezone: true }),
   supersededById: uuid("superseded_by_id"),
