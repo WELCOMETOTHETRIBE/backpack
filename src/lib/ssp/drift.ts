@@ -25,10 +25,12 @@ import { eq, inArray } from "drizzle-orm";
 
 import { db } from "@/db";
 import {
+  caAssessmentBundles,
   governanceArtifactCompletions,
   governanceRegisterEntries,
   irExerciseBundles,
   poamEntries,
+  qmsGovernanceManifestDocuments,
   riskAssessments,
   sspDocuments,
   sspEvidenceCitations,
@@ -326,6 +328,66 @@ async function fetchCurrentEvidenceHashes(
     }
   }
 
+  // ── ca_bundle ──────────────────────────────────────────────────
+  // The package_sha256 IS the canonical hash for a CA cycle bundle —
+  // it covers the whole ZIP that TrainOS produced. Re-fetch it; if
+  // the bundle has been re-pushed (cycle re-finalized for any
+  // reason), the new package_sha256 won't match the pinned one and
+  // the drift report flags it. If the cycle row was deleted, return
+  // null → "missing".
+  const caIds = idsByKind.get("ca_bundle");
+  if (caIds && caIds.size > 0) {
+    const rows = await db
+      .select({
+        id: caAssessmentBundles.id,
+        packageSha256: caAssessmentBundles.packageSha256,
+      })
+      .from(caAssessmentBundles)
+      .where(inArray(caAssessmentBundles.id, [...caIds]));
+    const found = new Set<string>();
+    for (const r of rows) {
+      out.set(`ca_bundle:${r.id}`, r.packageSha256 ?? "");
+      found.add(r.id);
+    }
+    for (const id of caIds) {
+      if (!found.has(id)) out.set(`ca_bundle:${id}`, null);
+    }
+  }
+
+  // ── qms_doc ────────────────────────────────────────────────────
+  // QMS-pushed governance documents. The bundle's `sha256` covers
+  // the document's bytes; re-pushing the same document with new
+  // content produces a new sha256 and surfaces as drift. Retired
+  // QMS docs (manifest-driven retirement; see
+  // qms-manifest/ingest/route.ts) have retired_at set; we treat
+  // those as "missing" so the SSP correctly reports drift on a
+  // citation whose backing document was retired after sign.
+  const qmsIds = idsByKind.get("qms_doc");
+  if (qmsIds && qmsIds.size > 0) {
+    const rows = await db
+      .select({
+        id: qmsGovernanceManifestDocuments.id,
+        sha256: qmsGovernanceManifestDocuments.sha256,
+        retiredAt: qmsGovernanceManifestDocuments.retiredAt,
+      })
+      .from(qmsGovernanceManifestDocuments)
+      .where(inArray(qmsGovernanceManifestDocuments.id, [...qmsIds]));
+    const found = new Set<string>();
+    for (const r of rows) {
+      if (r.retiredAt) {
+        // Retired QMS doc — treat as missing so drift report flags
+        // sections that cited a doc the org has since pulled.
+        out.set(`qms_doc:${r.id}`, null);
+      } else {
+        out.set(`qms_doc:${r.id}`, r.sha256 ?? "");
+      }
+      found.add(r.id);
+    }
+    for (const id of qmsIds) {
+      if (!found.has(id)) out.set(`qms_doc:${id}`, null);
+    }
+  }
+
   // ── ois_narrative ──────────────────────────────────────────────
   // ois_narrative citations encode the snapshot state in their
   // evidence_id (`snapshot:<iso-timestamp>`); the hash is computed
@@ -334,10 +396,11 @@ async function fetchCurrentEvidenceHashes(
   // walking control_adjudication_history, so for Phase C2 we treat
   // ois_narrative citations as "identical" and surface them as
   // background context rather than drift signals.
-  // The other kinds (qms_doc, ca_bundle, technical_run,
-  // enduring_exception, dod_cio_adjudication, esp_inheritance) get
-  // fetchers as their write paths land. Until then they fall through
-  // to undefined → identical (see drift.ts main loop).
+  //
+  // Remaining kinds (technical_run, enduring_exception,
+  // dod_cio_adjudication, esp_inheritance) get fetchers as their
+  // write paths produce real rows. Until then they fall through to
+  // undefined → identical (see drift.ts main loop).
 
   return out;
 }

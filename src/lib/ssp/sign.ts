@@ -91,8 +91,16 @@ export function verifySspSignature(
     if (!hmacSecret) {
       return { ok: false, reason: "SSP_SIGNING_HMAC_SECRET not configured" };
     }
-    const [tsIso, mac] = signature.value.split(".");
-    if (!tsIso || !mac) {
+    // Format is `<ISO-8601>.<hex-mac>`. ISO timestamps contain dots
+    // (the milliseconds separator), so split('.') parses incorrectly —
+    // use lastIndexOf to peel off the trailing hex MAC.
+    const lastDot = signature.value.lastIndexOf(".");
+    if (lastDot < 0) {
+      return { ok: false, reason: "malformed hmac signature value" };
+    }
+    const tsIso = signature.value.slice(0, lastDot);
+    const mac = signature.value.slice(lastDot + 1);
+    if (!tsIso || !mac || !/^[a-f0-9]{64}$/.test(mac)) {
       return { ok: false, reason: "malformed hmac signature value" };
     }
     const message = `${payloadSha256}.${SIGNING_SERVICE_ID}.${tsIso}`;
