@@ -160,6 +160,11 @@ export default async function SspPage() {
     .map((s) => s.qmsDocumentNumber as string);
   const qmsSignaturesByDocNumber = new Map<string, QmsSignatureRef[]>();
   if (releasedDocNumbers.length > 0) {
+    // postgres-js binds a JS array as a string ("SSP-017") rather than a
+    // Postgres array literal ('{SSP-017}'), so `= ANY($n)` 22P02s with
+    // `malformed array literal`. Use an explicit IN list joined via
+    // sql.join — each element becomes its own bound parameter, no array
+    // marshalling needed.
     const rows = await db.execute<{
       document_number: string;
       signatures: unknown;
@@ -169,7 +174,10 @@ export default async function SspPage() {
         signatures
       FROM ${qmsGovernanceManifestDocuments}
       WHERE organization_id = ${orgId}
-        AND document_number = ANY(${releasedDocNumbers})
+        AND document_number IN (${sql.join(
+          releasedDocNumbers.map((n) => sql`${n}`),
+          sql`, `,
+        )})
       ORDER BY document_number,
                (SELECT received_at FROM ${qmsGovernanceManifests} WHERE run_id = ${qmsGovernanceManifestDocuments}.run_id) DESC
     `);
