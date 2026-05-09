@@ -22,7 +22,7 @@ import { eq, and, inArray } from "drizzle-orm";
 import { calculateControlStatus } from "@/lib/control-status";
 import { writeAuditLog } from "@/lib/audit";
 import { regenerateOIS } from "@/lib/evidence-engine/adjudication/ois-generator";
-import { scoreControl, persistAdjudication } from "@/lib/evidence-engine/adjudication/scorer";
+import { scoreControlsAffectedBy } from "@/lib/canonical-state/rescore-trigger";
 import { runThreatCorrelation } from "@/lib/evidence-engine/correlation/threat-narratives";
 import { audit_log_reviewHandler } from "./handlers/audit-log-review";
 import { maintenance_logHandler } from "./handlers/maintenance-log";
@@ -208,28 +208,30 @@ export async function dispatchIssoExport(
     );
   }
 
-  // ── Phase 7: re-score Control Adjudication for touched controls ───────
-  // Same best-effort policy. The scorer reads the latest entries (which
-  // includes whatever this manifest just wrote) and emits a snapshot.
-  // Snapshots accumulate over time — the unique index on (org, control,
-  // manifest_id) means re-running this manifest is a no-op replace.
+  // ── Phase B canonical rescore for touched controls ────────────────────
+  // Replaces the legacy scoreControl + persistAdjudication loop. The
+  // canonical trigger writes the same Phase 7 snapshot (rollup +
+  // confidence + requirements_json) PLUS layers the AG-aligned fields
+  // (met_via, aggregate_finding, four MET-elevators), auto-creates a
+  // draft POA&M for any control that lands NOT_MET, and writes a
+  // control_adjudication_history row capturing the trigger source.
+  // Best-effort; the helper swallows errors so a CAE blip doesn't
+  // roll back the manifest persist below.
   if (controlsTouched.length > 0) {
     try {
-      for (const controlId of controlsTouched) {
-        const result = await scoreControl(
-          { orgId: ctx.orgId, manifestId: ctx.manifestId },
-          controlId,
+      const r = await scoreControlsAffectedBy({
+        organizationId: ctx.orgId,
+        triggerSource: "isso_export_ingested",
+        controlIds: controlsTouched,
+      });
+      if (r.errored > 0) {
+        warnings.push(
+          `Canonical rescore had ${r.errored} per-control failure(s); see logs`,
         );
-        if (result) {
-          await persistAdjudication(
-            { orgId: ctx.orgId, manifestId: ctx.manifestId },
-            result,
-          );
-        }
       }
     } catch (err) {
       warnings.push(
-        `CAE scoring failed: ${err instanceof Error ? err.message : String(err)}`,
+        `Canonical rescore failed: ${err instanceof Error ? err.message : String(err)}`,
       );
     }
   }

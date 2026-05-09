@@ -11,6 +11,7 @@ import { requireOrg, requireRole } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
 import { getAttestationTemplate } from "@/lib/compliance/attestation-templates";
 import { runAttestationGuard } from "@/lib/risk-assessment/attestation-guard";
+import { scoreControlsAffectedBy } from "@/lib/canonical-state/rescore-trigger";
 import { createHash } from "node:crypto";
 
 /**
@@ -300,6 +301,17 @@ export async function POST(req: Request) {
         completionId: completion?.id,
         attestationId: attestation?.id,
       },
+    });
+
+    // Phase B trigger: rescore the canonical snapshot for every control
+    // this attestation covers. Best-effort; the helper swallows errors
+    // so a scoring blip doesn't roll back the attestation insert that
+    // already committed above.
+    await scoreControlsAffectedBy({
+      organizationId: orgId,
+      triggerSource: "attestation_signed",
+      controlIds: linkedIds,
+      triggeredByUserId: user.id,
     });
 
     // Invalidate every cached route that displays adjudication state. The

@@ -45,6 +45,7 @@ import {
   evaluateObjectiveB,
   TERMINAL_STATUSES,
 } from "@/lib/risk-assessment/lifecycle";
+import { scoreControlsAffectedBy } from "@/lib/canonical-state/rescore-trigger";
 
 export async function POST(
   req: NextRequest,
@@ -204,6 +205,17 @@ export async function POST(
       controlId: "3.11.1",
     },
     req,
+  });
+
+  // Phase B trigger: a finalized risk assessment changes 3.11.1's
+  // adjudication picture; rescore it so the canonical helper picks up
+  // the operational-plan POA&M elevator (or evidence elevator) as
+  // appropriate. Best-effort.
+  await scoreControlsAffectedBy({
+    organizationId: orgId,
+    triggerSource: "ra_finalized",
+    controlIds: ["3.11.1", "3.11.2", "3.11.3"],
+    triggeredByUserId: auth.userId,
   });
 
   revalidatePath("/dashboard");

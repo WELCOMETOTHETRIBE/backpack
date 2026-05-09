@@ -37,6 +37,7 @@ import { verifyEnvelope } from "@/lib/integrations/qms-manifest-verify";
 import { writeAuditLog } from "@/lib/audit";
 import { regenerateOISForManifest } from "@/lib/evidence-engine/adjudication/qms-manifest-ois-bridge";
 import { bridgeQmsManifestToGovernance } from "@/lib/evidence-engine/adjudication/qms-manifest-status-bridge";
+import { scoreControlsAffectedBy } from "@/lib/canonical-state/rescore-trigger";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -300,19 +301,37 @@ export async function POST(req: NextRequest) {
   //    sees this manifest's evidence as fresh. Awaited inside a
   //    setImmediate-style background tick so the HTTP response returns
   //    quickly and an OIS hiccup doesn't fail the ingest.
-  void Promise.resolve().then(() =>
-    regenerateOISForManifest({
-      orgId: orgRow.id,
-      controlsTouched: envelope.controls_touched,
-      manifestRunId: envelope.run_id,
-      manifestGeneratedAt: new Date(envelope.generated_at),
-    }).catch((err) => {
+  //
+  //    Phase B trigger fires AFTER OIS regen because the canonical
+  //    rescore reads OIS state when computing per-objective verdicts
+  //    in future iterations. Same best-effort, fire-and-forget shape.
+  void Promise.resolve().then(async () => {
+    try {
+      await regenerateOISForManifest({
+        orgId: orgRow.id,
+        controlsTouched: envelope.controls_touched,
+        manifestRunId: envelope.run_id,
+        manifestGeneratedAt: new Date(envelope.generated_at),
+      });
+    } catch (err) {
       console.error(
         "[qms-manifest-ingest] OIS regen failed (non-blocking):",
         err,
       );
-    }),
-  );
+    }
+    try {
+      await scoreControlsAffectedBy({
+        organizationId: orgRow.id,
+        triggerSource: "qms_manifest_ingested",
+        controlIds: envelope.controls_touched,
+      });
+    } catch (err) {
+      console.error(
+        "[qms-manifest-ingest] canonical rescore failed (non-blocking):",
+        err,
+      );
+    }
+  });
 
   return NextResponse.json(
     {

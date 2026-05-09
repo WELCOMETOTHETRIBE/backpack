@@ -94,6 +94,7 @@ import {
   UploadBundleManifestSchema,
 } from "@/lib/ir-tabletop-bridge"
 import { controlIdToNist } from "@/lib/compliance/controlId"
+import { scoreControlsAffectedBy } from "@/lib/canonical-state/rescore-trigger"
 import { getIrTabletopStorage } from "@/lib/ir-tabletop-storage"
 import {
   emitPoamFromBundle,
@@ -877,6 +878,18 @@ bytesPersisted: body.vaultBytesPersisted ?? body.bytesPersisted ?? false,
         emailErr,
       )
     }
+
+    // Phase B trigger: rescore every control the bundle archive linked
+    // (3.6.1/3.6.2/3.6.3 + any adjacent controls in ir_exercise_controls).
+    // The canonical helper picks up the new operational evidence and
+    // flips the affected controls' aggregate_finding accordingly. Best-
+    // effort; never throws.
+    await scoreControlsAffectedBy({
+      organizationId: auth.organizationId,
+      triggerSource: "ir_bundle_archived",
+      controlIds: result.completionInserts.map((c) => c.controlId),
+      triggeredByUserId: auth.userId,
+    })
 
     // Bundle archive may have flipped 3.6.1/3.6.2/3.6.3 (and any adjacent
     // controls linked via ir_exercise_controls) into the customer's
