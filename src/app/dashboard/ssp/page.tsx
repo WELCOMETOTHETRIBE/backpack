@@ -336,7 +336,8 @@ export default async function SspPage() {
             return (
               <li
                 key={v.id}
-                className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm"
+                id={`v-${v.id}`}
+                className="scroll-mt-6 rounded-xl border border-gray-200 bg-white p-5 shadow-sm target:ring-2 target:ring-sky-300"
               >
                 <div className="flex flex-wrap items-baseline justify-between gap-3">
                   <div className="flex items-baseline gap-3">

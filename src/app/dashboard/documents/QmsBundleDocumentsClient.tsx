@@ -98,6 +98,15 @@ interface Props {
    * URL — still 404, but at least visibly distinguishable.
    */
   controlCodeToImplId: Record<string, string>;
+  /**
+   * Map of QMS document_number (e.g. "SSP-017") → Codex
+   * ssp_documents.id. When a Library row's document_type='ssp' has
+   * a matching entry here, the row renders a "View in SSP" pivot
+   * button that deep-links to /dashboard/ssp for drift / signoff /
+   * citation context. Empty for orgs that haven't submitted any SSP
+   * to Doc Control yet.
+   */
+  sspIdByQmsDocNumber: Record<string, string>;
 }
 
 function controlHref(code: string, map: Record<string, string>): string {
@@ -239,6 +248,7 @@ export default function QmsBundleDocumentsClient({
   oisImpact,
   controlsWithBackingCount,
   controlCodeToImplId,
+  sspIdByQmsDocNumber,
 }: Props) {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
@@ -621,6 +631,7 @@ export default function QmsBundleDocumentsClient({
                 doc={d}
                 controlCodeToImplId={controlCodeToImplId}
                 versionCount={versionCountByDoc.get(d.documentNumber) ?? null}
+                sspDocumentId={sspIdByQmsDocNumber[d.documentNumber] ?? null}
               />
             ))}
           </ul>
@@ -636,6 +647,7 @@ function DocRow({
   doc,
   controlCodeToImplId,
   versionCount,
+  sspDocumentId,
 }: {
   doc: QmsDoc;
   controlCodeToImplId: Record<string, string>;
@@ -646,8 +658,19 @@ function DocRow({
    * definition the latest of itself in the active run).
    */
   versionCount: number | null;
+  /**
+   * When document_type='ssp' AND a released ssp_doc_control_submissions
+   * row matches this document_number, this is the Codex
+   * ssp_documents.id — drives the "View in SSP" pivot back to
+   * /dashboard/ssp. Null for non-SSP docs and SSPs without a Codex
+   * submission match (which shouldn't happen for QMS-released SSPs but
+   * the row stays usable either way).
+   */
+  sspDocumentId: string | null;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [showAllControls, setShowAllControls] = useState(false);
+
   // Link to the read-only "presentation view" on QMS (C3PAO-friendly,
   // beautifully-rendered MD with the full signature chain visible). Not
   // the editable detail page.
@@ -658,8 +681,29 @@ function DocRow({
     return order(a.signatureMeaning) - order(b.signatureMeaning);
   });
 
+  // SSP-typed docs are authorizing records, not policies — treat them
+  // visually distinct and offer a "View in SSP" pivot back to the
+  // Codex SSP detail page.
+  const isSsp = doc.documentType === "ssp";
+
+  // Cap the controls-mapped pill wall. SSPs cover all 110 L2 controls;
+  // rendering 110 pills inline is unusable. Show first 12 + an "all N"
+  // toggle for any doc with too many.
+  const CONTROLS_CAP = 12;
+  const displayedControls =
+    showAllControls || doc.controlsMapped.length <= CONTROLS_CAP
+      ? doc.controlsMapped
+      : doc.controlsMapped.slice(0, CONTROLS_CAP);
+  const hiddenControlsCount = doc.controlsMapped.length - displayedControls.length;
+
+  // Background tint: SSPs get a faint sky tint so they stand out in a
+  // sea of policies/procedures.
+  const rowBg = isSsp
+    ? "bg-sky-50/40 hover:bg-sky-50/60 dark:bg-sky-950/20 dark:hover:bg-sky-950/30"
+    : "hover:bg-gray-50 dark:hover:bg-gray-900/40";
+
   return (
-    <li className="p-4 transition hover:bg-gray-50 dark:hover:bg-gray-900/40">
+    <li className={`p-4 transition ${rowBg}`}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-baseline gap-2">
@@ -676,7 +720,14 @@ function DocRow({
             )}
             <StatusPill released={doc.released} status={doc.status} />
             {doc.documentType && (
-              <span className="text-[10px] uppercase tracking-wider text-gray-500">
+              <span
+                className={`text-[10px] uppercase tracking-wider ${
+                  isSsp
+                    ? "rounded-full bg-sky-100 px-2 py-0.5 font-semibold text-sky-800 dark:bg-sky-900/40 dark:text-sky-300"
+                    : "text-gray-500"
+                }`}
+              >
+                {isSsp && "★ "}
                 {TYPE_LABELS[doc.documentType] ?? doc.documentType}
               </span>
             )}
@@ -691,6 +742,11 @@ function DocRow({
           </div>
           <p className="mt-1 text-sm text-gray-800 dark:text-gray-200">
             {doc.documentName}
+            {isSsp && (
+              <span className="ml-2 text-[11px] italic text-sky-700 dark:text-sky-400">
+                Authorizing record · CA.L2-3.12.4
+              </span>
+            )}
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
             {doc.controlsMapped.length === 0 ? (
@@ -698,20 +754,54 @@ function DocRow({
                 no control mapping (auditor follow-up: tag in /cmmc/control-tags on QMS)
               </span>
             ) : (
-              doc.controlsMapped.map((c) => (
-                <Link
-                  key={c}
-                  href={controlHref(c, controlCodeToImplId)}
-                  className={`${LINK_PILL_BASE} ${LINK_PILL_TONES.blue}`}
-                >
-                  {c}
-                </Link>
-              ))
+              <>
+                {displayedControls.map((c) => (
+                  <Link
+                    key={c}
+                    href={controlHref(c, controlCodeToImplId)}
+                    className={`${LINK_PILL_BASE} ${LINK_PILL_TONES.blue}`}
+                  >
+                    {c}
+                  </Link>
+                ))}
+                {hiddenControlsCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setShowAllControls(true)}
+                    className="rounded-full border border-gray-200 bg-white px-2 py-0.5 text-[10px] font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                    title={`Show all ${doc.controlsMapped.length} controls this doc maps to`}
+                  >
+                    + {hiddenControlsCount} more
+                  </button>
+                )}
+                {showAllControls && doc.controlsMapped.length > CONTROLS_CAP && (
+                  <button
+                    type="button"
+                    onClick={() => setShowAllControls(false)}
+                    className="rounded-full border border-gray-200 bg-white px-2 py-0.5 text-[10px] font-medium text-gray-500 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800"
+                  >
+                    collapse
+                  </button>
+                )}
+              </>
             )}
           </div>
         </div>
 
         <div className="flex flex-shrink-0 flex-col items-end gap-1">
+          {/* SSP-specific pivot: jump from the QMS Library back to the
+              Codex SSP detail page where drift / signoffs / citations
+              live. */}
+          {isSsp && sspDocumentId && (
+            <Link
+              href={`/dashboard/ssp#v-${sspDocumentId}`}
+              className="inline-flex items-center gap-1 rounded-md border border-sky-300 bg-sky-50 px-2.5 py-1 text-xs font-medium text-sky-800 hover:bg-sky-100 dark:border-sky-800 dark:bg-sky-900/40 dark:text-sky-200 dark:hover:bg-sky-900/60"
+              title="Open in the Codex SSP version detail (drift, sign-offs, citations)"
+            >
+              View in SSP
+              <ChevronRight className="h-3 w-3" />
+            </Link>
+          )}
           <Link
             href={qmsUrl}
             target="_blank"

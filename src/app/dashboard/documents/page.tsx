@@ -8,6 +8,7 @@ import {
   controlImplementations,
   controls,
   organizations,
+  sspDocControlSubmissions,
 } from "@/db/schema";
 import { and, eq, desc, isNotNull, sql } from "drizzle-orm";
 import QmsBundleDocumentsClient, {
@@ -215,6 +216,31 @@ export default async function DocumentsPage() {
     .where(eq(organizations.id, orgId))
     .limit(1);
 
+  // qms_document_number → ssp_document_id map for the "View in SSP"
+  // pivot. When a Library row's document_type === 'ssp' AND the org
+  // has a released ssp_doc_control_submissions row matching the
+  // document_number, the row gets a click-through to /dashboard/ssp
+  // so an operator can pivot from "browse all docs" to "see this
+  // SSP version's drift status, signoffs, citations" in one click.
+  const sspSubmissionRows = await db
+    .select({
+      qmsDocumentNumber: sspDocControlSubmissions.qmsDocumentNumber,
+      sspDocumentId: sspDocControlSubmissions.sspDocumentId,
+    })
+    .from(sspDocControlSubmissions)
+    .where(
+      and(
+        eq(sspDocControlSubmissions.organizationId, orgId),
+        isNotNull(sspDocControlSubmissions.qmsDocumentNumber),
+      ),
+    );
+  const sspIdByQmsDocNumber: Record<string, string> = {};
+  for (const r of sspSubmissionRows) {
+    if (r.qmsDocumentNumber) {
+      sspIdByQmsDocNumber[r.qmsDocumentNumber] = r.sspDocumentId;
+    }
+  }
+
   // /dashboard/controls/[id] expects a control_implementations.id (UUID),
   // but controls referenced from QMS docs and OIS rows arrive as control
   // codes (e.g. "AC.L2-3.1.1" or short "3.1.1"). Build a code → UUID map
@@ -348,6 +374,7 @@ export default async function DocumentsPage() {
       )}
       controlsWithBackingCount={controlsWithBacking.size}
       controlCodeToImplId={controlCodeToImplId}
+      sspIdByQmsDocNumber={sspIdByQmsDocNumber}
     />
   );
 }
