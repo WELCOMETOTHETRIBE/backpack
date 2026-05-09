@@ -320,6 +320,32 @@ export async function POST(req: NextRequest) {
         `[qms-manifest-ingest] doc-control linker: ${linkResult.unmatched.length} released SSP(s) had no matching Codex submission`,
         linkResult.unmatched,
       );
+      // Also write an audit-log row so the unmatched case is queryable
+      // from the admin audit log instead of buried in Railway scrollback.
+      // Per the bridge mapping decision (Q3 = defer auto-alerts), we
+      // don't page on this — but the breadcrumb stays discoverable so
+      // an operator scanning audit history sees released-without-Codex
+      // events rather than having to grep server logs.
+      try {
+        await writeAuditLog({
+          organizationId: orgRow.id,
+          action: "ssp.doc_control_link.unmatched",
+          resourceType: "qms_governance_manifest",
+          resourceId: envelope.run_id,
+          details: {
+            unmatched_count: linkResult.unmatched.length,
+            released_count: linkResult.released,
+            considered_count: linkResult.considered,
+            // Cap the sample so the audit row stays small.
+            sample: linkResult.unmatched.slice(0, 20),
+          },
+        });
+      } catch (err) {
+        console.error(
+          "[qms-manifest-ingest] audit log for unmatched SSP failed:",
+          err,
+        );
+      }
     }
   } catch (err) {
     console.error(
