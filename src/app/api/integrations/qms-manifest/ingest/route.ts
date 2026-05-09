@@ -28,7 +28,7 @@ import {
   qmsGovernanceManifests,
   qmsGovernanceManifestDocuments,
 } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import {
   manifestEnvelopeSchema,
   type ManifestEnvelope,
@@ -211,6 +211,31 @@ export async function POST(req: NextRequest) {
           })),
         );
       }
+
+      // ── Retire-on-absence ─────────────────────────────────────────
+      // Stamp retired_at on the most-recent row of any (org,
+      // document_number) whose document_number is not in this
+      // manifest. The library view at /dashboard/documents filters
+      // retired_at IS NULL so docs deleted/retired on the QMS side
+      // stop polluting it.
+      //
+      // Idempotent on re-ingest of the same manifest: docs in the
+      // current envelope have a fresh row with run_id = this run, so
+      // the `qgmd.run_id <> ${envelope.run_id}` predicate excludes
+      // them from being retired here.
+      await tx.execute(sql`
+        UPDATE qms_governance_manifest_documents
+        SET retired_at = NOW()
+        WHERE id IN (
+          SELECT DISTINCT ON (q.document_number) q.id
+          FROM qms_governance_manifest_documents q
+          JOIN qms_governance_manifests qm ON qm.run_id = q.run_id
+          WHERE q.organization_id = ${orgRow.id}
+          ORDER BY q.document_number, qm.received_at DESC
+        )
+        AND run_id <> ${envelope.run_id}
+        AND retired_at IS NULL
+      `);
     });
   } catch (err) {
     console.error("[qms-manifest-ingest] DB insert failed:", err);

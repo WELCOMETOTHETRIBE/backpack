@@ -118,6 +118,9 @@ export default async function DocumentsPage() {
   // run that introduced the row). The doc table has released_at (text)
   // and effective_date (timestamptz) but no updated_at — received_at
   // is the most reliable "which version is freshest" proxy.
+  // retired_at IS NULL drops docs the QMS-side has deleted/retired —
+  // the dispatcher stamps retired_at on the most-recent row of any
+  // doc that disappears from a fresh manifest. See migration 0067.
   const libraryRowsRaw = await db.execute(sql`
     SELECT DISTINCT ON (qgmd.document_number)
       qgmd.document_number, qgmd.document_name, qgmd.document_type,
@@ -129,6 +132,7 @@ export default async function DocumentsPage() {
     FROM qms_governance_manifest_documents qgmd
     JOIN qms_governance_manifests qgm ON qgm.run_id = qgmd.run_id
     WHERE qgmd.organization_id = ${orgId}
+      AND qgmd.retired_at IS NULL
     ORDER BY
       qgmd.document_number,
       (CASE WHEN qgmd.released THEN 0 ELSE 1 END),
@@ -153,10 +157,15 @@ export default async function DocumentsPage() {
     source_received_at: Date | string | null;
   }>;
 
+  // versionCounts feeds the "n versions" pill on library rows. We
+  // count only non-retired rows so a doc whose only history is
+  // retired QMS pollution doesn't render with a misleading "N
+  // versions" badge.
   const versionCountsRaw = await db.execute(sql`
     SELECT document_number, count(*)::int AS n
     FROM qms_governance_manifest_documents
     WHERE organization_id = ${orgId}
+      AND retired_at IS NULL
     GROUP BY document_number
   `);
   const versionCounts = new Map<string, number>();

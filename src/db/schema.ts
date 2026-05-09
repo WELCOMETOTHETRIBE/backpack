@@ -1932,6 +1932,19 @@ export const qmsGovernanceManifestDocuments = pgTable(
     // QMS DocumentSignature chain ordered by signed_at desc. Schema mirrors
     // qms-manifest-schema.ts manifestSignatureSchema_perDoc.
     signatures: jsonb("signatures").notNull().default([]),
+    /**
+     * Retire-on-absence stamp. The QMS-manifest-ingest dispatcher sets
+     * this on the most-recent row of any (org, document_number) whose
+     * document_number disappears from a new manifest — i.e. the doc was
+     * deleted/retired on the QMS side. The library view at
+     * /dashboard/documents filters retired_at IS NULL by default so
+     * orphaned-from-QMS rows stop polluting the auditor's surface.
+     *
+     * If the doc later reappears in a new manifest, a fresh row is
+     * inserted with retired_at = NULL; the old retired row stays
+     * untouched as audit history (DISTINCT ON picks the new one).
+     */
+    retiredAt: timestamp("retired_at", { withTimezone: true }),
   },
   (t) => ({
     runIdIdx: index("qms_governance_manifest_documents_run_idx").on(t.runId),
