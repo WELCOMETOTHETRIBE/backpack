@@ -49,12 +49,13 @@ import {
   sspDocControlSubmissions,
   sspDocuments,
   sspSignoffs,
-  users,
 } from "@/db/schema";
 import { writeAuditLog } from "@/lib/audit";
 import { requireOrg, requireRole } from "@/lib/auth";
+import { recordAuthorAttestation } from "@/lib/ssp/author-attestation";
 import {
   submitToQms,
+  type BridgeAuthorPayload,
   type BridgeSignoffPayload,
 } from "@/lib/ssp/doc-control-bridge";
 import { generateSsp } from "@/lib/ssp/generate";
@@ -120,24 +121,39 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Resolve the generating user's display name + email up-front so we
-  // can ride that as authorship metadata on the staging row.
-  const [generatorUser] = await db
-    .select({ id: users.id, email: users.email, name: users.name })
-    .from(users)
-    .where(eq(users.id, userId))
-    .limit(1);
-  const generatedByDisplayName =
-    generatorUser?.name?.trim() || generatorUser?.email || userId;
-  const generatedByEmail = generatorUser?.email ?? null;
+  // Record the author attestation — single row in sspSignoffs with
+  // kind='author', signature_alg='codex_author_attestation'. Provenance
+  // only; NOT an approval signature.
+  let authorResult: Awaited<ReturnType<typeof recordAuthorAttestation>>;
+  try {
+    authorResult = await recordAuthorAttestation({
+      organizationId: orgId,
+      sspDocumentId: generated.sspDocumentId,
+      payloadSha256: generated.payloadSha256,
+      authorUserId: userId,
+    });
+  } catch (err) {
+    return NextResponse.json(
+      {
+        ok: true,
+        ...generated,
+        docControl: {
+          transmitted: false,
+          reason: `Author attestation failed: ${err instanceof Error ? err.message : String(err)}`,
+        },
+      },
+      { status: 201 },
+    );
+  }
 
   const response: Record<string, unknown> = {
     ok: true,
     ...generated,
     generatedBy: {
-      userId,
-      displayName: generatedByDisplayName,
-      email: generatedByEmail,
+      userId: authorResult.author.userId,
+      displayName: authorResult.author.displayName,
+      email: authorResult.author.email,
+      attestedAt: authorResult.author.attestedAt.toISOString(),
     },
     docControl: null,
   };
@@ -200,7 +216,7 @@ export async function POST(req: NextRequest) {
         status: "submitted",
         submittedPayloadSha256: doc.payloadSha256,
         submittedByUserId: userId,
-        notes: `Auto-submitted by Codex on SSP generate · author=${generatedByEmail ?? userId} · signoffs=[] (deferred to QMS Reviewer/Approver/Quality Release per v2.13 page-204 separation of concerns)`,
+        notes: `Auto-submitted by Codex on SSP generate · author=${authorResult.author.email} · signoffs=[] (release signature chain deferred to QMS Reviewer/Approver/Quality Release per v2.13 page-204)`,
       })
       .returning();
 
@@ -277,6 +293,16 @@ export async function POST(req: NextRequest) {
         signature_value: s.signatureValue ?? null,
       }));
 
+    // Author metadata for the bridge payload — top-level field, NOT
+    // inside signoffs[]. See BridgeAuthorPayload doc.
+    const authorPayload: BridgeAuthorPayload = {
+      user_id: authorResult.author.userId,
+      display_name: authorResult.author.displayName,
+      email: authorResult.author.email,
+      attested_at: authorResult.author.attestedAt.toISOString(),
+      data_hash: doc.payloadSha256,
+    };
+
     const bridgeResult = await submitToQms({
       submission_id: submission.id,
       organization_id: orgId,
@@ -288,6 +314,7 @@ export async function POST(req: NextRequest) {
       generated_from_snapshot_at: doc.generatedFromSnapshotAt.toISOString(),
       boundary_id: doc.boundaryId,
       boundary_name: boundary?.name ?? "(unnamed boundary)",
+      author: authorPayload,
       tally: {
         controls_covered: doc.controlsCovered,
         controls_met: doc.controlsMet,

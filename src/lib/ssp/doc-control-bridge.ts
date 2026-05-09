@@ -39,6 +39,25 @@ export interface BridgeSignoffPayload {
   signature_value: string | null;
 }
 
+/**
+ * Author/submitter metadata. Distinct from signoffs[] — this is the
+ * identity of the user who clicked "Generate" + transmitted the SSP
+ * to QMS. NOT an approval signature; QMS's Reviewer/Approver/Quality
+ * Release chain stays separate. Populates QMS's "Submitted by" field
+ * so a doc detail page can show who authored the submission without
+ * any conflict-of-duty concern about the author also signing as
+ * approver.
+ */
+export interface BridgeAuthorPayload {
+  user_id: string;
+  display_name: string;
+  email: string | null;
+  /** ISO8601 — when the author triggered the submission. */
+  attested_at: string;
+  /** payload_sha256 the author transmitted, for integrity verification. */
+  data_hash: string;
+}
+
 export interface BridgeRequestPayload {
   bridge_version: string;
   submission_id: string;
@@ -51,6 +70,12 @@ export interface BridgeRequestPayload {
   generated_from_snapshot_at: string;
   boundary_id: string;
   boundary_name: string;
+  /**
+   * The Codex user who authored + submitted this version. ALWAYS
+   * populated; QMS uses this to display the "Submitted by" field on
+   * its doc detail UI. Not a signoff — see signoffs[] for those.
+   */
+  author: BridgeAuthorPayload;
   tally: {
     controls_covered: number;
     controls_met: number;
@@ -63,6 +88,13 @@ export interface BridgeRequestPayload {
     controls_met_via_op_plan: number;
   };
   controls_mapped: string[];
+  /**
+   * Optional Codex-side approval signoffs (ISSO/SO/AO). Empty by
+   * default — auto-submit-on-generate sends []. Populated only when
+   * an OSA has explicitly signed via /api/ssp/[id]/sign-off before
+   * submission. The release signature chain (Reviewer/Approver/
+   * Quality Release) is QMS-side and lives outside this array.
+   */
   signoffs: BridgeSignoffPayload[];
   artifacts: {
     pdf_base64: string;

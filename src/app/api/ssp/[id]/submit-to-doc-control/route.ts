@@ -57,7 +57,12 @@ import { requireOrg, requireRole } from "@/lib/auth";
 import { validateSspCompleteness } from "@/lib/ssp/completeness";
 import { computeDriftReport } from "@/lib/ssp/drift";
 import {
+  AUTHOR_SIGNOFF_KIND,
+  recordAuthorAttestation,
+} from "@/lib/ssp/author-attestation";
+import {
   submitToQms,
+  type BridgeAuthorPayload,
   type BridgeSignoffPayload,
 } from "@/lib/ssp/doc-control-bridge";
 import {
@@ -386,6 +391,8 @@ export async function POST(
     const canonicalJsonSha256 = payloadSha256(doc.payloadJson);
 
     // ── Build bridge payload ───────────────────────────────────────────
+    // signoffs[] is reserved for ISSO/SO/AO approvals. The author
+    // attestation rides as a top-level `author` field, not in here.
     const signoffsPayload: BridgeSignoffPayload[] = signoffRows
       .filter((s) =>
         REQUIRED_SIGNOFF_KINDS.includes(
@@ -401,6 +408,60 @@ export async function POST(
         signature_alg: s.signatureAlg ?? null,
         signature_value: s.signatureValue ?? null,
       }));
+
+    // Resolve author attestation for the top-level bridge `author`
+    // field. Look first for an existing kind='author' row (set by
+    // /api/ssp/generate); if absent (e.g. older SSP versions that
+    // pre-date the author-attestation flow), record one now from the
+    // user clicking Submit. Either path produces a truthful author
+    // identity bound to the same payload_sha256.
+    const existingAuthorRow = signoffRows.find(
+      (s) => s.signoffKind === AUTHOR_SIGNOFF_KIND,
+    );
+    let authorPayload: BridgeAuthorPayload;
+    if (existingAuthorRow) {
+      authorPayload = {
+        user_id: "", // legacy — fall back to display-name binding
+        display_name: existingAuthorRow.signerDisplayName,
+        email: null,
+        attested_at: existingAuthorRow.signedAt.toISOString(),
+        data_hash: existingAuthorRow.dataHash,
+      };
+      // Try to recover user_id + email by reading the row's
+      // signerUserId via a fresh query — kept out of the main signoff
+      // select to avoid widening that hot path.
+      try {
+        const [authorUser] = await db
+          .select({ id: sspSignoffs.signerUserId })
+          .from(sspSignoffs)
+          .where(
+            and(
+              eq(sspSignoffs.sspDocumentId, sspDocumentId),
+              eq(sspSignoffs.signoffKind, AUTHOR_SIGNOFF_KIND),
+            ),
+          )
+          .limit(1);
+        if (authorUser?.id) {
+          authorPayload.user_id = authorUser.id;
+        }
+      } catch {
+        /* best-effort */
+      }
+    } else {
+      const recorded = await recordAuthorAttestation({
+        organizationId: orgId,
+        sspDocumentId,
+        payloadSha256: doc.payloadSha256,
+        authorUserId: user.id ?? "",
+      });
+      authorPayload = {
+        user_id: recorded.author.userId,
+        display_name: recorded.author.displayName,
+        email: recorded.author.email,
+        attested_at: recorded.author.attestedAt.toISOString(),
+        data_hash: doc.payloadSha256,
+      };
+    }
 
     // ── Attempt the QMS POST ───────────────────────────────────────────
     let bridgeResult: Awaited<ReturnType<typeof submitToQms>> = {
@@ -427,6 +488,7 @@ export async function POST(
         generated_from_snapshot_at: doc.generatedFromSnapshotAt.toISOString(),
         boundary_id: doc.boundaryId,
         boundary_name: boundary?.name ?? "(unnamed boundary)",
+        author: authorPayload,
         tally: {
           controls_covered: doc.controlsCovered,
           controls_met: doc.controlsMet,
