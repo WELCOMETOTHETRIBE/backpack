@@ -8,6 +8,7 @@ import { errorResponse } from "@/lib/evidence-engine/api-errors";
 import { logEntryEvent } from "@/lib/evidence-engine/entry-events";
 import { requireBoundaryForOrg } from "@/lib/evidence-engine/validate-boundary";
 import { recalculateControlsForRegister } from "@/lib/control-status-register";
+import { scoreControlsAffectedBy } from "@/lib/canonical-state/rescore-trigger";
 
 /**
  * GET /api/evidence-engine/entries/[entryId] — get single entry with register key for summary/labels.
@@ -127,6 +128,16 @@ export async function PATCH(
       await logEntryEvent(orgId, entryId, entry.boundaryId, "finalized", user.id ?? null, { summary: "Entry finalized" });
       // Recalculate control statuses for all controls linked to this register
       await recalculateControlsForRegister(register.id, orgId);
+      // Phase B trigger: rescore canonical adjudication. The legacy
+      // recalculateControlsForRegister above updates control_records
+      // (legacy bin-1-5 status); the canonical helper layered on top
+      // refreshes control_adjudication_snapshots so SCTM, dashboard,
+      // SSP drift-detect all see the new evidence immediately.
+      await scoreControlsAffectedBy({
+        organizationId: orgId,
+        triggerSource: "register_entry_finalized",
+        triggeredByUserId: user.id ?? null,
+      });
       const [updated] = await db
         .select()
         .from(governanceRegisterEntries)
@@ -161,6 +172,14 @@ export async function PATCH(
       await logEntryEvent(orgId, entryId, entry.boundaryId, "voided", user.id ?? null, { voidReason });
       // Recalculate control statuses — voiding may revert a control from "implemented"
       await recalculateControlsForRegister(register.id, orgId);
+      // Phase B trigger: voiding evidence can demote a control's
+      // canonical finding from MET to NOT_MET (the helper auto-creates
+      // a draft POA&M when that happens).
+      await scoreControlsAffectedBy({
+        organizationId: orgId,
+        triggerSource: "register_entry_voided",
+        triggeredByUserId: user.id ?? null,
+      });
       const [updated] = await db
         .select()
         .from(governanceRegisterEntries)

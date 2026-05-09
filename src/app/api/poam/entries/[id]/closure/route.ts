@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { poamEntries, poamEntryClosureApprovals, users } from "@/db/schema";
+import { controlRecords, poamEntries, poamEntryClosureApprovals, users } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { requireOrg, requireRole } from "@/lib/auth";
+import { scoreControlsAffectedBy } from "@/lib/canonical-state/rescore-trigger";
 
 const REQUIRED_APPROVALS = 2;
 
@@ -47,8 +48,27 @@ export async function POST(
     if (order >= REQUIRED_APPROVALS) {
       await db
         .update(poamEntries)
-        .set({ status: "closed", updatedAt: new Date() })
+        .set({ status: "closed", closedAt: new Date(), updatedAt: new Date() })
         .where(eq(poamEntries.id, id));
+
+      // Phase B trigger: closing a POA&M revokes its operational-plan
+      // elevator on the underlying control. The canonical helper
+      // re-evaluates the control's met_via — if no other elevator
+      // applies and the rollup is gap/partial, the verdict reverts
+      // to NOT_MET (and a fresh draft POA&M auto-creates).
+      const [cr] = await db
+        .select({ controlId: controlRecords.controlId })
+        .from(controlRecords)
+        .where(eq(controlRecords.id, entry.controlRecordId))
+        .limit(1);
+      if (cr?.controlId) {
+        await scoreControlsAffectedBy({
+          organizationId: orgId,
+          triggerSource: "poam_closed",
+          controlIds: [cr.controlId],
+          triggeredByUserId: user.id ?? null,
+        });
+      }
     }
 
     const approvals = await db
