@@ -991,19 +991,33 @@ export function SCTMControlDetail({
         {activeTab === "guide" && (
           <div className="space-y-3">
             {(sctmOptimized?.objectives?.length ?? 0) > 0 && (
-              <section className="rounded-xl border border-[var(--color-border)] bg-white p-4">
-                <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-gray-500)] mb-2 flex items-center gap-1.5">
+              <section className="rounded-xl border border-[var(--color-border)] bg-white p-5">
+                <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-gray-500)] mb-3 flex items-center gap-1.5">
                   <ListChecks className="h-3 w-3" />
                   Assessment objectives
                 </h3>
-                <ul className="space-y-1.5" role="list">
-                  {(sctmOptimized?.objectives ?? []).map((obj) => (
-                    <li key={obj.id} className="flex gap-2 text-sm leading-relaxed text-[var(--color-gray-800)]">
-                      <span className="font-mono text-xs text-[var(--color-gray-500)] shrink-0 mt-0.5">{obj.id.split("-").pop()}</span>
-                      <span>{obj.text}</span>
-                    </li>
-                  ))}
-                </ul>
+                <ol className="space-y-2.5" role="list">
+                  {(sctmOptimized?.objectives ?? []).map((obj) => {
+                    const letter = (obj.id.split("-").pop() ?? "").toLowerCase();
+                    return (
+                      <li
+                        key={obj.id}
+                        className="flex gap-3 rounded-lg px-2 py-1.5 -mx-2 transition-colors hover:bg-[var(--color-gray-50)]/60"
+                      >
+                        <span
+                          aria-hidden="true"
+                          className="shrink-0 mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-md bg-indigo-50 text-[11px] font-semibold uppercase tracking-wide text-indigo-700 ring-1 ring-inset ring-indigo-100"
+                        >
+                          {letter}
+                        </span>
+                        <span className="text-[15px] leading-[1.65] text-[var(--color-gray-800)] [&_strong]:font-semibold [&_strong]:text-[var(--color-gray-900)]">
+                          <span className="sr-only">{`Objective ${letter}: `}</span>
+                          <TextWithBold text={obj.text} />
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ol>
               </section>
             )}
 
