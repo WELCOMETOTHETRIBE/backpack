@@ -207,10 +207,42 @@ export async function POST(
     req,
   });
 
+  // TrainOS Tier 1 #2 — ESP block intake. When the bundle declares
+  // TrainOS as the ESP for RA.L2-3.11.1, stamp the snapshot with
+  // metVia='esp_inheritance' so the rescore below preserves the
+  // elevator. Best-effort: a malformed ESP block is logged but
+  // doesn't fail the finalize.
+  if (parsed.data.esp) {
+    try {
+      const { applyEspInheritanceFromBundle } = await import(
+        "@/lib/esp-inheritance/bridge-intake"
+      );
+      const espResult = await applyEspInheritanceFromBundle({
+        organizationId: orgId,
+        espBlock: parsed.data.esp,
+        evidenceRef: `trainos:ra-bundle:${parsed.data.packageSha256}`,
+        // RA bundle's ESP block scope is RA.L2-3.11.1 only; anything
+        // else gets dropped with a warning by the helper.
+        expectedControls: ["3.11.1"],
+        triggeredByUserId: auth.userId,
+      });
+      console.log(
+        `[ra-finalize] esp inheritance applied for ${espResult.appliedControlIds.length} control(s); rescore=${espResult.rescore.rescored}`,
+      );
+    } catch (err) {
+      console.error(
+        "[ra-finalize] esp inheritance intake failed (non-blocking):",
+        err,
+      );
+    }
+  }
+
   // Phase B trigger: a finalized risk assessment changes 3.11.1's
   // adjudication picture; rescore it so the canonical helper picks up
   // the operational-plan POA&M elevator (or evidence elevator) as
-  // appropriate. Best-effort.
+  // appropriate. Best-effort. Note: when the ESP intake above ran, this
+  // rescore is the second one in the request — that's fine; it's
+  // idempotent and the second pass just confirms the elevator is sticky.
   await scoreControlsAffectedBy({
     organizationId: orgId,
     triggerSource: "ra_finalized",

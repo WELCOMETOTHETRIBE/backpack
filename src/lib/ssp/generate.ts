@@ -528,6 +528,27 @@ async function buildControlSection(
       : "**Aggregate finding:** NOT MET";
   const metViaLine = `**MET via:** ${state.metVia.replace(/_/g, " ")}`;
 
+  // Inline v2.13 verbatim quotes per met_via path so the C3PAO doesn't
+  // have to cross-reference the assessment guide. These are quoted
+  // exactly from CMMC L2 Assessment Guide v2.13 (Sept 2024,
+  // DoD-CIO-00003).
+  let metViaQuote = "";
+  if (state.aggregateFinding === "NA" || state.metVia === "not_applicable") {
+    metViaQuote = `\n\n> _**v2.13 page 10:** "During an assessment, an assessment objective assessed as N/A is equivalent to the same assessment objective being assessed as MET."_`;
+  } else if (state.metVia === "esp_inheritance") {
+    const esp = state.elevatorRefs?.espInheritance ?? null;
+    const provider = esp?.providerName
+      ? ` _(provider: **${esp.providerName}**${esp.kind ? `, kind: ${esp.kind}` : ""}${esp.objectives.length > 0 ? `, objectives: ${esp.objectives.join(", ")}` : ""})_`
+      : "";
+    metViaQuote = `\n\n> _**v2.13 page 11:** "Satisfaction of security requirements may be accomplished by other parts of the enterprise or an External Service Provider (ESP), as defined in 32 CFR § 170.4. A security requirement is considered MET if adequate evidence is provided that the enterprise or External Service Provider (ESP) implements the requirement objectives."_${provider}`;
+  } else if (state.metVia === "enduring_exception") {
+    metViaQuote = `\n\n> _**v2.13 page 10:** "Enduring Exceptions when described, along with any mitigations, in the system security plan shall be assessed as MET."_`;
+  } else if (state.metVia === "operational_plan_of_action") {
+    metViaQuote = `\n\n> _**v2.13 page 10:** "Temporary deficiencies that are appropriately addressed in operational plans of action (i.e., include deficiency reviews, milestones, and show progress towards the implementation of corrections to reduce or eliminate identified vulnerabilities) shall be assessed as MET."_`;
+  } else if (state.metVia === "dod_cio_adjudication") {
+    metViaQuote = `\n\n> _**v2.13 page 10:** "Implemented security measures adjudicated by the DoD CIO as equally effective are assessed as MET if there have been no changes in the environment."_`;
+  }
+
   const objectiveLines = objectives.length > 0
     ? objectives
         .map((o) => {
@@ -552,7 +573,7 @@ async function buildControlSection(
 
 ${findingLine}
 ${metViaLine}
-**Confidence:** ${(state.confidence * 100).toFixed(0)}%
+**Confidence:** ${(state.confidence * 100).toFixed(0)}%${metViaQuote}
 
 #### Assessment objectives [NIST SP 800-171A]
 ${objectiveLines}

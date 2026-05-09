@@ -119,8 +119,42 @@ export async function POST(req: NextRequest) {
     req,
   });
 
+  // TrainOS Tier 1 #2 — ESP block intake. When the bundle declares
+  // TrainOS as the ESP for the CA family, stamp the snapshots with
+  // metVia='esp_inheritance' so the rescore below preserves the
+  // elevator. Best-effort: malformed ESP blocks logged but don't fail
+  // the bundle ingest.
+  if (data.esp) {
+    try {
+      const { applyEspInheritanceFromBundle } = await import(
+        "@/lib/esp-inheritance/bridge-intake"
+      );
+      const espResult = await applyEspInheritanceFromBundle({
+        organizationId: orgId,
+        espBlock: data.esp,
+        evidenceRef: data.packageSha256
+          ? `trainos:ca-bundle:${data.packageSha256}`
+          : `trainos:ca-bundle:cycle-${data.cycleId}`,
+        // CA bundle's ESP scope is the CA family.
+        expectedControls: ["3.12.1", "3.12.2", "3.12.3", "3.12.4"],
+        triggeredByUserId: auth.userId,
+      });
+      console.log(
+        `[ca-bundle-ingest] esp inheritance applied for ${espResult.appliedControlIds.length} control(s); rescore=${espResult.rescore.rescored}`,
+      );
+    } catch (err) {
+      console.error(
+        "[ca-bundle-ingest] esp inheritance intake failed (non-blocking):",
+        err,
+      );
+    }
+  }
+
   // Phase B trigger for the CA family. The rescore picks up the new
-  // bundle as ca_bundle citation source for the SSP generator.
+  // bundle as ca_bundle citation source for the SSP generator. When
+  // the ESP intake above already ran, this is the second rescore in
+  // the request — it's idempotent and the second pass just confirms
+  // the elevator is sticky.
   await scoreControlsAffectedBy({
     organizationId: orgId,
     triggerSource: "qms_manifest_ingested", // closest existing kind; CA-specific kind can land later

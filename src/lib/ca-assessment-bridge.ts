@@ -241,5 +241,24 @@ export const CaBundlePushSchema = z
     cui: z.boolean().optional(),
     vaultStorageUri: z.string().url().optional(),
     vaultStorageRegion: z.string().max(60).optional(),
+    /**
+     * TrainOS Tier 1 #2 — optional ESP-designation block per CMMC L2
+     * Assessment Guide v2.13 page 11 + 32 CFR § 170.4. When present,
+     * the bridge intake stamps the corresponding controlAdjudication
+     * snapshots with metVia='esp_inheritance' so the elevator sticks.
+     * Strict shape mirrors the RA bridge's FinalizeSchema.esp.
+     */
+    esp: z
+      .object({
+        designation: z.string().max(500).optional(),
+        espName: z.string().min(1).max(200),
+        espType: z.string().max(100),
+        implementsObjectives: z
+          .array(z.string().regex(/^[A-Z]{2}\.L[12]-\d+\.\d+\.\d+\[[a-z]\]$/))
+          .min(1)
+          .max(500),
+        specReference: z.string().max(200).optional(),
+      })
+      .optional(),
   })
   .strict();
