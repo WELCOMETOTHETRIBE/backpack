@@ -96,7 +96,16 @@ export const evidenceTypeEnum = pgEnum("evidence_type", [
   "scan_result",
   "log_file",
 ]);
-export const poamEntryStatusEnum = pgEnum("poam_entry_status", ["open", "closed"]);
+export const poamEntryStatusEnum = pgEnum("poam_entry_status", [
+  // Legacy values kept for back-compat with existing rows. New code
+  // writes 'draft' or 'active' for the auto-POA&M flow added in
+  // Phase A0+.
+  "open",
+  "closed",
+  // Phase A0 additions (see drizzle/0068_canonical_adjudication.sql):
+  "draft",
+  "active",
+]);
 
 // ============== Governance Portal ==============
 export const governanceControlClassificationEnum = pgEnum("governance_control_classification", [
