@@ -200,6 +200,58 @@ const STMTS: { label: string; sql: string }[] = [
     sql: `CREATE INDEX IF NOT EXISTS assessment_closeout_receipts_assessment_idx
       ON assessment_closeout_receipts (assessment_id, generated_at DESC)`,
   },
+
+  // ── 0071 (Phase 1 "Send to Doc Control"): ssp_doc_control_submissions ───
+  // Phase 1 wires only the Codex-side state machine. The outbound bridge
+  // (Phase 2) and the inbound linker (Phase 3) ship once the QMS team
+  // exposes a receiving endpoint. Idempotent; drizzle/0071 is the canonical
+  // source — this is the runtime applier so prod stays in sync with
+  // src/db/schema.ts on every deploy.
+  {
+    label: "0071 ssp_doc_control_submissions table",
+    sql: `CREATE TABLE IF NOT EXISTS ssp_doc_control_submissions (
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+      ssp_document_id uuid NOT NULL REFERENCES ssp_documents(id) ON DELETE CASCADE,
+      status varchar(16) NOT NULL DEFAULT 'submitted',
+      submitted_payload_sha256 varchar(64) NOT NULL,
+      submitted_at timestamptz NOT NULL DEFAULT now(),
+      submitted_by_user_id uuid REFERENCES users(id) ON DELETE SET NULL,
+      qms_document_number text,
+      qms_sha256 varchar(64),
+      released_at timestamptz,
+      superseded_at timestamptz,
+      superseded_by_id uuid REFERENCES ssp_doc_control_submissions(id) ON DELETE SET NULL,
+      rejected_at timestamptz,
+      rejected_reason text,
+      notes text,
+      created_at timestamptz NOT NULL DEFAULT now(),
+      updated_at timestamptz NOT NULL DEFAULT now(),
+      CONSTRAINT ssp_doc_control_submissions_status_chk
+        CHECK (status IN ('submitted','released','superseded','rejected'))
+    )`,
+  },
+  {
+    label: "0071 ssp_doc_control_submissions one-inflight unique idx",
+    sql: `CREATE UNIQUE INDEX IF NOT EXISTS ssp_doc_control_submissions_one_inflight_idx
+      ON ssp_doc_control_submissions (organization_id, ssp_document_id)
+      WHERE status = 'submitted'`,
+  },
+  {
+    label: "0071 ssp_doc_control_submissions org idx",
+    sql: `CREATE INDEX IF NOT EXISTS ssp_doc_control_submissions_org_idx
+      ON ssp_doc_control_submissions (organization_id, status)`,
+  },
+  {
+    label: "0071 ssp_doc_control_submissions doc idx",
+    sql: `CREATE INDEX IF NOT EXISTS ssp_doc_control_submissions_doc_idx
+      ON ssp_doc_control_submissions (ssp_document_id, status)`,
+  },
+  {
+    label: "0071 ssp_doc_control_submissions qms-match idx",
+    sql: `CREATE INDEX IF NOT EXISTS ssp_doc_control_submissions_qms_match_idx
+      ON ssp_doc_control_submissions (organization_id, qms_document_number, qms_sha256)`,
+  },
 ];
 
 async function run() {

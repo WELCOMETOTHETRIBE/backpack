@@ -1132,6 +1132,70 @@ export const sspEvidenceCitations = pgTable("ssp_evidence_citations", {
     .defaultNow(),
 });
 
+/**
+ * Phase 1 of "Send to Doc Control for SSP release."
+ *
+ * Records each submission of a Codex-generated SSP version to the
+ * MacTech Quality QMS for formal release. The Codex generates + signs
+ * the SSP from canonical state; this table tracks the handoff into
+ * the same governance pipeline every other authorized doc flows
+ * through (Reviewer → Approver → Quality Release).
+ *
+ * State machine:
+ *   submitted   → Codex packaged the artifact and (Phase 2) POSTed it
+ *                 to MacTech Quality. Awaits QMS-side signatures.
+ *   released    → QMS released the doc. The next QMS manifest ingest
+ *                 carried it back; the linker matched (document_number,
+ *                 sha256) → this row was promoted.
+ *   superseded  → A newer submission has been released, retiring this
+ *                 one. superseded_by_id points to the successor row.
+ *   rejected    → QMS Reviewer/Approver/QR refused release.
+ *                 rejected_reason carries the operator-facing detail.
+ *
+ * Phase 1 (this migration / schema entry) ships only the Codex-side
+ * state machine. The outbound HTTP bridge and the inbound linker
+ * land in Phases 2/3 once the QMS team exposes the receiving endpoint.
+ */
+export const sspDocControlSubmissions = pgTable("ssp_doc_control_submissions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  sspDocumentId: uuid("ssp_document_id")
+    .notNull()
+    .references(() => sspDocuments.id, { onDelete: "cascade" }),
+  /** submitted | released | superseded | rejected */
+  status: varchar("status", { length: 16 }).notNull().default("submitted"),
+  /**
+   * payload_sha256 captured at submission time. The QMS-side release
+   * may sign over its own (possibly differently canonicalized) bytes,
+   * so we keep both: this for "what Codex handed off" and qms_sha256
+   * for "what QMS actually released."
+   */
+  submittedPayloadSha256: varchar("submitted_payload_sha256", { length: 64 }).notNull(),
+  submittedAt: timestamp("submitted_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  submittedByUserId: uuid("submitted_by_user_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  /** QMS document_number (e.g. "SSP-001"). Stable across SSP versions. */
+  qmsDocumentNumber: text("qms_document_number"),
+  qmsSha256: varchar("qms_sha256", { length: 64 }),
+  releasedAt: timestamp("released_at", { withTimezone: true }),
+  supersededAt: timestamp("superseded_at", { withTimezone: true }),
+  supersededById: uuid("superseded_by_id"),
+  rejectedAt: timestamp("rejected_at", { withTimezone: true }),
+  rejectedReason: text("rejected_reason"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 export const assets = pgTable("assets", {
   id: uuid("id").primaryKey().defaultRandom(),
   organizationId: uuid("organization_id").references(() => organizations.id).notNull(),

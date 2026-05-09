@@ -1,16 +1,24 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { ArrowRight, FileSignature, Plus, ShieldCheck, Sparkles } from "lucide-react";
 
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import {
   organizations,
+  sspDocControlSubmissions,
   sspDocuments,
   sspSignoffs,
 } from "@/db/schema";
 import { GenerateSspButton } from "./GenerateSspButton";
+import { SubmitToDocControlButton } from "./SubmitToDocControlButton";
+
+const REQUIRED_SIGNOFF_KINDS = [
+  "authorizing_official",
+  "system_owner",
+  "isso",
+] as const;
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -82,6 +90,7 @@ export default async function SspPage() {
       signoffKind: sspSignoffs.signoffKind,
       signerDisplayName: sspSignoffs.signerDisplayName,
       signedAt: sspSignoffs.signedAt,
+      dataHash: sspSignoffs.dataHash,
     })
     .from(sspSignoffs)
     .where(eq(sspSignoffs.organizationId, orgId));
@@ -91,6 +100,42 @@ export default async function SspPage() {
     const arr = signoffsByDoc.get(s.sspDocumentId) ?? [];
     arr.push(s);
     signoffsByDoc.set(s.sspDocumentId, arr);
+  }
+
+  // Doc Control submission state per version. Latest row per
+  // ssp_document_id wins; status drives the badge + button gating.
+  const versionIds = versions.map((v) => v.id);
+  const submissions =
+    versionIds.length > 0
+      ? await db
+          .select({
+            id: sspDocControlSubmissions.id,
+            sspDocumentId: sspDocControlSubmissions.sspDocumentId,
+            status: sspDocControlSubmissions.status,
+            submittedAt: sspDocControlSubmissions.submittedAt,
+            qmsDocumentNumber: sspDocControlSubmissions.qmsDocumentNumber,
+            releasedAt: sspDocControlSubmissions.releasedAt,
+            rejectedAt: sspDocControlSubmissions.rejectedAt,
+            rejectedReason: sspDocControlSubmissions.rejectedReason,
+          })
+          .from(sspDocControlSubmissions)
+          .where(
+            and(
+              eq(sspDocControlSubmissions.organizationId, orgId),
+              inArray(sspDocControlSubmissions.sspDocumentId, versionIds),
+            ),
+          )
+          .orderBy(desc(sspDocControlSubmissions.submittedAt))
+      : [];
+  // Latest submission per doc (orderBy is desc so first occurrence wins).
+  const latestSubmissionByDoc = new Map<
+    string,
+    (typeof submissions)[number]
+  >();
+  for (const s of submissions) {
+    if (!latestSubmissionByDoc.has(s.sspDocumentId)) {
+      latestSubmissionByDoc.set(s.sspDocumentId, s);
+    }
   }
 
   return (
@@ -134,6 +179,40 @@ export default async function SspPage() {
           {versions.map((v) => {
             const signs = signoffsByDoc.get(v.id) ?? [];
             const defensible = v.controlsMet + v.controlsNa;
+            const submission = latestSubmissionByDoc.get(v.id) ?? null;
+
+            // Pre-flight gates for the Submit-to-Doc-Control button —
+            // mirror the server-side checks so the disabled tooltip
+            // tells the operator exactly what's missing.
+            const presentSignoffKinds = new Set(
+              signs
+                .filter((s) => s.dataHash === v.payloadSha256)
+                .map((s) => s.signoffKind),
+            );
+            const missingSignoffs = REQUIRED_SIGNOFF_KINDS.filter(
+              (k) => !presentSignoffKinds.has(k),
+            );
+            const inFlight = submission?.status === "submitted";
+            const released = submission?.status === "released";
+            let blockedReason: string | null = null;
+            if (v.status !== "signed") {
+              blockedReason =
+                `Only signed SSP versions can be submitted (this version is '${v.status}').`;
+            } else if (missingSignoffs.length > 0) {
+              blockedReason =
+                `Missing sign-off(s): ${missingSignoffs.join(", ")}. Collect them on the version detail page first.`;
+            } else if (inFlight) {
+              blockedReason = `A submission for this version is already in flight (since ${
+                submission?.submittedAt
+                  ? new Date(submission.submittedAt).toISOString().slice(0, 10)
+                  : "—"
+              }).`;
+            } else if (released) {
+              blockedReason = `Already released by Doc Control as ${
+                submission?.qmsDocumentNumber ?? "(QMS doc)"
+              }.`;
+            }
+            const canSubmit = blockedReason === null;
             return (
               <li
                 key={v.id}
@@ -199,6 +278,21 @@ export default async function SspPage() {
                     </ul>
                   </div>
                 )}
+
+                {/*
+                  Doc Control release-flow traceability panel. End state:
+                  this collapses into "Released by QMS — SSP-001 (sha256:…)"
+                  with an Open in QMS link once Phase 3 wires the inbound
+                  linker. For now (Phase 1) we surface the submission
+                  state machine + the action.
+                */}
+                <DocControlPanel
+                  submission={submission}
+                  isAdmin={isAdmin}
+                  sspDocumentId={v.id}
+                  canSubmit={canSubmit}
+                  blockedReason={blockedReason}
+                />
 
                 <div className="mt-4 flex flex-wrap gap-3 border-t border-gray-100 pt-3 text-xs">
                   <a
@@ -284,6 +378,119 @@ function Stat({
     <div className={`rounded-md border p-2 ${cls}`}>
       <p className="text-[10px] uppercase tracking-wide opacity-80">{label}</p>
       <p className="mt-0.5 text-lg font-semibold">{value}</p>
+    </div>
+  );
+}
+
+/**
+ * Per-version Doc Control state panel. Reads the latest submission
+ * row and renders one of four states:
+ *
+ *   not_submitted → CTA visible (Admin only). Tooltip explains gates.
+ *   submitted     → "In flight with Doc Control" badge + submitted-at.
+ *   released      → "Released by Doc Control as SSP-001" + sha256 +
+ *                   click-through to /dashboard/documents (Phase 3
+ *                   wires the QMS document_number → URL mapping).
+ *   rejected      → "Doc Control rejected" badge + reason. Resubmit
+ *                   becomes available again because rejection clears
+ *                   the in-flight constraint.
+ */
+function DocControlPanel({
+  submission,
+  isAdmin,
+  sspDocumentId,
+  canSubmit,
+  blockedReason,
+}: {
+  submission: {
+    id: string;
+    status: string;
+    submittedAt: Date | string;
+    qmsDocumentNumber: string | null;
+    releasedAt: Date | string | null;
+    rejectedAt: Date | string | null;
+    rejectedReason: string | null;
+  } | null;
+  isAdmin: boolean;
+  sspDocumentId: string;
+  canSubmit: boolean;
+  blockedReason: string | null;
+}) {
+  return (
+    <div className="mt-4 rounded-lg border border-violet-100 bg-violet-50/40 p-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-violet-900">
+            Doc Control
+          </p>
+          {!submission && (
+            <p className="mt-1 text-xs text-violet-900/80">
+              Not yet submitted to MacTech Quality.{" "}
+              {isAdmin
+                ? "Submitting routes the SSP through Reviewer / Approver / Quality Release for formal release alongside every other authorized doc."
+                : "Ask an Admin to submit this signed version for release."}
+            </p>
+          )}
+          {submission?.status === "submitted" && (
+            <p className="mt-1 text-xs text-violet-900/80">
+              <span className="font-medium">In flight with Doc Control</span>{" "}
+              since{" "}
+              {new Date(submission.submittedAt).toISOString().slice(0, 10)} —
+              awaiting Reviewer / Approver / Quality Release sign-off in QMS.
+            </p>
+          )}
+          {submission?.status === "released" && (
+            <p className="mt-1 text-xs text-emerald-900">
+              <span className="font-medium">Released by Doc Control</span>
+              {submission.qmsDocumentNumber
+                ? ` as ${submission.qmsDocumentNumber}`
+                : ""}
+              {submission.releasedAt
+                ? ` on ${new Date(submission.releasedAt)
+                    .toISOString()
+                    .slice(0, 10)}`
+                : ""}
+              .{" "}
+              <Link
+                href="/dashboard/documents"
+                className="font-medium underline-offset-2 hover:underline"
+              >
+                Open in QMS →
+              </Link>
+            </p>
+          )}
+          {submission?.status === "rejected" && (
+            <p className="mt-1 text-xs text-rose-900">
+              <span className="font-medium">Rejected by Doc Control</span>
+              {submission.rejectedAt
+                ? ` on ${new Date(submission.rejectedAt)
+                    .toISOString()
+                    .slice(0, 10)}`
+                : ""}
+              {submission.rejectedReason
+                ? ` — ${submission.rejectedReason}`
+                : ""}
+              .
+            </p>
+          )}
+          {submission?.status === "superseded" && (
+            <p className="mt-1 text-xs text-gray-700">
+              <span className="font-medium">Superseded</span> — a newer SSP
+              version has been released by Doc Control.
+            </p>
+          )}
+        </div>
+        {isAdmin &&
+          (!submission ||
+            submission.status === "rejected" ||
+            submission.status === "superseded") && (
+            <SubmitToDocControlButton
+              sspDocumentId={sspDocumentId}
+              canSubmit={canSubmit}
+              blockedReason={blockedReason}
+            />
+          )}
+      </div>
     </div>
   );
 }
