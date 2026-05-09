@@ -37,6 +37,13 @@ const isPublicRoute = createRouteMatcher([
   // otherwise rewrite to /clerk_* (404) before the route ever sees the
   // bearer.
   "/api/risk-assessments(.*)",
+  // CA.L2-3.12.x continuous/control-assessment bundle bridge — same
+  // auth shape (HMAC-signed bearer + X-CA-Bridge-* headers). Routes in
+  // src/app/api/ca-assessments/ validate via authorizeCaRequest() in
+  // src/lib/ca-assessment-bridge.ts. Without this exception, Clerk
+  // rewrites the bridge POST to /clerk_* before the handler reads the
+  // bearer — TrainOS gets an opaque 404 with no diagnostic.
+  "/api/ca-assessments(.*)",
   // EnclaveWatch unattended ingest endpoints. The vault service pushes
   // OS evidence + Azure validator + weekly review acknowledgements
   // without a Clerk session. Each route uses resolveOrgFromSessionOrBearer
