@@ -11,6 +11,23 @@ import { SCTMControlDetail, type NistRow } from "./SCTMControlDetail";
 import type { SctmOptimizedControl } from "@/lib/sctm-optimized-types";
 import { getOptimizedByControlId } from "@/lib/sctm-optimized-types";
 
+/**
+ * Canonical control state — minimal shape we wire-fetch from
+ * /api/control-state. Keep in sync with ControlState in
+ * src/lib/canonical-state/get-control-state.ts. The full ControlState
+ * carries more (objectives array, elevator refs); this page only
+ * needs the bin-1-5 status for filters and the MET/NOT MET/NA
+ * headline for the family rollup.
+ */
+type CanonicalState = {
+  controlId: string;
+  aggregateFinding: "MET" | "NOT_MET" | "NA";
+  binStatus: "implemented" | "inherited" | "not_applicable" | "outstanding";
+  binSubLabel: string | null;
+  metVia: string;
+  caeRollup: string;
+};
+
 
 /** Get color classes based on implementation percentage — 5-tier spectrum */
 function getPercentageColors(pct: number, isActive: boolean): {
@@ -136,6 +153,15 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
   // local helper that diverged from the dashboard Overview (split count of
   // 88 vs 70). Now both surfaces read the same number from the same helper.
   const [adjudicatedSet, setAdjudicatedSet] = useState<Set<string>>(new Set());
+  /**
+   * Canonical state map — controlId → CanonicalState. Sourced from
+   * /api/control-state. Replaces raw `record.implementationStatus`
+   * filter checks below. After Phase A1 lands, every status decision
+   * on this page reads from here, not from records.
+   */
+  const [canonicalStates, setCanonicalStates] = useState<
+    Map<string, CanonicalState>
+  >(new Map());
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -164,11 +190,12 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [recRes, nistRes, labelsRes, adjRes, ultimateRes, fallbackRes] = await Promise.all([
+      const [recRes, nistRes, labelsRes, adjRes, stateRes, ultimateRes, fallbackRes] = await Promise.all([
         fetch("/api/control-records"),
         fetch("/api/controls/nist"),
         fetch("/api/governance-documents/uploaded-labels"),
         fetch("/api/control-records/adjudicated-ids"),
+        fetch("/api/control-state"),
         fetch("/CMMC_SCTM_Ultimate_Onboarding_Data.json").catch(() => null),
         fetch("/CMMC_SCTM_UI_Optimized.json").catch(() => null),
       ]);
@@ -181,6 +208,19 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
       if (adjRes.ok) {
         const d = (await adjRes.json()) as { adjudicatedControlIds?: string[] };
         setAdjudicatedSet(new Set(d.adjudicatedControlIds ?? []));
+      }
+      // Canonical state — drives the bin-1-5 filter pills + family rollup.
+      // Phase A1 migrates the page to read this instead of raw
+      // record.implementationStatus. /api/control-records/adjudicated-ids
+      // stays in the fetch list for back-compat (other code paths still
+      // use it); both should report the same MET+NA tally.
+      if (stateRes.ok) {
+        const d = (await stateRes.json()) as {
+          states?: Record<string, CanonicalState>;
+        };
+        const m = new Map<string, CanonicalState>();
+        for (const [cid, s] of Object.entries(d.states ?? {})) m.set(cid, s);
+        setCanonicalStates(m);
       }
       const optArr = ultimateRes?.ok ? await ultimateRes.json() : fallbackRes?.ok ? await fallbackRes.json() : null;
       if (Array.isArray(optArr) && optArr.length > 0) setOptimizedList(optArr);
@@ -214,15 +254,27 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
       }
     }
     if (statusFilter) {
-      if (statusFilter === "implemented") {
-        list = list.filter((r) => r.implementationStatus === "implemented" || r.implementationStatus === "assessed");
-      } else if (statusFilter === "inherited") {
-        list = list.filter((r) => r.implementationStatus === "inherited");
-      } else if (statusFilter === "not_applicable") {
-        list = list.filter((r) => r.implementationStatus === "not_applicable");
-      } else if (statusFilter === "outstanding") {
-        list = list.filter((r) => r.implementationStatus === "not_started" || r.implementationStatus === "in_progress");
-      }
+      // Phase A1: filter pills now check canonical bin-1-5 status (derived
+      // from the per-objective MET/NOT MET/NA verdict + the four AG-
+      // recognized MET-elevators) instead of raw implementation_status.
+      // The vocabulary maps 1:1 with the legacy buckets, so the pill UX
+      // is unchanged — but the underlying truth is now sourced from a
+      // single canonical helper that every Codex surface shares.
+      list = list.filter((r) => {
+        const cs = canonicalStates.get(r.controlId);
+        if (!cs) {
+          // No snapshot yet — fall back to legacy status so the page
+          // doesn't drop rows for orgs whose CAE backfill hasn't run.
+          if (statusFilter === "implemented")
+            return r.implementationStatus === "implemented" || r.implementationStatus === "assessed";
+          if (statusFilter === "inherited") return r.implementationStatus === "inherited";
+          if (statusFilter === "not_applicable") return r.implementationStatus === "not_applicable";
+          if (statusFilter === "outstanding")
+            return r.implementationStatus === "not_started" || r.implementationStatus === "in_progress";
+          return true;
+        }
+        return cs.binStatus === statusFilter;
+      });
     }
     const byControlId = new Map<string, SCTMRecord>();
     for (const r of list) {
@@ -251,7 +303,7 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
       });
     }
     return result;
-  }, [records, family, type, statusFilter, debouncedSearch, optimizedByControlId, nistByControlId]);
+  }, [records, family, type, statusFilter, debouncedSearch, optimizedByControlId, nistByControlId, canonicalStates]);
 
   const selectedRecord = useMemo(
     () => (controlId ? records.find((r) => r.controlId === controlId) ?? null : null),
@@ -259,27 +311,41 @@ export function SCTMPage({ userRole = "Compliance" }: { userRole?: string }) {
   );
   const selectedNist = selectedRecord ? nistByControlId[selectedRecord.controlId] : undefined;
 
-  // Adjudicated set comes from /api/control-records/adjudicated-ids, which
-  // applies the canonical isControlAdjudicated() helper from
-  // adjudication-helpers.ts. Same source of truth the dashboard Overview
-  // uses -- previously SCTM had its own inline check that diverged from
-  // the canonical helper, producing the 88-vs-70 split count. Don't
-  // reintroduce a local check here.
+  // Phase A1: defensible-control set is derived from the canonical
+  // helper (MET or NA), not from the legacy isControlAdjudicated()
+  // boolean. The legacy adjudicatedSet is kept around as a fallback
+  // for orgs whose CAE snapshot backfill hasn't run yet, but every
+  // page-internal "is this closed" check goes through canonicalDefensibleSet.
+  const canonicalDefensibleSet = useMemo(() => {
+    const s = new Set<string>();
+    for (const [cid, st] of canonicalStates) {
+      if (st.aggregateFinding === "MET" || st.aggregateFinding === "NA") {
+        s.add(cid);
+      }
+    }
+    return s;
+  }, [canonicalStates]);
+
+  const effectiveDefensibleSet = useMemo(
+    () => (canonicalDefensibleSet.size > 0 ? canonicalDefensibleSet : adjudicatedSet),
+    [canonicalDefensibleSet, adjudicatedSet],
+  );
+
   function isFullyAdjudicated(r: (typeof records)[0]): boolean {
-    return adjudicatedSet.has(r.controlId);
+    return effectiveDefensibleSet.has(r.controlId);
   }
 
   const familyStats = useMemo(() => {
     return CONTROL_FAMILIES.map((f) => {
       const total = FAMILY_CONTROL_COUNTS[f.code] ?? 0;
       const inFamilyIds = ALL_CONTROL_IDS.filter((id) => getControlFamilyPrefix(id) === f.controlPrefix);
-      const adj = inFamilyIds.filter((id) => adjudicatedSet.has(id)).length;
+      const adj = inFamilyIds.filter((id) => effectiveDefensibleSet.has(id)).length;
       const pct = total ? Math.round((adj / total) * 100) : 0;
       return { code: f.code, plainName: f.plainName, name: f.name, total, adjudicated: adj, pct, icon: f.icon };
     });
-  }, [adjudicatedSet]);
+  }, [effectiveDefensibleSet]);
 
-  const adjudicatedControlIds = adjudicatedSet;
+  const adjudicatedControlIds = effectiveDefensibleSet;
   // `partialControlIds` is informational metadata (amber badge on the row)
   // signalling "OS hardening run produced a partial finding here". It does
   // NOT participate in the headline math — the canonical truth is binary:

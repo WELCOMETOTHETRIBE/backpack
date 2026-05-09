@@ -17,8 +17,7 @@ import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
 import { isRegisterLaneSatisfied } from "@/lib/registers/compliance-health";
 import { schemaIdForRegisterKey } from "@/data/cmmc/register-key-aliases";
 import { sprsScoringData } from "@/lib/sprs";
-
-const DONE_STATUSES = ["implemented", "assessed", "inherited", "not_applicable"] as const;
+import { getControlStatesForOrg } from "@/lib/canonical-state/get-control-state";
 
 export default async function PoamPage() {
   const session = await auth();
@@ -131,6 +130,14 @@ export default async function PoamPage() {
   const intelMap = new Map(CONTROL_INTELLIGENCE.map((c) => [c.controlId, c]));
   const sprsMap = new Map(sprsScoringData.map((c) => [c.id, c.value as number]));
 
+  // Phase A1: pull canonical state for every control once, used below to
+  // determine whether the underlying control reaches MET (replacing the
+  // old DONE_STATUSES constant that read raw implementation_status).
+  // The canonical helper credits the four AG-recognized MET-elevators
+  // (ESP inheritance, enduring exception, DoD CIO adjudication, and
+  // operational plan of action) — the old constant didn't.
+  const canonicalStates = await getControlStatesForOrg(orgId);
+
   const now = new Date();
 
   const entries: PoamEntry[] = rawEntries.map((e) => {
@@ -140,18 +147,30 @@ export default async function PoamPage() {
     const scheduled = e.scheduledCompletionDate ? new Date(e.scheduledCompletionDate) : null;
     const isOverdue = e.status === "open" && scheduled !== null && scheduled < now;
 
-    // Evidence-driven "ready to close" — ALL lanes must be satisfied
-    const implDone = DONE_STATUSES.includes(
-      e.implementationStatus as (typeof DONE_STATUSES)[number]
-    );
+    // Phase A1: implDone now sources from the canonical helper. The
+    // canonical aggregateFinding speaks MET / NOT_MET / NA verbatim per
+    // 32 CFR § 170.24, and credits the four AG-recognized MET-elevators
+    // (ESP inheritance, enduring exception, DoD CIO adjudication,
+    // operational plan of action). The legacy DONE_STATUSES constant
+    // missed elevators and treated raw implementation_status as the
+    // source of truth — that's the exact bug Phase A1 closes.
+    const cs = canonicalStates.get(e.controlId ?? "");
+    const implDone = cs
+      ? cs.aggregateFinding === "MET" || cs.aggregateFinding === "NA"
+      : // No snapshot for this control yet — fall back to legacy lookup
+        // so the page doesn't drop POA&Ms during transition.
+        ["implemented", "assessed", "inherited", "not_applicable"].includes(
+          e.implementationStatus ?? "",
+        );
     const techOk = (e.technicalStatus ?? "not_started") === "satisfied";
     const policyOk = !e.policyDocRequired || (e.policyStatus ?? "not_required") === "satisfied";
     const registerRequired = intel?.registerRequired ?? false;
     const registerOk = !registerRequired || (registerSatisfiedByControl.get(e.controlId ?? "") ?? false);
 
-    // Underlying control is implemented via lane evidence (technical + policy
-    // + register, plus the implementationStatus field on the control_records
-    // row). Independent of whether THIS POA&M's specific milestones are done.
+    // Underlying control is implemented via canonical state (which already
+    // accounts for lane evidence) plus the auxiliary lane checks for the
+    // additional info the POA&M closure UI surfaces (techOk / policyOk /
+    // registerOk are still useful as drilldown signals on the row).
     const controlImplemented = implDone && techOk && policyOk && registerOk;
 
     // Milestone gate: a POA&M committed to specific actions; closing it

@@ -1,23 +1,20 @@
 import { NextResponse } from "next/server";
 import PDFDocument from "pdfkit";
 import { requireOrg, requireRole } from "@/lib/auth";
-import { db } from "@/db";
-import { controlRecords } from "@/db/schema";
-import { eq } from "drizzle-orm";
 import { CONTROL_FAMILIES } from "@/components/governance-wizard/constants";
+import { getControlStatesForOrg } from "@/lib/canonical-state/get-control-state";
 
 export async function GET() {
   try {
     const orgId = await requireOrg();
     await requireRole(["Admin", "Compliance", "Assessor"]);
 
-    const records = await db
-      .select({
-        controlId: controlRecords.controlId,
-        implementationStatus: controlRecords.implementationStatus,
-      })
-      .from(controlRecords)
-      .where(eq(controlRecords.organizationId, orgId));
+    // Phase A1: report numbers come from the canonical helper, not raw
+    // implementation_status. Vocabulary is C3PAO-aligned (MET / NOT
+    // MET / NA per 32 CFR § 170.24) so the exported PDF matches what
+    // the SCTM and dashboard show.
+    const canonicalStates = await getControlStatesForOrg(orgId);
+    const records = Array.from(canonicalStates.values());
 
     const buffers: Buffer[] = [];
     const doc = new PDFDocument({ margin: 50 });
@@ -28,17 +25,21 @@ export async function GET() {
     doc.fontSize(10).text(`Generated: ${new Date().toISOString().slice(0, 10)}`, { align: "center" });
     doc.moveDown(2);
 
-    const implemented = records.filter((r) => r.implementationStatus === "implemented" || r.implementationStatus === "assessed" || r.implementationStatus === "inherited").length;
-    const inProgress = records.filter((r) => r.implementationStatus === "in_progress").length;
-    const notStarted = records.filter((r) => r.implementationStatus === "not_started").length;
+    const met = records.filter((r) => r.aggregateFinding === "MET").length;
+    const notMet = records.filter((r) => r.aggregateFinding === "NOT_MET").length;
+    const na = records.filter((r) => r.aggregateFinding === "NA").length;
 
-    doc.fontSize(12).text("Summary", { continued: false });
-    doc.fontSize(10).text(`Implemented: ${implemented}  |  In progress: ${inProgress}  |  Not started: ${notStarted}`);
+    doc.fontSize(12).text("Summary (CMMC L2 findings)", { continued: false });
+    doc
+      .fontSize(10)
+      .text(`MET: ${met}  |  NOT MET: ${notMet}  |  N/A: ${na}  |  Defensible (MET + N/A): ${met + na}`);
     doc.moveDown(2);
 
     for (const family of CONTROL_FAMILIES) {
       const inFamily = records.filter((r) => r.controlId.startsWith(family.controlPrefix));
-      const done = inFamily.filter((r) => r.implementationStatus === "implemented" || r.implementationStatus === "assessed" || r.implementationStatus === "inherited").length;
+      const done = inFamily.filter(
+        (r) => r.aggregateFinding === "MET" || r.aggregateFinding === "NA",
+      ).length;
       doc.fontSize(11).text(`${family.code} — ${family.name}: ${done}/${inFamily.length}`, { continued: false });
       doc.moveDown(0.5);
     }

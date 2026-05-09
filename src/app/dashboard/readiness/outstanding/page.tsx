@@ -21,6 +21,7 @@ import {
   boundaries,
 } from "@/db/schema";
 import { eq, and, inArray, desc } from "drizzle-orm";
+import { getControlStatesForOrg } from "@/lib/canonical-state/get-control-state";
 import {
   OUTSTANDING_36_CONTROL_IDS,
   OUTSTANDING_CLOSE_PATHS,
@@ -80,6 +81,11 @@ export default async function OutstandingPage() {
     );
 
   const recordByControlId = new Map(records.map((r) => [r.controlId, r]));
+
+  // Phase A1: canonical state replaces the raw implementation_status
+  // read at line 237 (3.2.x training liveStatus). Pulled once for the
+  // org; used inside liveStatusFor() below.
+  const canonicalStates = await getControlStatesForOrg(orgId);
 
   // 2) governance_artifact_completions for those control records (attestations)
   const recordIds = records.map((r) => r.id);
@@ -226,15 +232,19 @@ export default async function OutstandingPage() {
         );
         return everBundled ? "in_progress" : "not_started";
       }
-      // 3.2.x: defer to controlRecords.implementationStatus, which is
-      // produced by calculateControlStatus → isTrainingControlSatisfied
-      // (the per-user cohort gate added in a6f88b0). The old rule —
-      // "any final training_completion entry exists" — flipped these
-      // cards to "closed" the moment one user completed training, even
-      // if the rest of the boundary roster was missing it. That's the
-      // bug the user spotted on /dashboard/readiness/outstanding.
+      // 3.2.x: canonical state is the source of truth. The training-
+      // cohort calculation happens upstream (calculateControlStatus →
+      // isTrainingControlSatisfied → updates control_records →
+      // rescore writes the snapshot). Reading canonical here means
+      // the wizard agrees with the SCTM and the dashboard about
+      // whether 3.2.x is closed.
       if (entry.controlId.startsWith("3.2.")) {
-        if (record.implementationStatus === "implemented") return "closed";
+        const cs = canonicalStates.get(entry.controlId);
+        if (cs?.aggregateFinding === "MET" || cs?.aggregateFinding === "NA") return "closed";
+        // No canonical state, or finding is NOT_MET — fall back to the
+        // legacy in_progress / not_started signal so the wizard still
+        // distinguishes "started but cohort incomplete" from "never
+        // started at all."
         if (
           record.implementationStatus === "in_progress" ||
           registerIdByKey.has("training_completion")
