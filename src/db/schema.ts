@@ -353,6 +353,44 @@ export const poamEntries = pgTable("poam_entries", {
   closedAt: timestamp("closed_at", { withTimezone: true }),
   /** Explanation for closure; e.g. "User uploaded required attestation to Governance > Evidence (title)." */
   closeoutEvidence: text("closeout_evidence"),
+  /**
+   * AG p.10 mandates "deficiency reviews" content for a POA&M to count
+   * as a MET-elevator. The "review" describes what's missing, why, and
+   * how it was identified. Required when the POA&M is the elevator
+   * keeping a control's verdict at MET.
+   */
+  deficiencyReviewSummary: text("deficiency_review_summary"),
+  /**
+   * AG p.10 mandates "show progress towards the implementation of
+   * corrections." Updated on rescore + by the customer over time.
+   */
+  progressSummary: text("progress_summary"),
+  /**
+   * Captured at finalize time and never moved. The `scheduledCompletionDate`
+   * can shift; this doesn't. Powers chronic-slippage detection: AG p.10
+   * reserves the elevator for "temporary deficiencies," so a POA&M open
+   * past 365d from this date stops counting.
+   */
+  originalCompletionDate: date("original_completion_date"),
+  /**
+   * Increments every time scheduledCompletionDate moves forward. If > 2
+   * the POA&M no longer counts as a "temporary deficiency" elevator.
+   */
+  targetPushedCount: integer("target_pushed_count").notNull().default(0),
+  /**
+   * Set when status flips from 'draft' to 'active'. Auto-created stub
+   * POA&Ms are draft until the customer fills the AG-mandated fields
+   * and finalizes; only then do they elevate the verdict.
+   */
+  finalizedAt: timestamp("finalized_at", { withTimezone: true }),
+  /**
+   * When the rescore creates a stub POA&M for a NOT MET objective, this
+   * records which objective letter ("a", "b"...) triggered it. Null on
+   * customer-authored POA&Ms.
+   */
+  autoCreatedForObjective: varchar("auto_created_for_objective", { length: 8 }),
+  /** Distinguishes auto-created from customer-created. */
+  autoCreatedAt: timestamp("auto_created_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
@@ -2068,11 +2106,236 @@ export const controlAdjudicationSnapshots = pgTable(
     computedAt: timestamp("computed_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
+    /**
+     * Internal CAE rollup for sorting/colors:
+     *   `satisfies` / `partial` / `gap` / `at_risk`.
+     * Derived from objectiveVerdicts. C3PAO-facing surfaces should
+     * read aggregateFinding (MET / NOT MET / NA) instead — this
+     * column stays for back-compat and the CAE dashboard.
+     */
     status: varchar("status", { length: 16 }).notNull(),
     confidence: real("confidence").notNull(),
     requirementsJson: jsonb("requirements_json").notNull().default([]),
+    /**
+     * Per-objective MET/NOT MET/N/A verdicts — the C3PAO-facing
+     * vocabulary mandated by 32 CFR § 170.24 [AG p.10].
+     *
+     * Shape:
+     *   [{ objective: "a",
+     *      verdict: "MET" | "NOT_MET" | "NA",
+     *      evidence_ids: string[],
+     *      rationale: string | null
+     *   }, ...]
+     *
+     * One NOT_MET objective fails the entire requirement.
+     */
+    objectiveVerdicts: jsonb("objective_verdicts").notNull().default([]),
+    /**
+     * Computed: MET / NOT_MET / NA. The headline finding the SCTM and
+     * SSP show. NA only when an operator declares the entire
+     * requirement N/A via control_status_overrides with rationale.
+     */
+    aggregateFinding: varchar("aggregate_finding", { length: 16 }),
+    /**
+     * How the requirement reaches MET (or doesn't):
+     *   - evidence: native MET via cited evidence rows
+     *   - enduring_exception: AG p.10 elevator (with mitigations in SSP)
+     *   - operational_plan_of_action: AG p.10 elevator (POA&M; only
+     *     active and non-chronic-slipped)
+     *   - dod_cio_adjudication: AG p.10 elevator (equally-effective
+     *     measure adjudicated by DoD CIO, included in SSP)
+     *   - esp_inheritance: AG p.11 elevator (External Service
+     *     Provider implements the requirement; evidence supplied)
+     *   - not_met: no elevator active
+     *   - not_applicable: operator-declared N/A with rationale
+     */
+    metVia: varchar("met_via", { length: 40 }).notNull().default("evidence"),
+    /** Pointer to active enduring_exceptions row, if elevator invoked. */
+    enduringExceptionId: uuid("enduring_exception_id"),
+    /** Pointer to active poam_entries row, if elevator invoked. */
+    operationalPlanPoamId: uuid("operational_plan_poam_id").references(
+      () => poamEntries.id,
+      { onDelete: "set null" },
+    ),
+    /** Pointer to active dod_cio_adjudications row. */
+    dodCioAdjudicationId: uuid("dod_cio_adjudication_id"),
+    /**
+     * ESP inheritance is a JSONB pointer set rather than a new table —
+     * orgs already carry ESP catalog metadata. Shape:
+     *   { provider_name: "...",
+     *     kind: "csp" | "msp" | "mssp" | "caas",
+     *     objectives: ["a","b"],
+     *     evidence_ref: "..." }
+     */
+    espInheritance: jsonb("esp_inheritance"),
     periodBasisManifestId: text("period_basis_manifest_id"),
     createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+);
+
+/**
+ * Operator-driven status override on a control's bin-1-5 status.
+ * Default behaviour (no override) is to derive from
+ * controlAdjudicationSnapshots.aggregateFinding. Overrides are visibly
+ * distinct in the UI so a C3PAO never mistakes one for a derived
+ * verdict. One active override per (org, control); revoking re-opens
+ * the slot.
+ */
+export const controlStatusOverrides = pgTable("control_status_overrides", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  controlId: varchar("control_id", { length: 20 }).notNull(),
+  /** implemented | inherited | not_applicable | outstanding */
+  overrideStatus: varchar("override_status", { length: 24 }).notNull(),
+  reason: text("reason").notNull(),
+  setByUserId: uuid("set_by_user_id")
+    .notNull()
+    .references(() => users.id),
+  setAt: timestamp("set_at", { withTimezone: true }).notNull().defaultNow(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  revokedByUserId: uuid("revoked_by_user_id").references(() => users.id),
+  revokedReason: text("revoked_reason"),
+});
+
+/**
+ * AG p.10 MET-elevator: an enduring exception described in the SSP
+ * with mitigations. Counts as MET for the named objectives.
+ */
+export const enduringExceptions = pgTable("enduring_exceptions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  controlId: varchar("control_id", { length: 20 }).notNull(),
+  /** Letter list of objectives this elevator covers. Empty = whole control. */
+  appliesToObjectives: jsonb("applies_to_objectives").notNull().default([]),
+  description: text("description").notNull(),
+  mitigations: text("mitigations").notNull(),
+  approvedByUserId: uuid("approved_by_user_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  approvedAt: timestamp("approved_at", { withTimezone: true }),
+  supersededAt: timestamp("superseded_at", { withTimezone: true }),
+  supersededById: uuid("superseded_by_id"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+/**
+ * AG p.10 MET-elevator: DoD CIO adjudication that an alternative
+ * security measure is equally effective. Required to be referenced in
+ * the SSP for continued MET status; environment-unchanged attestation
+ * required to maintain the finding.
+ */
+export const dodCioAdjudications = pgTable("dod_cio_adjudications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  controlId: varchar("control_id", { length: 20 }).notNull(),
+  appliesToObjectives: jsonb("applies_to_objectives").notNull().default([]),
+  /** DoD CIO letter / case # / URL. */
+  reference: text("reference").notNull(),
+  /** What alternative measure was adjudicated equally effective. */
+  summary: text("summary").notNull(),
+  issuedAt: date("issued_at").notNull(),
+  /**
+   * FK to ssp_signoffs; the AO attests "no environmental changes since
+   * adjudication" — required by AG p.10 for continued MET status.
+   */
+  environmentUnchangedAttestationId: uuid(
+    "environment_unchanged_attestation_id",
+  ),
+  supersededAt: timestamp("superseded_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+/**
+ * Authorizing Official + system-owner + ISSO sign-offs on a generated
+ * SSP version. Posture A+: Codex signs the SSP content with its key
+ * (binding evidence to document version); the AO sign-off here carries
+ * name + title + the same data_hash Codex signed, naming the human
+ * accountable for the document being filed. Customer-key uploads
+ * (real Posture C) populate signatureAlg/signatureValue; until then,
+ * signatureAlg = 'attestation_only' and the row is the human record.
+ */
+export const sspSignoffs = pgTable("ssp_signoffs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  /** Back-filled in Phase C when ssp_documents lands. */
+  sspDocumentId: uuid("ssp_document_id"),
+  /**
+   * authorizing_official | system_owner | isso | environment_unchanged
+   *   (last variant is for DoD CIO adjudication continuity)
+   */
+  signoffKind: varchar("signoff_kind", { length: 32 }).notNull(),
+  signerUserId: uuid("signer_user_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  signerDisplayName: text("signer_display_name").notNull(),
+  signerTitle: text("signer_title").notNull(),
+  /** SHA-256 the signer is bound to; equals ssp_documents.payload_sha256. */
+  dataHash: varchar("data_hash", { length: 64 }).notNull(),
+  signedAt: timestamp("signed_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  /** 'attestation_only' (Posture A+) | 'ed25519' / 'rs256' (Posture C). */
+  signatureAlg: varchar("signature_alg", { length: 32 }),
+  signatureValue: text("signature_value"),
+  comment: text("comment"),
+});
+
+/**
+ * Audit trail for every adjudication transition. Written by the
+ * rescore trigger on every state change so the SSP's per-control
+ * audit history is reconstructable deterministically.
+ */
+export const controlAdjudicationHistory = pgTable(
+  "control_adjudication_history",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    controlId: varchar("control_id", { length: 20 }).notNull(),
+    snapshotId: uuid("snapshot_id").references(
+      () => controlAdjudicationSnapshots.id,
+      { onDelete: "set null" },
+    ),
+    priorAggregateFinding: varchar("prior_aggregate_finding", { length: 16 }),
+    newAggregateFinding: varchar("new_aggregate_finding", { length: 16 }),
+    priorMetVia: varchar("prior_met_via", { length: 40 }),
+    newMetVia: varchar("new_met_via", { length: 40 }),
+    priorObjectiveVerdicts: jsonb("prior_objective_verdicts"),
+    newObjectiveVerdicts: jsonb("new_objective_verdicts"),
+    /**
+     * What triggered the rescore — for the SSP audit trail. Examples:
+     * attestation_signed, register_entry_finalized, ra_finalized,
+     * poam_finalized, manual_override, ir_bundle_archived,
+     * qms_manifest_ingested, isso_export_ingested,
+     * validator_run_persisted, on_read_stale_recompute.
+     */
+    triggerSource: varchar("trigger_source", { length: 64 }).notNull(),
+    triggeredByUserId: uuid("triggered_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    triggeredAt: timestamp("triggered_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
   },
