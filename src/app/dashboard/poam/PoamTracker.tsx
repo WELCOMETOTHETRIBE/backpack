@@ -40,7 +40,11 @@ export type PoamEntry = {
   technicalStatus: string;
   policyDocRequired: boolean;
   policyStatus: string;
-  status: "open" | "closed";
+  // Includes the Phase A0 additions ('draft' / 'active') so auto-stub
+  // POA&Ms surface in the tracker without coercing through legacy
+  // 'open'. The page's existing filters (open vs closed) collapse
+  // draft+active into "open" for back-compat UX.
+  status: "open" | "closed" | "draft" | "active";
   weaknessDescription: string | null;
   remediationPlan: string | null;
   scheduledCompletionDate: string | null;
@@ -244,7 +248,7 @@ function EntryCard({
                 <AlertTriangle className="h-2.5 w-2.5" /> Overdue
               </span>
             )}
-            {entry.controlNowImplemented && entry.status === "open" && (
+            {entry.controlNowImplemented && entry.status !== "closed" && (
               <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
                 <CheckCircle2 className="h-2.5 w-2.5" /> Control now implemented
               </span>
@@ -263,7 +267,7 @@ function EntryCard({
               {entry.sprsImpact} SPRS pt{entry.sprsImpact !== 1 ? "s" : ""}
             </span>
           )}
-          {entry.status === "open" && (
+          {entry.status !== "closed" && (
             <div className="text-right">
               <p className="text-[10px] font-medium text-gray-400">
                 {totalMilestones > 0
@@ -286,7 +290,7 @@ function EntryCard({
         <div className="border-t border-gray-100 px-5 pb-5 pt-4 space-y-4">
 
           {/* Evidence lane status indicators */}
-          {entry.status === "open" && (
+          {entry.status !== "closed" && (
             <div className="flex flex-wrap items-center gap-2 text-[10px] font-semibold">
               <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 ${
                 entry.technicalStatus === "satisfied"
@@ -318,7 +322,7 @@ function EntryCard({
           )}
 
           {/* Control now implemented + all milestones complete — suggest close */}
-          {entry.controlNowImplemented && entry.status === "open" && (
+          {entry.controlNowImplemented && entry.status !== "closed" && (
             <div className="flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3.5 py-3">
               <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 mt-0.5" />
               <div className="flex-1">
@@ -345,7 +349,7 @@ function EntryCard({
               audit trail is "we said we'd do these specific things" — the
               user must either complete them or document why they're moot
               before closing. */}
-          {entry.controlImplemented && !entry.controlNowImplemented && entry.status === "open" && (
+          {entry.controlImplemented && !entry.controlNowImplemented && entry.status !== "closed" && (
             <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3">
               <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
               <div className="flex-1">
@@ -400,7 +404,7 @@ function EntryCard({
           </div>
 
           {/* Target date + Save */}
-          {entry.status === "open" && (
+          {entry.status !== "closed" && (
             <div className="flex items-center gap-3 flex-wrap">
               <div>
                 <label className="block text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-1">
@@ -467,7 +471,7 @@ function EntryCard({
             </div>
 
             {/* Add milestone */}
-            {entry.status === "open" && (
+            {entry.status !== "closed" && (
               <div className="mt-2 flex gap-2 flex-wrap">
                 <input
                   ref={milestoneInputRef}
@@ -498,7 +502,7 @@ function EntryCard({
           </div>
 
           {/* ── Footer actions ── */}
-          {entry.status === "open" && !entry.controlNowImplemented && (
+          {entry.status !== "closed" && !entry.controlNowImplemented && (
             <div className="flex items-center gap-3 pt-1 border-t border-gray-100">
               <button
                 type="button"
@@ -596,7 +600,7 @@ export function PoamTracker({ initialEntries }: { initialEntries: PoamEntry[] })
   const [closedCollapsed, setClosedCollapsed] = useState(true);
 
   // ── Summary counts ──
-  const open = entries.filter((e) => e.status === "open");
+  const open = entries.filter((e) => e.status !== "closed");
   const closed = entries.filter((e) => e.status === "closed");
   const overdue = open.filter((e) => e.isOverdue);
   const noMilestones = open.filter((e) => e.milestones.length === 0);

@@ -37,7 +37,14 @@ type Entry = {
   id: string;
   controlRecordId: string;
   controlId: string | null;
-  status: "open" | "closed";
+  // Phase A0 (migration 0068) extended poam_entry_status with 'draft'
+  // and 'active' to support the auto-POA&M-on-NOT-MET flow:
+  //   draft  — auto-stub created when a control flips to NOT MET;
+  //            does NOT elevate the verdict.
+  //   active — customer-finalized, AG-mandated fields populated;
+  //            elevates met_via to operational_plan_of_action.
+  // Legacy 'open' / 'closed' values still flow through unchanged.
+  status: "open" | "closed" | "draft" | "active";
   weaknessDescription: string | null;
   remediationPlan: string | null;
   scheduledCompletionDate: string | null;
