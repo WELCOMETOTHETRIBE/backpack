@@ -104,12 +104,17 @@ export async function POST(
       );
     }
 
-    // 2. status='signed' gate.
-    if (doc.status !== "signed") {
+    // 2. Status gate. Both 'draft' and 'signed' versions can be
+    //    submitted to Doc Control. The auto-submit-on-generate flow
+    //    sends drafts (with codex_system_attestation signoffs) so
+    //    QMS humans drive the actual review chain. Manual sign-then-
+    //    submit still works for orgs that want a Codex-side human
+    //    review chain before QMS sees the doc.
+    if (doc.status === "superseded" || doc.status === "revoked") {
       return NextResponse.json(
         {
-          error: `SSP version is in status '${doc.status}'. Only 'signed' versions can be submitted to Doc Control.`,
-          code: "not_signed",
+          error: `SSP version is in status '${doc.status}'. Only 'draft' or 'signed' versions can be submitted to Doc Control.`,
+          code: "not_submittable",
         },
         { status: 409 },
       );
@@ -409,12 +414,19 @@ export async function POST(
       reason: "Skipped — PDF render failed: " + (renderError ?? "unknown"),
     };
     if (!renderError && pdfBase64 && pdfSha256) {
+      // Stable QMS document_number per boundary. Every regeneration
+      // becomes a new VERSION of the same QMS doc rather than a new
+      // doc entry — matches "CMMC-tagged new revision of the existing
+      // SSP" intent. QMS handles its own version tracking via the
+      // ssp_version_number field; document_number remains constant
+      // across iterations of the same authorizing record.
+      const stableDocumentNumber = "SSP-001";
       bridgeResult = await submitToQms({
         submission_id: submission.id,
         organization_id: orgId,
         ssp_document_id: sspDocumentId,
         ssp_version_number: doc.versionNumber,
-        document_number: `SSP-${String(doc.versionNumber).padStart(3, "0")}`,
+        document_number: stableDocumentNumber,
         payload_sha256: doc.payloadSha256,
         generated_at: doc.generatedAt.toISOString(),
         generated_from_snapshot_at: doc.generatedFromSnapshotAt.toISOString(),
