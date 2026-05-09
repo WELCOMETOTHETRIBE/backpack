@@ -9,10 +9,11 @@ import {
   controls,
   organizations,
 } from "@/db/schema";
-import { and, eq, desc, isNotNull } from "drizzle-orm";
+import { and, eq, desc, isNotNull, sql } from "drizzle-orm";
 import QmsBundleDocumentsClient, {
   type QmsRun,
   type QmsDoc,
+  type LibraryDoc,
   type OisImpact,
 } from "./QmsBundleDocumentsClient";
 
@@ -105,7 +106,68 @@ export default async function DocumentsPage() {
         .orderBy(qmsGovernanceManifestDocuments.documentNumber)
     : [];
 
-  // 4. OIS narratives that reference THIS run's manifest — the
+  // 4. Library view — most-recent version of each unique document_number
+  // for this org, across ALL runs. Persistent regardless of which
+  // release the doc currently appears in. Released versions outrank
+  // unreleased; among same release-state, the most recent released_at
+  // wins, then most recent effective_date, then updated_at.
+  //
+  // The accompanying versionCount tells the client how many distinct
+  // versions exist so it can offer a per-doc history affordance.
+  // Recency signal: join to qms_governance_manifests.received_at (the
+  // run that introduced the row). The doc table has released_at (text)
+  // and effective_date (timestamptz) but no updated_at — received_at
+  // is the most reliable "which version is freshest" proxy.
+  const libraryRowsRaw = await db.execute(sql`
+    SELECT DISTINCT ON (qgmd.document_number)
+      qgmd.document_number, qgmd.document_name, qgmd.document_type,
+      qgmd.version, qgmd.status,
+      qgmd.effective_date, qgmd.next_review_date, qgmd.sha256,
+      qgmd.released, qgmd.released_at,
+      qgmd.controls_mapped, qgmd.signatures, qgmd.run_id,
+      qgm.received_at AS source_received_at
+    FROM qms_governance_manifest_documents qgmd
+    JOIN qms_governance_manifests qgm ON qgm.run_id = qgmd.run_id
+    WHERE qgmd.organization_id = ${orgId}
+    ORDER BY
+      qgmd.document_number,
+      (CASE WHEN qgmd.released THEN 0 ELSE 1 END),
+      qgmd.released_at DESC NULLS LAST,
+      qgmd.effective_date DESC NULLS LAST,
+      qgm.received_at DESC
+  `);
+  const libraryRows = libraryRowsRaw as unknown as Array<{
+    document_number: string;
+    document_name: string;
+    document_type: string | null;
+    version: string | null;
+    status: string | null;
+    effective_date: Date | string | null;
+    next_review_date: Date | string | null;
+    sha256: string;
+    released: boolean;
+    released_at: Date | string | null;
+    controls_mapped: unknown;
+    signatures: unknown;
+    run_id: string;
+    source_received_at: Date | string | null;
+  }>;
+
+  const versionCountsRaw = await db.execute(sql`
+    SELECT document_number, count(*)::int AS n
+    FROM qms_governance_manifest_documents
+    WHERE organization_id = ${orgId}
+    GROUP BY document_number
+  `);
+  const versionCounts = new Map<string, number>();
+  for (const r of versionCountsRaw as unknown as Array<{
+    document_number: string;
+    n: number;
+  }>) {
+    versionCounts.set(r.document_number, r.n);
+  }
+
+  // 5. OIS narratives that reference THIS run's manifest — the
   // proof-of-impact for a C3PAO ("here are the controls whose
   // mechanism evidence was refreshed by this release").
   const oisImpact = latestRun
@@ -230,6 +292,42 @@ export default async function DocumentsPage() {
                   (s.signature_hash as string | null) ?? null,
               })),
           }) satisfies QmsDoc,
+      )}
+      libraryDocs={libraryRows.map(
+        (d) =>
+          ({
+            documentNumber: d.document_number,
+            documentName: d.document_name,
+            documentType: d.document_type,
+            version: d.version,
+            status: d.status,
+            effectiveDate: toIsoOrNull(d.effective_date),
+            nextReviewDate: toIsoOrNull(d.next_review_date),
+            sha256: d.sha256,
+            released: d.released,
+            releasedAt: toIsoOrNull(d.released_at),
+            controlsMapped: ((d.controls_mapped as string[] | null) ?? []).filter(
+              (x) => typeof x === "string" && x,
+            ),
+            signatures:
+              ((d.signatures as Record<string, unknown>[] | null) ?? []).map(
+                (s) => ({
+                  signerName: (s.signer_name as string | null) ?? null,
+                  signerEmail: (s.signer_email as string | null) ?? null,
+                  signatureMeaning:
+                    (s.signature_meaning as string | null) ?? null,
+                  signedAt: (s.signed_at as string | null) ?? null,
+                  signatureHash:
+                    (s.signature_hash as string | null) ?? null,
+                }),
+              ),
+            // Library-only enrichment: how many distinct versions of
+            // this doc exist for this org, and which run sourced the
+            // visible row (so the auditor can trace the persistence
+            // path back to the manifest that introduced it).
+            versionCount: versionCounts.get(d.document_number) ?? 1,
+            sourceRunId: d.run_id,
+          }) satisfies LibraryDoc,
       )}
       oisImpact={oisImpact.map(
         (o) =>

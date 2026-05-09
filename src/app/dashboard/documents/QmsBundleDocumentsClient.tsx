@@ -55,6 +55,21 @@ export interface QmsDoc {
   signatures: QmsDocSignature[];
 }
 
+/**
+ * Library-mode doc: same shape as a release-mode doc, plus two
+ * library-only fields:
+ *   - versionCount: how many distinct versions of this document_number
+ *     exist in qms_governance_manifest_documents for this org. Powers
+ *     the "n versions" badge.
+ *   - sourceRunId: the run_id of the manifest the visible row came
+ *     from (the most recent released or, fallback, most recent
+ *     updated). Lets the UI link back to that release for context.
+ */
+export interface LibraryDoc extends QmsDoc {
+  versionCount: number;
+  sourceRunId: string;
+}
+
 export interface OisImpact {
   controlId: string;
   generatedAt: string;
@@ -66,6 +81,14 @@ interface Props {
   latestRun: QmsRun | null;
   runHistory: QmsRun[];
   docs: QmsDoc[];
+  /**
+   * Persistent library — most recent version of every document_number
+   * for this org, regardless of whether it's in the latest release.
+   * One row per unique document_number; carries versionCount so the
+   * UI can show "this doc has n versions on file" without a second
+   * round-trip.
+   */
+  libraryDocs: LibraryDoc[];
   oisImpact: OisImpact[];
   controlsWithBackingCount: number;
   /**
@@ -170,6 +193,7 @@ export default function QmsBundleDocumentsClient({
   latestRun,
   runHistory,
   docs,
+  libraryDocs,
   oisImpact,
   controlsWithBackingCount,
   controlCodeToImplId,
@@ -177,16 +201,30 @@ export default function QmsBundleDocumentsClient({
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [showRunHistory, setShowRunHistory] = useState(false);
+  /**
+   * Tab state.
+   *   "release" — documents in the latest QMS release (the original view)
+   *   "library" — most-recent version of every document the org has
+   *               ever ingested, regardless of release. Persists across
+   *               releases so a doc that drops out of the active release
+   *               still surfaces in the library.
+   */
+  const [view, setView] = useState<"release" | "library">("release");
+
+  // Type filter and search box drive both views; the active source is
+  // chosen by `view`. Library docs share the QmsDoc shape so the same
+  // filter/render path works.
+  const activeSource: QmsDoc[] = view === "library" ? libraryDocs : docs;
 
   const docTypes = useMemo(() => {
     const set = new Set<string>();
-    for (const d of docs) if (d.documentType) set.add(d.documentType);
+    for (const d of activeSource) if (d.documentType) set.add(d.documentType);
     return Array.from(set).sort();
-  }, [docs]);
+  }, [activeSource]);
 
   const filteredDocs = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return docs.filter((d) => {
+    return activeSource.filter((d) => {
       if (typeFilter !== "all" && d.documentType !== typeFilter) return false;
       if (!q) return true;
       return (
@@ -195,7 +233,20 @@ export default function QmsBundleDocumentsClient({
         d.controlsMapped.some((c) => c.toLowerCase().includes(q))
       );
     });
-  }, [docs, search, typeFilter]);
+  }, [activeSource, search, typeFilter]);
+
+  /**
+   * Library-mode lookup: document_number → versionCount. Used by the
+   * DocRow renderer to show a "n versions" badge when in library view.
+   * Empty in release view so the badge doesn't appear there.
+   */
+  const versionCountByDoc = useMemo(() => {
+    const map = new Map<string, number>();
+    if (view === "library") {
+      for (const d of libraryDocs) map.set(d.documentNumber, d.versionCount);
+    }
+    return map;
+  }, [view, libraryDocs]);
 
   if (!latestRun) {
     return (
@@ -437,13 +488,57 @@ export default function QmsBundleDocumentsClient({
         </section>
       )}
 
-      {/* Doc list controls */}
+      {/* View tabs — release vs library.
+          Release tab shows only docs in the latest QMS run. Library
+          tab shows the most-recent version of every document_number
+          this org has ever ingested, so a doc that drops from the
+          active release still surfaces here. */}
       <section className="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+        <div
+          className="flex items-center gap-1 border-b border-gray-200 px-2 pt-2 dark:border-gray-800"
+          role="tablist"
+          aria-label="Document view"
+        >
+          <button
+            type="button"
+            role="tab"
+            aria-selected={view === "release"}
+            onClick={() => setView("release")}
+            className={`rounded-t-md px-3 py-1.5 text-xs font-medium transition ${
+              view === "release"
+                ? "bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-100"
+                : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            }`}
+          >
+            This release ({docs.length})
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={view === "library"}
+            onClick={() => setView("library")}
+            className={`rounded-t-md px-3 py-1.5 text-xs font-medium transition ${
+              view === "library"
+                ? "bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-100"
+                : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            }`}
+            title="Most recent version of every document this org has ingested, regardless of release."
+          >
+            Library ({libraryDocs.length})
+          </button>
+          <span className="ml-auto pr-2 text-[11px] text-gray-500">
+            {view === "library"
+              ? "Persistent across releases · latest version per document"
+              : `From run ${latestRun.runId.slice(0, 8)}…`}
+          </span>
+        </div>
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 p-4 dark:border-gray-800">
           <div className="flex items-center gap-2">
             <FileText className="h-4 w-4 text-gray-500" />
             <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-              Documents in this release ({docs.length})
+              {view === "library"
+                ? `All documents · library (${filteredDocs.length}/${libraryDocs.length})`
+                : `Documents in this release (${filteredDocs.length}/${docs.length})`}
             </h3>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -483,6 +578,7 @@ export default function QmsBundleDocumentsClient({
                 key={d.documentNumber}
                 doc={d}
                 controlCodeToImplId={controlCodeToImplId}
+                versionCount={versionCountByDoc.get(d.documentNumber) ?? null}
               />
             ))}
           </ul>
@@ -497,9 +593,17 @@ export default function QmsBundleDocumentsClient({
 function DocRow({
   doc,
   controlCodeToImplId,
+  versionCount,
 }: {
   doc: QmsDoc;
   controlCodeToImplId: Record<string, string>;
+  /**
+   * Number of distinct versions of this document_number on file for
+   * the org. Set in library mode (where it's the entire point of the
+   * view) and null in release mode (where every visible doc is by
+   * definition the latest of itself in the active run).
+   */
+  versionCount: number | null;
 }) {
   const [expanded, setExpanded] = useState(false);
   // Link to the read-only "presentation view" on QMS (C3PAO-friendly,
@@ -532,6 +636,14 @@ function DocRow({
             {doc.documentType && (
               <span className="text-[10px] uppercase tracking-wider text-gray-500">
                 {TYPE_LABELS[doc.documentType] ?? doc.documentType}
+              </span>
+            )}
+            {versionCount !== null && versionCount > 1 && (
+              <span
+                className="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[10px] font-medium text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+                title={`${versionCount} versions on file across all releases`}
+              >
+                {versionCount} versions
               </span>
             )}
           </div>
