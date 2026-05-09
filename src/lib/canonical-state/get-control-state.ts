@@ -290,7 +290,7 @@ function projectSnapshot(
     caeRollup,
     confidence: snapshot.confidence,
     binStatus,
-    binSubLabel: deriveSubLabel(caeRollup, metVia),
+    binSubLabel: deriveSubLabel(caeRollup, metVia, aggregate),
     override: override
       ? {
           setBy: override.setByUserId,
@@ -325,14 +325,31 @@ function computeAggregateFinding(
 
   if (objectives.length === 0) {
     // PHASE A0 SHIM — until Phase A2 backfills per-objective verdicts,
-    // the canonical helper falls back to the CAE rollup as the headline
-    // finding. The rollup is itself a real scorer determination
-    // (scoreControl evaluated register evidence against per-control
-    // requirements); it just lacks the per-objective-letter breakdown
-    // the assessment guide expects. This is *not* over-claiming
-    // because the rollup is already evidence-derived, not author-set.
-    // Once objective_verdicts is populated for every snapshot, this
-    // branch becomes dead code and can be removed.
+    // the canonical helper derives the headline finding from a layered
+    // signal:
+    //
+    //   1. metVia elevator wins. If a snapshot is marked inherited via
+    //      ESP, governed by an enduring exception, covered by a DoD CIO
+    //      adjudication, or backed by a finalized non-chronic-slipped
+    //      operational plan, that's MET regardless of the rollup. AG
+    //      pp.10–11 explicitly recognize each of these.
+    //   2. Otherwise the CAE rollup (a real scorer determination
+    //      against register evidence) is the next-best signal.
+    //   3. NOT MET only when neither an elevator nor evidence supports
+    //      the requirement.
+    //
+    // This is not over-claiming: the elevators each map to a documented
+    // SSP section, and the rollup is itself evidence-derived. Phase A2
+    // backfills objective_verdicts on every snapshot; once that lands,
+    // this entire branch becomes dead code.
+    if (
+      metVia === "esp_inheritance" ||
+      metVia === "enduring_exception" ||
+      metVia === "dod_cio_adjudication" ||
+      metVia === "operational_plan_of_action"
+    ) {
+      return "MET";
+    }
     if (rollup === "satisfies" || rollup === "at_risk") return "MET";
     return "NOT_MET";
   }
@@ -362,14 +379,26 @@ function mapToBin1(
   return "outstanding";
 }
 
-function deriveSubLabel(rollup: CAERollup, metVia: MetVia): string | null {
+function deriveSubLabel(
+  rollup: CAERollup,
+  metVia: MetVia,
+  finding: CMMCFinding,
+): string | null {
+  // Elevator-driven labels surface regardless of finding — the C3PAO
+  // wants to see *which* elevator is invoked.
   if (metVia === "operational_plan_of_action") return "MET via POA&M";
   if (metVia === "enduring_exception") return "MET via enduring exception";
   if (metVia === "dod_cio_adjudication") return "MET via DoD CIO adjudication";
   if (metVia === "esp_inheritance") return "MET via ESP inheritance";
-  if (rollup === "at_risk") return "evidence aging";
-  if (rollup === "partial") return "partial — gap remaining";
-  if (rollup === "gap") return "no evidence yet";
+
+  // Rollup-derived warnings only matter when the finding is at risk or
+  // not met. When the finding is already MET via legacy attestation /
+  // evidence, surfacing "no evidence yet" or "partial — gap remaining"
+  // would be misleading. Only "evidence aging" (at_risk) is useful on
+  // a MET finding because it forecasts a future degradation.
+  if (rollup === "at_risk" && finding === "MET") return "evidence aging";
+  if (finding === "NOT_MET" && rollup === "partial") return "partial — gap remaining";
+  if (finding === "NOT_MET" && rollup === "gap") return "no evidence yet";
   return null;
 }
 
