@@ -7,12 +7,16 @@ import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import {
   organizations,
+  qmsGovernanceManifestDocuments,
+  qmsGovernanceManifests,
   sspDocControlSubmissions,
   sspDocuments,
   sspSignoffs,
 } from "@/db/schema";
+import { sql } from "drizzle-orm";
 import { GenerateSspButton } from "./GenerateSspButton";
 import { SubmitToDocControlButton } from "./SubmitToDocControlButton";
+import { DocControlSignatureModal, type QmsSignatureRef } from "./DocControlSignatureModal";
 
 const REQUIRED_SIGNOFF_KINDS = [
   "authorizing_official",
@@ -142,6 +146,42 @@ export default async function SspPage() {
   for (const s of submissions) {
     if (!latestSubmissionByDoc.has(s.sspDocumentId)) {
       latestSubmissionByDoc.set(s.sspDocumentId, s);
+    }
+  }
+
+  // For released submissions, pull the QMS-side e-signatures from the
+  // most-recent ingested manifest's per-doc row. Powers the
+  // "Open in Doc Control" modal — auditor-ready signature ledger with
+  // full hash provenance, no extra round-trip on click.
+  const releasedDocNumbers = Array.from(latestSubmissionByDoc.values())
+    .filter((s) => s.status === "released" && s.qmsDocumentNumber)
+    .map((s) => s.qmsDocumentNumber as string);
+  const qmsSignaturesByDocNumber = new Map<string, QmsSignatureRef[]>();
+  if (releasedDocNumbers.length > 0) {
+    const rows = await db.execute<{
+      document_number: string;
+      signatures: unknown;
+    }>(sql`
+      SELECT DISTINCT ON (document_number)
+        document_number,
+        signatures
+      FROM ${qmsGovernanceManifestDocuments}
+      WHERE organization_id = ${orgId}
+        AND document_number = ANY(${releasedDocNumbers})
+      ORDER BY document_number,
+               (SELECT received_at FROM ${qmsGovernanceManifests} WHERE run_id = ${qmsGovernanceManifestDocuments}.run_id) DESC
+    `);
+    for (const r of rows) {
+      const raw = (r.signatures as Array<Record<string, unknown>> | null) ?? [];
+      const refs: QmsSignatureRef[] = raw.map((s) => ({
+        signerName: (s.signer_name as string | null) ?? null,
+        signerEmail: (s.signer_email as string | null) ?? null,
+        signedAt: (s.signed_at as string | null) ?? null,
+        signatureMeaning: (s.signature_meaning as string | null) ?? null,
+        documentHash: (s.document_hash as string | null) ?? null,
+        signatureHash: (s.signature_hash as string | null) ?? null,
+      }));
+      qmsSignaturesByDocNumber.set(r.document_number, refs);
     }
   }
 
@@ -299,6 +339,12 @@ export default async function SspPage() {
                   sspDocumentId={v.id}
                   canSubmit={canSubmit}
                   blockedReason={blockedReason}
+                  qmsSignatures={
+                    submission?.qmsDocumentNumber
+                      ? qmsSignaturesByDocNumber.get(submission.qmsDocumentNumber) ?? []
+                      : []
+                  }
+                  qmsSha256={v.payloadSha256}
                 />
 
                 <div className="mt-4 flex flex-wrap gap-3 border-t border-gray-100 pt-3 text-xs">
@@ -408,6 +454,8 @@ function DocControlPanel({
   sspDocumentId,
   canSubmit,
   blockedReason,
+  qmsSignatures,
+  qmsSha256,
 }: {
   submission: {
     id: string;
@@ -426,6 +474,9 @@ function DocControlPanel({
   sspDocumentId: string;
   canSubmit: boolean;
   blockedReason: string | null;
+  /** QMS-side signatures for the released doc; populated only when status === 'released'. */
+  qmsSignatures: QmsSignatureRef[];
+  qmsSha256: string | null;
 }) {
   return (
     <div className="mt-4 rounded-lg border border-violet-100 bg-violet-50/40 p-3">
@@ -476,24 +527,33 @@ function DocControlPanel({
             </div>
           )}
           {submission?.status === "released" && (
-            <p className="mt-1 text-xs text-emerald-900">
-              <span className="font-medium">Released by Doc Control</span>
-              {submission.qmsDocumentNumber
-                ? ` as ${submission.qmsDocumentNumber}`
-                : ""}
-              {submission.releasedAt
-                ? ` on ${new Date(submission.releasedAt)
-                    .toISOString()
-                    .slice(0, 10)}`
-                : ""}
-              .{" "}
-              <Link
-                href="/dashboard/documents"
-                className="font-medium underline-offset-2 hover:underline"
-              >
-                Open in QMS →
-              </Link>
-            </p>
+            <div className="mt-1 space-y-2">
+              <p className="text-xs text-emerald-900">
+                <span className="font-medium">Released by Doc Control</span>
+                {submission.qmsDocumentNumber
+                  ? ` as ${submission.qmsDocumentNumber}`
+                  : ""}
+                {submission.releasedAt
+                  ? ` on ${new Date(submission.releasedAt)
+                      .toISOString()
+                      .slice(0, 10)}`
+                  : ""}
+                .
+              </p>
+              {submission.qmsDocumentNumber && (
+                <DocControlSignatureModal
+                  qmsDocumentNumber={submission.qmsDocumentNumber}
+                  qmsSubmissionId={submission.qmsSubmissionId}
+                  releasedAt={
+                    submission.releasedAt
+                      ? new Date(submission.releasedAt).toISOString()
+                      : null
+                  }
+                  qmsSha256={qmsSha256}
+                  signatures={qmsSignatures}
+                />
+              )}
+            </div>
           )}
           {submission?.status === "rejected" && (
             <p className="mt-1 text-xs text-rose-900">
