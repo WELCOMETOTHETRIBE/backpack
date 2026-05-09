@@ -20,6 +20,11 @@ import { GenerateSspButton } from "./GenerateSspButton";
 import { SubmitToDocControlButton } from "./SubmitToDocControlButton";
 import { DocControlSignatureModal, type QmsSignatureRef } from "./DocControlSignatureModal";
 
+// Codex-side signoff kinds — kept as a reference list for any UI that
+// renders the signoff chain. NOT used as a gating set anymore: per
+// v2.13 page 204 (Q1=B in the bridge mapping), the release signature
+// chain is QMS-side (Reviewer → Approver → Quality Release).
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const REQUIRED_SIGNOFF_KINDS = [
   "authorizing_official",
   "system_owner",
@@ -294,24 +299,16 @@ export default async function SspPage() {
 
             // Pre-flight gates for the Submit-to-Doc-Control button —
             // mirror the server-side checks so the disabled tooltip
-            // tells the operator exactly what's missing.
-            const presentSignoffKinds = new Set(
-              signs
-                .filter((s) => s.dataHash === v.payloadSha256)
-                .map((s) => s.signoffKind),
-            );
-            const missingSignoffs = REQUIRED_SIGNOFF_KINDS.filter(
-              (k) => !presentSignoffKinds.has(k),
-            );
+            // tells the operator exactly what's missing. Per the
+            // v2.13 page-204 separation of concerns (Q1=B), Codex
+            // signoffs are OPTIONAL — the release signature chain is
+            // QMS-side. We don't gate on them here.
             const inFlight = submission?.status === "submitted";
             const released = submission?.status === "released";
             let blockedReason: string | null = null;
-            if (v.status !== "signed") {
+            if (v.status === "superseded" || v.status === "revoked") {
               blockedReason =
-                `Only signed SSP versions can be submitted (this version is '${v.status}').`;
-            } else if (missingSignoffs.length > 0) {
-              blockedReason =
-                `Missing sign-off(s): ${missingSignoffs.join(", ")}. Collect them on the version detail page first.`;
+                `Cannot submit a ${v.status} version. Generate a new version instead.`;
             } else if (inFlight) {
               blockedReason = `A submission for this version is already in flight (since ${
                 submission?.submittedAt

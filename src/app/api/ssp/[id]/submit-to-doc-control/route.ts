@@ -139,21 +139,16 @@ export async function POST(
         ),
       );
 
-    const presentKinds = new Set(signoffRows.map((s) => s.signoffKind));
-    const missingKinds = REQUIRED_SIGNOFF_KINDS.filter(
-      (k) => !presentKinds.has(k),
-    );
-    if (missingKinds.length > 0) {
-      return NextResponse.json(
-        {
-          error: `Missing required sign-off(s): ${missingKinds.join(", ")}.`,
-          code: "missing_signoffs",
-          missing: missingKinds,
-          present: Array.from(presentKinds),
-        },
-        { status: 409 },
-      );
-    }
+    // Codex-side signoffs are now OPTIONAL. Per the v2.13 page-204
+    // separation of concerns (Q1=B in the bridge mapping), the
+    // release signature chain is QMS-side: Reviewer → Approver →
+    // Quality Release. Codex's role is to author + transmit; if any
+    // OSA-side ISSO/SO/AO signoffs are present they ride along as
+    // additional provenance, but they are NOT required for
+    // submission. The only check that still fires here is hash
+    // integrity — if a signoff exists but binds to a different
+    // payload_sha256, we still reject (that's a real corruption signal,
+    // not a "missing approver" gate).
     const wrongHash = signoffRows.filter(
       (s) =>
         REQUIRED_SIGNOFF_KINDS.includes(

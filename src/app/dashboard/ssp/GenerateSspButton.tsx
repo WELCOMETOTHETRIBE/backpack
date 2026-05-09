@@ -6,14 +6,15 @@ import { CheckCircle2, Plus, AlertTriangle } from "lucide-react";
 
 /**
  * Admin-only "Generate new version" CTA. POSTs to /api/ssp/generate
- * which now does three things in one request:
+ * which now does two things in one request:
  *   1. Generates the SSP from canonical state
- *   2. Auto-attests with three Codex provenance signoffs
- *   3. Auto-submits to MacTech Quality Doc Control
+ *   2. Auto-submits to MacTech Quality Doc Control
  *
- * The button surfaces the result of all three so the operator sees
- * exactly what happened in one click instead of having to refresh +
- * scan the version card.
+ * Codex deliberately does NOT auto-generate signatures — the release
+ * signature chain (Reviewer → Approver → Quality Release) is QMS-
+ * side and must be performed by real humans for C3PAO defensibility.
+ * Codex's role is to author + transmit; the SSP lands in QMS Doc
+ * Control awaiting their review chain.
  */
 interface GenerateResponse {
   ok?: boolean;
@@ -22,10 +23,11 @@ interface GenerateResponse {
   payloadSha256?: string;
   controlsCovered?: number;
   controlsMet?: number;
-  autoAttest?: {
-    signoffsCreated: number;
-    generatedBy: { displayName: string; email: string };
-  } | null;
+  generatedBy?: {
+    userId: string;
+    displayName: string;
+    email: string | null;
+  };
   docControl?: {
     transmitted: boolean;
     submissionId?: string;
@@ -102,26 +104,32 @@ export function GenerateSspButton() {
                   </span>
                 )}
               </p>
-              {last.autoAttest && (
+              {last.generatedBy && (
                 <p>
-                  Provenance: {last.autoAttest.signoffsCreated} system
-                  attestation{last.autoAttest.signoffsCreated === 1 ? "" : "s"}{" "}
-                  by{" "}
+                  Authored by{" "}
                   <span className="font-medium">
-                    {last.autoAttest.generatedBy.displayName}
+                    {last.generatedBy.displayName}
                   </span>
+                  {last.generatedBy.email && ` · ${last.generatedBy.email}`}
                 </p>
               )}
               {last.docControl?.transmitted ? (
-                <p>
-                  ✓ Submitted to Doc Control
-                  {last.docControl.qmsSubmissionId &&
-                    ` · QMS id ${last.docControl.qmsSubmissionId.slice(0, 12)}…`}
-                  {last.docControl.qmsDocumentNumber &&
-                    ` (${last.docControl.qmsDocumentNumber})`}
-                  {last.docControl.reviewWindowDaysEstimate &&
-                    ` · review window ~${last.docControl.reviewWindowDaysEstimate}d`}
-                </p>
+                <>
+                  <p>
+                    ✓ Submitted to Doc Control
+                    {last.docControl.qmsSubmissionId &&
+                      ` · QMS id ${last.docControl.qmsSubmissionId.slice(0, 12)}…`}
+                    {last.docControl.qmsDocumentNumber &&
+                      ` (${last.docControl.qmsDocumentNumber})`}
+                    {last.docControl.reviewWindowDaysEstimate &&
+                      ` · review window ~${last.docControl.reviewWindowDaysEstimate}d`}
+                  </p>
+                  <p className="text-emerald-800/80">
+                    Awaiting QMS Reviewer / Approver / Quality Release. The
+                    signature chain is performed by humans on the QMS side
+                    for defensibility — Codex does not auto-sign.
+                  </p>
+                </>
               ) : last.docControl ? (
                 <p className="flex items-start gap-1.5 text-amber-900">
                   <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />

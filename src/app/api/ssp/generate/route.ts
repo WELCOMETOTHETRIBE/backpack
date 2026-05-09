@@ -11,26 +11,27 @@
  *      canonicalizes JSON, persists to ssp_documents +
  *      ssp_section_revisions + ssp_evidence_citations. Lands in
  *      status='draft'.
- *   2. Auto-attest: insert three sspSignoffs rows (isso, system_owner,
- *      authorizing_official) attributed to the generating user with
- *      signature_alg='codex_system_attestation'. These satisfy the
- *      QMS bridge validation (3 signoffs bound to payload_sha256) and
- *      preserve provenance — they are NOT human-signed approvals.
- *      Quality Release gating remains with QMS Reviewer / Approver /
- *      QR per the v2.13 page-204 separation of concerns (Q1=B in the
- *      bridge mapping doc).
- *   3. Auto-submit: build the bridge payload (stable
- *      document_number='SSP-001', ssp_version_number incrementing) and
- *      POST to QMS via submitToQms(). Failures are best-effort —
+ *   2. Auto-submit: build the bridge payload (stable
+ *      document_number='SSP-001', ssp_version_number incrementing,
+ *      signoffs:[] — we send NO Codex signatures by design) and POST
+ *      to QMS via submitToQms(). Failures are best-effort —
  *      generation succeeds with a queued submission row that the
  *      operator can retry from the SSP page's Submit button.
+ *
+ * Why empty signoffs[]:
+ *   For C3PAO defensibility, Codex must NOT auto-generate signatures.
+ *   The actual signature chain is QMS-side: Reviewer → Approver →
+ *   Quality Release. Those humans look over the SSP and sign for real.
+ *   Codex's role is to author + transmit; QMS's role is to review +
+ *   release. An OSA that wants belt-and-suspenders Codex-side
+ *   attestations can still POST to /api/ssp/[id]/sign-off before
+ *   QMS sees the version, and those rows will ride along on retry.
  *
  * Body (all optional):
  *   { boundaryId?: string, skipAutoSubmit?: boolean }
  *
  * Returns 201 with:
  *   { ok, sspDocumentId, versionNumber, payloadSha256, controls*,
- *     autoAttest: { signoffsCreated, generatedBy: {…} } | null,
  *     docControl: { transmitted, submissionId, qmsSubmissionId,
  *                   qmsDocumentNumber, reviewWindowDaysEstimate,
  *                   reason } | null }
@@ -48,10 +49,10 @@ import {
   sspDocControlSubmissions,
   sspDocuments,
   sspSignoffs,
+  users,
 } from "@/db/schema";
 import { writeAuditLog } from "@/lib/audit";
 import { requireOrg, requireRole } from "@/lib/auth";
-import { autoAttestSspOnGenerate } from "@/lib/ssp/auto-attest";
 import {
   submitToQms,
   type BridgeSignoffPayload,
@@ -119,10 +120,25 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Resolve the generating user's display name + email up-front so we
+  // can ride that as authorship metadata on the staging row.
+  const [generatorUser] = await db
+    .select({ id: users.id, email: users.email, name: users.name })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+  const generatedByDisplayName =
+    generatorUser?.name?.trim() || generatorUser?.email || userId;
+  const generatedByEmail = generatorUser?.email ?? null;
+
   const response: Record<string, unknown> = {
     ok: true,
     ...generated,
-    autoAttest: null,
+    generatedBy: {
+      userId,
+      displayName: generatedByDisplayName,
+      email: generatedByEmail,
+    },
     docControl: null,
   };
 
@@ -130,28 +146,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(response, { status: 201 });
   }
 
-  // ── 2. Auto-attest ───────────────────────────────────────────────
-  let attestResult: Awaited<ReturnType<typeof autoAttestSspOnGenerate>>;
-  try {
-    attestResult = await autoAttestSspOnGenerate({
-      organizationId: orgId,
-      sspDocumentId: generated.sspDocumentId,
-      payloadSha256: generated.payloadSha256,
-      generatedByUserId: userId,
-    });
-    response.autoAttest = {
-      signoffsCreated: attestResult.signoffsCreated,
-      generatedBy: attestResult.generatedBy,
-    };
-  } catch (err) {
-    response.docControl = {
-      transmitted: false,
-      reason: `Auto-attestation failed: ${err instanceof Error ? err.message : String(err)}`,
-    };
-    return NextResponse.json(response, { status: 201 });
-  }
-
-  // ── 3. Auto-submit to Doc Control ────────────────────────────────
+  // ── 2. Auto-submit to Doc Control ────────────────────────────────
   // Mirrors the logic in /api/ssp/[id]/submit-to-doc-control but runs
   // in-process. Drift is identical-by-construction for a freshly-
   // generated SSP (citations are just-pinned), so we skip the drift
@@ -170,6 +165,12 @@ export async function POST(req: NextRequest) {
       .where(eq(boundaries.id, doc.boundaryId))
       .limit(1);
 
+    // Read any existing signoffs (rare on fresh generation, but the
+    // /api/ssp/[id]/sign-off path may have run if an OSA wants belt-
+    // and-suspenders Codex-side attestations). We pass them through
+    // VERBATIM — no auto-fill, no synthesized rows. The release
+    // signature chain (Reviewer / Approver / Quality Release) is QMS-
+    // side and is what makes the SSP defensibly released.
     const signoffRows = await db
       .select({
         signoffKind: sspSignoffs.signoffKind,
@@ -199,7 +200,7 @@ export async function POST(req: NextRequest) {
         status: "submitted",
         submittedPayloadSha256: doc.payloadSha256,
         submittedByUserId: userId,
-        notes: `Auto-submitted by Codex on SSP generate · author=${attestResult.generatedBy.email}`,
+        notes: `Auto-submitted by Codex on SSP generate · author=${generatedByEmail ?? userId} · signoffs=[] (deferred to QMS Reviewer/Approver/Quality Release per v2.13 page-204 separation of concerns)`,
       })
       .returning();
 
