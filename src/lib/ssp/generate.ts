@@ -34,6 +34,7 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
   boundaries,
+  caAssessmentBundles,
   controlRecords,
   governanceArtifactCompletions,
   governanceRegisterEntries,
@@ -774,6 +775,42 @@ async function collectCitationsForControl(
         evidenceSha256: ra.finalReportSha256 ?? hashRow(ra),
         supportsObjectives: ["a", "b"],
         evidenceExcerpt: `Annual risk assessment finalized ${ra.finalizedAt?.toISOString().slice(0, 10) ?? "?"}; objective_a=${ra.objectiveAStatus}, objective_b=${ra.objectiveBStatus}`,
+      });
+    }
+  }
+
+  // 3a. CA assessment bundle — for 3.12.x. Latest finalized cycle for
+  // this org. Mirrors the IR tabletop pattern; the bundle is
+  // archived to vault blob storage and the metadata + hashes are
+  // pushed to Codex via /api/ca-assessments/bundles.
+  if (controlId.startsWith("3.12.")) {
+    const [bundle] = await db
+      .select({
+        id: caAssessmentBundles.id,
+        cycleId: caAssessmentBundles.cycleId,
+        cycleTitle: caAssessmentBundles.cycleTitle,
+        packageSha256: caAssessmentBundles.packageSha256,
+        finalizedAtUtc: caAssessmentBundles.finalizedAtUtc,
+        sctmStatus: caAssessmentBundles.sctmStatus,
+        controlVerdicts: caAssessmentBundles.controlVerdicts,
+      })
+      .from(caAssessmentBundles)
+      .where(eq(caAssessmentBundles.organizationId, orgId))
+      .orderBy(desc(caAssessmentBundles.finalizedAtUtc))
+      .limit(1);
+    if (bundle) {
+      const verdictForThisControl = (bundle.controlVerdicts ?? "")
+        .split(",")
+        .map((p) => p.trim())
+        .find((p) => p.startsWith(`CA.L2-${controlId}=`));
+      citations.push({
+        controlId,
+        evidenceKind: "ca_bundle",
+        evidenceId: bundle.id,
+        evidenceSha256: bundle.packageSha256 ?? null,
+        supportsObjectives: [],
+        evidenceExcerpt: `CA cycle "${bundle.cycleTitle}" — ${bundle.sctmStatus ?? "?"} · finalized ${bundle.finalizedAtUtc?.toISOString().slice(0, 10) ?? "?"}` +
+          (verdictForThisControl ? ` · ${verdictForThisControl}` : ""),
       });
     }
   }

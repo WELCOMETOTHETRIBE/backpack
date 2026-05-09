@@ -2753,3 +2753,49 @@ export {
   irParticipantDisputes,
 } from "./schema.ir-tabletop";
 export type { IrScenarioInject } from "./schema.ir-tabletop";
+
+/**
+ * CA-001 assessment cycle bundles — Codex-side mirror of the vault's
+ * CaAssessmentBundle. Populated by /api/ca-assessments/bundles
+ * (TrainOS bridge endpoint). The SSP generator cites these for
+ * 3.12.x family controls; drift-detect verifies the package_sha256
+ * pinned at SSP-generation time still matches the latest cycle.
+ *
+ * Schema mirrors the vault entity 1:1 to keep bridge serialization
+ * trivial. Per PRODUCT.md boundary discipline: metadata only — no
+ * AAR text, no CUI, no per-objective adjudication narrative.
+ */
+export const caAssessmentBundles = pgTable("ca_assessment_bundles", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  cycleId: text("cycle_id").notNull(),
+  cycleTitle: text("cycle_title").notNull(),
+  cycleType: text("cycle_type"),
+  contentHash: varchar("content_hash", { length: 64 }),
+  packageSha256: varchar("package_sha256", { length: 64 }),
+  manifestSha256: varchar("manifest_sha256", { length: 64 }),
+  packageVersion: integer("package_version").notNull().default(1),
+  finalizedAtUtc: timestamp("finalized_at_utc", { withTimezone: true }),
+  retentionUntilUtc: timestamp("retention_until_utc", { withTimezone: true }),
+  controlIds: text("control_ids"),
+  controlVerdicts: text("control_verdicts"),
+  sspVersion: text("ssp_version"),
+  boundaryVersion: text("boundary_version"),
+  leadAssessor: text("lead_assessor"),
+  reviewer: text("reviewer"),
+  approver: text("approver"),
+  sctmStatus: text("sctm_status"),
+  controlFamily: text("control_family").default("CA.L2"),
+  cui: boolean("cui").notNull().default(false),
+  vaultStorageUri: text("vault_storage_uri"),
+  vaultStorageRegion: text("vault_storage_region"),
+  sourceApp: varchar("source_app", { length: 40 }).notNull().default("mactech-training"),
+  receivedAt: timestamp("received_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
