@@ -120,12 +120,15 @@ const TYPE_LABELS: Record<string, string> = {
   assessment: "Assessment",
 };
 
+// Signature-role pill tones — same 50/100/700 grammar as PILL_TONES so
+// signature pills sit visually flush with the rest of the page.
 const SIG_STYLES: Record<string, string> = {
-  Reviewer: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+  Reviewer:
+    "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-100 dark:bg-blue-950/40 dark:text-blue-300 dark:ring-blue-900/60",
   Approver:
-    "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300",
+    "bg-violet-50 text-violet-700 ring-1 ring-inset ring-violet-100 dark:bg-violet-950/40 dark:text-violet-300 dark:ring-violet-900/60",
   "Quality Release":
-    "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
+    "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 dark:ring-emerald-900/60",
 };
 
 function fmtDate(iso: string | null | undefined): string {
@@ -158,6 +161,44 @@ function shortHash(h: string | null | undefined, n = 12): string {
   return cleaned.length > n ? `${cleaned.slice(0, n)}…` : cleaned;
 }
 
+/* ── Pill primitives ────────────────────────────────────────────────────────
+ *
+ * One canonical visual grammar for every chip on this page. Three variants
+ * (status / link / count) cover everything; tones are kept subtle (50-tier
+ * background, 700-tier text, no hard borders) so a wall of pills reads as
+ * meta-information rather than a Christmas tree.
+ *
+ * Heights are uniform (h-5 = 20px) and padding is symmetric (px-2 py-0)
+ * so neighboring pills line up on the same baseline regardless of icon
+ * presence — the proportionate look the feedback was asking for.
+ */
+
+const PILL_BASE =
+  "inline-flex h-5 items-center gap-1 rounded-full px-2 text-[11px] font-medium leading-none whitespace-nowrap";
+
+const PILL_TONES = {
+  emerald:
+    "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 dark:ring-emerald-900/60",
+  blue:
+    "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-100 dark:bg-blue-950/40 dark:text-blue-300 dark:ring-blue-900/60",
+  amber:
+    "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-100 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-900/60",
+  slate:
+    "bg-slate-50 text-slate-700 ring-1 ring-inset ring-slate-200 dark:bg-slate-900/60 dark:text-slate-300 dark:ring-slate-800",
+  ghost:
+    "bg-transparent text-gray-500 dark:text-gray-400",
+} as const;
+
+const LINK_PILL_BASE =
+  `${PILL_BASE} font-mono tracking-tight transition-colors duration-150`;
+
+const LINK_PILL_TONES = {
+  emerald:
+    "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-100 hover:bg-emerald-100 hover:text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300 dark:ring-emerald-900/60 dark:hover:bg-emerald-900/40",
+  blue:
+    "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-100 hover:bg-blue-100 hover:text-blue-900 dark:bg-blue-950/40 dark:text-blue-300 dark:ring-blue-900/60 dark:hover:bg-blue-900/40",
+} as const;
+
 function StatusPill({
   released,
   status,
@@ -167,20 +208,21 @@ function StatusPill({
 }) {
   if (released && status === "effective") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
-        <CheckCircle2 className="h-3 w-3" /> Released · Effective
+      <span className={`${PILL_BASE} ${PILL_TONES.emerald}`}>
+        <CheckCircle2 className="h-3 w-3" />
+        Released · Effective
       </span>
     );
   }
   if (status === "effective") {
     return (
-      <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-        Effective (unreleased)
+      <span className={`${PILL_BASE} ${PILL_TONES.blue}`}>
+        Effective · unreleased
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+    <span className={`${PILL_BASE} ${PILL_TONES.slate}`}>
       {status ?? "unknown"}
     </span>
   );
@@ -383,20 +425,20 @@ export default function QmsBundleDocumentsClient({
         </dl>
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex flex-wrap items-center gap-3 text-xs text-gray-600 dark:text-gray-400">
-            <span className="inline-flex items-center gap-1">
-              <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className={`${PILL_BASE} ${PILL_TONES.emerald}`}>
+              <CheckCircle2 className="h-3 w-3" />
               {released} released
             </span>
             {unreleased > 0 && (
-              <span className="inline-flex items-center gap-1">
-                <Clock className="h-3 w-3 text-amber-600" />
+              <span className={`${PILL_BASE} ${PILL_TONES.amber}`}>
+                <Clock className="h-3 w-3" />
                 {unreleased} unreleased
               </span>
             )}
             {oisImpact.length > 0 && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
-                {oisImpact.length} OIS narrative{oisImpact.length === 1 ? "" : "s"} refreshed by this release
+              <span className={`${PILL_BASE} ${PILL_TONES.emerald}`}>
+                {oisImpact.length} OIS narrative{oisImpact.length === 1 ? "" : "s"} refreshed
               </span>
             )}
           </div>
@@ -477,11 +519,11 @@ export default function QmsBundleDocumentsClient({
               <Link
                 key={o.controlId}
                 href={controlHref(o.controlId, controlCodeToImplId)}
-                className="inline-flex items-center gap-1 rounded-full border border-emerald-300 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-800 transition hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 dark:hover:bg-emerald-900/50"
+                className={`${LINK_PILL_BASE} ${LINK_PILL_TONES.emerald}`}
                 title={`refreshed ${fmtDateTime(o.generatedAt)}`}
               >
                 {o.controlId}
-                <ChevronRight className="h-3 w-3 opacity-60" />
+                <ChevronRight className="h-3 w-3 opacity-50" />
               </Link>
             ))}
           </div>
@@ -660,7 +702,7 @@ function DocRow({
                 <Link
                   key={c}
                   href={controlHref(c, controlCodeToImplId)}
-                  className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 transition hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/40"
+                  className={`${LINK_PILL_BASE} ${LINK_PILL_TONES.blue}`}
                 >
                   {c}
                 </Link>
@@ -719,7 +761,7 @@ function DocRow({
                   <tr key={i}>
                     <td className="py-1 pr-4">
                       <span
-                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${SIG_STYLES[s.signatureMeaning ?? ""] ?? "bg-gray-100 text-gray-600"}`}
+                        className={`${PILL_BASE} ${SIG_STYLES[s.signatureMeaning ?? ""] ?? PILL_TONES.slate}`}
                       >
                         {s.signatureMeaning ?? "—"}
                       </span>
