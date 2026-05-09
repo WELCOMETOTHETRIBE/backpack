@@ -48,11 +48,12 @@ import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
   controlAdjudicationSnapshots,
+  controlRecords,
   controlStatusOverrides,
   dodCioAdjudications,
   enduringExceptions,
+  governanceArtifactCompletions,
   poamEntries,
-  type controlRecords,
 } from "@/db/schema";
 
 const ONE_DAY_MS = 86_400_000;
@@ -193,7 +194,13 @@ export async function getControlState(
     )
     .limit(1);
 
-  return projectSnapshot(snapshot, override ?? null);
+  // Staleness detection — is there evidence newer than the snapshot?
+  // Compares snapshot.computed_at against the latest control_records
+  // update + the latest attestation completion. If newer evidence
+  // exists, flag stale so the UI can offer a refresh affordance.
+  const stale = await isSnapshotStale(orgId, controlId, snapshot.computedAt);
+
+  return projectSnapshot(snapshot, override ?? null, stale);
 }
 
 /**
@@ -231,14 +238,121 @@ export async function getControlStatesForOrg(
     overrides.map((o) => [o.controlId, o] as const),
   );
 
+  // Bulk staleness — one query for the whole org. Pulls max
+  // updated_at per control_record + max attested_at per
+  // control_record from completions, then compares each snapshot's
+  // computed_at against the per-control max.
+  const stalenessByControl = await computeStalenessForOrg(orgId);
+
   const out = new Map<string, ControlState>();
   for (const [controlId, snap] of latestByControl) {
     out.set(
       controlId,
-      projectSnapshot(snap, overrideByControl.get(controlId) ?? null),
+      projectSnapshot(
+        snap,
+        overrideByControl.get(controlId) ?? null,
+        stalenessByControl.get(controlId) ?? false,
+      ),
     );
   }
   return out;
+}
+
+/**
+ * Per-control staleness bulk compute. For every (org, controlId) pair,
+ * compare the snapshot's computed_at against the most recent
+ * governance_artifact_completion attested_at and the most recent
+ * control_records.updated_at. If either is newer, the snapshot is
+ * stale.
+ *
+ * Single round-trip; the SCTM page calls getControlStatesForOrg once
+ * per render and shouldn't pay for N+1.
+ */
+async function computeStalenessForOrg(
+  orgId: string,
+): Promise<Map<string, boolean>> {
+  const rows = await db.execute(sql`
+    SELECT
+      cr.control_id,
+      cr.updated_at AS record_updated_at,
+      (
+        SELECT MAX(gac.attested_at)
+        FROM ${governanceArtifactCompletions} gac
+        WHERE gac.control_record_id = cr.id
+      ) AS latest_attestation,
+      cas.computed_at AS snapshot_computed_at
+    FROM ${controlRecords} cr
+    LEFT JOIN LATERAL (
+      SELECT computed_at
+      FROM ${controlAdjudicationSnapshots} s
+      WHERE s.organization_id = cr.organization_id
+        AND s.control_id = cr.control_id
+      ORDER BY s.computed_at DESC
+      LIMIT 1
+    ) cas ON TRUE
+    WHERE cr.organization_id = ${orgId}
+  `);
+  const out = new Map<string, boolean>();
+  for (const r of rows as unknown as Array<{
+    control_id: string;
+    record_updated_at: Date | string | null;
+    latest_attestation: Date | string | null;
+    snapshot_computed_at: Date | string | null;
+  }>) {
+    const computed = r.snapshot_computed_at
+      ? new Date(r.snapshot_computed_at).getTime()
+      : 0;
+    const recordUpdated = r.record_updated_at
+      ? new Date(r.record_updated_at).getTime()
+      : 0;
+    const lastAttested = r.latest_attestation
+      ? new Date(r.latest_attestation).getTime()
+      : 0;
+    const newest = Math.max(recordUpdated, lastAttested);
+    out.set(r.control_id, newest > computed);
+  }
+  return out;
+}
+
+/**
+ * Single-control staleness — used by getControlState() (the singular
+ * variant). Issues two indexed lookups; ~5ms total.
+ */
+async function isSnapshotStale(
+  orgId: string,
+  controlId: string,
+  snapshotComputedAt: Date,
+): Promise<boolean> {
+  const [cr] = await db
+    .select({
+      id: controlRecords.id,
+      updatedAt: controlRecords.updatedAt,
+    })
+    .from(controlRecords)
+    .where(
+      and(
+        eq(controlRecords.organizationId, orgId),
+        eq(controlRecords.controlId, controlId),
+      ),
+    )
+    .limit(1);
+  if (!cr) return false;
+  if (cr.updatedAt && cr.updatedAt.getTime() > snapshotComputedAt.getTime()) {
+    return true;
+  }
+  const [latest] = await db
+    .select({ attestedAt: governanceArtifactCompletions.attestedAt })
+    .from(governanceArtifactCompletions)
+    .where(eq(governanceArtifactCompletions.controlRecordId, cr.id))
+    .orderBy(desc(governanceArtifactCompletions.attestedAt))
+    .limit(1);
+  if (
+    latest?.attestedAt &&
+    latest.attestedAt.getTime() > snapshotComputedAt.getTime()
+  ) {
+    return true;
+  }
+  return false;
 }
 
 /**
@@ -249,6 +363,7 @@ export async function getControlStatesForOrg(
 function projectSnapshot(
   snapshot: typeof controlAdjudicationSnapshots.$inferSelect,
   override: typeof controlStatusOverrides.$inferSelect | null,
+  stale: boolean = false,
 ): ControlState {
   const objectives = (snapshot.objectiveVerdicts as ObjectiveVerdict[]) ?? [];
 
@@ -300,7 +415,7 @@ function projectSnapshot(
         }
       : null,
     computedAt: snapshot.computedAt,
-    staleSinceLastEvidence: false,
+    staleSinceLastEvidence: stale,
   };
 }
 

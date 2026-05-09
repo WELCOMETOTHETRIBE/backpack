@@ -436,9 +436,22 @@ async function projectCanonicalFields(
       metViaSeed = "evidence";
       break;
     case "in_progress":
+      // Operator explicitly set in_progress — that's an intentional
+      // "not done yet" declaration the canonical helper must respect.
+      // The CAE scorer can be too coarse here (e.g., counting adjacent
+      // register evidence toward an unrelated procedural control), so
+      // we DON'T silently flip to MET on satisfies/at_risk. NOT_MET
+      // until the operator either:
+      //   1. Lands real evidence and flips legacy to 'implemented'
+      //   2. Activates an operational-plan POA&M (the elevator below
+      //      can still flip the verdict on AG-compliant POA&Ms)
+      aggregateFinding = "NOT_MET";
+      metViaSeed = "not_met";
+      break;
     case "not_started":
     default:
-      // Fall through to CAE rollup. satisfies/at_risk → MET; partial/gap → NOT_MET.
+      // No operator opinion on file. Fall through to CAE rollup.
+      // satisfies/at_risk → MET; partial/gap → NOT_MET.
       if (adj.status === "satisfies" || adj.status === "at_risk") {
         aggregateFinding = "MET";
         metViaSeed = "evidence";
