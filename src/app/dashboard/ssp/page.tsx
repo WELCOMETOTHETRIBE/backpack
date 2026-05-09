@@ -202,10 +202,16 @@ export default async function SspPage() {
 
                 <div className="mt-4 flex flex-wrap gap-3 border-t border-gray-100 pt-3 text-xs">
                   <a
+                    href={`/api/ssp/${v.id}/pdf`}
+                    className="inline-flex items-center gap-1 rounded-md bg-sky-600 px-2.5 py-1 font-medium text-white hover:bg-sky-700"
+                  >
+                    Download PDF
+                  </a>
+                  <a
                     href={`/api/ssp/${v.id}?format=md`}
                     className="inline-flex items-center gap-1 rounded-md bg-sky-50 px-2.5 py-1 font-medium text-sky-700 hover:bg-sky-100"
                   >
-                    Download Markdown
+                    Markdown
                   </a>
                   <a
                     href={`/api/ssp/${v.id}?format=raw`}
