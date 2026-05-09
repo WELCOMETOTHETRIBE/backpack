@@ -1,0 +1,1118 @@
+{
+  "generatedAt": "2026-05-09T10:21:19.153Z",
+  "org": "mactech-solutions-llc",
+  "findingTally": {
+    "MET": 86,
+    "NOT_MET": 14,
+    "NA": 10
+  },
+  "effortTally": {
+    "wired": 77,
+    "small": 17,
+    "medium": 16,
+    "large": 0,
+    "blocker": 0
+  },
+  "rows": [
+    {
+      "controlId": "3.1.1",
+      "family": "AC",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical) + governance register",
+      "pipeline": "OS evidence collector (AD/Entra/local accounts) + register",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.1.2",
+      "family": "AC",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical) + governance register",
+      "pipeline": "OS evidence collector (AD/Entra/local accounts) + register",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.1.3",
+      "family": "AC",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical) + governance register",
+      "pipeline": "OS evidence collector (AD/Entra/local accounts) + register",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.1.4",
+      "family": "AC",
+      "currentMetVia": "not_met",
+      "currentFinding": "NOT_MET",
+      "achievablePath": "evidence (technical) + governance register",
+      "pipeline": "OS evidence collector (AD/Entra/local accounts) + register",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.1.5",
+      "family": "AC",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical) + governance register",
+      "pipeline": "OS evidence collector (AD/Entra/local accounts) + register",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.1.6",
+      "family": "AC",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical) + governance register",
+      "pipeline": "OS evidence collector (AD/Entra/local accounts) + register",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.1.7",
+      "family": "AC",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical) + governance register",
+      "pipeline": "OS evidence collector (AD/Entra/local accounts) + register",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.1.8",
+      "family": "AC",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical) + governance register",
+      "pipeline": "OS evidence collector (AD/Entra/local accounts) + register",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.1.9",
+      "family": "AC",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical) + governance register",
+      "pipeline": "OS evidence collector (AD/Entra/local accounts) + register",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.1.10",
+      "family": "AC",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical) + governance register",
+      "pipeline": "OS evidence collector (AD/Entra/local accounts) + register",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.1.11",
+      "family": "AC",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical) + governance register",
+      "pipeline": "OS evidence collector (AD/Entra/local accounts) + register",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.1.12",
+      "family": "AC",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical) + governance register",
+      "pipeline": "OS evidence collector (AD/Entra/local accounts) + register",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.1.13",
+      "family": "AC",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical) + governance register",
+      "pipeline": "OS evidence collector (AD/Entra/local accounts) + register",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.1.14",
+      "family": "AC",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical) + governance register",
+      "pipeline": "OS evidence collector (AD/Entra/local accounts) + register",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.1.15",
+      "family": "AC",
+      "currentMetVia": "not_met",
+      "currentFinding": "NOT_MET",
+      "achievablePath": "evidence (technical) + governance register",
+      "pipeline": "OS evidence collector (AD/Entra/local accounts) + register",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.1.16",
+      "family": "AC",
+      "currentMetVia": "not_applicable",
+      "currentFinding": "NA",
+      "achievablePath": "operator-declared not_applicable",
+      "pipeline": "control_status_overrides with rationale",
+      "effort": "wired",
+      "rationale": "No wireless infrastructure within CUI boundary — declare N/A."
+    },
+    {
+      "controlId": "3.1.17",
+      "family": "AC",
+      "currentMetVia": "not_applicable",
+      "currentFinding": "NA",
+      "achievablePath": "operator-declared not_applicable",
+      "pipeline": "control_status_overrides with rationale",
+      "effort": "wired",
+      "rationale": "Same as 3.1.16 — no wireless infrastructure."
+    },
+    {
+      "controlId": "3.1.18",
+      "family": "AC",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "operator-declared not_applicable",
+      "pipeline": "control_status_overrides with rationale",
+      "effort": "wired",
+      "rationale": "No mobile devices in CUI enclave — declare N/A."
+    },
+    {
+      "controlId": "3.1.19",
+      "family": "AC",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "operator-declared not_applicable",
+      "pipeline": "control_status_overrides with rationale",
+      "effort": "wired",
+      "rationale": "Same as 3.1.18 — no mobile CUI."
+    },
+    {
+      "controlId": "3.1.20",
+      "family": "AC",
+      "currentMetVia": "not_met",
+      "currentFinding": "NOT_MET",
+      "achievablePath": "evidence (technical) + governance register",
+      "pipeline": "OS evidence collector (AD/Entra/local accounts) + register",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.1.21",
+      "family": "AC",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical) + governance register",
+      "pipeline": "OS evidence collector (AD/Entra/local accounts) + register",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.1.22",
+      "family": "AC",
+      "currentMetVia": "not_met",
+      "currentFinding": "NOT_MET",
+      "achievablePath": "evidence (technical) + governance register",
+      "pipeline": "OS evidence collector (AD/Entra/local accounts) + register",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.2.1",
+      "family": "AT",
+      "currentMetVia": "not_met",
+      "currentFinding": "NOT_MET",
+      "achievablePath": "evidence (TrainOS-archived training completions)",
+      "pipeline": "TrainOS training-record bundle pull",
+      "effort": "small",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.2.2",
+      "family": "AT",
+      "currentMetVia": "not_met",
+      "currentFinding": "NOT_MET",
+      "achievablePath": "evidence (TrainOS-archived training completions)",
+      "pipeline": "TrainOS training-record bundle pull",
+      "effort": "small",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.2.3",
+      "family": "AT",
+      "currentMetVia": "not_met",
+      "currentFinding": "NOT_MET",
+      "achievablePath": "evidence (TrainOS-archived training completions)",
+      "pipeline": "TrainOS training-record bundle pull",
+      "effort": "small",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.3.1",
+      "family": "AU",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical, register)",
+      "pipeline": "Vault audit-event ingest (Codex audit_events_register)",
+      "effort": "small",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.3.2",
+      "family": "AU",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical, register)",
+      "pipeline": "Vault audit-event ingest (Codex audit_events_register)",
+      "effort": "small",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.3.3",
+      "family": "AU",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical, register)",
+      "pipeline": "Vault audit-event ingest (Codex audit_events_register)",
+      "effort": "small",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.3.4",
+      "family": "AU",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical, register)",
+      "pipeline": "Vault audit-event ingest (Codex audit_events_register)",
+      "effort": "small",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.3.5",
+      "family": "AU",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical, register)",
+      "pipeline": "Vault audit-event ingest (Codex audit_events_register)",
+      "effort": "small",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.3.6",
+      "family": "AU",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical, register)",
+      "pipeline": "Vault audit-event ingest (Codex audit_events_register)",
+      "effort": "small",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.3.7",
+      "family": "AU",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical, register)",
+      "pipeline": "Vault audit-event ingest (Codex audit_events_register)",
+      "effort": "small",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.3.8",
+      "family": "AU",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical, register)",
+      "pipeline": "Vault audit-event ingest (Codex audit_events_register)",
+      "effort": "small",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.3.9",
+      "family": "AU",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical, register)",
+      "pipeline": "Vault audit-event ingest (Codex audit_events_register)",
+      "effort": "small",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.4.1",
+      "family": "CM",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (qms_doc + register)",
+      "pipeline": "QMS document digest + change-drift register",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.4.2",
+      "family": "CM",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (qms_doc + register)",
+      "pipeline": "QMS document digest + change-drift register",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.4.3",
+      "family": "CM",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (qms_doc + register)",
+      "pipeline": "QMS document digest + change-drift register",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.4.4",
+      "family": "CM",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (qms_doc + register)",
+      "pipeline": "QMS document digest + change-drift register",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.4.5",
+      "family": "CM",
+      "currentMetVia": "not_met",
+      "currentFinding": "NOT_MET",
+      "achievablePath": "evidence (qms_doc + register)",
+      "pipeline": "QMS document digest + change-drift register",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.4.6",
+      "family": "CM",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (qms_doc + register)",
+      "pipeline": "QMS document digest + change-drift register",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.4.7",
+      "family": "CM",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (qms_doc + register)",
+      "pipeline": "QMS document digest + change-drift register",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.4.8",
+      "family": "CM",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (qms_doc + register)",
+      "pipeline": "QMS document digest + change-drift register",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.4.9",
+      "family": "CM",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (qms_doc + register)",
+      "pipeline": "QMS document digest + change-drift register",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.5.1",
+      "family": "IA",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical)",
+      "pipeline": "Entra/Azure validators + OS evidence collector",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.5.2",
+      "family": "IA",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical)",
+      "pipeline": "Entra/Azure validators + OS evidence collector",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.5.3",
+      "family": "IA",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical)",
+      "pipeline": "Entra/Azure validators + OS evidence collector",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.5.4",
+      "family": "IA",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical)",
+      "pipeline": "Entra/Azure validators + OS evidence collector",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.5.5",
+      "family": "IA",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical)",
+      "pipeline": "Entra/Azure validators + OS evidence collector",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.5.6",
+      "family": "IA",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical)",
+      "pipeline": "Entra/Azure validators + OS evidence collector",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.5.7",
+      "family": "IA",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical)",
+      "pipeline": "Entra/Azure validators + OS evidence collector",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.5.8",
+      "family": "IA",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical)",
+      "pipeline": "Entra/Azure validators + OS evidence collector",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.5.9",
+      "family": "IA",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical)",
+      "pipeline": "Entra/Azure validators + OS evidence collector",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.5.10",
+      "family": "IA",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical)",
+      "pipeline": "Entra/Azure validators + OS evidence collector",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.5.11",
+      "family": "IA",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical)",
+      "pipeline": "Entra/Azure validators + OS evidence collector",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.6.1",
+      "family": "IR",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (ir_bundle)",
+      "pipeline": "TrainOS IR tabletop bundle (ir_exercise_bundles mirror)",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.6.2",
+      "family": "IR",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (ir_bundle)",
+      "pipeline": "TrainOS IR tabletop bundle (ir_exercise_bundles mirror)",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.6.3",
+      "family": "IR",
+      "currentMetVia": "not_met",
+      "currentFinding": "NOT_MET",
+      "achievablePath": "evidence (ir_bundle)",
+      "pipeline": "TrainOS IR tabletop bundle (ir_exercise_bundles mirror)",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.7.1",
+      "family": "MA",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical + ISSO-weekly review register)",
+      "pipeline": "Bastion/MFA-on-maintenance + ISSO weekly maintenance log review",
+      "effort": "medium",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.7.2",
+      "family": "MA",
+      "currentMetVia": "not_met",
+      "currentFinding": "NOT_MET",
+      "achievablePath": "evidence (technical + ISSO-weekly review register)",
+      "pipeline": "Bastion/MFA-on-maintenance + ISSO weekly maintenance log review",
+      "effort": "medium",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.7.3",
+      "family": "MA",
+      "currentMetVia": "not_applicable",
+      "currentFinding": "NA",
+      "achievablePath": "evidence (technical + ISSO-weekly review register)",
+      "pipeline": "Bastion/MFA-on-maintenance + ISSO weekly maintenance log review",
+      "effort": "medium",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.7.4",
+      "family": "MA",
+      "currentMetVia": "not_applicable",
+      "currentFinding": "NA",
+      "achievablePath": "evidence (technical + ISSO-weekly review register)",
+      "pipeline": "Bastion/MFA-on-maintenance + ISSO weekly maintenance log review",
+      "effort": "medium",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.7.5",
+      "family": "MA",
+      "currentMetVia": "not_met",
+      "currentFinding": "NOT_MET",
+      "achievablePath": "evidence (technical + ISSO-weekly review register)",
+      "pipeline": "Bastion/MFA-on-maintenance + ISSO weekly maintenance log review",
+      "effort": "medium",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.7.6",
+      "family": "MA",
+      "currentMetVia": "not_applicable",
+      "currentFinding": "NA",
+      "achievablePath": "evidence (technical + ISSO-weekly review register)",
+      "pipeline": "Bastion/MFA-on-maintenance + ISSO weekly maintenance log review",
+      "effort": "medium",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.8.1",
+      "family": "MP",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (register) + ESP inheritance for some",
+      "pipeline": "Media disposition register + portable-storage OS check",
+      "effort": "medium",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.8.2",
+      "family": "MP",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (register) + ESP inheritance for some",
+      "pipeline": "Media disposition register + portable-storage OS check",
+      "effort": "medium",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.8.3",
+      "family": "MP",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (register) + ESP inheritance for some",
+      "pipeline": "Media disposition register + portable-storage OS check",
+      "effort": "medium",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.8.4",
+      "family": "MP",
+      "currentMetVia": "not_applicable",
+      "currentFinding": "NA",
+      "achievablePath": "evidence (register) + ESP inheritance for some",
+      "pipeline": "Media disposition register + portable-storage OS check",
+      "effort": "medium",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.8.5",
+      "family": "MP",
+      "currentMetVia": "not_applicable",
+      "currentFinding": "NA",
+      "achievablePath": "evidence (register) + ESP inheritance for some",
+      "pipeline": "Media disposition register + portable-storage OS check",
+      "effort": "medium",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.8.6",
+      "family": "MP",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (register) + ESP inheritance for some",
+      "pipeline": "Media disposition register + portable-storage OS check",
+      "effort": "medium",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.8.7",
+      "family": "MP",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (register) + ESP inheritance for some",
+      "pipeline": "Media disposition register + portable-storage OS check",
+      "effort": "medium",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.8.8",
+      "family": "MP",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (register) + ESP inheritance for some",
+      "pipeline": "Media disposition register + portable-storage OS check",
+      "effort": "medium",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.8.9",
+      "family": "MP",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (register) + ESP inheritance for some",
+      "pipeline": "Media disposition register + portable-storage OS check",
+      "effort": "medium",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.9.1",
+      "family": "PS",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (register) — ISSO-weekly capture",
+      "pipeline": "Personnel-screening register populated by HR",
+      "effort": "medium",
+      "rationale": "Manageable via register; full automation requires HR-system integration."
+    },
+    {
+      "controlId": "3.9.2",
+      "family": "PS",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (register) — ISSO-weekly capture",
+      "pipeline": "Personnel-action register + Entra account-disable telemetry",
+      "effort": "small",
+      "rationale": "Termination-action timestamp from Entra audit logs feeds register."
+    },
+    {
+      "controlId": "3.10.1",
+      "family": "PE",
+      "currentMetVia": "esp_inheritance",
+      "currentFinding": "MET",
+      "achievablePath": "esp_inheritance (Azure datacenter)",
+      "pipeline": "Azure FedRAMP High",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.10.2",
+      "family": "PE",
+      "currentMetVia": "esp_inheritance",
+      "currentFinding": "MET",
+      "achievablePath": "esp_inheritance (Azure datacenter)",
+      "pipeline": "Azure FedRAMP High",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.10.3",
+      "family": "PE",
+      "currentMetVia": "esp_inheritance",
+      "currentFinding": "MET",
+      "achievablePath": "esp_inheritance + customer attestation",
+      "pipeline": "Azure FedRAMP High + signed customer attestation",
+      "effort": "small",
+      "rationale": "Visitor records: datacenter inherited; customer attests no on-site visitors with CUI"
+    },
+    {
+      "controlId": "3.10.4",
+      "family": "PE",
+      "currentMetVia": "esp_inheritance",
+      "currentFinding": "MET",
+      "achievablePath": "esp_inheritance (Azure datacenter)",
+      "pipeline": "Azure FedRAMP High",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.10.5",
+      "family": "PE",
+      "currentMetVia": "esp_inheritance",
+      "currentFinding": "MET",
+      "achievablePath": "esp_inheritance (Azure datacenter)",
+      "pipeline": "Azure FedRAMP High",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.10.6",
+      "family": "PE",
+      "currentMetVia": "esp_inheritance",
+      "currentFinding": "MET",
+      "achievablePath": "esp_inheritance + customer attestation",
+      "pipeline": "Azure FedRAMP High + signed customer attestation",
+      "effort": "small",
+      "rationale": "Alternate work sites: customer attests no telework with CUI access"
+    },
+    {
+      "controlId": "3.11.1",
+      "family": "RA",
+      "currentMetVia": "not_met",
+      "currentFinding": "NOT_MET",
+      "achievablePath": "evidence (ra_envelope + register)",
+      "pipeline": "TrainOS RA wizard + risk_register",
+      "effort": "wired",
+      "rationale": "RA bridge already in production; finalize triggers rescore."
+    },
+    {
+      "controlId": "3.11.2",
+      "family": "RA",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (ra_envelope)",
+      "pipeline": "TrainOS RA wizard → /api/risk-assessments bridge",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.11.3",
+      "family": "RA",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (ra_envelope)",
+      "pipeline": "TrainOS RA wizard → /api/risk-assessments bridge",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.12.1",
+      "family": "CA",
+      "currentMetVia": "not_met",
+      "currentFinding": "NOT_MET",
+      "achievablePath": "evidence (ca_bundle when mirror lands)",
+      "pipeline": "TrainOS CA cycle bundle → Codex mirror (pending)",
+      "effort": "small",
+      "rationale": "Vault already has CaAssessmentBundle; Codex mirror is one bridge endpoint away."
+    },
+    {
+      "controlId": "3.12.2",
+      "family": "CA",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (poam_entries + ca_bundle)",
+      "pipeline": "POA&M tracker + TrainOS CA cycle bundle",
+      "effort": "small",
+      "rationale": "POA&M lifecycle already wired; CA bundle citation auto-attaches once mirror lands."
+    },
+    {
+      "controlId": "3.12.3",
+      "family": "CA",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (ois_narrative + register)",
+      "pipeline": "ISSO weekly review + register cadence checks",
+      "effort": "wired",
+      "rationale": "Continuous monitoring already produces register evidence on cadence."
+    },
+    {
+      "controlId": "3.12.4",
+      "family": "CA",
+      "currentMetVia": "not_met",
+      "currentFinding": "NOT_MET",
+      "achievablePath": "evidence (this SSP module) + ois_narrative",
+      "pipeline": "Codex SSP generator (this module)",
+      "effort": "wired",
+      "rationale": "The SSP is the evidence — generator + signed versions cover [a]–[h]; verify endpoint detects drift."
+    },
+    {
+      "controlId": "3.13.1",
+      "family": "SC",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical)",
+      "pipeline": "OS validators + Azure crypto stack",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.13.2",
+      "family": "SC",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical)",
+      "pipeline": "OS validators + Azure crypto stack",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.13.3",
+      "family": "SC",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical)",
+      "pipeline": "OS validators + Azure crypto stack",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.13.4",
+      "family": "SC",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical)",
+      "pipeline": "OS validators + Azure crypto stack",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.13.5",
+      "family": "SC",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical)",
+      "pipeline": "OS validators + Azure crypto stack",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.13.6",
+      "family": "SC",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical)",
+      "pipeline": "OS validators + Azure crypto stack",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.13.7",
+      "family": "SC",
+      "currentMetVia": "not_applicable",
+      "currentFinding": "NA",
+      "achievablePath": "evidence (technical)",
+      "pipeline": "OS validators + Azure crypto stack",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.13.8",
+      "family": "SC",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical)",
+      "pipeline": "OS validators + Azure crypto stack",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.13.9",
+      "family": "SC",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical)",
+      "pipeline": "OS validators + Azure crypto stack",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.13.10",
+      "family": "SC",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical)",
+      "pipeline": "OS validators + Azure crypto stack",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.13.11",
+      "family": "SC",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical)",
+      "pipeline": "OS validators + Azure crypto stack",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.13.12",
+      "family": "SC",
+      "currentMetVia": "not_applicable",
+      "currentFinding": "NA",
+      "achievablePath": "evidence (technical)",
+      "pipeline": "OS validators + Azure crypto stack",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.13.13",
+      "family": "SC",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical)",
+      "pipeline": "OS validators + Azure crypto stack",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.13.14",
+      "family": "SC",
+      "currentMetVia": "not_applicable",
+      "currentFinding": "NA",
+      "achievablePath": "evidence (technical)",
+      "pipeline": "OS validators + Azure crypto stack",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.13.15",
+      "family": "SC",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical)",
+      "pipeline": "OS validators + Azure crypto stack",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.13.16",
+      "family": "SC",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical)",
+      "pipeline": "OS validators + Azure crypto stack",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.14.1",
+      "family": "SI",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical + register)",
+      "pipeline": "Vault vuln remediation register + Defender alerts",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.14.2",
+      "family": "SI",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical + register)",
+      "pipeline": "Vault vuln remediation register + Defender alerts",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.14.3",
+      "family": "SI",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical + register)",
+      "pipeline": "Vault vuln remediation register + Defender alerts",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.14.4",
+      "family": "SI",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical + register)",
+      "pipeline": "Vault vuln remediation register + Defender alerts",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.14.5",
+      "family": "SI",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical + register)",
+      "pipeline": "Vault vuln remediation register + Defender alerts",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.14.6",
+      "family": "SI",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical + register)",
+      "pipeline": "Vault vuln remediation register + Defender alerts",
+      "effort": "wired",
+      "rationale": ""
+    },
+    {
+      "controlId": "3.14.7",
+      "family": "SI",
+      "currentMetVia": "evidence",
+      "currentFinding": "MET",
+      "achievablePath": "evidence (technical + register)",
+      "pipeline": "Vault vuln remediation register + Defender alerts",
+      "effort": "wired",
+      "rationale": ""
+    }
+  ]
+}
