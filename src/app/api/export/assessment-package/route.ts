@@ -521,7 +521,11 @@ export async function POST() {
     const implementedPct = Math.round(
       ((statusCounts.implemented + statusCounts.inherited + statusCounts.assessed) / statusCounts.total) * 100
     );
-    const openPoamCount = poamNewList.filter((p) => p.status === "open").length;
+    // Per the customer's "outstanding → POA&M" rule, anything not
+    // closed counts as outstanding work the assessor must evaluate —
+    // including auto-created drafts. Otherwise the export package
+    // under-reports the work surface relative to the dashboard.
+    const openPoamCount = poamNewList.filter((p) => p.status !== "closed").length;
     const expiredEvidenceCount = evidenceLinkList.filter(
       (e) => e.expiresAt && e.expiresAt < now
     ).length;

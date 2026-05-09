@@ -84,15 +84,7 @@ export default async function PoamEntryPage({
         <h1 className="text-2xl font-semibold text-zinc-900">
           POA&M — Control {initial.controlId ?? entry.controlRecordId}
         </h1>
-        <span
-          className={`rounded px-2 py-1 text-sm font-medium ${
-            entry.status === "closed"
-              ? "bg-green-100 text-green-800"
-              : "bg-zinc-100 text-zinc-700"
-          }`}
-        >
-          {entry.status}
-        </span>
+        <StatusPill status={entry.status} />
       </div>
       <PoamEntryClient
         entryId={id}
@@ -102,5 +94,30 @@ export default async function PoamEntryPage({
         userId={user?.id}
       />
     </div>
+  );
+}
+
+/**
+ * Four-state status pill matching the canonical POA&M lifecycle:
+ *   draft  → auto-stub awaiting human triage
+ *   active → finalized, AG-fields populated, elevates verdict to MET
+ *   open   → legacy term equivalent to active
+ *   closed → done with dual sign-off
+ */
+function StatusPill({ status }: { status: string }) {
+  const tone =
+    status === "closed"
+      ? { bg: "bg-emerald-100", text: "text-emerald-800", label: "Closed" }
+      : status === "draft"
+        ? { bg: "bg-amber-100", text: "text-amber-800", label: "Draft (needs triage)" }
+        : status === "active"
+          ? { bg: "bg-blue-100", text: "text-blue-800", label: "Active" }
+          : status === "open"
+            ? { bg: "bg-blue-100", text: "text-blue-800", label: "Open" }
+            : { bg: "bg-zinc-100", text: "text-zinc-700", label: status };
+  return (
+    <span className={`rounded px-2 py-1 text-sm font-medium ${tone.bg} ${tone.text}`}>
+      {tone.label}
+    </span>
   );
 }

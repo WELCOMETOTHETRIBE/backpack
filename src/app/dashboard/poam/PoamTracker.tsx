@@ -243,6 +243,22 @@ function EntryCard({
                 <Check className="h-2.5 w-2.5" /> Closed
               </span>
             )}
+            {/*
+              Phase A0 status pills — auto-POA&M drafts need to be
+              visibly distinct from active items so operators can
+              triage them and so a C3PAO never mistakes a stub for a
+              functioning operational plan.
+            */}
+            {entry.status === "draft" && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
+                <AlertTriangle className="h-2.5 w-2.5" /> Draft — needs triage
+              </span>
+            )}
+            {entry.status === "active" && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-800">
+                Active
+              </span>
+            )}
             {entry.isOverdue && (
               <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-semibold text-red-700">
                 <AlertTriangle className="h-2.5 w-2.5" /> Overdue

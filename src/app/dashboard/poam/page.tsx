@@ -145,7 +145,11 @@ export default async function PoamPage() {
     const sprsImpact = sprsMap.get(e.controlId ?? "") ?? 0;
     const daysOpen = Math.floor((now.getTime() - new Date(e.createdAt).getTime()) / 86_400_000);
     const scheduled = e.scheduledCompletionDate ? new Date(e.scheduledCompletionDate) : null;
-    const isOverdue = e.status === "open" && scheduled !== null && scheduled < now;
+    // Overdue covers any non-closed status (draft, active, open). A
+    // lingering draft past its scheduled date is itself a chronic-
+    // slippage signal — the operator needs to see it just as urgently
+    // as an overdue active item.
+    const isOverdue = e.status !== "closed" && scheduled !== null && scheduled < now;
 
     // Phase A1: implDone now sources from the canonical helper. The
     // canonical aggregateFinding speaks MET / NOT_MET / NA verbatim per

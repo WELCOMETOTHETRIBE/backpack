@@ -1235,12 +1235,28 @@ export function SCTMControlDetail({
             ) : poamEntry !== null ? (
               <div className="space-y-2">
                 <div className="flex flex-wrap items-center gap-3">
+                  {/*
+                    Four-state POA&M pill matching the canonical lifecycle
+                    introduced in migration 0068:
+                      draft  — auto-stub; control still reads NOT MET.
+                      active — finalized; elevator fires on next rescore.
+                      open   — legacy term equivalent to active.
+                      closed — done with dual sign-off.
+                    Older code mislabelled draft/active as "Risk accepted"
+                    which is misleading to a C3PAO.
+                  */}
                   <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${
                     poamEntry.status === "closed" ? "bg-emerald-100 text-emerald-700" :
-                    poamEntry.status === "risk_accepted" ? "bg-amber-100 text-amber-700" :
-                    "bg-red-100 text-red-700"
+                    poamEntry.status === "draft" ? "bg-amber-100 text-amber-700" :
+                    poamEntry.status === "active" ? "bg-blue-100 text-blue-700" :
+                    poamEntry.status === "open" ? "bg-blue-100 text-blue-700" :
+                    "bg-zinc-100 text-zinc-700"
                   }`}>
-                    {poamEntry.status === "open" ? "Open" : poamEntry.status === "closed" ? "Closed" : "Risk accepted"}
+                    {poamEntry.status === "closed" ? "Closed" :
+                     poamEntry.status === "draft" ? "Draft (needs triage)" :
+                     poamEntry.status === "active" ? "Active" :
+                     poamEntry.status === "open" ? "Open" :
+                     poamEntry.status}
                   </span>
                   {poamEntry.scheduledCompletionDate && (
                     <span className="text-xs text-[var(--color-gray-500)]">Due: {poamEntry.scheduledCompletionDate}</span>
