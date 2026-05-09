@@ -59,7 +59,11 @@ export default async function AssessorPoamPage() {
     milestonesByEntry.set(m.poamEntryId, list);
   }
 
-  const openEntries = entries.filter((e) => e.status === "open");
+  // Phase A0 (migration 0068) widened poam_entry_status with 'draft' and
+  // 'active' for the auto-POA&M-on-NOT-MET flow. From an assessor's POV
+  // anything not closed is an outstanding item — the canonical
+  // "outstanding → POA&M" rule.
+  const openEntries = entries.filter((e) => e.status !== "closed");
   const closedEntries = entries.filter((e) => e.status === "closed");
 
   const avgDaysOpen =
