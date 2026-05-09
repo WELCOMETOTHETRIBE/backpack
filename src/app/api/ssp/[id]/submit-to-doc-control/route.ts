@@ -302,17 +302,28 @@ export async function POST(
         err instanceof Error ? err.message : "PDF render failed";
     }
 
-    // Build controls_mapped from canonical JSON. Defensive default to
-    // [] if the payload shape doesn't match expectations — QMS-side
-    // gate will reject if <100, surfacing the issue.
-    const payloadJson = doc.payloadJson as { controls?: Array<{ control_id?: string }> };
-    const controlsMapped = (payloadJson.controls ?? [])
-      .map((c) => c.control_id)
+    // Build controls_mapped from canonical JSON. The SSP payload puts
+    // controls inside payload.sections[?(@.kind === 'control')].key —
+    // there is NO top-level payload.controls[] array. Reading from the
+    // wrong path used to silently send [] which trips QMS gate 5
+    // (controls_mapped.length >= 100). Found by running the orchestrator
+    // end-to-end against prod and watching gate 5 fail.
+    const payloadJson = doc.payloadJson as {
+      sections?: Array<{ kind?: string; key?: string }>;
+    };
+    const controlsMapped = (payloadJson.sections ?? [])
+      .filter((s) => s?.kind === "control")
+      .map((s) => s.key)
       .filter((s): s is string => typeof s === "string" && s.length > 0);
 
-    const canonicalJsonSha256 = createHash("sha256")
-      .update(JSON.stringify(doc.payloadJson))
-      .digest("hex");
+    // Canonical sha256 — MUST use the same canonicalize.ts that
+    // generate.ts used to compute payload_sha256. Raw JSON.stringify is
+    // NOT deterministic across object key orderings, so a sha over it
+    // will not equal payload_sha256 → QMS gate 2
+    // (canonical_json_sha256 === payload_sha256) fails on every real
+    // submission. Use the canonical helper instead.
+    const { payloadSha256 } = await import("@/lib/ssp/canonicalize");
+    const canonicalJsonSha256 = payloadSha256(doc.payloadJson);
 
     // ── Build bridge payload ───────────────────────────────────────────
     const signoffsPayload: BridgeSignoffPayload[] = signoffRows
