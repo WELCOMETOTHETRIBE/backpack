@@ -40,16 +40,57 @@
 import { db } from "@/db";
 import {
   controlAdjudicationSnapshots,
+  controlRecords,
   governanceRegisters,
   governanceRegisterEntries,
   issoExportManifests,
+  poamEntries,
 } from "@/db/schema";
 import { and, eq, gte, lte, sql, desc } from "drizzle-orm";
 import { getControlAssessmentLogic } from "@/data/cmmc/control-assessment-logic";
 import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
 import type { ControlAssessmentControl } from "@/data/cmmc/types";
+import { canPoamElevate } from "@/lib/canonical-state/auto-poam";
 
 export type AdjudicationStatus = "satisfies" | "partial" | "gap" | "at_risk";
+
+/**
+ * C3PAO-facing aggregate finding per 32 CFR § 170.24 [AG p.10]:
+ *   MET    — every applicable assessment objective satisfied
+ *   NOT_MET — at least one objective not satisfied
+ *   NA      — operator-declared not applicable with rationale
+ *
+ * Derived from `status` (the rollup) + legacy implementation_status +
+ * the four AG p.10–11 MET-elevators (ESP inheritance, enduring
+ * exception, DoD CIO adjudication, operational plan of action).
+ */
+export type AggregateFinding = "MET" | "NOT_MET" | "NA";
+
+/**
+ * How the requirement reaches MET (or doesn't):
+ *   evidence — native MET via cited evidence rows
+ *   esp_inheritance — AG p.11 elevator
+ *   enduring_exception — AG p.10 elevator (with mitigations in SSP)
+ *   dod_cio_adjudication — AG p.10 elevator
+ *   operational_plan_of_action — AG p.10 elevator (POA&M with required fields)
+ *   not_met — no elevator active
+ *   not_applicable — operator-declared
+ */
+export type MetVia =
+  | "evidence"
+  | "enduring_exception"
+  | "operational_plan_of_action"
+  | "dod_cio_adjudication"
+  | "esp_inheritance"
+  | "not_met"
+  | "not_applicable";
+
+export interface ObjectiveVerdict {
+  objective: string; // "a" | "b" | …
+  verdict: AggregateFinding;
+  evidence_ids: string[];
+  rationale: string | null;
+}
 
 export interface RequirementResult {
   register_key: string;
@@ -65,11 +106,30 @@ export interface RequirementResult {
 
 export interface ControlAdjudication {
   control_id: string;
+  /**
+   * Internal CAE rollup (satisfies / partial / gap / at_risk). Useful
+   * for sorting + colors on dashboards. Not C3PAO-facing — surfaces
+   * should render `aggregate_finding` instead.
+   */
   status: AdjudicationStatus;
   confidence: number;
   requirements: RequirementResult[];
   computed_at: Date;
   most_recent_manifest_id: string | null;
+
+  /**
+   * Canonical fields — produced by scoreControl directly. Replace the
+   * separate "rescore-trigger projector" that used to overwrite the
+   * snapshot via a second UPDATE. Now the scorer is the single source
+   * of truth: produce + persist in one pass.
+   */
+  aggregate_finding: AggregateFinding;
+  met_via: MetVia;
+  objective_verdicts: ObjectiveVerdict[];
+  enduring_exception_id: string | null;
+  operational_plan_poam_id: string | null;
+  dod_cio_adjudication_id: string | null;
+  esp_inheritance: Record<string, unknown> | null;
 }
 
 interface ScoreContext {
@@ -110,6 +170,15 @@ export async function scoreControl(
   const status = mapStatus(control, requirements, now);
   const confidence = computeConfidence(control, requirements, status);
 
+  // ── Canonical projection ────────────────────────────────────────
+  // The CAE is the single source of truth. It produces the rollup
+  // (satisfies/partial/gap/at_risk) AND the C3PAO-facing canonical
+  // fields (aggregate_finding, met_via, objective_verdicts +
+  // elevator pointers) in one pass. The rescore-trigger no longer
+  // post-processes the snapshot via a second UPDATE — there's
+  // nothing to project.
+  const canonical = await projectCanonical(ctx.orgId, controlId, status);
+
   return {
     control_id: controlId,
     status,
@@ -117,6 +186,233 @@ export async function scoreControl(
     requirements,
     computed_at: now,
     most_recent_manifest_id: ctx.manifestId ?? null,
+    aggregate_finding: canonical.aggregateFinding,
+    met_via: canonical.metVia,
+    objective_verdicts: canonical.objectiveVerdicts,
+    enduring_exception_id: canonical.enduringExceptionId,
+    operational_plan_poam_id: canonical.operationalPlanPoamId,
+    dod_cio_adjudication_id: canonical.dodCioAdjudicationId,
+    esp_inheritance: canonical.espInheritance,
+  };
+}
+
+/**
+ * Compute the canonical fields for a control. Layered signal:
+ *
+ *   1. Operator-driven elevators stick across rescores: if the prior
+ *      snapshot pointed at an enduring exception, ESP inheritance, or
+ *      DoD CIO adjudication, preserve them (operator intent).
+ *   2. operator-declared not_applicable from prior snapshot sticks.
+ *   3. Legacy control_records.implementation_status is treated as
+ *      evidence per AG p.10 (which accepts specifications/mechanisms/
+ *      activities/individuals — not just register entries):
+ *        legacy='inherited'          → MET via esp_inheritance
+ *        legacy='not_applicable'     → NA via not_applicable
+ *        legacy='implemented'/'assessed' → MET via evidence
+ *        legacy='in_progress'        → NOT_MET (operator-set "not done
+ *                                       yet" intent must be respected)
+ *        legacy='not_started' / null → fall through to CAE rollup
+ *   4. CAE rollup as fallback:
+ *        satisfies / at_risk → MET via evidence
+ *        partial / gap        → NOT_MET via not_met
+ *   5. Operational-plan elevator: if NOT_MET on raw evidence but an
+ *      AG-compliant non-chronic-slipped POA&M exists → MET via
+ *      operational_plan_of_action.
+ *
+ * Per-objective verdicts: every objective inherits the requirement-
+ * level finding (Phase A2 coarse seed, refined by future per-objective
+ * scorers). The objective letters come from the prior snapshot, which
+ * in turn came from the assessment-guide catalog.
+ */
+async function projectCanonical(
+  orgId: string,
+  controlId: string,
+  rollup: AdjudicationStatus,
+): Promise<{
+  aggregateFinding: AggregateFinding;
+  metVia: MetVia;
+  objectiveVerdicts: ObjectiveVerdict[];
+  enduringExceptionId: string | null;
+  operationalPlanPoamId: string | null;
+  dodCioAdjudicationId: string | null;
+  espInheritance: Record<string, unknown> | null;
+}> {
+  // Pull the prior snapshot for operator-driven-elevator continuity.
+  const [prior] = await db
+    .select({
+      metVia: controlAdjudicationSnapshots.metVia,
+      enduringExceptionId: controlAdjudicationSnapshots.enduringExceptionId,
+      dodCioAdjudicationId: controlAdjudicationSnapshots.dodCioAdjudicationId,
+      espInheritance: controlAdjudicationSnapshots.espInheritance,
+      objectiveVerdicts: controlAdjudicationSnapshots.objectiveVerdicts,
+    })
+    .from(controlAdjudicationSnapshots)
+    .where(
+      and(
+        eq(controlAdjudicationSnapshots.organizationId, orgId),
+        eq(controlAdjudicationSnapshots.controlId, controlId),
+      ),
+    )
+    .orderBy(desc(controlAdjudicationSnapshots.computedAt))
+    .limit(1);
+
+  const priorObjectives = (prior?.objectiveVerdicts as
+    | ObjectiveVerdict[]
+    | null) ?? [];
+
+  // 1. Operator-driven elevators stick.
+  if (prior) {
+    if (prior.metVia === "esp_inheritance" && prior.espInheritance) {
+      return {
+        aggregateFinding: "MET",
+        metVia: "esp_inheritance",
+        objectiveVerdicts: priorObjectives.map((o) => ({ ...o, verdict: "MET" })),
+        enduringExceptionId: null,
+        operationalPlanPoamId: null,
+        dodCioAdjudicationId: null,
+        espInheritance: prior.espInheritance as Record<string, unknown>,
+      };
+    }
+    if (prior.metVia === "enduring_exception" && prior.enduringExceptionId) {
+      return {
+        aggregateFinding: "MET",
+        metVia: "enduring_exception",
+        objectiveVerdicts: priorObjectives.map((o) => ({ ...o, verdict: "MET" })),
+        enduringExceptionId: prior.enduringExceptionId,
+        operationalPlanPoamId: null,
+        dodCioAdjudicationId: null,
+        espInheritance: null,
+      };
+    }
+    if (prior.metVia === "dod_cio_adjudication" && prior.dodCioAdjudicationId) {
+      return {
+        aggregateFinding: "MET",
+        metVia: "dod_cio_adjudication",
+        objectiveVerdicts: priorObjectives.map((o) => ({ ...o, verdict: "MET" })),
+        enduringExceptionId: null,
+        operationalPlanPoamId: null,
+        dodCioAdjudicationId: prior.dodCioAdjudicationId,
+        espInheritance: null,
+      };
+    }
+    if (prior.metVia === "not_applicable") {
+      return {
+        aggregateFinding: "NA",
+        metVia: "not_applicable",
+        objectiveVerdicts: priorObjectives.map((o) => ({ ...o, verdict: "NA" })),
+        enduringExceptionId: null,
+        operationalPlanPoamId: null,
+        dodCioAdjudicationId: null,
+        espInheritance: null,
+      };
+    }
+  }
+
+  // 2. Legacy implementation_status as evidence signal.
+  const [legacy] = await db
+    .select({
+      implementationStatus: controlRecords.implementationStatus,
+    })
+    .from(controlRecords)
+    .where(
+      and(
+        eq(controlRecords.organizationId, orgId),
+        eq(controlRecords.controlId, controlId),
+      ),
+    )
+    .limit(1);
+
+  let aggregateFinding: AggregateFinding;
+  let metVia: MetVia;
+  switch (legacy?.implementationStatus) {
+    case "inherited":
+      aggregateFinding = "MET";
+      metVia = "esp_inheritance";
+      break;
+    case "not_applicable":
+      aggregateFinding = "NA";
+      metVia = "not_applicable";
+      break;
+    case "implemented":
+    case "assessed":
+      aggregateFinding = "MET";
+      metVia = "evidence";
+      break;
+    case "in_progress":
+      // Operator explicitly set in_progress — that's a "not done yet"
+      // declaration the canonical helper must respect. The CAE rollup
+      // can be coarse here (counting adjacent register evidence), so
+      // we DON'T silently flip to MET on satisfies/at_risk.
+      aggregateFinding = "NOT_MET";
+      metVia = "not_met";
+      break;
+    case "not_started":
+    default:
+      // No operator opinion. Fall through to CAE rollup.
+      if (rollup === "satisfies" || rollup === "at_risk") {
+        aggregateFinding = "MET";
+        metVia = "evidence";
+      } else {
+        aggregateFinding = "NOT_MET";
+        metVia = "not_met";
+      }
+      break;
+  }
+
+  // 3. Operational-plan elevator: if the requirement is NOT_MET on
+  // raw evidence + legacy, but an active, AG-compliant, non-chronic-
+  // slipped POA&M exists, elevate to MET via operational_plan_of_action.
+  let operationalPlanPoamId: string | null = null;
+  if (aggregateFinding === "NOT_MET") {
+    const [cr] = await db
+      .select({ id: controlRecords.id })
+      .from(controlRecords)
+      .where(
+        and(
+          eq(controlRecords.organizationId, orgId),
+          eq(controlRecords.controlId, controlId),
+        ),
+      )
+      .limit(1);
+    if (cr) {
+      const candidates = await db
+        .select()
+        .from(poamEntries)
+        .where(
+          and(
+            eq(poamEntries.controlRecordId, cr.id),
+            sql`${poamEntries.status}::text IN ('active', 'open')`,
+          ),
+        );
+      for (const p of candidates) {
+        const verdict = await canPoamElevate(p);
+        if (verdict.canElevate) {
+          aggregateFinding = "MET";
+          metVia = "operational_plan_of_action";
+          operationalPlanPoamId = p.id;
+          break;
+        }
+      }
+    }
+  }
+
+  // 4. Per-objective seed: every objective inherits the requirement-
+  // level finding. Phase A2 backfilled the objective letters from the
+  // assessment guide; future per-objective scorers will refine the
+  // verdict per letter from real evidence.
+  const objectiveVerdicts: ObjectiveVerdict[] = priorObjectives.map((o) => ({
+    ...o,
+    verdict: aggregateFinding,
+  }));
+
+  return {
+    aggregateFinding,
+    metVia,
+    objectiveVerdicts,
+    enduringExceptionId: null,
+    operationalPlanPoamId,
+    dodCioAdjudicationId: null,
+    espInheritance: null,
   };
 }
 
@@ -151,31 +447,37 @@ export async function persistAdjudication(
     )
     .limit(1);
 
+  // Single atomic write of the rollup AND the canonical fields. Phase
+  // B's rescore-trigger used to follow a successful persistAdjudication
+  // with a separate UPDATE that overwrote met_via / aggregate_finding /
+  // objective_verdicts; that two-write window is gone now — scoreControl
+  // produces canonical output directly and persistAdjudication writes
+  // every column in one statement.
+  const canonicalSet = {
+    computedAt: result.computed_at,
+    status: result.status,
+    confidence: result.confidence,
+    requirementsJson: result.requirements as unknown as Record<string, unknown>[],
+    aggregateFinding: result.aggregate_finding,
+    metVia: result.met_via,
+    objectiveVerdicts: result.objective_verdicts as unknown as Record<string, unknown>[],
+    enduringExceptionId: result.enduring_exception_id,
+    operationalPlanPoamId: result.operational_plan_poam_id,
+    dodCioAdjudicationId: result.dod_cio_adjudication_id,
+    espInheritance: result.esp_inheritance as unknown as Record<string, unknown> | null,
+  } as const;
+
   if (existing) {
     await db
       .update(controlAdjudicationSnapshots)
-      .set({
-        computedAt: result.computed_at,
-        status: result.status,
-        confidence: result.confidence,
-        requirementsJson: result.requirements as unknown as Record<
-          string,
-          unknown
-        >[],
-      })
+      .set(canonicalSet)
       .where(eq(controlAdjudicationSnapshots.id, existing.id));
   } else {
     await db.insert(controlAdjudicationSnapshots).values({
       organizationId: ctx.orgId,
       controlId: result.control_id,
-      computedAt: result.computed_at,
-      status: result.status,
-      confidence: result.confidence,
-      requirementsJson: result.requirements as unknown as Record<
-        string,
-        unknown
-      >[],
       periodBasisManifestId: manifestKey,
+      ...canonicalSet,
     });
   }
 }
