@@ -45,6 +45,10 @@ export type PoamEntry = {
   // 'open'. The page's existing filters (open vs closed) collapse
   // draft+active into "open" for back-compat UX.
   status: "open" | "closed" | "draft" | "active";
+  // Per v2.13 page 204: 'operational' (CA.L2-3.12.2, no closeout cap)
+  // vs 'assessment' (32 CFR § 170.21, hard 180-day cap, conditions a
+  // Conditional Level 2 CMMC Status). Default 'operational'.
+  kind: "operational" | "assessment";
   weaknessDescription: string | null;
   remediationPlan: string | null;
   scheduledCompletionDate: string | null;
@@ -262,6 +266,22 @@ function EntryCard({
             {entry.isOverdue && (
               <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-semibold text-red-700">
                 <AlertTriangle className="h-2.5 w-2.5" /> Overdue
+              </span>
+            )}
+            {/*
+              Tier 2 #5 — assessment vs operational POA&M discriminator.
+              Operational is default + no special pill (the absence of
+              a kind pill implies operational, matching the spec's
+              default classification under CA.L2-3.12.2). Assessment is
+              flagged because it carries the 180-day cap that materially
+              changes how the C3PAO will read the item.
+            */}
+            {entry.kind === "assessment" && entry.status !== "closed" && (
+              <span
+                className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-semibold text-purple-800"
+                title="Assessment POA&M (32 CFR § 170.21) — hard 180-day closeout for Conditional Level 2 CMMC Status"
+              >
+                Assessment · 180d cap
               </span>
             )}
             {entry.controlNowImplemented && entry.status !== "closed" && (

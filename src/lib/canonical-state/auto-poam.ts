@@ -178,6 +178,11 @@ export async function ensureDraftPoamForNotMet(input: {
       organizationId: input.organizationId,
       controlRecordId: cr.id,
       status: "draft",
+      // Per v2.13 page 204, auto-POA&Ms-on-NOT-MET are operational
+      // plans of action under CA.L2-3.12.2 — no 180-day cap. The OSA
+      // can flip to 'assessment' explicitly via the entry edit page
+      // when they want to claim a Conditional Level 2 CMMC Status.
+      kind: "operational",
       weaknessDescription: stubWeakness,
       remediationPlan: null,
       responsibleRoleId: cr.responsibleRoleId,

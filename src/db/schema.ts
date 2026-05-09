@@ -400,6 +400,21 @@ export const poamEntries = pgTable("poam_entries", {
   autoCreatedForObjective: varchar("auto_created_for_objective", { length: 8 }),
   /** Distinguishes auto-created from customer-created. */
   autoCreatedAt: timestamp("auto_created_at", { withTimezone: true }),
+  /**
+   * Per CMMC L2 Assessment Guide v2.13 page 204:
+   *   "An operational plan of action in accordance with CA.L2-3.12.2
+   *    differs from a CMMC assessment POA&M as described in 32 CFR
+   *    § 170.21. … Operational plans of action are not subject to the
+   *    180 day POA&M closeout requirement."
+   *
+   * - 'operational' (default): routine remediation under CA.L2-3.12.2.
+   *   No 180-day cap. Auto-POA&Ms-on-NOT-MET land here.
+   * - 'assessment': declared by the OSA to claim a Conditional Level 2
+   *   CMMC Status (Self / C3PAO / DIBCAC). Hard 180-day closeout cap
+   *   per 32 CFR § 170.21. Admin action required to flip to this kind;
+   *   never auto-set.
+   */
+  kind: varchar("kind", { length: 16 }).notNull().default("operational"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });

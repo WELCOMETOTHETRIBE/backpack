@@ -49,10 +49,12 @@ import {
   boundaries,
   sspDocControlSubmissions,
   sspDocuments,
+  sspSectionRevisions,
   sspSignoffs,
 } from "@/db/schema";
 import { writeAuditLog } from "@/lib/audit";
 import { requireOrg, requireRole } from "@/lib/auth";
+import { validateSspCompleteness } from "@/lib/ssp/completeness";
 import { computeDriftReport } from "@/lib/ssp/drift";
 import {
   submitToQms,
@@ -165,7 +167,65 @@ export async function POST(
       );
     }
 
-    // 4. Drift-clean.
+    // 4a. Completeness — every CA.L2-3.12.4 [a]–[h] determination
+    //     statement must be covered by actual SSP content. Per v2.13
+    //     page 209, the absence of an up-to-date SSP at assessment
+    //     time is a terminal failure (assessment not completable +
+    //     DFARS 252.204-7012 noncompliance). Submitting an incomplete
+    //     SSP to Doc Control is therefore worse than submitting
+    //     nothing — generates a paper trail of an SSP that doesn't
+    //     meet 3.12.4.
+    const sectionRows = await db
+      .select({
+        sectionKind: sspSectionRevisions.sectionKind,
+        sectionKey: sspSectionRevisions.sectionKey,
+        bodyMd: sspSectionRevisions.bodyMd,
+        bodyJson: sspSectionRevisions.bodyJson,
+        aggregateFinding: sspSectionRevisions.aggregateFinding,
+        metVia: sspSectionRevisions.metVia,
+      })
+      .from(sspSectionRevisions)
+      .where(eq(sspSectionRevisions.sspDocumentId, sspDocumentId));
+
+    // Detect first-version status via supersededAt on prior rows.
+    const priorVersions = await db
+      .select({ id: sspDocuments.id })
+      .from(sspDocuments)
+      .where(
+        and(
+          eq(sspDocuments.organizationId, orgId),
+          eq(sspDocuments.boundaryId, doc.boundaryId),
+        ),
+      );
+    const isFirstVersion = priorVersions.length <= 1;
+
+    const completeness = validateSspCompleteness({
+      sections: sectionRows.map((s) => ({
+        sectionKind: s.sectionKind,
+        sectionKey: s.sectionKey,
+        bodyMd: s.bodyMd,
+        bodyJson: s.bodyJson,
+        aggregateFinding: s.aggregateFinding,
+        metVia: s.metVia,
+      })),
+      generation: { isFirstVersion },
+    });
+    if (!completeness.ok) {
+      return NextResponse.json(
+        {
+          error:
+            `SSP fails CA.L2-3.12.4 completeness check (${completeness.satisfiedCount}/${completeness.totalCount} objectives satisfied). ` +
+            `Missing: ${completeness.missing.map((o) => `[${o}]`).join(", ")}. ` +
+            `Per v2.13 page 209, an incomplete SSP is a terminal-failure event (assessment cannot be completed + DFARS 252.204-7012 noncompliance). ` +
+            `Generate a new version that addresses the missing objectives before submitting to Doc Control.`,
+          code: "incomplete",
+          ca_l2_3_12_4: completeness,
+        },
+        { status: 409 },
+      );
+    }
+
+    // 4b. Drift-clean.
     const drift = await computeDriftReport(sspDocumentId);
     if (!drift) {
       return NextResponse.json(

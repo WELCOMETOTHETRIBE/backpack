@@ -63,6 +63,12 @@ type Entry = {
   deficiencyReviewSummary: string | null;
   progressSummary: string | null;
   originalCompletionDate: string | null;
+  // Per v2.13 page 204: 'operational' (CA.L2-3.12.2, no cap) vs
+  // 'assessment' (32 CFR § 170.21, hard 180-day closeout for
+  // Conditional Level 2 CMMC Status). Default 'operational'.
+  kind: "operational" | "assessment";
+  // createdAt is the anchor for the assessment-POA&M 180-day cap.
+  createdAt: string | Date;
   milestones: Milestone[];
   closureApprovals: Approval[];
 };
@@ -336,6 +342,26 @@ export function PoamEntryClient({
         </div>
         {saving && <p className="mt-2 text-xs text-zinc-500">Saving…</p>}
       </div>
+
+      {/*
+        POA&M kind selector. Per v2.13 page 204, operational (CA.L2-
+        3.12.2) and assessment (32 CFR § 170.21) POA&Ms have different
+        regulatory rules. Operational is the default — no cap, routine
+        remediation. Assessment is an OSA-declared path that claims a
+        Conditional Level 2 CMMC Status, with a hard 180-day closeout.
+      */}
+      {entry.status !== "closed" && (
+        <KindSelector
+          entryId={entryId}
+          currentKind={entry.kind}
+          createdAt={entry.createdAt}
+          scheduledCompletionDate={entry.scheduledCompletionDate}
+          onChanged={(newKind) => {
+            setEntry((prev) => ({ ...prev, kind: newKind }));
+            refetch();
+          }}
+        />
+      )}
 
       {/*
         AG-required fields (gating operational_plan_of_action elevator).
@@ -623,5 +649,167 @@ function ChecklistItem({ ok, label }: { ok: boolean; label: string }) {
       </span>
       <span className={ok ? "text-zinc-700" : "text-zinc-500"}>{label}</span>
     </li>
+  );
+}
+
+/**
+ * Kind selector — v2.13 page 204 distinguishes operational (CA.L2-
+ * 3.12.2, no closeout cap) from assessment (32 CFR § 170.21, hard
+ * 180-day cap, conditions a Conditional Level 2 CMMC Status). Default
+ * is operational; the OSA opts into assessment explicitly.
+ *
+ * The 180-day cap on the assessment path is computed against
+ * created_at — surface a live "days remaining / days overdue" hint
+ * so the operator sees the consequence of switching.
+ */
+function KindSelector({
+  entryId,
+  currentKind,
+  createdAt,
+  scheduledCompletionDate,
+  onChanged,
+}: {
+  entryId: string;
+  currentKind: "operational" | "assessment";
+  createdAt: string | Date;
+  scheduledCompletionDate: string | null;
+  onChanged: (kind: "operational" | "assessment") => void;
+}) {
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const created = new Date(createdAt);
+  const cap = new Date(created.getTime() + 180 * 24 * 3600 * 1000);
+  const today = new Date();
+  const daysSinceCreated = Math.floor(
+    (today.getTime() - created.getTime()) / (24 * 3600 * 1000),
+  );
+  const daysToCap = Math.floor(
+    (cap.getTime() - today.getTime()) / (24 * 3600 * 1000),
+  );
+  const scheduledExceedsCap =
+    scheduledCompletionDate && new Date(scheduledCompletionDate) > cap;
+
+  async function setKind(next: "operational" | "assessment") {
+    if (saving || next === currentKind) return;
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/poam/entries/${entryId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind: next }),
+      });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as {
+          error?: string;
+        };
+        setError(body.error ?? `HTTP ${res.status}`);
+        return;
+      }
+      onChanged(next);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="rounded-lg border border-zinc-200 bg-white p-4">
+      <h2 className="mb-1 font-medium text-zinc-800">POA&amp;M kind</h2>
+      <p className="mb-3 text-xs text-zinc-500">
+        v2.13 page 204:{" "}
+        <em>
+          &ldquo;An operational plan of action in accordance with
+          CA.L2-3.12.2 differs from a CMMC assessment POA&amp;M as
+          described in 32 CFR § 170.21. … Operational plans of action
+          are not subject to the 180 day POA&amp;M closeout
+          requirement.&rdquo;
+        </em>
+      </p>
+      <div className="grid gap-2 sm:grid-cols-2">
+        <button
+          type="button"
+          onClick={() => setKind("operational")}
+          disabled={saving}
+          className={`rounded-lg border p-3 text-left text-xs transition ${
+            currentKind === "operational"
+              ? "border-emerald-300 bg-emerald-50/40 ring-1 ring-emerald-200"
+              : "border-zinc-200 bg-white hover:bg-zinc-50"
+          } disabled:opacity-50`}
+        >
+          <p className="font-semibold text-zinc-800">
+            Operational
+            {currentKind === "operational" && (
+              <span className="ml-2 text-[10px] uppercase text-emerald-700">
+                · current
+              </span>
+            )}
+          </p>
+          <p className="mt-1 text-zinc-600">
+            CA.L2-3.12.2 plan of action. <strong>No closeout cap.</strong>{" "}
+            Routine remediation; auto-POA&amp;Ms-on-NOT-MET land here by
+            default.
+          </p>
+        </button>
+        <button
+          type="button"
+          onClick={() => setKind("assessment")}
+          disabled={saving}
+          className={`rounded-lg border p-3 text-left text-xs transition ${
+            currentKind === "assessment"
+              ? "border-amber-300 bg-amber-50/40 ring-1 ring-amber-200"
+              : "border-zinc-200 bg-white hover:bg-zinc-50"
+          } disabled:opacity-50`}
+        >
+          <p className="font-semibold text-zinc-800">
+            Assessment
+            {currentKind === "assessment" && (
+              <span className="ml-2 text-[10px] uppercase text-amber-700">
+                · current
+              </span>
+            )}
+          </p>
+          <p className="mt-1 text-zinc-600">
+            32 CFR § 170.21. <strong>Hard 180-day closeout.</strong> Used
+            when the OSA claims a Conditional Level 2 CMMC Status (Self
+            / C3PAO / DIBCAC). Scheduled completion must fit within
+            created_at + 180d.
+          </p>
+        </button>
+      </div>
+      {currentKind === "assessment" && (
+        <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50/60 p-3 text-xs">
+          <p className="font-semibold text-amber-900">
+            180-day window status
+          </p>
+          <p className="mt-1 text-amber-800">
+            Created {created.toISOString().slice(0, 10)} ·{" "}
+            <span className="font-mono">{daysSinceCreated}d</span> elapsed
+            ·{" "}
+            <span
+              className={`font-mono font-semibold ${
+                daysToCap < 0
+                  ? "text-rose-700"
+                  : daysToCap < 30
+                    ? "text-amber-800"
+                    : "text-emerald-700"
+              }`}
+            >
+              {daysToCap < 0
+                ? `${Math.abs(daysToCap)}d OVERDUE`
+                : `${daysToCap}d remaining`}
+            </span>{" "}
+            of the 180-day closeout cap (closes{" "}
+            {cap.toISOString().slice(0, 10)}).
+          </p>
+          {scheduledExceedsCap && (
+            <p className="mt-1 text-rose-700">
+              ⚠ Scheduled completion ({scheduledCompletionDate}) exceeds
+              the cap. Reduce the date or revert to operational kind.
+            </p>
+          )}
+        </div>
+      )}
+      {error && <p className="mt-2 text-xs text-rose-700">Error: {error}</p>}
+    </div>
   );
 }

@@ -278,6 +278,35 @@ const STMTS: { label: string; sql: string }[] = [
     sql: `ALTER TABLE ssp_doc_control_submissions
       ADD COLUMN IF NOT EXISTS last_outbound_attempt_at timestamptz`,
   },
+
+  // ── 0072 (Tier 2 #5): poam_entries.kind discriminator ─────────────────
+  // Operational POA&M (CA.L2-3.12.2): no 180-day cap.
+  // Assessment POA&M (32 CFR § 170.21): hard 180-day closeout to qualify
+  // for Conditional Level 2 CMMC Status. Default 'operational' since
+  // auto-POA&Ms-on-NOT-MET are operational by nature; flipping to
+  // 'assessment' requires an explicit Admin action.
+  {
+    label: "0072 poam_entries.kind column",
+    sql: `ALTER TABLE poam_entries
+      ADD COLUMN IF NOT EXISTS kind varchar(16) NOT NULL DEFAULT 'operational'`,
+  },
+  {
+    label: "0072 poam_entries.kind check constraint",
+    sql: `DO $$ BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'poam_entries_kind_chk'
+      ) THEN
+        ALTER TABLE poam_entries
+          ADD CONSTRAINT poam_entries_kind_chk
+          CHECK (kind IN ('operational', 'assessment'));
+      END IF;
+    END $$;`,
+  },
+  {
+    label: "0072 poam_entries org+kind idx",
+    sql: `CREATE INDEX IF NOT EXISTS poam_entries_org_kind_idx
+      ON poam_entries (organization_id, kind, status)`,
+  },
 ];
 
 async function run() {

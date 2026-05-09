@@ -67,6 +67,15 @@ export default async function PoamEntryPage({
 
   const initial = {
     ...entry,
+    // The DB column is varchar; the client-side Entry type narrows it
+    // to the v2.13-aligned literal union. Coerce here so a row that
+    // somehow contains a non-canonical kind value falls back safely
+    // to 'operational' (the v2.13 default per page 204).
+    kind:
+      (entry.kind === "assessment" ? "assessment" : "operational") as
+        | "operational"
+        | "assessment",
+    createdAt: entry.createdAt.toISOString(),
     controlId: record?.controlId ?? null,
     milestones,
     closureApprovals,

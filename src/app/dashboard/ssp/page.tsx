@@ -11,9 +11,11 @@ import {
   qmsGovernanceManifests,
   sspDocControlSubmissions,
   sspDocuments,
+  sspSectionRevisions,
   sspSignoffs,
 } from "@/db/schema";
 import { sql } from "drizzle-orm";
+import { validateSspCompleteness } from "@/lib/ssp/completeness";
 import { GenerateSspButton } from "./GenerateSspButton";
 import { SubmitToDocControlButton } from "./SubmitToDocControlButton";
 import { DocControlSignatureModal, type QmsSignatureRef } from "./DocControlSignatureModal";
@@ -185,6 +187,59 @@ export default async function SspPage() {
     }
   }
 
+  // Completeness per version — Tier 2 #7. Walk every version's
+  // sspSectionRevisions and run validateSspCompleteness so the page
+  // shows "8/8" or "Missing: [b], [d]" inline before the operator
+  // clicks Submit.
+  const completenessByDoc = new Map<
+    string,
+    ReturnType<typeof validateSspCompleteness>
+  >();
+  if (versionIds.length > 0) {
+    const allSections = await db
+      .select({
+        sspDocumentId: sspSectionRevisions.sspDocumentId,
+        sectionKind: sspSectionRevisions.sectionKind,
+        sectionKey: sspSectionRevisions.sectionKey,
+        bodyMd: sspSectionRevisions.bodyMd,
+        bodyJson: sspSectionRevisions.bodyJson,
+        aggregateFinding: sspSectionRevisions.aggregateFinding,
+        metVia: sspSectionRevisions.metVia,
+      })
+      .from(sspSectionRevisions)
+      .where(inArray(sspSectionRevisions.sspDocumentId, versionIds));
+    const sectionsByDoc = new Map<string, typeof allSections>();
+    for (const s of allSections) {
+      const arr = sectionsByDoc.get(s.sspDocumentId) ?? [];
+      arr.push(s);
+      sectionsByDoc.set(s.sspDocumentId, arr);
+    }
+    // First-version detection: across all versions for this org, the
+    // earliest is "first." A version is first iff it's the only one OR
+    // its versionNumber is the minimum.
+    const minVersionNumber = Math.min(...versions.map((v) => v.versionNumber));
+    for (const v of versions) {
+      const sections = sectionsByDoc.get(v.id) ?? [];
+      completenessByDoc.set(
+        v.id,
+        validateSspCompleteness({
+          sections: sections.map((s) => ({
+            sectionKind: s.sectionKind,
+            sectionKey: s.sectionKey,
+            bodyMd: s.bodyMd,
+            bodyJson: s.bodyJson,
+            aggregateFinding: s.aggregateFinding,
+            metVia: s.metVia,
+          })),
+          generation: {
+            isFirstVersion:
+              versions.length === 1 || v.versionNumber === minVersionNumber,
+          },
+        }),
+      );
+    }
+  }
+
   return (
     <div className="mx-auto max-w-6xl space-y-8 p-8">
       <header className="flex flex-wrap items-start justify-between gap-4">
@@ -227,6 +282,7 @@ export default async function SspPage() {
             const signs = signoffsByDoc.get(v.id) ?? [];
             const defensible = v.controlsMet + v.controlsNa;
             const submission = latestSubmissionByDoc.get(v.id) ?? null;
+            const completeness = completenessByDoc.get(v.id) ?? null;
 
             // Pre-flight gates for the Submit-to-Doc-Control button —
             // mirror the server-side checks so the disabled tooltip
@@ -258,6 +314,15 @@ export default async function SspPage() {
               blockedReason = `Already released by Doc Control as ${
                 submission?.qmsDocumentNumber ?? "(QMS doc)"
               }.`;
+            } else if (completeness && !completeness.ok) {
+              // Tier 2 #7 — block submit if CA.L2-3.12.4 [a]–[h] check
+              // fails. Server-side gate also enforces this; surfacing
+              // here means the operator never clicks a doomed button.
+              blockedReason = `SSP incomplete (${completeness.satisfiedCount}/${completeness.totalCount} CA.L2-3.12.4 objectives). Missing: ${completeness.missing
+                .map((o) => `[${o}]`)
+                .join(
+                  ", ",
+                )}. Per v2.13 page 209, an incomplete SSP is a terminal-failure event — generate a new version that addresses the gaps.`;
             }
             const canSubmit = blockedReason === null;
             return (
@@ -271,6 +336,9 @@ export default async function SspPage() {
                       Version {v.versionNumber}
                     </h2>
                     <StatusBadge status={v.status} />
+                    {completeness && (
+                      <CompletenessBadge completeness={completeness} />
+                    )}
                     <span
                       className="font-mono text-xs text-gray-500"
                       title={`payload_sha256: ${v.payloadSha256}`}
@@ -591,6 +659,38 @@ function DocControlPanel({
           )}
       </div>
     </div>
+  );
+}
+
+/**
+ * Per-version CA.L2-3.12.4 [a]–[h] completeness badge. v2.13 page 209
+ * makes this a terminal-failure event when missing — show it before
+ * the operator clicks Submit to Doc Control. The full per-objective
+ * detail is on hover.
+ */
+function CompletenessBadge({
+  completeness,
+}: {
+  completeness: ReturnType<typeof validateSspCompleteness>;
+}) {
+  const ok = completeness.ok;
+  const tone = ok
+    ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+    : "bg-rose-50 text-rose-700 ring-rose-200";
+  const detail = completeness.objectives
+    .map(
+      (o) =>
+        `${o.satisfied ? "✓" : "✗"} [${o.objective}] ${o.text} — ${o.rationale}`,
+    )
+    .join("\n");
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ring-1 ${tone}`}
+      title={detail}
+    >
+      CA.L2-3.12.4: {completeness.satisfiedCount}/{completeness.totalCount}
+      {!ok && ` · missing ${completeness.missing.map((o) => `[${o}]`).join(", ")}`}
+    </span>
   );
 }
 

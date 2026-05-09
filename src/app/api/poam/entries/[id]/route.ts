@@ -97,7 +97,48 @@ export async function PATCH(
       originalCompletionDate: string | null;
       targetPushedCount: number;
       finalizedAt: Date | null;
+      kind: "operational" | "assessment";
     }> = {};
+
+    // Tier 2 #5 — kind discriminator. v2.13 page 204 distinguishes
+    // operational (CA.L2-3.12.2, no 180d cap) from assessment (32 CFR
+    // § 170.21, 180d cap to qualify for Conditional Level 2 CMMC
+    // Status). Admin must explicitly opt-in to 'assessment'; the
+    // 180-day window starts at created_at and cannot be exceeded.
+    if (
+      typeof body.kind !== "undefined" &&
+      (body.kind === "operational" || body.kind === "assessment")
+    ) {
+      if (body.kind === "assessment") {
+        // Validate the 180-day window. created_at is fixed; if a
+        // scheduled date is set or supplied, it must fit within
+        // (created_at, created_at + 180d).
+        const created = new Date(existing.createdAt);
+        const cap = new Date(created.getTime() + 180 * 24 * 3600 * 1000);
+        const scheduled =
+          typeof body.scheduledCompletionDate === "string" &&
+          body.scheduledCompletionDate
+            ? new Date(body.scheduledCompletionDate)
+            : existing.scheduledCompletionDate
+              ? new Date(existing.scheduledCompletionDate)
+              : null;
+        if (scheduled && scheduled > cap) {
+          return NextResponse.json(
+            {
+              error:
+                `Assessment POA&M scheduled completion (${scheduled.toISOString().slice(0, 10)}) exceeds 180 days from created_at (${created.toISOString().slice(0, 10)}). Per 32 CFR § 170.21, assessment POA&Ms have a hard 180-day closeout. Either reduce the scheduled date or keep the kind as 'operational' (no cap, CA.L2-3.12.2).`,
+              code: "assessment_poam_exceeds_180d",
+              createdAt: created.toISOString(),
+              cap: cap.toISOString(),
+              scheduled: scheduled.toISOString(),
+            },
+            { status: 409 },
+          );
+        }
+      }
+      updates.kind = body.kind;
+    }
+
     if (typeof body.weaknessDescription !== "undefined") updates.weaknessDescription = body.weaknessDescription ?? null;
     if (typeof body.remediationPlan !== "undefined") updates.remediationPlan = body.remediationPlan ?? null;
     if (typeof body.responsibleRoleId !== "undefined") updates.responsibleRoleId = body.responsibleRoleId ?? null;
