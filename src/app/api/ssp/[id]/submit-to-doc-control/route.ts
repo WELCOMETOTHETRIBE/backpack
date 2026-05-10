@@ -51,6 +51,7 @@ import {
   sspDocuments,
   sspSectionRevisions,
   sspSignoffs,
+  users,
 } from "@/db/schema";
 import { writeAuditLog } from "@/lib/audit";
 import { requireOrg, requireRole } from "@/lib/auth";
@@ -410,43 +411,86 @@ export async function POST(
       }));
 
     // Resolve author attestation for the top-level bridge `author`
-    // field. Look first for an existing kind='author' row (set by
-    // /api/ssp/generate); if absent (e.g. older SSP versions that
-    // pre-date the author-attestation flow), record one now from the
-    // user clicking Submit. Either path produces a truthful author
-    // identity bound to the same payload_sha256.
+    // field. Two paths:
+    //   1. An existing kind='author' row exists (set by /api/ssp/
+    //      generate). Look up the ORIGINAL author's user record so
+    //      email is the real email QMS validates against.
+    //   2. No existing row (e.g. SSP versions that pre-date the
+    //      author-attestation flow). Record one now from the user
+    //      clicking Submit and use their identity.
+    //
+    // QMS rejects the payload when author.email isn't a well-formed
+    // address — `null` and "" both fail. Always send a real email.
     const existingAuthorRow = signoffRows.find(
       (s) => s.signoffKind === AUTHOR_SIGNOFF_KIND,
     );
     let authorPayload: BridgeAuthorPayload;
     if (existingAuthorRow) {
+      // Look up the original author's user record by the row's
+      // signer_user_id so we can populate user_id + a real email.
+      // The main signoff select doesn't pull signer_user_id; do a
+      // tight follow-up query instead of widening that path.
+      const [authorRow] = await db
+        .select({
+          signerUserId: sspSignoffs.signerUserId,
+          signerDisplayName: sspSignoffs.signerDisplayName,
+          signedAt: sspSignoffs.signedAt,
+          dataHash: sspSignoffs.dataHash,
+        })
+        .from(sspSignoffs)
+        .where(
+          and(
+            eq(sspSignoffs.sspDocumentId, sspDocumentId),
+            eq(sspSignoffs.signoffKind, AUTHOR_SIGNOFF_KIND),
+          ),
+        )
+        .limit(1);
+
+      let authorEmail: string | null = null;
+      let authorUserId: string = "";
+      if (authorRow?.signerUserId) {
+        authorUserId = authorRow.signerUserId;
+        const [u] = await db
+          .select({ email: users.email })
+          .from(users)
+          .where(eq(users.id, authorRow.signerUserId))
+          .limit(1);
+        authorEmail = u?.email ?? null;
+      }
+
+      // If the original author's user record was deleted (or the row
+      // pre-dated user attribution), fall back to the user clicking
+      // Submit. Either way QMS gets a real email.
+      if (!authorEmail && user.id) {
+        const [u] = await db
+          .select({ email: users.email })
+          .from(users)
+          .where(eq(users.id, user.id))
+          .limit(1);
+        if (u?.email) {
+          authorEmail = u.email;
+          if (!authorUserId) authorUserId = user.id;
+        }
+      }
+
+      if (!authorEmail) {
+        return NextResponse.json(
+          {
+            error:
+              "Cannot resolve author email for this SSP version. The original author's user record may have been deleted; reassign authorship before submitting.",
+            code: "author_email_unresolvable",
+          },
+          { status: 409 },
+        );
+      }
+
       authorPayload = {
-        user_id: "", // legacy — fall back to display-name binding
+        user_id: authorUserId,
         display_name: existingAuthorRow.signerDisplayName,
-        email: null,
+        email: authorEmail,
         attested_at: existingAuthorRow.signedAt.toISOString(),
         data_hash: existingAuthorRow.dataHash,
       };
-      // Try to recover user_id + email by reading the row's
-      // signerUserId via a fresh query — kept out of the main signoff
-      // select to avoid widening that hot path.
-      try {
-        const [authorUser] = await db
-          .select({ id: sspSignoffs.signerUserId })
-          .from(sspSignoffs)
-          .where(
-            and(
-              eq(sspSignoffs.sspDocumentId, sspDocumentId),
-              eq(sspSignoffs.signoffKind, AUTHOR_SIGNOFF_KIND),
-            ),
-          )
-          .limit(1);
-        if (authorUser?.id) {
-          authorPayload.user_id = authorUser.id;
-        }
-      } catch {
-        /* best-effort */
-      }
     } else {
       const recorded = await recordAuthorAttestation({
         organizationId: orgId,
