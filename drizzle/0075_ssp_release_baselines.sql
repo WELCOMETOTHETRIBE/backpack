@@ -54,8 +54,11 @@ CREATE TABLE IF NOT EXISTS ssp_release_baselines (
   ssp_document_id uuid NOT NULL
     REFERENCES ssp_documents(id) ON DELETE RESTRICT,
   ssp_version_number integer NOT NULL,
+  -- Note: actual SQL table name is `boundary` (singular), even though
+  -- the Drizzle schema TS variable is `boundaries` (plural). Migration
+  -- 0015 created the table as `boundary`; references must match.
   boundary_id uuid NOT NULL
-    REFERENCES boundaries(id) ON DELETE RESTRICT,
+    REFERENCES boundary(id) ON DELETE RESTRICT,
 
   -- active | superseded | retired
   status varchar(16) NOT NULL DEFAULT 'active',

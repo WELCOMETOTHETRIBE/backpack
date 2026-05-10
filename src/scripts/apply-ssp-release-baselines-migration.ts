@@ -34,8 +34,11 @@ const STMTS: { label: string; sql: string }[] = [
       ssp_document_id uuid NOT NULL
         REFERENCES ssp_documents(id) ON DELETE RESTRICT,
       ssp_version_number integer NOT NULL,
+      -- Note: actual SQL table name is "boundary" (singular), not
+      -- "boundaries". Drizzle TS variable name diverges from the
+      -- physical table name; migration 0015 created "boundary".
       boundary_id uuid NOT NULL
-        REFERENCES boundaries(id) ON DELETE RESTRICT,
+        REFERENCES boundary(id) ON DELETE RESTRICT,
       status varchar(16) NOT NULL DEFAULT 'active',
       payload_sha256 varchar(64) NOT NULL,
       qms_document_number text NOT NULL,
