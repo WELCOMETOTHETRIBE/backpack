@@ -279,6 +279,34 @@ const STMTS: { label: string; sql: string }[] = [
       ADD COLUMN IF NOT EXISTS last_outbound_attempt_at timestamptz`,
   },
 
+  // ── 0071b (author attestation): widen ssp_signoffs.signoff_kind ───────
+  // The original migration 0068 locked signoff_kind to four enum values
+  // (authorizing_official, system_owner, isso, environment_unchanged).
+  // The author-attestation flow (commit 76f3488) introduced a fifth
+  // kind, 'author', for generate-time provenance attestations. Drop
+  // the constraint and re-add it with the wider allowlist.
+  // Idempotent on re-run: drops the old constraint if present, adds
+  // the new one if not.
+  {
+    label: "0071b widen ssp_signoffs_kind_chk to include 'author'",
+    sql: `DO $$ BEGIN
+      IF EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'ssp_signoffs_kind_chk'
+      ) THEN
+        ALTER TABLE ssp_signoffs DROP CONSTRAINT ssp_signoffs_kind_chk;
+      END IF;
+      ALTER TABLE ssp_signoffs
+        ADD CONSTRAINT ssp_signoffs_kind_chk
+        CHECK (signoff_kind IN (
+          'authorizing_official',
+          'system_owner',
+          'isso',
+          'environment_unchanged',
+          'author'
+        ));
+    END $$;`,
+  },
+
   // ── 0072 (Tier 2 #5): poam_entries.kind discriminator ─────────────────
   // Operational POA&M (CA.L2-3.12.2): no 180-day cap.
   // Assessment POA&M (32 CFR § 170.21): hard 180-day closeout to qualify
