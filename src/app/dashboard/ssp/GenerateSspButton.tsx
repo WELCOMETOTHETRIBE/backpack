@@ -2,19 +2,20 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { CheckCircle2, Plus, AlertTriangle } from "lucide-react";
+import { CheckCircle2, Plus, ArrowDown } from "lucide-react";
 
 /**
  * Admin-only "Generate new version" CTA. POSTs to /api/ssp/generate
- * which now does two things in one request:
+ * which:
  *   1. Generates the SSP from canonical state
- *   2. Auto-submits to MacTech Quality Doc Control
+ *   2. Records the single author attestation (provenance only)
  *
- * Codex deliberately does NOT auto-generate signatures — the release
- * signature chain (Reviewer → Approver → Quality Release) is QMS-
- * side and must be performed by real humans for C3PAO defensibility.
- * Codex's role is to author + transmit; the SSP lands in QMS Doc
- * Control awaiting their review chain.
+ * Does NOT auto-submit to MacTech Quality. The "Submit to Doc Control"
+ * button on the version's card below is the explicit handoff to the
+ * QMS Reviewer / Approver / Quality Release chain. Two-step flow keeps
+ * the QMS handoff defensible (operator consciously says "this version
+ * is ready for review") and avoids the flaky auto-submit failure modes
+ * that bit us on every transient QMS-side issue.
  */
 interface GenerateResponse {
   ok?: boolean;
@@ -27,15 +28,9 @@ interface GenerateResponse {
     userId: string;
     displayName: string;
     email: string | null;
-  };
-  docControl?: {
-    transmitted: boolean;
-    submissionId?: string;
-    qmsSubmissionId?: string | null;
-    qmsDocumentNumber?: string | null;
-    reviewWindowDaysEstimate?: number | null;
-    reason?: string | null;
+    attestedAt: string;
   } | null;
+  authorAttestationError?: string;
 }
 
 export function GenerateSspButton() {
@@ -82,7 +77,7 @@ export function GenerateSspButton() {
         className="inline-flex items-center gap-2 rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-sky-400"
       >
         <Plus className="h-4 w-4" />
-        {busy ? "Generating + submitting…" : "Generate new version"}
+        {busy ? "Generating…" : "Generate new version"}
       </button>
 
       {error && (
@@ -113,33 +108,14 @@ export function GenerateSspButton() {
                   {last.generatedBy.email && ` · ${last.generatedBy.email}`}
                 </p>
               )}
-              {last.docControl?.transmitted ? (
-                <>
-                  <p>
-                    ✓ Submitted to Doc Control
-                    {last.docControl.qmsSubmissionId &&
-                      ` · QMS id ${last.docControl.qmsSubmissionId.slice(0, 12)}…`}
-                    {last.docControl.qmsDocumentNumber &&
-                      ` (${last.docControl.qmsDocumentNumber})`}
-                    {last.docControl.reviewWindowDaysEstimate &&
-                      ` · review window ~${last.docControl.reviewWindowDaysEstimate}d`}
-                  </p>
-                  <p className="text-emerald-800/80">
-                    Awaiting QMS Reviewer / Approver / Quality Release. The
-                    signature chain is performed by humans on the QMS side
-                    for defensibility — Codex does not auto-sign.
-                  </p>
-                </>
-              ) : last.docControl ? (
-                <p className="flex items-start gap-1.5 text-amber-900">
-                  <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />
-                  <span>
-                    Queued — auto-submit failed: {last.docControl.reason}.
-                    Retry from the Doc Control panel on this version&apos;s
-                    card below.
-                  </span>
-                </p>
-              ) : null}
+              <p className="flex items-start gap-1.5 text-emerald-800/80">
+                <ArrowDown className="mt-0.5 h-3 w-3 shrink-0" />
+                <span>
+                  Click <em>Submit to Doc Control</em> on the version&apos;s
+                  card below to send it to the QMS Reviewer / Approver /
+                  Quality Release chain.
+                </span>
+              </p>
             </div>
           </div>
         </div>

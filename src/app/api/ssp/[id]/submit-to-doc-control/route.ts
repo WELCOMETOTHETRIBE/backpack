@@ -470,13 +470,17 @@ export async function POST(
       reason: "Skipped — PDF render failed: " + (renderError ?? "unknown"),
     };
     if (!renderError && pdfBase64 && pdfSha256) {
-      // Stable QMS document_number per boundary. Every regeneration
-      // becomes a new VERSION of the same QMS doc rather than a new
-      // doc entry — matches "CMMC-tagged new revision of the existing
-      // SSP" intent. QMS handles its own version tracking via the
-      // ssp_version_number field; document_number remains constant
-      // across iterations of the same authorizing record.
-      const stableDocumentNumber = "SSP-001";
+      // Per-version QMS document_number. Earlier code used a stable
+      // 'SSP-001' so every generation became a new version of the same
+      // QMS doc, but QMS rejected with 409 conflict because their
+      // uniqueness constraint treats (org, document_number) as a
+      // primary key — they don't yet differentiate by ssp_version_number.
+      // Until QMS supports stable doc_number with version increments,
+      // each Codex SSP version gets its own QMS doc number so the
+      // submission lands cleanly. Library will show separate rows per
+      // version (which is also fine — each is a distinct authorizing
+      // artifact).
+      const stableDocumentNumber = `SSP-${String(doc.versionNumber).padStart(3, "0")}`;
       bridgeResult = await submitToQms({
         submission_id: submission.id,
         organization_id: orgId,
