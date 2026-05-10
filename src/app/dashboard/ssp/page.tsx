@@ -310,18 +310,31 @@ export default async function SspPage() {
             // v2.13 page-204 separation of concerns (Q1=B), Codex
             // signoffs are OPTIONAL — the release signature chain is
             // QMS-side. We don't gate on them here.
-            const inFlight = submission?.status === "submitted";
+            // True in-flight = QMS accepted (qmsSubmissionId populated).
+            // A "submitted" row WITHOUT qmsSubmissionId means the bridge
+            // POST failed and the row is queued — Submit should be
+            // enabled for retry, not blocked.
+            const inFlight =
+              submission?.status === "submitted" &&
+              !!submission.qmsSubmissionId;
+            const queuedRetryable =
+              submission?.status === "submitted" &&
+              !submission.qmsSubmissionId;
             const released = submission?.status === "released";
             let blockedReason: string | null = null;
             if (v.status === "superseded" || v.status === "revoked") {
               blockedReason =
                 `Cannot submit a ${v.status} version. Generate a new version instead.`;
             } else if (inFlight) {
-              blockedReason = `A submission for this version is already in flight (since ${
+              blockedReason = `A submission for this version is already in flight at QMS (since ${
                 submission?.submittedAt
                   ? new Date(submission.submittedAt).toISOString().slice(0, 10)
                   : "—"
               }).`;
+            } else if (queuedRetryable) {
+              // Intentionally not setting blockedReason — the button is
+              // ENABLED so the operator can retry. The DocControlPanel
+              // already shows the queue state + last_outbound_error.
             } else if (released) {
               blockedReason = `Already released by Doc Control as ${
                 submission?.qmsDocumentNumber ?? "(QMS doc)"
