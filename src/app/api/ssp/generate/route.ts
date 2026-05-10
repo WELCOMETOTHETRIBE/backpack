@@ -268,16 +268,28 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(response, { status: 201 });
     }
 
-    // controls_mapped from the persisted payload.
+    // controls_mapped from the persisted payload. The SSP canonical
+    // JSON puts controls inside payload.sections[?(@.kind === 'control')].key
+    // — there is NO top-level payload.controls[] array. Reading from the
+    // wrong path silently sends [] which trips QMS gate 5
+    // (controls_mapped.length >= ~100). Same fix as the manual
+    // /api/ssp/[id]/submit-to-doc-control route (commit edb4d2a).
     const payloadJson = doc.payloadJson as {
-      controls?: Array<{ control_id?: string }>;
+      sections?: Array<{ kind?: string; key?: string }>;
     };
-    const controlsMapped = (payloadJson.controls ?? [])
-      .map((c) => c.control_id)
+    const controlsMapped = (payloadJson.sections ?? [])
+      .filter((s) => s?.kind === "control")
+      .map((s) => s.key)
       .filter((s): s is string => typeof s === "string" && s.length > 0);
-    const canonicalJsonSha256 = createHash("sha256")
-      .update(JSON.stringify(doc.payloadJson))
-      .digest("hex");
+
+    // Canonical sha256 — MUST use the same canonicalize.ts that
+    // generate.ts used to compute payload_sha256. Raw JSON.stringify is
+    // NOT deterministic across object key orderings, so a sha over it
+    // will not equal payload_sha256 → QMS gate 2
+    // (canonical_json_sha256 === payload_sha256) fails on every real
+    // submission. Use the canonical helper instead.
+    const { payloadSha256 } = await import("@/lib/ssp/canonicalize");
+    const canonicalJsonSha256 = payloadSha256(doc.payloadJson);
 
     const signoffsPayload: BridgeSignoffPayload[] = signoffRows
       .filter((s) =>
