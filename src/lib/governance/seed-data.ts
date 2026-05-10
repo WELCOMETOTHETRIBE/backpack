@@ -6,7 +6,9 @@
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 
 export const PURE_GOV_CONTROL_IDS = [
-  "3.1.4", "3.2.1", "3.2.2", "3.2.3", "3.3.3", "3.4.4",
+  "3.1.4",
+  "3.1.20", // External System Connections — register-driven; QMS policy doc names the external_system_connections register + ISA/MOU approval flow
+  "3.2.1", "3.2.2", "3.2.3", "3.3.3", "3.4.4",
   "3.6.1", "3.6.2", "3.6.3", "3.7.6", "3.9.1", "3.9.2", "3.11.1",
   "3.12.1", "3.12.2", "3.12.3", "3.12.4",
 ];

@@ -18,6 +18,7 @@
 export const AZURE_ENTRA_15_CONTROL_IDS: string[] = [
   "3.1.13", // Cryptographic protection for remote access
   "3.1.14", // Control CUI flow / managed access control points
+  "3.1.15", // Authorize remote execution of privileged commands  ← NEW (PIM + Conditional Access)
   "3.1.18", // Control connection of mobile devices  ← NEW v1.5
   "3.1.19", // Encrypt CUI on mobile devices         ← NEW v1.5
   "3.3.1",  // Audit record creation (Entra sign-in / audit log)
@@ -65,6 +66,13 @@ export const AZURE_ENTRA_BASELINE: AzureEntraBaselineEntry[] = [
     azureConfigurationRequirement:
       "Route remote access through managed control points (Azure Bastion + Conditional Access). NSG blocks public RDP/SSH; Entra evidence shows the access path. Evidence: nsg-list/rules, entra-signin, conditional-access-policies.",
     validatorCheckId: "AC-REMOTE-ACCESS",
+  },
+  {
+    controlId: "3.1.15",
+    title: "Authorize remote execution of privileged commands",
+    azureConfigurationRequirement:
+      "Azure PIM (Privileged Identity Management) gates every privileged role activation behind a JIT approval workflow with mandatory MFA; Conditional Access policy enforces MFA + compliant device for any privileged role. Activation requests, approver identity, justification, and elevation duration are captured in pim-activation-history.json. Combined with role-assignments.json (the static eligible-vs-active state) and entra-signin.json (filtered to the privileged role activations), this proves remote execution of privileged commands is explicitly authorized in writing AND audit-traceable. Evidence: pim-eligible-assignments.json, pim-activation-history.json, conditional-access-policies.json, entra-signin.json.",
+    validatorCheckId: "AZ-PRIVILEGED-REMOTE-AUTH",
   },
   {
     controlId: "3.1.18",
