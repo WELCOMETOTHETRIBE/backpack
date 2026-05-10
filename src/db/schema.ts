@@ -1230,6 +1230,157 @@ export const sspDocControlSubmissions = pgTable("ssp_doc_control_submissions", {
     .defaultNow(),
 });
 
+/**
+ * SSP Release Baseline — the controlled point-in-time view of a
+ * released SSP. Created 1:1 when a ssp_doc_control_submissions row
+ * flips submitted → released via the QMS manifest linker. The baseline
+ * is the anchor downstream drift detection compares "current state"
+ * against; an SSP version is "controlled" only once its baseline
+ * exists.
+ *
+ * Immutability: the service layer (src/lib/ssp/release-baseline.ts)
+ * exports no update path other than mark-superseded. Drizzle's typed
+ * builder won't stop a caller from writing UPDATE statements directly,
+ * so the contract is "service layer only" — see the migration's
+ * comment block for the full rationale.
+ */
+export const sspReleaseBaselines = pgTable("ssp_release_baselines", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  /**
+   * The released submission this baseline anchors. Unique — at most
+   * one baseline per release event. Idempotency anchor for the
+   * linker: the baseline insert short-circuits on this constraint
+   * when a manifest is re-ingested.
+   */
+  sspDocControlSubmissionId: uuid("ssp_doc_control_submission_id")
+    .notNull()
+    .references(() => sspDocControlSubmissions.id, { onDelete: "restrict" }),
+  sspDocumentId: uuid("ssp_document_id")
+    .notNull()
+    .references(() => sspDocuments.id, { onDelete: "restrict" }),
+  sspVersionNumber: integer("ssp_version_number").notNull(),
+  boundaryId: uuid("boundary_id")
+    .notNull()
+    .references(() => boundaries.id, { onDelete: "restrict" }),
+  /** active | superseded | retired */
+  status: varchar("status", { length: 16 }).notNull().default("active"),
+  /** Pinned at finalization (= ssp_documents.payload_sha256). */
+  payloadSha256: varchar("payload_sha256", { length: 64 }).notNull(),
+  /** = ssp_doc_control_submissions.qms_document_number at release. */
+  qmsDocumentNumber: text("qms_document_number").notNull(),
+  /** = ssp_doc_control_submissions.qms_sha256 at release. */
+  qmsSha256: varchar("qms_sha256", { length: 64 }).notNull(),
+  /**
+   * Frozen snapshot of every ssp_signoffs row bound to this SSP at
+   * the time the release was linked. Sorted by (signoff_kind,
+   * signed_at) for deterministic comparison across re-reads.
+   */
+  signoffsJson: jsonb("signoffs_json").notNull(),
+  qmsManifestRunId: text("qms_manifest_run_id"),
+  releasedAt: timestamp("released_at", { withTimezone: true }).notNull(),
+  finalizedAt: timestamp("finalized_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  supersededAt: timestamp("superseded_at", { withTimezone: true }),
+  supersededById: uuid("superseded_by_id"),
+  releaseNotes: text("release_notes"),
+  appVersion: text("app_version"),
+  gitCommitSha: text("git_commit_sha"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+/**
+ * SSP Baseline Drift Events — Phase 2 of "controlled baseline + drift."
+ *
+ * One event per (baseline, drift_type, source_record, control) tuple
+ * while OPEN. Re-running detection refreshes the existing OPEN event
+ * (detected_at + current_*) rather than inserting a duplicate. Once
+ * the event is acknowledged/dismissed/resolved, a fresh divergence
+ * creates a new event.
+ *
+ * Severity classification rules live in
+ * src/lib/ssp/baseline-drift.ts and reflect the spec:
+ *   minor    → log-only (evidence refresh, scan timestamp moved)
+ *   moderate → review required (POA&M state change, narrative wobble)
+ *   material → SSP redraft trigger (boundary change, control regression)
+ *
+ * Tenant isolation: organization_id on every row.
+ */
+export const sspBaselineDriftEvents = pgTable("ssp_baseline_drift_events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  baselineId: uuid("baseline_id")
+    .notNull()
+    .references(() => sspReleaseBaselines.id, { onDelete: "cascade" }),
+  /** minor | moderate | material */
+  severity: varchar("severity", { length: 16 }).notNull(),
+  /**
+   * Discriminator: which detector emitted this event. e.g.
+   *   evidence_hash_changed
+   *   evidence_removed
+   *   control_status_regressed (MET → NOT_MET)
+   *   control_status_changed_na
+   *   control_status_wobble (MODERATE: NOT_MET ↔ partial, etc.)
+   *   boundary_component_added
+   *   poam_opened_post_baseline
+   *   poam_closed_post_baseline
+   */
+  driftType: varchar("drift_type", { length: 64 }).notNull(),
+  /** open | acknowledged | dismissed | resolved */
+  status: varchar("status", { length: 16 }).notNull().default("open"),
+  /** Source table this drift came from (e.g. 'ssp_evidence_citations'). */
+  sourceTable: varchar("source_table", { length: 64 }),
+  /** Source row id in source_table. */
+  sourceRecordId: text("source_record_id"),
+  /** Denormalized control_id for filter-by-control queries. */
+  controlId: varchar("control_id", { length: 20 }),
+  previousHash: varchar("previous_hash", { length: 64 }),
+  currentHash: varchar("current_hash", { length: 64 }),
+  previousValueJson: jsonb("previous_value_json"),
+  currentValueJson: jsonb("current_value_json"),
+  summary: text("summary").notNull(),
+  recommendation: text("recommendation"),
+  /** Routing flag: this material drift should produce an SSP redraft. */
+  requiresSspRedraft: boolean("requires_ssp_redraft").notNull().default(false),
+  /** Routing flag: a POA&M should be opened or reviewed. */
+  requiresPoamReview: boolean("requires_poam_review").notNull().default(false),
+  /** Routing flag: doc-control governance review needed. */
+  requiresDocumentControlReview: boolean("requires_document_control_review")
+    .notNull()
+    .default(false),
+  detectedAt: timestamp("detected_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  firstDetectedAt: timestamp("first_detected_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  acknowledgedAt: timestamp("acknowledged_at", { withTimezone: true }),
+  acknowledgedByUserId: uuid("acknowledged_by_user_id").references(
+    () => users.id,
+    { onDelete: "set null" },
+  ),
+  adjudicatedAt: timestamp("adjudicated_at", { withTimezone: true }),
+  adjudicatedByUserId: uuid("adjudicated_by_user_id").references(
+    () => users.id,
+    { onDelete: "set null" },
+  ),
+  /** Required when status flips to 'dismissed' (enforced in service layer). */
+  adjudicationNotes: text("adjudication_notes"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 export const assets = pgTable("assets", {
   id: uuid("id").primaryKey().defaultRandom(),
   organizationId: uuid("organization_id").references(() => organizations.id).notNull(),

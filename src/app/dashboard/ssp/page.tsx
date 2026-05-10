@@ -273,6 +273,13 @@ export default async function SspPage() {
             asks "is this signed SSP still defensible against current
             state?" with one click.
           </p>
+          <Link
+            href="/dashboard/ssp/baselines"
+            className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-sky-700 hover:underline"
+          >
+            View release baselines &amp; drift
+            <ArrowRight className="h-3 w-3" />
+          </Link>
         </div>
         {isAdmin && <GenerateSspButton />}
       </header>

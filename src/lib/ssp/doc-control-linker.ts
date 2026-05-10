@@ -30,6 +30,8 @@ import {
   sspDocControlSubmissions,
   sspDocuments,
 } from "@/db/schema";
+import { writeAuditLog } from "@/lib/audit";
+import { createOrGetReleaseBaseline } from "./release-baseline";
 
 interface ManifestSspDoc {
   documentNumber: string;
@@ -45,6 +47,10 @@ export interface LinkResult {
   released: number;
   /** Older releases marked 'superseded' on this run. */
   superseded: number;
+  /** SSP release-baselines created on this run (1:1 with `released`
+   *  in the steady state; smaller if a baseline already existed for
+   *  a re-linked submission). */
+  baselinesCreated: number;
   /** Manifest SSPs with no matching submitted row in Codex. */
   unmatched: Array<{ documentNumber: string; sha256: string }>;
 }
@@ -56,11 +62,19 @@ export interface LinkResult {
 export async function linkReleasedSspsToSubmissions(input: {
   organizationId: string;
   manifestSsps: ManifestSspDoc[];
+  /**
+   * The QMS manifest run that triggered this linking pass. Optional
+   * — admin-initiated re-link calls may not have one. When present,
+   * it's stamped on every release-baseline created here for forensic
+   * traceability.
+   */
+  qmsManifestRunId?: string | null;
 }): Promise<LinkResult> {
   const result: LinkResult = {
     considered: input.manifestSsps.length,
     released: 0,
     superseded: 0,
+    baselinesCreated: 0,
     unmatched: [],
   };
   if (input.manifestSsps.length === 0) return result;
@@ -105,8 +119,14 @@ export async function linkReleasedSspsToSubmissions(input: {
     const target = candidates[0];
     const releasedAt = mDoc.releasedAt ? new Date(mDoc.releasedAt) : new Date();
 
-    // Atomic: flip target → released, then mark prior released rows
-    // (same ssp_document_id, status='released') as superseded.
+    // Atomic: flip target → released, mark prior released rows
+    // (same ssp_document_id, status='released') as superseded, and
+    // write the SSP release baseline. All in one transaction so we
+    // never have a 'released' submission without its controlled
+    // baseline (or vice versa).
+    let createdBaselineId: string | null = null;
+    let baselineWasCreated = false;
+    let supersededBaselineIds: string[] = [];
     await db.transaction(async (tx) => {
       await tx
         .update(sspDocControlSubmissions)
@@ -141,9 +161,53 @@ export async function linkReleasedSspsToSubmissions(input: {
         )
         .returning({ id: sspDocControlSubmissions.id });
       result.superseded += supersededRows.length;
+
+      // Write the controlled baseline. Idempotent on
+      // ssp_doc_control_submission_id — re-linking the same submission
+      // (e.g. on manifest re-ingest) returns the existing baseline.
+      const baseline = await createOrGetReleaseBaseline(tx, {
+        organizationId: input.organizationId,
+        sspDocumentId: target.sspDocumentId,
+        sspDocControlSubmissionId: target.id,
+        qmsDocumentNumber: mDoc.documentNumber,
+        qmsSha256: sha,
+        releasedAt,
+        qmsManifestRunId: input.qmsManifestRunId ?? null,
+      });
+      createdBaselineId = baseline.baselineId;
+      baselineWasCreated = baseline.created;
+      supersededBaselineIds = baseline.supersededBaselineIds;
     });
 
     result.released += 1;
+    if (baselineWasCreated) result.baselinesCreated += 1;
+
+    // Audit log outside the transaction: a failed audit write must
+    // not roll back the release. Mirrors the manifest-ingest pattern.
+    if (baselineWasCreated && createdBaselineId) {
+      try {
+        await writeAuditLog({
+          organizationId: input.organizationId,
+          action: "ssp.release_baseline.created",
+          resourceType: "ssp_release_baseline",
+          resourceId: createdBaselineId,
+          details: {
+            ssp_document_id: target.sspDocumentId,
+            ssp_doc_control_submission_id: target.id,
+            qms_document_number: mDoc.documentNumber,
+            qms_sha256: sha,
+            qms_manifest_run_id: input.qmsManifestRunId ?? null,
+            superseded_baseline_ids: supersededBaselineIds,
+            released_at: releasedAt.toISOString(),
+          },
+        });
+      } catch (err) {
+        console.error(
+          "[doc-control-linker] audit log write for release baseline failed:",
+          err,
+        );
+      }
+    }
   }
 
   // Cross-version supersession: when a NEWER ssp_documents row's
@@ -240,5 +304,6 @@ export async function linkFromManifestRun(
   return linkReleasedSspsToSubmissions({
     organizationId,
     manifestSsps,
+    qmsManifestRunId: runId,
   });
 }

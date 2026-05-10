@@ -312,7 +312,7 @@ export async function POST(req: NextRequest) {
     const linkResult = await linkFromManifestRun(orgRow.id, envelope.run_id);
     if (linkResult.released > 0 || linkResult.superseded > 0) {
       console.log(
-        `[qms-manifest-ingest] doc-control linker: ${linkResult.released} released, ${linkResult.superseded} superseded, ${linkResult.unmatched.length} unmatched (of ${linkResult.considered} ssp-typed manifest docs)`,
+        `[qms-manifest-ingest] doc-control linker: ${linkResult.released} released, ${linkResult.superseded} superseded, ${linkResult.baselinesCreated} baselines created, ${linkResult.unmatched.length} unmatched (of ${linkResult.considered} ssp-typed manifest docs)`,
       );
     }
     if (linkResult.unmatched.length > 0) {

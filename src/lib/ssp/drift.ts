@@ -220,7 +220,7 @@ export async function computeDriftReport(
  *   undefined : no fetcher implemented for this kind (treated as
  *               identical — see drift.ts comment)
  */
-async function fetchCurrentEvidenceHashes(
+export async function fetchCurrentEvidenceHashes(
   citations: Array<{ evidenceKind: string; evidenceId: string }>,
 ): Promise<Map<string, string | null | undefined>> {
   const out = new Map<string, string | null | undefined>();
