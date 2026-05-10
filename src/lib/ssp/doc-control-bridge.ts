@@ -71,11 +71,14 @@ export interface BridgeRequestPayload {
   boundary_id: string;
   boundary_name: string;
   /**
-   * The Codex user who authored + submitted this version. ALWAYS
-   * populated; QMS uses this to display the "Submitted by" field on
-   * its doc detail UI. Not a signoff — see signoffs[] for those.
+   * The Codex user who authored + submitted this version. Optional
+   * to match the QMS-side contract ("when present must have
+   * display_name + well-formed email"). The /api/ssp/generate and
+   * /api/ssp/[id]/submit-to-doc-control routes always populate it;
+   * back-office operator scripts may omit when running end-to-end
+   * fixture flows. Not a signoff — see signoffs[] for those.
    */
-  author: BridgeAuthorPayload;
+  author?: BridgeAuthorPayload;
   tally: {
     controls_covered: number;
     controls_met: number;
