@@ -211,13 +211,35 @@ export async function submitToQms(
     };
   }
 
-  // Anything else is a failure. Truncate the reason so it fits in the
-  // dashboard banner without overflowing.
-  const errBody = (bodyJson ?? bodyText) as { error?: string } | string;
-  const reasonText =
-    typeof errBody === "string"
-      ? errBody
-      : errBody.error ?? `HTTP ${res.status}`;
+  // Anything else is a failure. Surface QMS's full error detail so the
+  // operator sees which validation gate tripped, not just the top-level
+  // error code. QMS contract sends:
+  //   { error: "invalid_payload", details: [{ field, code, message }, …] }
+  // for 400s; we flatten details into the user-facing reason.
+  const errBody = (bodyJson ?? bodyText) as
+    | {
+        error?: string;
+        details?: Array<{ field?: string; code?: string; message?: string }>;
+        message?: string;
+      }
+    | string;
+  let reasonText: string;
+  if (typeof errBody === "string") {
+    reasonText = errBody;
+  } else {
+    const code = errBody.error ?? `HTTP ${res.status}`;
+    const detailParts: string[] = [];
+    if (Array.isArray(errBody.details)) {
+      for (const d of errBody.details) {
+        const piece = [d.field, d.code, d.message].filter(Boolean).join(" · ");
+        if (piece) detailParts.push(piece);
+      }
+    }
+    if (errBody.message && !detailParts.length) detailParts.push(errBody.message);
+    reasonText = detailParts.length
+      ? `${code} — ${detailParts.join("; ")}`
+      : code;
+  }
   return {
     ok: false,
     status: res.status,
