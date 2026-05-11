@@ -109,19 +109,29 @@ export async function POST(
 
   // ── Pre-flight: verify the commit is actually on main ─────────────────────
   //
-  // Only matters for status='done' with resolutions to apply. status='error'
-  // and zero-resolution runs short-circuit unchanged.
+  // Three outcomes for status='done' resolutions:
+  //   onMain=true                       → safe, mark resolved
+  //   onMain=false + unverifiable=true  → can't check (GITHUB_API_TOKEN
+  //                                       missing on a private repo);
+  //                                       degrade to "allow with loud
+  //                                       audit log" so the workflow
+  //                                       isn't blocked, but the bypass
+  //                                       is discoverable.
+  //   onMain=false + unverifiable=false → genuine reject (commit is on
+  //                                       a sandbox branch); refuse the
+  //                                       resolution with 422.
   let verifiedOnMain = false;
   let verifyDetail = "";
+  let verifyUnverifiable = false;
   if (status === "done" && commitSha && resolutions && resolutions.length > 0) {
     const verify = await verifyCommitOnMain(commitSha);
     verifiedOnMain = verify.onMain;
     verifyDetail = verify.reason ?? `compare status: ${verify.status}`;
+    verifyUnverifiable = verify.unverifiable;
 
-    if (!verifiedOnMain) {
-      // Refuse to flip feedback rows. Mark the run as errored so the UI
-      // shows the run as failed, write a verbose event for diagnosis,
-      // and return a 422 so the agent (or the dashboard) can react.
+    if (!verifiedOnMain && !verifyUnverifiable) {
+      // Genuine reject: token is configured AND the commit isn't on
+      // main. This is the sandbox-branch case the protection is for.
       await writeEvent(runId, {
         type: "error",
         message:
@@ -148,11 +158,27 @@ export async function POST(
       );
     }
 
-    // Verification succeeded — record it as a transparency event.
-    await writeEvent(runId, {
-      type: "log",
-      message: `Verified commit ${commitSha.slice(0, 12)} is on origin/main (${verify.status}). Marking ${resolutions.length} feedback item(s) resolved.`,
-    });
+    if (verifyUnverifiable) {
+      // Degraded mode: GitHub returned 404 (or 401/403) and no
+      // GITHUB_API_TOKEN is configured. The repo is almost certainly
+      // private. Allow the resolution but write a loud event so an
+      // operator notices and configures the token. Until they do,
+      // we're back to trusting the agent's commit_sha claim — the
+      // same posture as before the verifier shipped.
+      await writeEvent(runId, {
+        type: "log",
+        message:
+          `⚠ Commit verification unavailable (${verifyDetail}). ` +
+          `Allowing resolution in degraded mode. ` +
+          `Set GITHUB_API_TOKEN on Railway (fine-grained PAT, Contents+Metadata read on ${process.env.AGENT_VERIFY_REPO ?? "WELCOMETOTHETRIBE/CMMC"}) to restore strict verification.`,
+      });
+    } else {
+      // Verification succeeded — record it as a transparency event.
+      await writeEvent(runId, {
+        type: "log",
+        message: `Verified commit ${commitSha.slice(0, 12)} is on origin/main (${verify.status}). Marking ${resolutions.length} feedback item(s) resolved.`,
+      });
+    }
   }
 
   // ── Flip the run row ──────────────────────────────────────────────────────
@@ -186,6 +212,7 @@ export async function POST(
     runId,
     status,
     verifiedOnMain,
+    verificationUnavailable: verifyUnverifiable,
     resolutionsApplied: resolutions?.length ?? 0,
   });
 }
