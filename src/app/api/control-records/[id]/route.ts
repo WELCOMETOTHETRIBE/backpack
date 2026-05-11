@@ -189,6 +189,35 @@ export async function PATCH(
       await computeAndPersistSprsScore(existing.organizationId);
     }
 
+    // Canonical rescore on operator-driven implementation_status change.
+    // Without this, the per-control list shows the new status (read from
+    // control_records) but the SCTM family-card aggregate (read from
+    // controlAdjudicationSnapshots.aggregate_finding) stays stale —
+    // operator marks 3.2.1 IMPLEMENTED, family card still shows it as
+    // NOT_MET because no rescore fired. The scorer's legacy-status
+    // switch (scorer.ts:336) credits 'implemented'/'assessed' as MET
+    // via evidence; this trigger ensures the snapshot reflects it.
+    // Best-effort: snapshot rescore failure must not roll back the
+    // status update that already committed above.
+    if ("implementationStatus" in updates && existing.controlId) {
+      try {
+        const { scoreControlsAffectedBy } = await import(
+          "@/lib/canonical-state/rescore-trigger"
+        );
+        await scoreControlsAffectedBy({
+          organizationId: existing.organizationId,
+          triggerSource: "manual_override",
+          controlIds: [existing.controlId],
+          triggeredByUserId: user.id ?? null,
+        });
+      } catch (rescoreErr) {
+        console.error(
+          "[control-records PATCH] canonical rescore failed (non-blocking):",
+          rescoreErr,
+        );
+      }
+    }
+
     const [updated] = await db
       .select()
       .from(controlRecords)

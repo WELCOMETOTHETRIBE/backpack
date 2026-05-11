@@ -187,6 +187,29 @@ export async function PATCH(
       { controlId, updates }
     );
 
+    // Canonical rescore on operator-driven implementation_status change.
+    // See note on src/app/api/control-records/[id]/route.ts — without
+    // this, the SCTM family aggregate stays stale even after the
+    // operator marks a control implemented.
+    if ("implementationStatus" in updates) {
+      try {
+        const { scoreControlsAffectedBy } = await import(
+          "@/lib/canonical-state/rescore-trigger"
+        );
+        await scoreControlsAffectedBy({
+          organizationId: orgId,
+          triggerSource: "manual_override",
+          controlIds: [controlId],
+          triggeredByUserId: user.id ?? null,
+        });
+      } catch (rescoreErr) {
+        console.error(
+          "[governance/controls PATCH] canonical rescore failed (non-blocking):",
+          rescoreErr,
+        );
+      }
+    }
+
     return NextResponse.json({ ok: true });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Failed to update control";
