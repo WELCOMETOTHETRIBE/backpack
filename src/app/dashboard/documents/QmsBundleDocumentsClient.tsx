@@ -513,32 +513,46 @@ export default function QmsBundleDocumentsClient({
         </section>
       )}
 
-      {/* OIS impact strip — controls whose narrative was refreshed by this run */}
-      {oisImpact.length > 0 && (
-        <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-          <div className="mb-2 flex items-baseline justify-between gap-2">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-              Control implementations refreshed by this release
-            </h3>
-            <span className="text-xs text-gray-500">
-              click any control to view its OIS narrative
-            </span>
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            {oisImpact.map((o) => (
-              <Link
-                key={o.controlId}
-                href={controlHref(o.controlId, controlCodeToImplId)}
-                className={`${LINK_PILL_BASE} ${LINK_PILL_TONES.emerald}`}
-                title={`refreshed ${fmtDateTime(o.generatedAt)}`}
-              >
-                {o.controlId}
-                <ChevronRight className="h-3 w-3 opacity-50" />
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
+      {/* OIS impact strip — controls whose narrative was refreshed by this run.
+          Refresh timestamp surfaces once at the section caption instead of as
+          a hidden per-pill tooltip, so the pills below stay as a clean, even
+          row of control codes. */}
+      {oisImpact.length > 0 && (() => {
+        const newestRefresh = oisImpact.reduce<string | null>(
+          (acc, o) => (acc && acc > o.generatedAt ? acc : o.generatedAt),
+          null,
+        );
+        return (
+          <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                Control implementations refreshed by this release
+              </h3>
+              <span className="text-xs text-gray-500">
+                {newestRefresh && (
+                  <>
+                    refreshed {fmtDateTime(newestRefresh)}
+                    <span className="mx-1.5 text-gray-300" aria-hidden>·</span>
+                  </>
+                )}
+                click any control to view its OIS narrative
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {oisImpact.map((o) => (
+                <Link
+                  key={o.controlId}
+                  href={controlHref(o.controlId, controlCodeToImplId)}
+                  className={`${LINK_PILL_BASE} ${LINK_PILL_TONES.emerald}`}
+                  aria-label={`${o.controlId} — OIS narrative refreshed ${fmtDateTime(o.generatedAt)}`}
+                >
+                  {o.controlId}
+                </Link>
+              ))}
+            </div>
+          </section>
+        );
+      })()}
 
       {/* View tabs — release vs library.
           Release tab shows only docs in the latest QMS run. Library
