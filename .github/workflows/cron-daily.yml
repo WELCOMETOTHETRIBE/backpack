@@ -1,0 +1,69 @@
+name: Daily cron — Codex backend pings
+
+# Why GitHub Actions and not a Railway cron service:
+# Railway's cron schedule lives on a service that does nothing else;
+# spinning one up costs ~$5/mo just to run two daily curls. GitHub
+# Actions runs scheduled workflows free for public/internal repos and
+# we already deploy from this repo, so it's the natural home.
+#
+# What this hits, daily at 07:00 UTC (~03:00 ET / midnight PT):
+#   1. /api/cron/training-expiry-rescore
+#      → catches AT-family (3.2.1/3.2.2/3.2.3) date-based expirations
+#        no application write would trigger. Without this the SCTM
+#        family card silently stays MET after a user's annual training
+#        lapses.
+#   2. /api/cron/conmon-summary
+#      → ConMon digest email (controls due for review + evidence
+#        expiring soon) to Admin/Compliance recipients per org.
+#
+# Auth: each endpoint requires Authorization: Bearer ${CRON_SECRET}.
+# The secret is set both on Railway (so the endpoint accepts the call)
+# and on this repo's GitHub Actions secrets (so the workflow can send
+# it). Rotate together via:
+#   openssl rand -hex 32 > /tmp/cs && \
+#     railway variables --set "CRON_SECRET=$(cat /tmp/cs)" && \
+#     gh secret set CRON_SECRET --body "$(cat /tmp/cs)"
+
+on:
+  schedule:
+    # Daily at 07:00 UTC. Cron expressions are always UTC in GH Actions.
+    - cron: "0 7 * * *"
+  # Manual trigger for ad-hoc runs (e.g. after fixing a bug, or to
+  # backfill if a scheduled run was missed during a GH Actions outage).
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ping-cron-endpoints:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Training expiry rescore (AT family canonical snapshot refresh)
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -e
+          response=$(curl -fsS -w "\n%{http_code}" \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            https://codex.mactechsolutionsllc.com/api/cron/training-expiry-rescore)
+          body=$(echo "$response" | head -n -1)
+          code=$(echo "$response" | tail -n 1)
+          echo "HTTP $code"
+          echo "$body" | head -c 4000
+          test "$code" = "200"
+
+      - name: ConMon digest email
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -e
+          response=$(curl -fsS -w "\n%{http_code}" \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            https://codex.mactechsolutionsllc.com/api/cron/conmon-summary)
+          body=$(echo "$response" | head -n -1)
+          code=$(echo "$response" | tail -n 1)
+          echo "HTTP $code"
+          echo "$body" | head -c 4000
+          test "$code" = "200"

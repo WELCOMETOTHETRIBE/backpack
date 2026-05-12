@@ -5,6 +5,12 @@ import { eq, and, desc, asc } from "drizzle-orm";
 import { requireOrg, requireRole } from "@/lib/auth";
 import { ensureEvidenceEngineRegistersForOrg } from "@/lib/evidence-engine/control-dashboard";
 import { logEntryEvent } from "@/lib/evidence-engine/entry-events";
+import { scoreControlsAffectedBy } from "@/lib/canonical-state/rescore-trigger";
+
+// AT family — every training write/delete affects the canonical
+// adjudication for these three. Kept inline (not imported) so a future
+// rename doesn't silently drop one.
+const AT_CONTROL_IDS = ["3.2.1", "3.2.2", "3.2.3"] as const;
 
 export async function GET() {
   try {
@@ -169,6 +175,20 @@ export async function POST(req: Request) {
       }
     }
 
+    // Real-time SCTM impact: a new training record may flip 3.2.x from
+    // NOT_MET → MET (or move user-coverage along) without any further
+    // operator action. Best-effort — never roll back the write.
+    try {
+      await scoreControlsAffectedBy({
+        organizationId: orgId,
+        triggerSource: "register_entry_finalized",
+        controlIds: [...AT_CONTROL_IDS],
+        triggeredByUserId: user.id ?? null,
+      });
+    } catch (rescoreErr) {
+      console.error("[training-records POST] AT rescore failed (non-blocking):", rescoreErr);
+    }
+
     return NextResponse.json(row, { status: 201 });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Unauthorized";
@@ -180,7 +200,7 @@ export async function POST(req: Request) {
 export async function DELETE(req: Request) {
   try {
     const orgId = await requireOrg();
-    await requireRole(["Admin", "Compliance"]);
+    const user = await requireRole(["Admin", "Compliance"]);
 
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
@@ -189,6 +209,20 @@ export async function DELETE(req: Request) {
     await db
       .delete(trainingRecords)
       .where(and(eq(trainingRecords.id, id), eq(trainingRecords.organizationId, orgId)));
+
+    // Deleting a training record can flip 3.2.x backwards (MET → NOT_MET)
+    // if it was the last valid record covering a required user. Same
+    // best-effort posture as POST.
+    try {
+      await scoreControlsAffectedBy({
+        organizationId: orgId,
+        triggerSource: "register_entry_voided",
+        controlIds: [...AT_CONTROL_IDS],
+        triggeredByUserId: user.id ?? null,
+      });
+    } catch (rescoreErr) {
+      console.error("[training-records DELETE] AT rescore failed (non-blocking):", rescoreErr);
+    }
 
     return NextResponse.json({ ok: true });
   } catch (e) {

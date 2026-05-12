@@ -9,6 +9,7 @@ import {
 } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { requireOrg, requireRole } from "@/lib/auth";
+import { scoreControlsAffectedBy } from "@/lib/canonical-state/rescore-trigger";
 
 /**
  * Training controls mapped to their training types and descriptions.
@@ -47,7 +48,7 @@ const TRAINING_CONTROLS = [
 export async function POST() {
   try {
     const orgId = await requireOrg();
-    await requireRole(["Admin", "Compliance"]);
+    const user = await requireRole(["Admin", "Compliance"]);
 
     // 1. Load boundary users and their stored user types
     const orgUsers = await db
@@ -214,6 +215,23 @@ export async function POST() {
 
       createdIds.push(inserted.id);
       details.push({ controlId: gap.controlId, poamId: inserted.id, action: "created" });
+    }
+
+    // Canonical rescore for every AT control we touched. POA&M creation
+    // can elevate met_via to 'operational_plan_of_action' once the POA&M
+    // is finalized, but even at draft stage the snapshot needs to reflect
+    // the gap reality (and the rescore writes a history row regardless).
+    if (gaps.length > 0) {
+      try {
+        await scoreControlsAffectedBy({
+          organizationId: orgId,
+          triggerSource: "poam_created",
+          controlIds: gaps.map((g) => g.controlId),
+          triggeredByUserId: user.id ?? null,
+        });
+      } catch (rescoreErr) {
+        console.error("[training-records/sync-poams] rescore failed (non-blocking):", rescoreErr);
+      }
     }
 
     return NextResponse.json({

@@ -16,6 +16,7 @@ import {
 import { controlIdToNist } from "@/lib/compliance/controlId";
 import { syncOrgAzureInheritedControls } from "@/lib/compliance/azure-inherited-controls";
 import { calculateControlStatus } from "@/lib/control-status";
+import { scoreControlsAffectedBy } from "@/lib/canonical-state/rescore-trigger";
 
 type ReportBody = {
   run_id: string;
@@ -283,6 +284,42 @@ export async function POST(
       ids.slice(i, i + 10).map((id) => calculateControlStatus(id).catch(() => null)),
     );
     recomputed += Math.min(10, ids.length - i);
+  }
+
+  // Canonical rescore for every control with a cloud finding. The
+  // calculateControlStatus loop above only updates the legacy column;
+  // SCTM family aggregates read from controlAdjudicationSnapshots.
+  // Fresh cloud evidence is the strongest signal we get, so we want
+  // both the legacy column AND the canonical snapshot in sync.
+  const cloudControlIds = new Set<string>();
+  for (const c of checks) {
+    const nist = c.control ? controlIdToNist(c.control) : null;
+    if (nist) cloudControlIds.add(nist);
+  }
+  // Also include the four strict-inherited 3.10 controls — syncOrgAzure
+  // above flipped them but didn't rescore the canonical snapshot.
+  if (inheritedFlipped > 0) {
+    cloudControlIds.add("3.10.1");
+    cloudControlIds.add("3.10.2");
+    cloudControlIds.add("3.10.4");
+    cloudControlIds.add("3.10.5");
+  }
+  if (cloudControlIds.size > 0) {
+    try {
+      await scoreControlsAffectedBy({
+        organizationId: orgId,
+        triggerSource: "validator_run_persisted",
+        // ctx may be either session or bearer (EnclaveWatch); we don't
+        // have a user identity in the bearer path, so log as null.
+        controlIds: [...cloudControlIds],
+        triggeredByUserId: null,
+      });
+    } catch (rescoreErr) {
+      console.error(
+        "[os-baselines/import-report] cloud rescore failed (non-blocking):",
+        rescoreErr,
+      );
+    }
   }
 
   return NextResponse.json({

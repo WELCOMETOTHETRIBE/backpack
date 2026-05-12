@@ -14,6 +14,7 @@ import { recalculateControlsForRegister } from '@/lib/control-status-register'
 import { ensureEvidenceEngineRegistersForOrg } from '@/lib/evidence-engine/control-dashboard'
 import { logEntryEvent } from '@/lib/evidence-engine/entry-events'
 import { getStorageService } from '@/lib/storage'
+import { scoreControlsAffectedBy } from '@/lib/canonical-state/rescore-trigger'
 
 // ── MacTech metadata v2 schema ────────────────────────────────────────────────
 
@@ -254,6 +255,22 @@ export async function POST(req: Request) {
           await recalculateControlsForRegister(register.id, orgId)
         }
       }
+    }
+
+    // Canonical rescore for the specific AT control this cert covers.
+    // recalculateControlsForRegister above only updates the legacy
+    // controlRecords.implementationStatus column; the SCTM family card
+    // reads from controlAdjudicationSnapshots.aggregateFinding, which
+    // requires the CAE scorer to run. Best-effort.
+    try {
+      await scoreControlsAffectedBy({
+        organizationId: orgId,
+        triggerSource: 'register_entry_finalized',
+        controlIds: [meta.at_control],
+        triggeredByUserId: user.id ?? null,
+      })
+    } catch (rescoreErr) {
+      console.error('[training-import] AT rescore failed (non-blocking):', rescoreErr)
     }
 
     return NextResponse.json(

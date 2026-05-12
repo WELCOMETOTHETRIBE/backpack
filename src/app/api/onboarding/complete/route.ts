@@ -24,6 +24,7 @@ import { computeAndPersistSprsScore } from "@/lib/sprs";
 import { REGISTER_DEFINITIONS } from "@/lib/governance/seed-data";
 import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
 import { generateClientRequiredPoams } from "@/lib/onboarding/generate-client-poams";
+import { scoreControlsAffectedBy } from "@/lib/canonical-state/rescore-trigger";
 
 // Defense-in-depth: every optional field is .nullish() so a null sent by a
 // caller (e.g. wizard passing through a stored null cageCode) is treated as
@@ -128,6 +129,23 @@ export async function POST(req: Request) {
               eq(controlRecords.controlId, controlId)
             )
           );
+      }
+
+      // Canonical rescore for any control we just flipped to 'inherited'.
+      // Without this, the SCTM family card stays NOT_MET because the
+      // canonical snapshot is computed off control_assessment_logic
+      // requirements (esp_inheritance elevator), not the legacy column.
+      if (inherited.length > 0) {
+        try {
+          await scoreControlsAffectedBy({
+            organizationId: orgId,
+            triggerSource: "manual_override",
+            controlIds: inherited.map((i) => i.controlId),
+            triggeredByUserId: actor.id ?? null,
+          });
+        } catch (rescoreErr) {
+          console.error("[onboarding/complete] inherited rescore failed (non-blocking):", rescoreErr);
+        }
       }
     }
 

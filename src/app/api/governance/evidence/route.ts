@@ -8,6 +8,7 @@ import {
 } from "@/db/schema";
 import { eq, and, desc, sql, inArray } from "drizzle-orm";
 import { requireOrg, requireRole } from "@/lib/auth";
+import { scoreControlsAffectedBy } from "@/lib/canonical-state/rescore-trigger";
 
 /**
  * GET /api/governance/evidence?evidence_type=...&controlId=...&stale=1&page=1&limit=20
@@ -150,6 +151,7 @@ export async function POST(req: Request) {
 
     const controlIds = (body.controlIds as string[]) ?? [];
     let recordIds: string[] = [];
+    const flippedControlIds: string[] = [];
     if (controlIds.length > 0 && item) {
       const { governanceControlLinks: gcl } = await import("@/db/schema");
       const records = await db
@@ -172,6 +174,7 @@ export async function POST(req: Request) {
           .update(controlRecords)
           .set({ implementationStatus: "implemented", updatedAt: new Date() })
           .where(and(eq(controlRecords.organizationId, orgId), inArray(controlRecords.id, recordIds)));
+        flippedControlIds.push(...controlIds);
         const openEntries = await db
           .select({ id: poamEntries.id })
           .from(poamEntries)
@@ -194,6 +197,22 @@ export async function POST(req: Request) {
             })
             .where(eq(poamEntries.id, e.id));
         }
+      }
+    }
+
+    // Canonical rescore for any control we flipped to 'implemented'.
+    // The legacy implementationStatus write above won't update the SCTM
+    // family card on its own — that reads from the canonical snapshot.
+    if (flippedControlIds.length > 0) {
+      try {
+        await scoreControlsAffectedBy({
+          organizationId: orgId,
+          triggerSource: "attestation_signed",
+          controlIds: flippedControlIds,
+          triggeredByUserId: user.id ?? null,
+        });
+      } catch (rescoreErr) {
+        console.error("[governance/evidence POST] rescore failed (non-blocking):", rescoreErr);
       }
     }
 
