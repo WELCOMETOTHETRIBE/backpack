@@ -9,11 +9,28 @@ IR Tabletop / RA / CA assessment in Codex.
 Google Meet ends
   → Google emails attendance + drops CSV in Drive folder
     → Apps Script picks it up (every 10 min)
-      → POSTs parsed roster to /api/integrations/google-meet-attendance
-        → Codex matches by [CDX-{kind}-{prefix}] tag in meeting title
-          → Updates ir_exercise_participants + stamps bundle corroboration
-            → Fires canonical rescore for IR.L2-3.6.1/2/3
+      → POSTs parsed roster to Codex (RA / CA) or TrainOS (IR — pending, see below)
 ```
+
+**RA + CA** are Codex-native (bundles built from controls/cycles), so
+the direct path to `/api/integrations/google-meet-attendance` is
+correct: Codex stores the import, links to the entity, fires the
+canonical rescore.
+
+**IR Tabletop is different.** The IR bundle ZIP is built and uploaded
+to Azure Gov by TrainOS, not Codex — Codex only ever holds the
+manifest. So for the CSV bytes to physically end up in the bundle a
+C3PAO downloads, attendance for IR meetings must go to **TrainOS
+first**, which attaches the CSV to its working bundle ZIP, uploads to
+Azure Gov, and pushes the new manifest to Codex via the existing IR
+bridge.
+
+That TrainOS endpoint isn't built yet — see [TRAINOS_HANDOFF.md](TRAINOS_HANDOFF.md)
+for the spec the TrainOS team needs to implement. Until then,
+IR-tagged meetings land on Codex as raw provenance + a participant
+`attendedAt` mirror update + a rescore fire. The dashboard reflects
+attendance, but the C3PAO-facing bundle ZIP stays uncorroborated
+until TrainOS owns the file.
 
 ## One-time setup
 

@@ -8,19 +8,41 @@
  *
  * Auth: Bearer + HMAC + org header — see src/lib/google-meet-bridge.ts.
  *
+ * ⚠ IR-specific architecture note:
+ *   The IR Tabletop bundle ZIP is built and uploaded to Azure Gov by
+ *   TrainOS, NOT by Codex. Codex only ever holds the manifest +
+ *   sha256s — never the bundle bytes. That means if Codex stamps
+ *   ir_exercise_bundles.attendance_corroboration_file_sha256 from the
+ *   Google Meet CSV, it's claiming a hash for a file that never made
+ *   it into the bundle ZIP a C3PAO would download. False-positive
+ *   evidence claim. So this route does NOT stamp the bundle.
+ *
+ *   The correct path for IR is: Apps Script → TrainOS attendance
+ *   ingest endpoint → TrainOS attaches CSV to the working bundle ZIP
+ *   → uploads to Azure Gov → POSTs the new manifest to Codex via the
+ *   existing IR bridge. See scripts/google-meet-attendance/TRAINOS_HANDOFF.md
+ *   for the spec the TrainOS team needs to build.
+ *
+ *   Until that's wired up, IR attendance lands here as raw provenance
+ *   (meeting_attendance_imports row), participants are marked
+ *   attended on Codex's mirror table (used by the dashboard), and the
+ *   canonical rescore fires — but the C3PAO-facing bundle stays
+ *   uncorroborated until TrainOS owns the file.
+ *
  * Match logic:
  *   1. Pull [CDX-{kind}-{8charPrefix}] tag from meetingTitle
  *   2. kind ∈ {IR, RA, CA} — look up entity by uuid prefix
  *   3. On IR match:
+ *        - Record the meeting_attendance_imports row (provenance)
  *        - Update ir_exercise_participants.attended_at by email
- *        - Stamp the latest provisional bundle (if any) with
- *          attendance_corroboration_kind='google_meet_csv' +
- *          attendance_corroboration_file_sha256 + the seal deadline
+ *          (Codex's local mirror — TrainOS becomes canonical writer
+ *          once the TrainOS endpoint ships)
  *        - Fire scoreControlsAffectedBy for IR.L2-3.6.1/2/3
- *   4. On RA / CA match: record the import + audit log; no
- *      automated attachment yet (those entities don't have a
- *      participant model). Visible from the dashboard for manual
- *      reconciliation.
+ *        - Bundle stamping deliberately NOT done here — see note above
+ *   4. On RA / CA match: record the import + audit log. RA + CA
+ *      bundles are Codex-native (built from controls/cycles), so the
+ *      direct path is correct here. Auto-attachment can be added
+ *      when those flows define a participant model.
  *   5. No tag / no match: row stored unmatched. Not a failure.
  *
  * Idempotency: (organization_id, drive_file_id) is a unique index, so
@@ -28,7 +50,6 @@
  * action='already_imported' instead of duplicating rows.
  */
 
-import { createHash } from "node:crypto";
 import { and, eq, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -40,7 +61,7 @@ import {
   riskAssessments,
   caAssessmentBundles,
 } from "@/db/schema";
-import { irExercises, irExerciseParticipants, irExerciseBundles } from "@/db/schema.ir-tabletop";
+import { irExercises, irExerciseParticipants } from "@/db/schema.ir-tabletop";
 import {
   BridgeAuthError,
   BRIDGE_CONTRACT_VERSION,
@@ -175,15 +196,19 @@ export async function POST(req: Request) {
 
   const sideEffects: {
     irParticipantsUpdated: number;
-    bundleStamped: boolean;
     rescoreFired: boolean;
   } = {
     irParticipantsUpdated: 0,
-    bundleStamped: false,
     rescoreFired: false,
   };
 
   // ── IR Tabletop side effects ──
+  // NOTE: bundle stamping is intentionally absent — see the file
+  // header. The bundle ZIP is built by TrainOS, so stamping a sha256
+  // for a CSV that never makes it into the ZIP would be a false
+  // evidence claim. Once TrainOS exposes its attendance ingest
+  // (TRAINOS_HANDOFF.md), the Apps Script will route IR there and
+  // this branch becomes a fallback for the operator-driven case.
   if (matchKind === "ir_tabletop" && matchId) {
     try {
       sideEffects.irParticipantsUpdated = await markIrParticipantsAttended(
@@ -193,15 +218,6 @@ export async function POST(req: Request) {
       );
     } catch (err) {
       console.error("[google-meet-attendance] IR participant update failed:", err);
-    }
-
-    try {
-      sideEffects.bundleStamped = await stampLatestProvisionalBundle(
-        matchId,
-        payload.driveFileSha256 ?? deriveSha256FromPayload(rawBody),
-      );
-    } catch (err) {
-      console.error("[google-meet-attendance] IR bundle stamp failed:", err);
     }
 
     try {
@@ -352,40 +368,3 @@ async function markIrParticipantsAttended(
   return updated;
 }
 
-/**
- * Stamp the latest provisional bundle (if any) with the Google Meet
- * corroboration metadata. If no provisional bundle exists yet, the
- * import row alone preserves provenance until TrainOS uploads one.
- */
-async function stampLatestProvisionalBundle(
-  exerciseId: string,
-  sha256: string,
-): Promise<boolean> {
-  const [bundle] = await db
-    .select({ id: irExerciseBundles.id })
-    .from(irExerciseBundles)
-    .where(
-      and(
-        eq(irExerciseBundles.exerciseId, exerciseId),
-        eq(irExerciseBundles.bundleState, "provisional"),
-      ),
-    )
-    .orderBy(sql`${irExerciseBundles.bundleVersion} DESC`)
-    .limit(1);
-
-  if (!bundle) return false;
-
-  await db
-    .update(irExerciseBundles)
-    .set({
-      attendanceCorroborationKind: "google_meet_csv",
-      attendanceCorroborationFileSha256: sha256,
-    })
-    .where(eq(irExerciseBundles.id, bundle.id));
-
-  return true;
-}
-
-function deriveSha256FromPayload(rawBody: string): string {
-  return createHash("sha256").update(rawBody).digest("hex");
-}
