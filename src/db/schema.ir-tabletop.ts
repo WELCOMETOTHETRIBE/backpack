@@ -460,9 +460,16 @@ export const irExerciseBundles = pgTable(
         signedByUserId: string;
       }>
     >(),
-    /** Source of supporting attendance evidence beyond the facilitator's word. */
+    /**
+     * Source of supporting attendance evidence beyond the facilitator's word.
+     * 'google_meet_csv' added 2026-05 — written by
+     * /api/integrations/google-meet-attendance when an attendance import
+     * matches an IR exercise via [CDX-IR-{prefix}] tag in the meeting title.
+     * Column is plain text (no DB enum), so adding values requires only
+     * extending this union.
+     */
     attendanceCorroborationKind: text("attendance_corroboration_kind").$type<
-      "teams_csv" | "signed_roster_image" | "facilitator_only"
+      "teams_csv" | "google_meet_csv" | "signed_roster_image" | "facilitator_only"
     >(),
     attendanceCorroborationFileSha256: varchar("attendance_corroboration_file_sha256", { length: 64 }),
     /** Provisional → sealed deadline (executedAt + 7d dispute window). */

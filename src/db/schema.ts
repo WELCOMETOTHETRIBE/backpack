@@ -3048,3 +3048,71 @@ export const caAssessmentBundles = pgTable("ca_assessment_bundles", {
     .notNull()
     .defaultNow(),
 });
+
+// ============== Meeting attendance imports (Google Meet, Teams, Zoom) ==============
+// Captures the attendance roster Google emails + drops in Drive when a
+// Meet ends. Source-of-truth for "who was actually in the room" for IR
+// tabletop AAR, RA review meetings, and CA assessment workshops. The
+// Apps Script in scripts/google-meet-attendance/Code.gs watches the
+// Drive folder and POSTs to /api/integrations/google-meet-attendance.
+// Match logic at the route handler links to the entity by tag in the
+// meeting title — see drizzle/0077_meeting_attendance_imports.sql for
+// the full column rationale.
+export const meetingAttendanceImports = pgTable(
+  "meeting_attendance_imports",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    source: text("source").notNull().default("google_meet").$type<"google_meet" | "teams" | "zoom">(),
+
+    meetingTitle: text("meeting_title").notNull(),
+    meetingStartedAt: timestamp("meeting_started_at", { withTimezone: true }).notNull(),
+    meetingEndedAt: timestamp("meeting_ended_at", { withTimezone: true }),
+    meetingDurationMinutes: integer("meeting_duration_minutes"),
+
+    driveFileId: text("drive_file_id").notNull(),
+    driveFileUrl: text("drive_file_url").notNull(),
+    driveFileName: text("drive_file_name"),
+    driveFileSha256: varchar("drive_file_sha256", { length: 64 }),
+
+    attendeesJson: jsonb("attendees_json")
+      .$type<
+        Array<{
+          name: string;
+          email: string | null;
+          joinTimeIso: string | null;
+          leaveTimeIso: string | null;
+          durationMinutes: number | null;
+          role: string | null;
+        }>
+      >()
+      .notNull()
+      .default([]),
+    attendeeCount: integer("attendee_count").notNull().default(0),
+
+    matchKind: text("match_kind").$type<"ir_tabletop" | "ra" | "ca">(),
+    matchId: uuid("match_id"),
+    matchTag: text("match_tag"),
+    matchConfidence: text("match_confidence").$type<"tag_exact" | "tag_fuzzy" | "unmatched">(),
+    matchedAt: timestamp("matched_at", { withTimezone: true }),
+
+    importedByCaller: text("imported_by_caller").notNull(),
+    importedByEmail: text("imported_by_email"),
+    rawPayloadJson: jsonb("raw_payload_json").$type<Record<string, unknown>>(),
+
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("meeting_attendance_imports_org_date_idx").on(
+      t.organizationId,
+      t.meetingStartedAt,
+    ),
+    index("meeting_attendance_imports_match_idx").on(t.matchKind, t.matchId),
+    uniqueIndex("meeting_attendance_imports_drive_dedup_idx").on(
+      t.organizationId,
+      t.driveFileId,
+    ),
+  ],
+);

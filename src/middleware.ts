@@ -81,6 +81,11 @@ const isPublicRoute = createRouteMatcher([
   // exception, Clerk's protect() rewrites to /clerk_* (404) before
   // the handler ever sees the bearer.
   "/api/cron(.*)",
+  // Google Meet attendance bridge — inbound from the Apps Script in
+  // scripts/google-meet-attendance/Code.gs. Auth is bearer + HMAC
+  // verified by src/lib/google-meet-bridge.ts; same Clerk-bypass
+  // rationale as the other service-to-service exceptions above.
+  "/api/integrations/google-meet-attendance(.*)",
 ]);
 
 const AUDIT_SESSION_COOKIE = "mactech_audit_session";
