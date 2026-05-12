@@ -75,6 +75,12 @@ const isPublicRoute = createRouteMatcher([
   // QMS_MANIFEST_SIGNING_SECRET; the route handler verifies via
   // qms-manifest-verify.ts. Same Clerk-bypass rationale as TrainOS.
   "/api/integrations/qms-manifest(.*)",
+  // Scheduled cron endpoints — pinged by GitHub Actions on a daily
+  // cadence (.github/workflows/cron-daily.yml). Each route validates
+  // Authorization: Bearer ${CRON_SECRET} on its own. Without this
+  // exception, Clerk's protect() rewrites to /clerk_* (404) before
+  // the handler ever sees the bearer.
+  "/api/cron(.*)",
 ]);
 
 const AUDIT_SESSION_COOKIE = "mactech_audit_session";
