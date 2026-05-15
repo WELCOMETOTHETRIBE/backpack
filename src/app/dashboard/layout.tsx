@@ -4,11 +4,9 @@ import { db } from "@/db";
 import { organizations } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import NonCuiBanner from "@/components/NonCuiBanner";
-import Sidebar from "@/components/Sidebar";
-import Header from "@/components/Header";
 import { DashboardProviders } from "@/components/DashboardProviders";
 import FeedbackWidget from "@/components/feedback/FeedbackWidget";
-import { MacTechFooter } from "@/components/MacTechFooter";
+import { DashboardChrome } from "@/components/dashboard/DashboardChrome";
 
 export default async function DashboardLayout({
   children,
@@ -38,13 +36,10 @@ export default async function DashboardLayout({
     <div className="flex h-screen flex-col overflow-hidden bg-[var(--color-surface-muted)]">
       <DashboardProviders user={session.user} />
       <NonCuiBanner />
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar boundaryComplete={boundaryComplete} />
-        <div className="flex min-w-0 flex-1 flex-col">
-          <Header user={session.user} />
-          <main className="flex-1 overflow-y-auto p-8">{children}</main>
-          <MacTechFooter />
-        </div>
+      <div className="flex min-h-0 flex-1 flex-col">
+        <DashboardChrome user={session.user} boundaryComplete={boundaryComplete}>
+          {children}
+        </DashboardChrome>
       </div>
       <FeedbackWidget />
     </div>

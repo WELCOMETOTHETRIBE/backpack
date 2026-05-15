@@ -80,7 +80,7 @@ Backward-compat ingest normalization:
 - Intake dashboard: `src/app/dashboard/intake/page.tsx`
 - Intake create flow: `src/app/dashboard/intake/new/*`
 - Intake detail workflow and actions: `src/app/dashboard/intake/[id]/*`
-- Sidebar navigation entry: `src/components/Sidebar.tsx`
+- Sidebar navigation: primary chrome via `src/components/dashboard/DashboardChrome.tsx` + `src/components/ui/app-shell.tsx`; nav config in `src/lib/dashboard-nav.ts`
 
 ## Infrastructure Integration
 
