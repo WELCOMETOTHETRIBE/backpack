@@ -31,6 +31,7 @@ import {
 } from "@/lib/compliance/outstanding-controls";
 import { getAttestationTemplate } from "@/lib/compliance/attestation-templates";
 import { AZURE_ENTRA_12_CONTROL_IDS } from "@/lib/compliance/azure-entra-controls";
+import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
 import { OutstandingWizard } from "./OutstandingWizard";
 
 /**
@@ -209,11 +210,16 @@ export default async function OutstandingPage() {
 
     // Bucket B: closed if any final register entry exists for the targeted register
     if (entry.bucket === "B" && entry.registerSchemaId) {
-      const candidates = [entry.registerSchemaId];
+      // CONTROL_INTELLIGENCE references registers by their singular schema id
+      // (e.g. "policy_review") while governance_registers stores the plural
+      // seed-data key (e.g. "policy_review_log"). resolveRegisterKeyCandidates
+      // returns both vocabularies so the lookup matches regardless of which
+      // form a row was written under.
+      const candidates = resolveRegisterKeyCandidates(entry.registerSchemaId);
       const count = candidates.reduce((acc, k) => acc + (finalCounts.get(k) ?? 0), 0);
       if (count > 0) return "closed";
       // Provisioned register with no final entries → in_progress; not provisioned → not_started
-      if (registerIdByKey.has(entry.registerSchemaId)) return "in_progress";
+      if (candidates.some((k) => registerIdByKey.has(k))) return "in_progress";
       return "not_started";
     }
 

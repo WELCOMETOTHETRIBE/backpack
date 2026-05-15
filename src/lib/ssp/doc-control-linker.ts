@@ -32,6 +32,11 @@ import {
 } from "@/db/schema";
 import { writeAuditLog } from "@/lib/audit";
 import { createOrGetReleaseBaseline } from "./release-baseline";
+import {
+  seedPolicyReviewEntryFromRelease,
+  recomputePolicyReviewAffectedControls,
+  type SeedResult,
+} from "./seed-policy-review-from-release";
 
 interface ManifestSspDoc {
   documentNumber: string;
@@ -127,6 +132,7 @@ export async function linkReleasedSspsToSubmissions(input: {
     let createdBaselineId: string | null = null;
     let baselineWasCreated = false;
     let supersededBaselineIds: string[] = [];
+    let policyReviewSeed: SeedResult | null = null;
     await db.transaction(async (tx) => {
       await tx
         .update(sspDocControlSubmissions)
@@ -177,6 +183,20 @@ export async function linkReleasedSspsToSubmissions(input: {
       createdBaselineId = baseline.baselineId;
       baselineWasCreated = baseline.created;
       supersededBaselineIds = baseline.supersededBaselineIds;
+
+      // Auto-seed the SSP & Policy Review register from the QMS release.
+      // Same-txn so a released submission can never exist without its
+      // register attestation. Failures here roll back the release —
+      // intentional: drift between QMS release and the register is
+      // exactly the problem this helper exists to prevent.
+      policyReviewSeed = await seedPolicyReviewEntryFromRelease(tx, {
+        organizationId: input.organizationId,
+        sspDocumentId: target.sspDocumentId,
+        sspDocControlSubmissionId: target.id,
+        qmsDocumentNumber: mDoc.documentNumber,
+        qmsSha256: sha,
+        releasedAt,
+      });
     });
 
     result.released += 1;
@@ -207,6 +227,69 @@ export async function linkReleasedSspsToSubmissions(input: {
           err,
         );
       }
+    }
+
+    // Post-txn fan-out for the auto-seeded policy review entry:
+    //   1. Audit log the seed (or duplicate-hit, for forensic traceability).
+    //   2. Recompute every control whose register lane depends on
+    //      policy_review_log so the dashboard reflects the new evidence
+    //      without waiting for lazy on-read recomputation.
+    // Both steps are best-effort. The release + register entry have
+    // already committed inside the txn above; an audit-log or recompute
+    // hiccup must not roll that back.
+    const seed = policyReviewSeed as SeedResult | null;
+    if (seed && (seed.kind === "created" || seed.kind === "duplicate")) {
+      try {
+        await writeAuditLog({
+          organizationId: input.organizationId,
+          action:
+            seed.kind === "created"
+              ? "governance_register.entry.auto_seeded"
+              : "governance_register.entry.auto_seed_duplicate",
+          resourceType: "governance_register_entry",
+          resourceId: seed.entryId,
+          details: {
+            source: "doc_control_release",
+            register_schema_id: "policy_review",
+            ssp_document_id: target.sspDocumentId,
+            ssp_doc_control_submission_id: target.id,
+            qms_document_number: mDoc.documentNumber,
+            qms_sha256: sha,
+            released_at: releasedAt.toISOString(),
+          },
+        });
+      } catch (err) {
+        console.error(
+          "[doc-control-linker] audit log write for policy-review seed failed:",
+          err,
+        );
+      }
+
+      if (seed.kind === "created") {
+        try {
+          const recompute = await recomputePolicyReviewAffectedControls(
+            input.organizationId,
+          );
+          if (recompute.errors.length > 0) {
+            console.error(
+              "[doc-control-linker] post-seed control recompute had errors:",
+              recompute.errors,
+            );
+          }
+          console.log(
+            `[doc-control-linker] post-seed recompute: ${recompute.recalculated} control(s) recalculated`,
+          );
+        } catch (err) {
+          console.error(
+            "[doc-control-linker] post-seed control recompute failed (non-blocking):",
+            err,
+          );
+        }
+      }
+    } else if (seed && seed.kind === "skipped") {
+      console.warn(
+        `[doc-control-linker] policy-review seed skipped for ${mDoc.documentNumber}: ${seed.reason}`,
+      );
     }
   }
 

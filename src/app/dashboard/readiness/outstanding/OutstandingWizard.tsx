@@ -58,6 +58,7 @@ const BUCKETS = {
 } as const;
 
 type BucketKey = keyof typeof BUCKETS;
+type TabKey = BucketKey | "ALL" | "IN_PROGRESS";
 
 const VALID_BUCKETS: readonly BucketKey[] = ["A", "B", "C", "E"];
 
@@ -77,17 +78,19 @@ export function OutstandingWizard({
   // Deep-link support: PathTo110Widget chips link here with ?bucket=A|B|C|E.
   // Read it on mount so the user lands on the right tab immediately.
   const searchParams = useSearchParams();
-  const initialBucket: BucketKey | "ALL" = (() => {
+  const initialBucket: TabKey = (() => {
     const v = searchParams.get("bucket");
+    if (v === "IN_PROGRESS") return "IN_PROGRESS";
     return isValidBucket(v) ? v : "ALL";
   })();
-  const [activeBucket, setActiveBucket] = useState<BucketKey | "ALL">(initialBucket);
+  const [activeBucket, setActiveBucket] = useState<TabKey>(initialBucket);
 
   // Keep tab in sync if the user navigates between bucket-filtered URLs in
   // the same session (e.g. clicks a chip while already on this page).
   useEffect(() => {
     const v = searchParams.get("bucket");
-    if (isValidBucket(v)) setActiveBucket(v);
+    if (v === "IN_PROGRESS") setActiveBucket("IN_PROGRESS");
+    else if (isValidBucket(v)) setActiveBucket(v);
     else if (v === null) setActiveBucket("ALL");
   }, [searchParams]);
 
@@ -96,39 +99,52 @@ export function OutstandingWizard({
     controlId: string;
   } | null>(null);
 
+  // "Outstanding Controls" = work that still needs to happen. Closed cards
+  // graduate off this view entirely (visible on the SCTM / Done view).
+  // not_started ("Open") lives under the bucket tabs (All / A / B / C / E).
+  // in_progress is shown only on the dedicated "In progress" tab so the
+  // bucket tabs are clean lists of work that hasn't been touched yet.
+  const notStartedCards = useMemo(
+    () => cards.filter((c) => c.liveStatus === "not_started"),
+    [cards],
+  );
+  const inProgressCards = useMemo(
+    () => cards.filter((c) => c.liveStatus === "in_progress"),
+    [cards],
+  );
+
   const grouped = useMemo(() => {
     const out: Record<BucketKey, WizardCard[]> = { A: [], B: [], C: [], E: [] };
-    for (const c of cards) {
+    for (const c of notStartedCards) {
       const b = c.bucket as BucketKey;
       if (out[b]) out[b].push(c);
     }
     return out;
-  }, [cards]);
+  }, [notStartedCards]);
 
   const filteredCards =
     activeBucket === "ALL"
-      ? cards
-      : grouped[activeBucket] ?? [];
+      ? notStartedCards
+      : activeBucket === "IN_PROGRESS"
+        ? inProgressCards
+        : grouped[activeBucket] ?? [];
 
-  // Sort: not_started first, then in_progress, then closed; within each, low-effort first
-  const sortedCards = [...filteredCards].sort((a, b) => {
-    const statusOrder = { not_started: 0, in_progress: 1, closed: 2 };
-    if (a.liveStatus !== b.liveStatus) {
-      return statusOrder[a.liveStatus] - statusOrder[b.liveStatus];
-    }
-    return a.effortMinutes - b.effortMinutes;
-  });
+  // Each tab is now single-status, so sort within by lowest effort first.
+  const sortedCards = [...filteredCards].sort(
+    (a, b) => a.effortMinutes - b.effortMinutes,
+  );
 
   return (
     <div className="space-y-6">
-      {/* Bucket tabs */}
+      {/* Bucket tabs. Each tab is a single-status list — bucket tabs hold
+          not_started ("Open") cards; the dedicated "In progress" tab holds
+          cards mid-flight. Closed cards never appear here. */}
       <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-3">
         <BucketTab
           active={activeBucket === "ALL"}
           onClick={() => setActiveBucket("ALL")}
           label="All"
-          count={cards.length}
-          closedCount={cards.filter((c) => c.liveStatus === "closed").length}
+          count={notStartedCards.length}
         />
         {(Object.keys(BUCKETS) as BucketKey[]).map((b) => (
           <BucketTab
@@ -137,9 +153,14 @@ export function OutstandingWizard({
             onClick={() => setActiveBucket(b)}
             label={BUCKETS[b].label}
             count={grouped[b]?.length ?? 0}
-            closedCount={(grouped[b] ?? []).filter((c) => c.liveStatus === "closed").length}
           />
         ))}
+        <BucketTab
+          active={activeBucket === "IN_PROGRESS"}
+          onClick={() => setActiveBucket("IN_PROGRESS")}
+          label="In progress"
+          count={inProgressCards.length}
+        />
       </div>
 
       {/* Customer-attested-inherited section (always shown when not closed) */}
@@ -270,13 +291,11 @@ function BucketTab({
   onClick,
   label,
   count,
-  closedCount,
 }: {
   active: boolean;
   onClick: () => void;
   label: string;
   count: number;
-  closedCount: number;
 }) {
   return (
     <button
@@ -295,7 +314,7 @@ function BucketTab({
             : "bg-slate-100 text-slate-600"
         }`}
       >
-        {closedCount}/{count}
+        {count}
       </span>
     </button>
   );
