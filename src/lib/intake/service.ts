@@ -418,7 +418,8 @@ export async function buildIntakeReconstructionByTransactionId(input: {
     vaultImport: sanitizedFiles.map((file) => ({
       fileId: file.id,
       vaultImportStatus: file.vaultImportStatus,
-      vaultDestinationPath: file.vaultDestinationPath,
+      vaultDestinationPathReference: file.vaultDestinationPathReference,
+      vaultDestinationPathHash: file.vaultDestinationPathHash,
       vaultImportTimestamp: file.vaultImportTimestamp,
       importedByIdentity: file.importedByIdentity,
     })),

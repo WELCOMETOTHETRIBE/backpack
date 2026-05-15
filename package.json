@@ -43,7 +43,8 @@
     "governance-inventory": "tsx src/scripts/governance-inventory.ts",
     "generate:control-master-csv": "tsx src/scripts/generate-cmmc-control-master-csv.ts",
     "sync-matrix": "tsx src/scripts/sync-governance-matrix.ts",
-    "normalize-collector-run": "tsx src/scripts/normalize-collector-run.ts"
+    "normalize-collector-run": "tsx src/scripts/normalize-collector-run.ts",
+    "intake:bootstrap-call": "bash scripts/bootstrap-intake-for-vault.sh"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.89.0",

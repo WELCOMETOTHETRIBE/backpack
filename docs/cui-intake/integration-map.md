@@ -14,6 +14,8 @@
 
 ## API Integration
 
+- Vault → Codex intake metadata posting is implemented in EnclaveWatch (`IntakeCustomerUploadCoordinator` + `IntakeCodexMetadataEventClient`): each successful customer upload emits `intake_upload_authorization`, `intake_upload_started`, and `intake_upload_completed` when Codex URL/token are configured and `EnclaveWatch:Intake:EnableCodexMetadataEvents` is true (requires a matching `intake_requests.intake_transaction_id` in Codex).
+- **Bootstrap intake row (vault bearer):** `POST /api/enclavewatch/intake-requests/create` — creates `intake_requests` + canonical `intake_transaction_id` using `Authorization: Bearer <organizations.enclavewatch_api_token>` (same auth model as ingest). CLI helper: `scripts/bootstrap-intake-for-vault.sh` (needs `CODEX_BASE_URL` + `ENCLAVEWATCH_API_TOKEN`).
 - Intake lifecycle API: `src/app/api/intake/*`
 - Transaction reconstruction API: `src/app/api/intake/transaction/[intakeTransactionId]/reconstruct/route.ts`
 - EnclaveWatch intake event feed: `src/app/api/enclavewatch/intake-events/ingest/route.ts`

@@ -579,6 +579,30 @@ export function ComplianceRegistersClient({ userRole }: { userRole: string }) {
         </div>
       </div>
 
+      <div className="mb-6 rounded-2xl border border-sky-200 bg-gradient-to-br from-sky-50 via-white to-white px-5 py-4 shadow-sm">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-100 text-sky-700">
+              <FolderOpen className="h-5 w-5" aria-hidden />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-gray-900">CUI intake lifecycle (vault → Codex)</p>
+              <p className="mt-1 text-xs text-gray-600 max-w-xl">
+                Customer uploads on the vault emit metadata-only events into Codex (<code className="rounded bg-sky-100 px-1 py-0.5 text-[11px]">intake_metadata_events</code>)
+                tied to each intake request. Use Intake for transaction detail, reconstruction, and evidence alignment — complementary to the governance registers below.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/dashboard/intake"
+            className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-lg bg-sky-700 px-3 py-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-sky-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+          >
+            Open intake workspace
+            <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+          </Link>
+        </div>
+      </div>
+
       {/* Urgent alert banner */}
       {!loading && hasUrgent && (
         <div className="mb-5 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3.5">
