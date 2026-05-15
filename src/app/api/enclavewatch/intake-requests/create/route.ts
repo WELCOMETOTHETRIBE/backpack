@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/db";
@@ -8,9 +9,13 @@ import { resolveOrgFromSessionOrBearer } from "@/lib/auth-bearer";
 import { INTAKE_CLASSIFICATIONS } from "@/lib/intake/status";
 import { nextIntakeTransactionId, validateIntakeForeignKeys } from "@/lib/intake/service";
 
+const txnIdRegex = /^[a-zA-Z0-9_.:-]+$/;
+
 const bodySchema = z
   .object({
     title: z.string().min(1).max(500).optional(),
+    /** When set, aligns Codex intake_transaction_id with the vault transaction id (e.g. tx-…). */
+    intakeTransactionId: z.string().min(3).max(100).regex(txnIdRegex).optional(),
     clientCode: z.string().min(1).max(40).optional(),
     projectCode: z.string().min(1).max(40).optional(),
     expectedClassification: z.enum(INTAKE_CLASSIFICATIONS).optional(),
@@ -65,11 +70,49 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: message }, { status: 400 });
   }
 
-  const intakeTransactionId = await nextIntakeTransactionId({
-    organizationId: ctx.orgId,
-    clientCode,
-    projectCode,
-  });
+  const vaultTxnId = b.intakeTransactionId?.trim();
+
+  if (vaultTxnId) {
+    const [existing] = await db
+      .select({
+        id: intakeRequests.id,
+        intakeTransactionId: intakeRequests.intakeTransactionId,
+        organizationId: intakeRequests.organizationId,
+        status: intakeRequests.status,
+        title: intakeRequests.title,
+        createdAt: intakeRequests.createdAt,
+      })
+      .from(intakeRequests)
+      .where(and(eq(intakeRequests.organizationId, ctx.orgId), eq(intakeRequests.intakeTransactionId, vaultTxnId)))
+      .limit(1);
+
+    if (existing) {
+      return NextResponse.json(
+        {
+          ok: true,
+          already_exists: true,
+          intake_request_id: existing.id,
+          intake_transaction_id: existing.intakeTransactionId,
+          organization_id: existing.organizationId,
+          status: existing.status,
+          title: existing.title,
+          created_at: existing.createdAt,
+        },
+        { status: 200 },
+      );
+    }
+  }
+
+  const intakeTransactionId =
+    vaultTxnId ??
+    (await nextIntakeTransactionId({
+      organizationId: ctx.orgId,
+      clientCode,
+      projectCode,
+    }));
+
+  /** Vault-aligned bootstrap rows skip Draft so bearer register-upload semantics apply immediately. */
+  const insertStatus = vaultTxnId ? "Awaiting Upload" : "Draft";
 
   const [created] = await db
     .insert(intakeRequests)
@@ -94,7 +137,7 @@ export async function POST(req: Request) {
       senderDomain: null,
       identityVerificationMethod: null,
       uploadMethod: null,
-      status: "Draft",
+      status: insertStatus,
     })
     .returning({
       id: intakeRequests.id,

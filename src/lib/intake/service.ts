@@ -21,7 +21,10 @@ import {
 import { scoreControlsAffectedBy } from "@/lib/canonical-state/rescore-trigger";
 import { writeAuditLog } from "@/lib/audit";
 import { buildManifestWithHash, sha256Hex } from "@/lib/intake/manifest";
-import { canTransitionIntakeStatus, type IntakeStatus } from "@/lib/intake/status";
+import {
+  canTransitionIntakeStatus,
+  type IntakeStatus,
+} from "@/lib/intake/status";
 import { buildIntakeTransactionId } from "@/lib/intake/transaction-id";
 
 type Actor = { userId: string | null; orgId: string };
@@ -199,6 +202,123 @@ export async function transitionIntakeStatus(params: {
       ...(params.details ?? {}),
     },
   });
+}
+
+/**
+ * Bearer-authenticated vault path: inserts intake_files + advances lifecycle after a
+ * successful customer→vault blob ingest (same semantics as POST …/register-upload).
+ */
+export async function registerIntakeFileFromEnclaveWatchVault(params: {
+  orgId: string;
+  intakeTransactionId: string;
+  originalFilename: string;
+  blobPathForHash: string | null;
+  storageAccount: string | null;
+  containerName: string | null;
+  contentType: string | null;
+  fileSize: number | null;
+  sha256Hex: string | null;
+  uploadedByIdentity: string | null;
+}) {
+  const txnId = params.intakeTransactionId.trim();
+  const [request] = await db
+    .select()
+    .from(intakeRequests)
+    .where(
+      and(eq(intakeRequests.organizationId, params.orgId), eq(intakeRequests.intakeTransactionId, txnId)),
+    )
+    .limit(1);
+
+  if (!request) throw new Error("Intake request not found");
+
+  let effectiveStatus = request.status as IntakeStatus;
+
+  if (effectiveStatus === "Draft") {
+    await db
+      .update(intakeRequests)
+      .set({ status: "Awaiting Upload", updatedAt: new Date() })
+      .where(eq(intakeRequests.id, request.id));
+
+    await writeAuditLog({
+      organizationId: params.orgId,
+      userId: null,
+      action: "intake.request.promoted_for_vault_customer_upload",
+      resourceType: "intake_request",
+      resourceId: request.id,
+      details: {
+        intakeTransactionId: request.intakeTransactionId,
+        from: "Draft",
+        to: "Awaiting Upload",
+      },
+    });
+    effectiveStatus = "Awaiting Upload";
+  }
+
+  const allowedForVaultRegistration = ["Awaiting Upload", "Upload Scope Provisioned", "Uploaded", "Scan Pending"];
+  if (!allowedForVaultRegistration.includes(effectiveStatus)) {
+    throw new Error("Intake request is not accepting vault file registration");
+  }
+
+  const originalFilename = params.originalFilename.trim();
+  const { objectAlias, originalFilenameHash } = buildTokenizedObjectAlias({
+    intakeTransactionId: request.intakeTransactionId,
+    originalFilename,
+  });
+
+  const blobPathHash = params.blobPathForHash ? sha256Hex(params.blobPathForHash) : null;
+
+  const [file] = await db
+    .insert(intakeFiles)
+    .values({
+      intakeRequestId: request.id,
+      originalFilename: objectAlias,
+      originalFilenameHash,
+      sensitiveFilenameRetained: false,
+      storageAccount: params.storageAccount,
+      containerName: params.containerName,
+      blobPathHash,
+      blobPath: blobPathHash ? `redacted://blob/${blobPathHash.slice(0, 16)}` : null,
+      blobUrlRedacted: null,
+      contentType: params.contentType,
+      fileSize: params.fileSize ?? null,
+      uploadTimestamp: new Date(),
+      uploadedByIdentity: params.uploadedByIdentity,
+      malwareScanStatus: "pending",
+      sha256Hash: params.sha256Hex,
+      classificationStatus: "pending_review",
+    })
+    .returning();
+
+  if (!file) throw new Error("Failed to insert intake file");
+
+  const transitionDetails = { fileId: file.id, via: "enclavewatch_vault_upload" as const };
+
+  if (effectiveStatus === "Awaiting Upload" || effectiveStatus === "Upload Scope Provisioned") {
+    await transitionIntakeStatus({
+      intakeRequestId: request.id,
+      orgId: params.orgId,
+      actorUserId: null,
+      nextStatus: "Uploaded",
+      details: { ...transitionDetails, intakeObjectAlias: file.originalFilename },
+    });
+    await transitionIntakeStatus({
+      intakeRequestId: request.id,
+      orgId: params.orgId,
+      actorUserId: null,
+      nextStatus: "Scan Pending",
+      details: transitionDetails,
+    });
+  } else if (effectiveStatus === "Uploaded") {
+    await transitionIntakeStatus({
+      intakeRequestId: request.id,
+      orgId: params.orgId,
+      actorUserId: null,
+      nextStatus: "Scan Pending",
+      details: transitionDetails,
+    });
+  }
+
+  return file;
 }
 
 export async function createIntakeAuditArtifact(params: {

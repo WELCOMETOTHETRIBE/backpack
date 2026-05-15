@@ -10,6 +10,10 @@ const mocks = vi.hoisted(() => ({
   mockValues: vi.fn(),
   mockInsert: vi.fn(),
   mockWriteAuditLog: vi.fn(),
+  mockLimit: vi.fn(),
+  mockWhere: vi.fn(),
+  mockFrom: vi.fn(),
+  mockSelect: vi.fn(),
 }));
 
 vi.mock("@/lib/auth-bearer", () => ({
@@ -24,6 +28,7 @@ vi.mock("@/lib/intake/service", () => ({
 vi.mock("@/db", () => ({
   db: {
     insert: mocks.mockInsert,
+    select: mocks.mockSelect,
   },
 }));
 
@@ -34,6 +39,10 @@ vi.mock("@/lib/audit", () => ({
 describe("POST /api/enclavewatch/intake-requests/create", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.mockLimit.mockResolvedValue([]);
+    mocks.mockWhere.mockReturnValue({ limit: mocks.mockLimit });
+    mocks.mockFrom.mockReturnValue({ where: mocks.mockWhere });
+    mocks.mockSelect.mockReturnValue({ from: mocks.mockFrom });
     mocks.mockReturning.mockResolvedValue([
       {
         id: "550e8400-e29b-41d4-a716-446655440000",
@@ -108,5 +117,65 @@ describe("POST /api/enclavewatch/intake-requests/create", () => {
     });
     const res = await POST(req);
     expect(res.status).toBe(400);
+  });
+
+  it("accepts vault intakeTransactionId and inserts Awaiting Upload", async () => {
+    mocks.mockResolveOrg.mockResolvedValue({ orgId: "org-uuid", via: "bearer" });
+    mocks.mockReturning.mockResolvedValue([
+      {
+        id: "660e8400-e29b-41d4-a716-446655440001",
+        intakeTransactionId: "tx-demo-001",
+        organizationId: "org-uuid",
+        status: "Awaiting Upload",
+        title: "Vault-managed customer intake",
+        createdAt: new Date("2026-05-14T12:00:00.000Z"),
+      },
+    ]);
+
+    const req = new Request("http://localhost", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ intakeTransactionId: "tx-demo-001" }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.intake_transaction_id).toBe("tx-demo-001");
+    expect(body.status).toBe("Awaiting Upload");
+    expect(mocks.mockNextTxnId).not.toHaveBeenCalled();
+    expect(mocks.mockValues).toHaveBeenCalledWith(
+      expect.objectContaining({
+        intakeTransactionId: "tx-demo-001",
+        status: "Awaiting Upload",
+      }),
+    );
+  });
+
+  it("returns 200 when intakeTransactionId already exists", async () => {
+    mocks.mockResolveOrg.mockResolvedValue({ orgId: "org-uuid", via: "bearer" });
+    mocks.mockLimit.mockResolvedValue([
+      {
+        id: "770e8400-e29b-41d4-a716-446655440002",
+        intakeTransactionId: "tx-dup",
+        organizationId: "org-uuid",
+        status: "Awaiting Upload",
+        title: "Existing",
+        createdAt: new Date("2026-05-14T11:00:00.000Z"),
+      },
+    ]);
+
+    const req = new Request("http://localhost", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ intakeTransactionId: "tx-dup" }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.already_exists).toBe(true);
+    expect(body.intake_transaction_id).toBe("tx-dup");
+    expect(mocks.mockInsert).not.toHaveBeenCalled();
   });
 });
