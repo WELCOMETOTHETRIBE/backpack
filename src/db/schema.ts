@@ -149,6 +149,74 @@ export const governanceControlLinkTypeEnum = pgEnum("governance_control_link_typ
 ]);
 /** Evidence Engine: register entry lifecycle (draft → final → void). */
 export const registerEntryStatusEnum = pgEnum("register_entry_status", ["draft", "final", "void"]);
+export const intakeExpectedClassificationEnum = pgEnum("intake_expected_classification", [
+  "CUI",
+  "FCI",
+  "EXPORT_CONTROLLED",
+  "UNKNOWN",
+  "NOT_CONTROLLED",
+]);
+export const intakeStatusEnum = pgEnum("intake_status", [
+  "Draft",
+  "Pending Authorization",
+  "Upload Scope Provisioned",
+  "Awaiting Upload",
+  "Uploaded",
+  "Scan Pending",
+  "Scan Clean",
+  "Scan Failed",
+  "Quarantined",
+  "Hash Generated",
+  "Ready for Vault Import",
+  "Imported to Vault",
+  "Reviewer Approved",
+  "Access Revoked",
+  "Evidence Package Generated",
+  "Closed",
+  "Exception",
+  "Rejected",
+]);
+export const intakeAccessMethodEnum = pgEnum("intake_access_method", [
+  "ENTRA_B2B",
+  "USER_DELEGATION_SAS",
+]);
+export const intakeMalwareScanStatusEnum = pgEnum("intake_malware_scan_status", [
+  "pending",
+  "clean",
+  "failed",
+  "quarantined",
+  "unknown",
+]);
+export const intakeVaultImportStatusEnum = pgEnum("intake_vault_import_status", [
+  "not_started",
+  "ready",
+  "imported",
+  "failed",
+]);
+export const intakeDispositionEnum = pgEnum("intake_disposition", [
+  "retained",
+  "deleted",
+  "quarantined",
+  "archived",
+  "rejected",
+]);
+export const intakeMetadataEventTypeEnum = pgEnum("intake_metadata_event_type", [
+  "intake_upload_authorization",
+  "intake_upload_started",
+  "intake_upload_completed",
+  "intake_rejected",
+  "intake_expired",
+  "intake_replay_blocked",
+]);
+export const intakeMetadataEventStatusEnum = pgEnum("intake_metadata_event_status", [
+  "issued",
+  "preflight_recorded",
+  "upload_started",
+  "upload_completed",
+  "rejected",
+  "expired",
+  "replay_blocked",
+]);
 
 // ============== OS Baselines (technical implementation plane) ==============
 export const osFamilyEnum = pgEnum("os_family", [
@@ -1545,6 +1613,328 @@ export const projects = pgTable("projects", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
+
+/**
+ * CUI/FCI intake lifecycle envelope (metadata-only in Codex).
+ * Plaintext files remain in Azure intake storage and the CUI Vault.
+ */
+export const intakeRequests = pgTable(
+  "intake_requests",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    intakeTransactionId: varchar("intake_transaction_id", { length: 100 }).notNull(),
+    organizationId: uuid("organization_id")
+      .references(() => organizations.id, { onDelete: "cascade" })
+      .notNull(),
+    /** Optional "client" org when a prime tracks multiple customers. */
+    clientId: uuid("client_id").references(() => organizations.id, { onDelete: "set null" }),
+    projectId: uuid("project_id").references(() => projects.id, { onDelete: "set null" }),
+    contractId: uuid("contract_id").references(() => contracts.id, { onDelete: "set null" }),
+    /** Optional free-form pointer when no canonical opportunities table exists. */
+    opportunityId: text("opportunity_id"),
+    title: text("title").notNull(),
+    description: text("description"),
+    expectedClassification: intakeExpectedClassificationEnum("expected_classification")
+      .notNull()
+      .default("UNKNOWN"),
+    cuiCategory: text("cui_category"),
+    fciFlag: boolean("fci_flag").notNull().default(false),
+    exportControlFlag: boolean("export_control_flag").notNull().default(false),
+    authorizationBasis: text("authorization_basis").notNull(),
+    requestedByUserId: uuid("requested_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    assignedReviewerUserId: uuid("assigned_reviewer_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    senderName: text("sender_name"),
+    senderEmail: text("sender_email"),
+    senderOrganization: text("sender_organization"),
+    senderDomain: text("sender_domain"),
+    identityVerificationMethod: text("identity_verification_method"),
+    entraGuestObjectId: text("entra_guest_object_id"),
+    uploadMethod: intakeAccessMethodEnum("upload_method"),
+    status: intakeStatusEnum("status").notNull().default("Draft"),
+    manifestHash: varchar("manifest_hash", { length: 64 }),
+    manifestGeneratedAt: timestamp("manifest_generated_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    closedAt: timestamp("closed_at", { withTimezone: true }),
+  },
+  (t) => [
+    uniqueIndex("intake_requests_txn_unique_idx").on(t.organizationId, t.intakeTransactionId),
+    index("intake_requests_org_status_idx").on(t.organizationId, t.status),
+    index("intake_requests_org_project_idx").on(t.organizationId, t.projectId),
+  ],
+);
+
+export const intakeAccessGrants = pgTable(
+  "intake_access_grants",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    intakeRequestId: uuid("intake_request_id")
+      .references(() => intakeRequests.id, { onDelete: "cascade" })
+      .notNull(),
+    accessMethod: intakeAccessMethodEnum("access_method").notNull(),
+    accessScope: text("access_scope").notNull(),
+    authorizationBasis: text("authorization_basis"),
+    accessGrantedAt: timestamp("access_granted_at", { withTimezone: true }),
+    accessExpiresAt: timestamp("access_expires_at", { withTimezone: true }),
+    accessRevokedAt: timestamp("access_revoked_at", { withTimezone: true }),
+    tokenReferenceHash: varchar("token_reference_hash", { length: 64 }),
+    notes: text("notes"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("intake_access_grants_request_idx").on(t.intakeRequestId),
+    index("intake_access_grants_expiry_idx").on(t.accessExpiresAt),
+  ],
+);
+
+export const intakeFiles = pgTable(
+  "intake_files",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    intakeRequestId: uuid("intake_request_id")
+      .references(() => intakeRequests.id, { onDelete: "cascade" })
+      .notNull(),
+    /**
+     * Stored as a tokenized alias by default (not raw sender filename).
+     * Raw filename retention is treated as sensitive metadata and should
+     * remain enclave-only unless explicitly approved.
+     */
+    originalFilename: text("original_filename").notNull(),
+    originalFilenameHash: varchar("original_filename_hash", { length: 64 }),
+    sensitiveFilenameRetained: boolean("sensitive_filename_retained")
+      .notNull()
+      .default(false),
+    storageAccount: text("storage_account"),
+    containerName: text("container_name"),
+    blobPathHash: varchar("blob_path_hash", { length: 64 }),
+    blobPath: text("blob_path"),
+    blobUrlRedacted: text("blob_url_redacted"),
+    contentType: text("content_type"),
+    fileSize: integer("file_size"),
+    uploadTimestamp: timestamp("upload_timestamp", { withTimezone: true }),
+    uploadedByIdentity: text("uploaded_by_identity"),
+    malwareScanStatus: intakeMalwareScanStatusEnum("malware_scan_status")
+      .notNull()
+      .default("unknown"),
+    malwareScanTimestamp: timestamp("malware_scan_timestamp", { withTimezone: true }),
+    malwareScanResultReference: text("malware_scan_result_reference"),
+    sha256Hash: varchar("sha256_hash", { length: 64 }),
+    hashGeneratedBy: text("hash_generated_by"),
+    hashGeneratedAt: timestamp("hash_generated_at", { withTimezone: true }),
+    vaultImportStatus: intakeVaultImportStatusEnum("vault_import_status")
+      .notNull()
+      .default("not_started"),
+    vaultDestinationPathHash: varchar("vault_destination_path_hash", { length: 64 }),
+    vaultDestinationPath: text("vault_destination_path"),
+    vaultImportTimestamp: timestamp("vault_import_timestamp", { withTimezone: true }),
+    importedByIdentity: text("imported_by_identity"),
+    classificationStatus: text("classification_status"),
+    disposition: intakeDispositionEnum("disposition"),
+    dispositionTimestamp: timestamp("disposition_timestamp", { withTimezone: true }),
+    exceptionFlag: boolean("exception_flag").notNull().default(false),
+    exceptionReason: text("exception_reason"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("intake_files_request_idx").on(t.intakeRequestId),
+    index("intake_files_hash_idx").on(t.sha256Hash),
+  ],
+);
+
+export const intakeReviewActions = pgTable(
+  "intake_review_actions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    intakeRequestId: uuid("intake_request_id")
+      .references(() => intakeRequests.id, { onDelete: "cascade" })
+      .notNull(),
+    actionType: text("action_type").notNull(),
+    actionNotes: text("action_notes"),
+    performedByIdentity: text("performed_by_identity"),
+    performedByUserId: uuid("performed_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    performedAt: timestamp("performed_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("intake_review_actions_request_idx").on(t.intakeRequestId)],
+);
+
+export const intakeMetadataEvents = pgTable(
+  "intake_metadata_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    eventId: uuid("event_id").notNull(),
+    organizationId: uuid("organization_id")
+      .references(() => organizations.id, { onDelete: "cascade" })
+      .notNull(),
+    intakeRequestId: uuid("intake_request_id")
+      .references(() => intakeRequests.id, { onDelete: "cascade" })
+      .notNull(),
+    transactionId: varchar("transaction_id", { length: 100 }).notNull(),
+    eventType: intakeMetadataEventTypeEnum("event_type").notNull(),
+    status: intakeMetadataEventStatusEnum("status").notNull(),
+    eventTimestampUtc: timestamp("event_timestamp_utc", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    timestampBucket: varchar("timestamp_bucket", { length: 32 }).notNull(),
+    objectReferenceToken: text("object_reference_token"),
+    issuedByActorId: text("issued_by_actor_id"),
+    recipientEmailHash: varchar("recipient_email_hash", { length: 64 }),
+    artifactType: text("artifact_type"),
+    tokenId: text("token_id"),
+    tokenExpiresAtUtc: timestamp("token_expires_at_utc", { withTimezone: true }),
+    boundaryAssertion: text("boundary_assertion").notNull().default("metadata_only"),
+    uploadDestination: text("upload_destination").notNull().default("azure_blob_direct"),
+    plannedBundleHashSha256: varchar("planned_bundle_hash_sha256", { length: 64 }),
+    contentHashSha256: varchar("content_hash_sha256", { length: 64 }),
+    sizeBytes: integer("size_bytes"),
+    uploadCompletedAtUtc: timestamp("upload_completed_at_utc", { withTimezone: true }),
+    malwareScanStatus: text("malware_scan_status"),
+    policyVersion: text("policy_version").notNull(),
+    evidenceTraceId: text("evidence_trace_id"),
+    correlationId: text("correlation_id"),
+    sourceSystem: text("source_system").notNull().default("enclavewatch"),
+    replayKey: text("replay_key"),
+    decision: text("decision").notNull().default("accepted"),
+    rejectionReason: text("rejection_reason"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("intake_metadata_events_event_unique_idx").on(t.organizationId, t.eventId),
+    uniqueIndex("intake_metadata_events_replay_unique_idx").on(
+      t.organizationId,
+      t.transactionId,
+      t.eventType,
+      t.timestampBucket,
+    ),
+    index("intake_metadata_events_request_idx").on(t.intakeRequestId),
+    index("intake_metadata_events_tx_idx").on(t.transactionId),
+    index("intake_metadata_events_corr_idx").on(t.correlationId),
+    index("intake_metadata_events_event_ts_idx").on(t.eventTimestampUtc),
+    index("intake_metadata_events_status_idx").on(t.status),
+  ],
+);
+
+export const intakeEvidenceArtifacts = pgTable(
+  "intake_evidence_artifacts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    intakeRequestId: uuid("intake_request_id")
+      .references(() => intakeRequests.id, { onDelete: "cascade" })
+      .notNull(),
+    artifactType: text("artifact_type").notNull(),
+    artifactName: text("artifact_name").notNull(),
+    artifactPath: text("artifact_path"),
+    artifactHash: varchar("artifact_hash", { length: 64 }),
+    generatedAt: timestamp("generated_at", { withTimezone: true }).notNull().defaultNow(),
+    generatedBy: uuid("generated_by").references(() => users.id, { onDelete: "set null" }),
+    boundaryLocation: text("boundary_location"),
+    sourceOfTruth: text("source_of_truth"),
+    immutableFlag: boolean("immutable_flag").notNull().default(false),
+    retentionRequirement: text("retention_requirement"),
+    relatedControlFamily: text("related_control_family"),
+    relatedControlId: text("related_control_id"),
+    status: text("status").notNull().default("generated"),
+    reviewerActionId: uuid("reviewer_action_id").references(() => intakeReviewActions.id, {
+      onDelete: "set null",
+    }),
+    exceptionId: uuid("exception_id").references(() => intakeExceptions.id, {
+      onDelete: "set null",
+    }),
+    poamReference: text("poam_reference"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("intake_evidence_artifacts_request_idx").on(t.intakeRequestId)],
+);
+
+export const intakeManifests = pgTable(
+  "intake_manifests",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    intakeRequestId: uuid("intake_request_id")
+      .references(() => intakeRequests.id, { onDelete: "cascade" })
+      .notNull(),
+    manifestJson: text("manifest_json").notNull(),
+    manifestHash: varchar("manifest_hash", { length: 64 }).notNull(),
+    signedBy: uuid("signed_by").references(() => users.id, { onDelete: "set null" }),
+    signedAt: timestamp("signed_at", { withTimezone: true }),
+    generatedAt: timestamp("generated_at", { withTimezone: true }).notNull().defaultNow(),
+    storageLocation: text("storage_location"),
+    sourceOfTruth: text("source_of_truth"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("intake_manifests_request_idx").on(t.intakeRequestId),
+    index("intake_manifests_hash_idx").on(t.manifestHash),
+  ],
+);
+
+export const intakeExceptions = pgTable(
+  "intake_exceptions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    intakeRequestId: uuid("intake_request_id")
+      .references(() => intakeRequests.id, { onDelete: "cascade" })
+      .notNull(),
+    exceptionType: text("exception_type").notNull(),
+    reason: text("reason").notNull(),
+    severity: text("severity").notNull().default("medium"),
+    affectedControlFamily: text("affected_control_family"),
+    affectedControlId: text("affected_control_id"),
+    compensatingAction: text("compensating_action"),
+    owner: text("owner"),
+    dueDate: date("due_date"),
+    status: text("status").notNull().default("open"),
+    poamReference: text("poam_reference"),
+    openedByUserId: uuid("opened_by_user_id").references(() => users.id, { onDelete: "set null" }),
+    resolvedByUserId: uuid("resolved_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    openedAt: timestamp("opened_at", { withTimezone: true }).notNull().defaultNow(),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+    closureNotes: text("closure_notes"),
+    reviewerApprovedByUserId: uuid("reviewer_approved_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    reviewerApprovedAt: timestamp("reviewer_approved_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("intake_exceptions_request_idx").on(t.intakeRequestId)],
+);
+
+export const intakeControlMappings = pgTable(
+  "intake_control_mappings",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    intakeRequestId: uuid("intake_request_id")
+      .references(() => intakeRequests.id, { onDelete: "cascade" })
+      .notNull(),
+    controlFamily: text("control_family").notNull(),
+    controlId: text("control_id"),
+    controlIntent: text("control_intent"),
+    evidenceArtifactId: uuid("evidence_artifact_id").references(
+      () => intakeEvidenceArtifacts.id,
+      { onDelete: "set null" },
+    ),
+    owner: text("owner"),
+    cadence: text("cadence"),
+    sourceOfTruth: text("source_of_truth"),
+    implementationNature: text("implementation_nature"),
+    implementationRisk: text("implementation_risk"),
+    c3paoPrompt: text("c3pao_prompt"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("intake_control_mappings_request_idx").on(t.intakeRequestId)],
+);
 
 export const governanceControlMetadata = pgTable(
   "governance_control_metadata",

@@ -1,30 +1,40 @@
 /**
- * Google Meet → Codex attendance bridge.
+ * Google Meet → Codex / TrainOS attendance bridge.
  *
- * Watches a Drive folder for new attendance reports Google drops there
- * after each Meet ends, parses the participant CSV, and POSTs the
- * roster to /api/integrations/google-meet-attendance on Codex.
+ * Watches a Drive folder for new Meet attendance reports and routes
+ * each one based on the [CDX-{kind}-{prefix}] tag in the meeting
+ * title:
+ *
+ *   [CDX-IR-...]      → TrainOS  /api/ir-tabletop/exercises/by-prefix/{prefix}/attendance/import
+ *                       (TrainOS owns the IR bundle ZIP build, so the CSV
+ *                       must physically land there for the bundle a C3PAO
+ *                       downloads from Azure Gov to actually contain it)
+ *   [CDX-RA-...]      → Codex   /api/integrations/google-meet-attendance
+ *   [CDX-CA-...]      → Codex   /api/integrations/google-meet-attendance
+ *   No tag / unknown  → Codex   /api/integrations/google-meet-attendance
+ *                       (lands as unmatched provenance row for manual
+ *                       reconciliation in the dashboard)
  *
  * Setup (one-time):
  *   1. Create an Apps Script project at https://script.google.com
  *   2. Paste this whole file as Code.gs (replacing the default).
  *   3. In "Project Settings → Script properties" set:
- *        DRIVE_FOLDER_ID         — id of the Drive folder Google
- *                                  drops attendance reports into
- *                                  (in URL after /folders/)
- *        CODEX_BASE_URL          — e.g. https://codex.mactechsolutionsllc.com
- *        CODEX_ORG_ID            — your organizations.id (uuid) OR
- *                                  clerk_org_id (org_*); Codex resolves
- *                                  either form
- *        GOOGLE_MEET_BRIDGE_TOKEN
- *        GOOGLE_MEET_BRIDGE_HMAC
+ *        DRIVE_FOLDER_ID            — id of the Drive folder Google
+ *                                     drops attendance reports into
+ *        CODEX_BASE_URL             — https://codex.mactechsolutionsllc.com
+ *        CODEX_ORG_ID               — organizations.id (uuid) OR clerk org_*
+ *        GOOGLE_MEET_BRIDGE_TOKEN   — Codex bridge bearer (matches Codex Railway)
+ *        GOOGLE_MEET_BRIDGE_HMAC    — Codex bridge HMAC   (matches Codex Railway)
+ *        TRAINOS_BASE_URL           — https://training.mactechsolutionsllc.com
+ *        TRAINOS_GMEET_BRIDGE_TOKEN — TrainOS bridge bearer (matches TrainOS Railway)
+ *        TRAINOS_GMEET_BRIDGE_HMAC  — TrainOS bridge HMAC   (matches TrainOS Railway)
  *   4. Run installTrigger() once (top toolbar → Run dropdown). Authorize
  *      Drive + UrlFetch when prompted.
  *
- * After that, the script runs every 10 min, finds attendance files
- * created since the last run, processes each one, and tags the file
- * with a Drive label so it's not re-processed. Idempotent on the
- * Codex side too — (org, drive_file_id) is a unique index.
+ * After that, the script runs every 10 min, finds new attendance
+ * files, routes each to Codex or TrainOS based on the tag, and
+ * tags the Drive file's description so it's not re-processed.
+ * Both destinations are idempotent on (org/exercise, fileId).
  *
  * To test: run processNewAttendanceFiles() manually after dropping a
  * file into the folder. Logs are in Executions (left sidebar).
@@ -62,18 +72,26 @@ function removeTrigger() {
 
 function processNewAttendanceFiles() {
   const props = PropertiesService.getScriptProperties();
-  const folderId = props.getProperty("DRIVE_FOLDER_ID");
-  const codexBaseUrl = props.getProperty("CODEX_BASE_URL");
-  const codexOrgId = props.getProperty("CODEX_ORG_ID");
-  const bridgeToken = props.getProperty("GOOGLE_MEET_BRIDGE_TOKEN");
-  const bridgeHmac = props.getProperty("GOOGLE_MEET_BRIDGE_HMAC");
+  const cfg = {
+    folderId: props.getProperty("DRIVE_FOLDER_ID"),
+    codexBaseUrl: props.getProperty("CODEX_BASE_URL"),
+    codexOrgId: props.getProperty("CODEX_ORG_ID"),
+    codexToken: props.getProperty("GOOGLE_MEET_BRIDGE_TOKEN"),
+    codexHmac: props.getProperty("GOOGLE_MEET_BRIDGE_HMAC"),
+    trainosBaseUrl: props.getProperty("TRAINOS_BASE_URL"),
+    trainosToken: props.getProperty("TRAINOS_GMEET_BRIDGE_TOKEN"),
+    trainosHmac: props.getProperty("TRAINOS_GMEET_BRIDGE_HMAC"),
+  };
 
+  // Codex props are required; TrainOS props are required ONLY when an
+  // IR-tagged file shows up (we throw lazily at routing time so the
+  // script still works for RA/CA/untagged before TrainOS is wired).
   for (const [name, val] of Object.entries({
-    DRIVE_FOLDER_ID: folderId,
-    CODEX_BASE_URL: codexBaseUrl,
-    CODEX_ORG_ID: codexOrgId,
-    GOOGLE_MEET_BRIDGE_TOKEN: bridgeToken,
-    GOOGLE_MEET_BRIDGE_HMAC: bridgeHmac,
+    DRIVE_FOLDER_ID: cfg.folderId,
+    CODEX_BASE_URL: cfg.codexBaseUrl,
+    CODEX_ORG_ID: cfg.codexOrgId,
+    GOOGLE_MEET_BRIDGE_TOKEN: cfg.codexToken,
+    GOOGLE_MEET_BRIDGE_HMAC: cfg.codexHmac,
   })) {
     if (!val) {
       throw new Error(
@@ -82,7 +100,7 @@ function processNewAttendanceFiles() {
     }
   }
 
-  const folder = DriveApp.getFolderById(folderId);
+  const folder = DriveApp.getFolderById(cfg.folderId);
   const files = folder.getFiles();
 
   let processed = 0;
@@ -92,16 +110,12 @@ function processNewAttendanceFiles() {
   while (files.hasNext()) {
     const file = files.next();
 
-    // Skip files we've already processed (description tag).
     const desc = file.getDescription() || "";
     if (desc.indexOf(PROCESSED_DESCRIPTION_PREFIX) === 0) {
       skipped++;
       continue;
     }
 
-    // Skip non-attendance files. Google Meet attendance files end with
-    // " - Attendance report.csv" or are CSVs in a subfolder named
-    // "Meet Recordings/Attendance reports/". Conservative match.
     const name = file.getName();
     if (!/attendance/i.test(name) || file.getMimeType() !== "text/csv") {
       skipped++;
@@ -109,15 +123,12 @@ function processNewAttendanceFiles() {
     }
 
     try {
-      const result = processOne(
-        file,
-        codexBaseUrl,
-        codexOrgId,
-        bridgeToken,
-        bridgeHmac,
-      );
+      const result = processOne(file, cfg);
       file.setDescription(
-        `${PROCESSED_DESCRIPTION_PREFIX}${result.action} importId=${result.importId} matched=${result.matchKind || "no"} at=${new Date().toISOString()}`,
+        `${PROCESSED_DESCRIPTION_PREFIX}${result.action} dest=${result.destination} ` +
+        `${result.bundleVersion ? `bundle=v${result.bundleVersion} ` : ""}` +
+        `importId=${result.importId || "?"} matched=${result.matchKind || "no"} ` +
+        `at=${new Date().toISOString()}`,
       );
       processed++;
     } catch (err) {
@@ -127,62 +138,108 @@ function processNewAttendanceFiles() {
   }
 
   console.log(
-    `processed=${processed} skipped=${skipped} failed=${failed} folder=${folderId}`,
+    `processed=${processed} skipped=${skipped} failed=${failed} folder=${cfg.folderId}`,
   );
+}
+
+/** Pull [CDX-{IR|RA|CA}-{8hex}] tag from a meeting title. Returns null if absent. */
+function parseAssessmentTag(meetingTitle) {
+  if (!meetingTitle) return null;
+  const m = meetingTitle.match(/\[CDX-(IR|RA|CA)-([0-9a-f]{8})\]/i);
+  if (!m) return null;
+  return { kind: m[1].toUpperCase(), idPrefix: m[2].toLowerCase(), raw: m[0] };
 }
 
 // ============== Per-file processing ==============
 
-function processOne(file, codexBaseUrl, codexOrgId, bridgeToken, bridgeHmac) {
+function processOne(file, cfg) {
   const csv = file.getBlob().getDataAsString();
   const parsed = parseAttendanceCsv(csv);
-
-  // Hash the raw CSV bytes so Codex can persist it for provenance.
   const sha256 = sha256Hex(csv);
 
-  const payload = {
-    meetingTitle: parsed.meetingTitle || file.getName(),
+  const meetingTitle = parsed.meetingTitle || file.getName();
+  const tag = parseAssessmentTag(meetingTitle);
+
+  // Common fields both destinations use.
+  const baseFields = {
+    meetingTitle,
     meetingStartedAt: parsed.meetingStartedAt,
     meetingEndedAt: parsed.meetingEndedAt,
     meetingDurationMinutes: parsed.meetingDurationMinutes,
-
     driveFileId: file.getId(),
     driveFileUrl: file.getUrl(),
     driveFileName: file.getName(),
     driveFileSha256: sha256,
-
     attendees: parsed.attendees,
   };
 
-  const body = JSON.stringify(payload);
-  const ts = String(Date.now());
-  const sig = hmacSha256Hex(bridgeHmac, `${ts}.${body}`);
+  // Route by tag kind. IR → TrainOS (so the CSV bytes physically end
+  // up in the bundle ZIP); everything else → Codex.
+  if (tag && tag.kind === "IR") {
+    if (!cfg.trainosBaseUrl || !cfg.trainosToken || !cfg.trainosHmac) {
+      throw new Error(
+        "IR-tagged meeting found but TrainOS Script Properties are not set " +
+        "(TRAINOS_BASE_URL / TRAINOS_GMEET_BRIDGE_TOKEN / TRAINOS_GMEET_BRIDGE_HMAC). " +
+        "Either set them or remove the [CDX-IR-...] tag from the meeting title.",
+      );
+    }
+    const payload = {
+      ...baseFields,
+      // TrainOS REQUIRES the raw CSV bytes — it embeds them in the
+      // bundle ZIP it uploads to Azure Gov.
+      csvBytesBase64: Utilities.base64Encode(csv),
+    };
+    return postSigned({
+      url: `${cfg.trainosBaseUrl}/api/ir-tabletop/exercises/by-prefix/${tag.idPrefix}/attendance/import`,
+      destination: "trainos",
+      orgId: cfg.codexOrgId, // TrainOS resolves the same org id Codex does
+      token: cfg.trainosToken,
+      hmac: cfg.trainosHmac,
+      payload,
+    });
+  }
 
-  const response = UrlFetchApp.fetch(
-    `${codexBaseUrl}/api/integrations/google-meet-attendance`,
-    {
-      method: "post",
-      contentType: "application/json",
-      headers: {
-        Authorization: `Bearer ${bridgeToken}`,
-        "X-GMeet-Bridge-Timestamp": ts,
-        "X-GMeet-Bridge-Signature": sig,
-        "X-GMeet-Bridge-Org": codexOrgId,
-        "X-GMeet-Bridge-Caller": "google-meet-apps-script",
-        "X-GMeet-Bridge-User-Email": Session.getActiveUser().getEmail() || "",
-      },
-      payload: body,
-      muteHttpExceptions: true,
+  // RA, CA, untagged → Codex.
+  return postSigned({
+    url: `${cfg.codexBaseUrl}/api/integrations/google-meet-attendance`,
+    destination: "codex",
+    orgId: cfg.codexOrgId,
+    token: cfg.codexToken,
+    hmac: cfg.codexHmac,
+    payload: baseFields,
+  });
+}
+
+/** Sign + POST. Throws on non-200. Returns parsed JSON body + destination tag. */
+function postSigned(opts) {
+  const body = JSON.stringify(opts.payload);
+  const ts = String(Date.now());
+  const sig = hmacSha256Hex(opts.hmac, `${ts}.${body}`);
+
+  const response = UrlFetchApp.fetch(opts.url, {
+    method: "post",
+    contentType: "application/json",
+    headers: {
+      Authorization: `Bearer ${opts.token}`,
+      "X-GMeet-Bridge-Timestamp": ts,
+      "X-GMeet-Bridge-Signature": sig,
+      "X-GMeet-Bridge-Org": opts.orgId,
+      "X-GMeet-Bridge-Caller": "google-meet-apps-script",
+      "X-GMeet-Bridge-User-Email": Session.getActiveUser().getEmail() || "",
     },
-  );
+    payload: body,
+    muteHttpExceptions: true,
+  });
 
   const status = response.getResponseCode();
   const text = response.getContentText();
   if (status !== 200) {
-    throw new Error(`Codex returned HTTP ${status}: ${text}`);
+    throw new Error(`${opts.destination} returned HTTP ${status}: ${text}`);
   }
 
-  return JSON.parse(text);
+  const parsed = JSON.parse(text);
+  parsed.destination = opts.destination;
+  return parsed;
 }
 
 // ============== CSV parser ==============

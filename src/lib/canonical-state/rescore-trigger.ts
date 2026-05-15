@@ -60,6 +60,7 @@ export type TriggerSource =
   | "qms_manifest_ingested"
   | "isso_export_ingested"
   | "validator_run_persisted"
+  | "intake_evidence_updated"
   | "on_read_stale_recompute"
   | "phase_b_full_rescore";
 

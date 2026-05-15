@@ -72,6 +72,7 @@ const SOURCES = [
 
 const FRESHNESS_GREEN_DAYS = 8;
 const FRESHNESS_AMBER_DAYS = 21;
+const MAX_VISIBLE_ATTENTION = 6;
 
 function freshness(daysSinceLastRun: number | null): "green" | "amber" | "red" {
   if (daysSinceLastRun === null) return "red";
@@ -296,7 +297,6 @@ export default async function MonitoringPage() {
     })
     .from(poamEntries)
     .where(eq(poamEntries.organizationId, orgId));
-  const openPoams = poamCounts?.open ?? 0;
   const overduePoams = poamCounts?.overdue ?? 0;
 
   // 6. Recent attestation activity — last 5 signed completions for the
@@ -662,7 +662,7 @@ export default async function MonitoringPage() {
   const prCandidates = resolveRegisterKeyCandidates("policy_review");
   const allCandidates = [...aaCandidates, ...afCandidates, ...prCandidates];
 
-  let issoObservations = {
+  const issoObservations = {
     weeklyReviewFindings: 0,
     reviewObservations: 0,
     staleDocs: 0,
@@ -1018,6 +1018,8 @@ export default async function MonitoringPage() {
     const order = { critical: 0, warning: 1, info: 2 };
     return order[a.severity] - order[b.severity];
   });
+  const visibleAttention = attention.slice(0, MAX_VISIBLE_ATTENTION);
+  const hiddenAttentionCount = Math.max(0, attention.length - visibleAttention.length);
 
   const cardClass =
     "rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm";
@@ -1051,10 +1053,9 @@ export default async function MonitoringPage() {
         </div>
         <p className="mt-1.5 text-sm text-[var(--color-gray-600)]">
           MacTech <strong>EnclaveWatch</strong> is the operational program for NIST 800-171 §3.12.3.
-          It runs the canonical evidence collectors + validators inside the CUI Vault on weekly
-          cadence and pushes signed metadata-only acknowledgements to the Codex (raw audit data
-          never leaves the boundary). This page surfaces the heartbeat, history, and drift across
-          all four cadence sources.
+          It runs weekly collectors and validators inside the CUI Vault, then pushes signed
+          metadata-only acknowledgements to the Codex (raw audit data never leaves the boundary).
+          This page prioritizes immediate actions first, with deeper audit detail collapsed below.
         </p>
       </header>
 
@@ -1070,7 +1071,7 @@ export default async function MonitoringPage() {
             </span>
           </div>
           <div className={`${cardClass} space-y-2 p-4`}>
-            {attention.map((a, i) => {
+            {visibleAttention.map((a, i) => {
               const tone =
                 a.severity === "critical"
                   ? { wrap: "border-red-200 bg-red-50/60", icon: "text-red-700", iconBg: "bg-red-100" }
@@ -1103,6 +1104,12 @@ export default async function MonitoringPage() {
                 </div>
               );
             })}
+            {hiddenAttentionCount > 0 && (
+              <div className="rounded-md border border-[var(--color-border-muted)] bg-[var(--color-surface-muted)] px-3 py-2 text-xs text-[var(--color-gray-600)]">
+                {hiddenAttentionCount} more queued item{hiddenAttentionCount === 1 ? "" : "s"}.
+                Expand the detailed sections below to review each queue.
+              </div>
+            )}
           </div>
         </section>
       ) : (
@@ -1123,15 +1130,15 @@ export default async function MonitoringPage() {
 
       {/* ── Section 0a2: Active threat narratives (Phase 9) ─────────── */}
       {threatNarrativesRecent.length > 0 && (
-        <section>
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">
-              Active threat narratives
-            </h2>
+        <CollapsibleMonitoringSection
+          title="Active threat narratives"
+          defaultOpen={false}
+          badge={
             <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-medium text-purple-800">
               {threatNarrativesRecent.length} narrative{threatNarrativesRecent.length === 1 ? "" : "s"} (last 30d)
             </span>
-          </div>
+          }
+        >
           <div className={`${cardClass} space-y-2 p-4`}>
             <p className="text-xs text-[var(--color-gray-600)]">
               Cross-evidence joins detected by the Phase 9 correlation
@@ -1187,20 +1194,20 @@ export default async function MonitoringPage() {
               })}
             </ul>
           </div>
-        </section>
+        </CollapsibleMonitoringSection>
       )}
 
       {/* ── Section 0b: Pending break-glass acknowledgments ─────────── */}
       {pendingBreakGlassAcks.length > 0 && (
-        <section>
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">
-              Pending break-glass acknowledgments
-            </h2>
+        <CollapsibleMonitoringSection
+          title="Pending break-glass acknowledgments"
+          defaultOpen={overdueAcks.length > 0}
+          badge={
             <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-800">
               {pendingBreakGlassAcks.length} open · {overdueAcks.length} overdue
             </span>
-          </div>
+          }
+        >
           <div className={`${cardClass} space-y-2 p-4`}>
             <p className="text-xs text-[var(--color-gray-600)]">
               EnclaveWatch detected sign-ins by the break-glass account. The
@@ -1254,20 +1261,20 @@ export default async function MonitoringPage() {
               })}
             </ul>
           </div>
-        </section>
+        </CollapsibleMonitoringSection>
       )}
 
       {/* ── Section 0b2: Pending privileged-grant justifications ───── */}
       {pendingPrivilegedGrantAcks.length > 0 && (
-        <section>
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">
-              Pending privileged-grant justifications
-            </h2>
+        <CollapsibleMonitoringSection
+          title="Pending privileged-grant justifications"
+          defaultOpen={overduePrivilegedAcks.length > 0}
+          badge={
             <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-800">
               {pendingPrivilegedGrantAcks.length} open · {overduePrivilegedAcks.length} overdue
             </span>
-          </div>
+          }
+        >
           <div className={`${cardClass} space-y-2 p-4`}>
             <p className="text-xs text-[var(--color-gray-600)]">
               EnclaveWatch detected privileged role assignments (Owner /
@@ -1325,20 +1332,20 @@ export default async function MonitoringPage() {
               })}
             </ul>
           </div>
-        </section>
+        </CollapsibleMonitoringSection>
       )}
 
       {/* ── Section 0b3: Pending configuration-drift justifications ── */}
       {pendingChangeDriftAcks.length > 0 && (
-        <section>
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">
-              Pending configuration-drift justifications
-            </h2>
+        <CollapsibleMonitoringSection
+          title="Pending configuration-drift justifications"
+          defaultOpen={overdueDriftAcks.length > 0}
+          badge={
             <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-800">
               {pendingChangeDriftAcks.length} open · {overdueDriftAcks.length} overdue
             </span>
-          </div>
+          }
+        >
           <div className={`${cardClass} space-y-2 p-4`}>
             <p className="text-xs text-[var(--color-gray-600)]">
               EnclaveWatch&apos;s Sysmon-based collector detected baseline-
@@ -1402,20 +1409,20 @@ export default async function MonitoringPage() {
               })}
             </ul>
           </div>
-        </section>
+        </CollapsibleMonitoringSection>
       )}
 
       {/* ── Section 0b4: Pending Defender alert acknowledgments ────── */}
       {pendingDefenderAcks.length > 0 && (
-        <section>
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">
-              Pending Defender alert acknowledgments
-            </h2>
+        <CollapsibleMonitoringSection
+          title="Pending Defender alert acknowledgments"
+          defaultOpen={overdueDefenderAcks.length > 0}
+          badge={
             <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-medium text-red-800">
               {pendingDefenderAcks.length} open · {overdueDefenderAcks.length} overdue
             </span>
-          </div>
+          }
+        >
           <div className={`${cardClass} space-y-2 p-4`}>
             <p className="text-xs text-[var(--color-gray-600)]">
               Microsoft Defender for Endpoint raised one or more high or
@@ -1487,7 +1494,7 @@ export default async function MonitoringPage() {
               })}
             </ul>
           </div>
-        </section>
+        </CollapsibleMonitoringSection>
       )}
 
       {/* "Recent ISSO weekly exports" lives at the bottom of the page now;
@@ -1495,15 +1502,15 @@ export default async function MonitoringPage() {
 
       {/* ── Section 0d: ISSO observations rollup ───────────────────── */}
       {issoObservations.total > 0 && (
-        <section>
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">
-              ISSO observations (last 14 days)
-            </h2>
+        <CollapsibleMonitoringSection
+          title="ISSO observations (last 14 days)"
+          defaultOpen={false}
+          badge={
             <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-800">
               {issoObservations.total} flagged
             </span>
-          </div>
+          }
+        >
           <div className={`${cardClass} grid grid-cols-2 gap-3 p-4 sm:grid-cols-4`}>
             <ObservationTile
               icon={Eye}
@@ -1534,20 +1541,20 @@ export default async function MonitoringPage() {
               tone={issoObservations.breakGlassEscalated > 0 ? "red" : "gray"}
             />
           </div>
-        </section>
+        </CollapsibleMonitoringSection>
       )}
 
       {/* ── Section 0e: Open admin actions (control_freshness.needing_attention) ── */}
       {openAttentionItems.length > 0 && (
-        <section>
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--color-gray-500)]">
-              Open admin actions
-            </h2>
+        <CollapsibleMonitoringSection
+          title="Open admin actions"
+          defaultOpen={openAttentionItems.some((item) => item.severity === "critical")}
+          badge={
             <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-800">
               {openAttentionItems.length} flagged by ISSO
             </span>
-          </div>
+          }
+        >
           <div className={`${cardClass} p-4`}>
             <p className="text-xs text-[var(--color-gray-600)]">
               The ISSO flagged these controls during weekly review. Each row
@@ -1594,7 +1601,7 @@ export default async function MonitoringPage() {
               })}
             </ul>
           </div>
-        </section>
+        </CollapsibleMonitoringSection>
       )}
 
       {/* ── Section 1: Program health (4 source pills) ─────────────── */}

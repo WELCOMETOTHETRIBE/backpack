@@ -17,6 +17,7 @@ import {
   Archive,
   Upload,
   Gauge,
+  Inbox,
 } from "lucide-react";
 
 type NavItem = {
@@ -40,6 +41,7 @@ function buildNav(_boundaryComplete?: boolean | null): NavGroup[] {
         { name: "SCTM", href: "/dashboard/controls", icon: Shield },
         { name: "Adjudication Engine", href: "/dashboard/cae", icon: Gauge },
         { name: "Registers", href: "/dashboard/registers", icon: BookCheck },
+        { name: "CUI Intake", href: "/dashboard/intake", icon: Inbox },
         { name: "Artifacts", href: "/dashboard/artifacts", icon: Archive },
         { name: "Upload Manifest", href: "/dashboard/evidence/upload-manifest", icon: Upload },
         { name: "POA&M", href: "/dashboard/poam", icon: FileText },
