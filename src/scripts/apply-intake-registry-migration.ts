@@ -513,6 +513,10 @@ END $$`,
   ON "intake_files" USING btree ("vault_destination_path_hash")`,
   },
   {
+    label: "0079 extension pgcrypto (digest/encode)",
+    sql: `CREATE EXTENSION IF NOT EXISTS pgcrypto`,
+  },
+  {
     label: "0079 backfill hashed filenames/paths",
     sql: `UPDATE "intake_files"
 SET

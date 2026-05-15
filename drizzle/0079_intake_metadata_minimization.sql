@@ -24,6 +24,9 @@ CREATE INDEX IF NOT EXISTS "intake_files_blob_path_hash_idx"
 CREATE INDEX IF NOT EXISTS "intake_files_vault_path_hash_idx"
   ON "intake_files" USING btree ("vault_destination_path_hash");
 
+-- digest()/encode() require pgcrypto (often absent on fresh Postgres until enabled).
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 -- Backfill existing rows with hash/tokenized aliases so historical rows
 -- are aligned to metadata-only posture.
 UPDATE "intake_files"
