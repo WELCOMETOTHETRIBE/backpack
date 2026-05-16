@@ -1,6 +1,6 @@
 # CMMC L2 Canonical Document Manifest
 
-_Generated 2026-05-16T17:10:01.047Z_
+_Generated 2026-05-16T17:33:15.378Z_
 
 ## Summary
 
@@ -11,11 +11,11 @@ _Generated 2026-05-16T17:10:01.047Z_
 | &nbsp;&nbsp;APPROVED (signed, not effective) | 0 |
 | &nbsp;&nbsp;IN_REVIEW | 1 |
 | &nbsp;&nbsp;DRAFT | 30 |
-| **CMMC L2 required UPLOAD artifacts** (de-duped) | 132 |
+| **CMMC L2 required UPLOAD artifacts** (de-duped) | 84 |
 | &nbsp;&nbsp;EFFECTIVE in QMS ✅ | 84 |
 | &nbsp;&nbsp;Drafted but not yet released ⚠️ | 0 |
-| &nbsp;&nbsp;Missing as a doc ❌ | 19 |
-| &nbsp;&nbsp;Records / lists (live in registers, not QMS) 📋 | 29 |
+| &nbsp;&nbsp;Missing as a doc ❌ | 0 |
+| &nbsp;&nbsp;Records / lists (live in registers, not QMS) 📋 | 0 |
 | **QMS docs NOT mapping to any CMMC requirement** (orphans) | 38 |
 
 ## Bucket 1 — ✅ Effective in QMS
@@ -118,25 +118,6 @@ These are policies / procedures / plans that should exist in QMS but don't.
 
 | Required Artifact | Controls needing it |
 |---|---|
-| Procedures for Access Restrictions for Changes | 3.4.5 |
-| Procedures for Audit Record Protection | 3.3.5 |
-| Procedures for Auditable Events | 3.3.1 |
-| Procedures for Authenticator Management | 3.5.3, 3.5.7 |
-| Procedures for CUI Asset Control | 3.10.5 |
-| Procedures for establishing, changing, and revoking authenticators | 3.5.10, 3.5.9 |
-| Procedures for Identifier Management | 3.5.5 |
-| Procedures for Information Flow Enforcement | 3.1.3 |
-| Procedures for Least Functionality | 3.4.6 |
-| Procedures for Limiting Audit Report Generation | 3.3.6 |
-| Procedures for Malicious Code Protection | 3.11.3, 3.13.13, 3.14.2 |
-| Procedures for Media Access | 3.8.2 |
-| Procedures for Media Control | 3.8.5 |
-| Procedures for Media Protection | 3.8.1 |
-| Procedures for Publicly Accessible Content | 3.1.22 |
-| Procedures for Security Engineering Principles | 3.13.2 |
-| Procedures for Session Audit | 3.3.9 |
-| Procedures for Transmission Confidentiality | 3.13.8 |
-| Procedures for Wireless Access | 3.1.16 |
 
 ## Bucket 4 — 📋 Records / lists / definitions (NOT a QMS doc)
 
@@ -144,35 +125,6 @@ These artifact labels in `artifact-guide.ts` are records, lists, or definitions 
 
 | Required Artifact | Controls | Where it actually lives |
 |---|---|---|
-| Authorized personnel access list | 3.10.1 | register / register entry / embedded |
-| Definition of audit record content & retention requirements | 3.3.1 | register / register entry / embedded |
-| Definition of authenticator strength requirements | 3.5.7 | register / register entry / embedded |
-| Definition of password complexity, change frequency, and reuse rules | 3.5.8 | register / register entry / embedded |
-| Definition of the period for which identifiers cannot be reused | 3.5.5 | register / register entry / embedded |
-| Definition of the period of inactivity after which an identifier is disabled | 3.5.6 | register / register entry / embedded |
-| Information Flow Control Policy | 3.1.3 | register / register entry / embedded |
-| Insider Threat Training Materials | 3.2.3 | register / register entry / embedded |
-| Inventory records of physical access devices | 3.10.4 | register / register entry / embedded |
-| Legal review and approval records for banner content | 3.1.9 | register / register entry / embedded |
-| List of alternative physical safeguards | 3.13.8 | register / register entry / embedded |
-| List of approved maintenance tools | 3.7.4 | register / register entry / embedded |
-| List of authorized maintenance personnel | 3.7.2 | register / register entry / embedded |
-| List of authorized software & approval records | 3.4.6 | register / register entry / embedded |
-| List of defined auditable events | 3.3.1 | register / register entry / embedded |
-| List of defined roles and responsibilities requiring separation | 3.1.4 | register / register entry / embedded |
-| List of individuals with authorized access to audit records | 3.3.5 | register / register entry / embedded |
-| List of individuals/roles authorized to generate audit reports | 3.3.6 | register / register entry / embedded |
-| List of personnel with assigned security roles | 3.2.2 | register / register entry / embedded |
-| List of privileged accounts to be audited | 3.3.9 | register / register entry / embedded |
-| List of prohibited or restricted software | 3.4.7 | register / register entry / embedded |
-| List of users authorized to post public content | 3.1.22 | register / register entry / embedded |
-| Records of public information reviews | 3.1.22 | register / register entry / embedded |
-| Role-Based Training Curriculum & Materials | 3.2.2 | register / register entry / embedded |
-| System Use Notification / Warning Banner Text | 3.1.9 | register / register entry / embedded |
-| Training records demonstrating insider threat awareness training | 3.2.3 | register / register entry / embedded |
-| Training records for all personnel with security responsibilities | 3.2.2 | register / register entry / embedded |
-| Training records for all users, managers, and administrators | 3.2.1 | register / register entry / embedded |
-| Visitor access logs | 3.10.3 | register / register entry / embedded |
 
 ## Orphans — QMS docs not mapping to any CMMC required artifact
 

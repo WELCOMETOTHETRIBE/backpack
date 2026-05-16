@@ -21,7 +21,7 @@ export const PARTIAL_DOCS_TO_CLOSE: Record<string, PartialDocSpec[]> = {
   ],
   "3.5.3": [
     { label: "Procedures for Remote Access", type: "UPLOAD" },
-    { label: "Procedures for Authenticator Management", type: "UPLOAD" },
+    { label: "Procedures for Authenticator Management", type: "REFERENCE" },
     { label: "Identification and Authentication Policy", type: "UPLOAD" },
     { label: "MFA Implementation Standard / Guide", type: "UPLOAD" },
   ],
@@ -30,7 +30,7 @@ export const PARTIAL_DOCS_TO_CLOSE: Record<string, PartialDocSpec[]> = {
     { label: "Procedures for User Identification and Authentication", type: "UPLOAD" },
   ],
   "3.5.9": [
-    { label: "Procedures for establishing, changing, and revoking authenticators", type: "UPLOAD" },
+    { label: "Procedures for establishing, changing, and revoking authenticators", type: "REFERENCE" },
   ],
   "3.5.11": [
     { label: "Policy for authentication feedback (obscure feedback)", type: "UPLOAD" },
@@ -52,7 +52,7 @@ export const PARTIAL_DOCS_TO_CLOSE: Record<string, PartialDocSpec[]> = {
   ],
   "3.13.13": [
     { label: "Procedures for mobile code/script control", type: "UPLOAD" },
-    { label: "Procedures for Malicious Code Protection", type: "UPLOAD" },
+    { label: "Procedures for Malicious Code Protection", type: "REFERENCE" },
   ],
   "3.13.15": [
     { label: "Procedures for transmission integrity (SMB signing/crypto)", type: "UPLOAD" },
