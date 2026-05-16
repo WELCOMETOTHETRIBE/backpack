@@ -18,6 +18,7 @@ import { persistFilePresenceForRun } from "@/lib/evidence/per-control-file-prese
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { controlIdToNist } from "@/lib/compliance/controlId";
 import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
+import { seedRegistersFromEvidenceRun } from "@/lib/evidence-engine/auto-register-seeder";
 import { createHash } from "crypto";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -520,6 +521,13 @@ export async function POST(req: Request) {
                 }
                 await db.insert(evidenceFindings).values([...collapsed.values()]);
                 validatorFindings = collapsed.size;
+
+                // Auto-seed governance registers from OS/WSH findings (best-effort).
+                try {
+                  await seedRegistersFromEvidenceRun(vrun.id, orgId, targetBoundaryId, collectedAt);
+                } catch (seedErr) {
+                  console.warn("[v2/ingest] WSH auto-register seed failed (non-blocking):", (seedErr as Error).message);
+                }
               }
             }
           }
