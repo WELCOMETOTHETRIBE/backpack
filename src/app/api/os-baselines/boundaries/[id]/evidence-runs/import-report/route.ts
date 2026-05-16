@@ -330,7 +330,8 @@ export async function POST(
       run.id,
       orgId,
       boundaryId,
-      new Date(body.collected_at.trim())
+      new Date(body.collected_at.trim()),
+      "Azure/Entra evidence run"
     );
     registersSeeded = seedResult.seeded;
   } catch (seedErr) {

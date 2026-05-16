@@ -51,7 +51,8 @@ export async function seedRegistersFromEvidenceRun(
   evidenceRunId: string,
   orgId: string,
   boundaryId: string,
-  collectedAt: Date
+  collectedAt: Date,
+  sourceLabel = "evidence run"
 ): Promise<{ seeded: string[]; skipped: string[] }> {
   const seeded: string[] = [];
   const skipped: string[] = [];
@@ -128,7 +129,7 @@ export async function seedRegistersFromEvidenceRun(
         source: "evidence_run",
         evidence_run_id: evidenceRunId,
         controls_checked: hitControls,
-        note: `Auto-recorded from Azure/Entra evidence run. ${hitControls.length} control check(s) found for this register.`,
+        note: `Auto-recorded from ${sourceLabel}. ${hitControls.length} control check(s) found for this register.`,
       },
     });
 

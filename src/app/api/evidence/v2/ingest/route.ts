@@ -524,7 +524,7 @@ export async function POST(req: Request) {
 
                 // Auto-seed governance registers from OS/WSH findings (best-effort).
                 try {
-                  await seedRegistersFromEvidenceRun(vrun.id, orgId, targetBoundaryId, collectedAt);
+                  await seedRegistersFromEvidenceRun(vrun.id, orgId, targetBoundaryId, collectedAt, "OS/WSH evidence run");
                 } catch (seedErr) {
                   console.warn("[v2/ingest] WSH auto-register seed failed (non-blocking):", (seedErr as Error).message);
                 }
