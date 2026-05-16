@@ -1,12 +1,12 @@
 {
   "summary": {
-    "generated_at": "2026-05-16T17:33:15.378Z",
+    "generated_at": "2026-05-16T18:16:48.046Z",
     "qms_inventory": {
       "total": 90,
-      "effective": 59,
+      "effective": 60,
       "approved_not_effective": 0,
       "in_review": 1,
-      "draft": 30
+      "draft": 29
     },
     "cmmc_required_artifacts": {
       "total_distinct_labels": 84,
@@ -1469,9 +1469,9 @@
     },
     {
       "doc_id": "MAC-IRP-001",
-      "title": "Incident Response Plan",
-      "status": "DRAFT",
-      "version": ""
+      "title": "Incident Response Plan — CUI Vault (CMMC L2 Boundary)",
+      "status": "EFFECTIVE",
+      "version": "1.0"
     },
     {
       "doc_id": "MAC-IT-105",

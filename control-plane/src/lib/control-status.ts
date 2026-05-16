@@ -499,22 +499,19 @@ export async function calculateControlStatus(controlRecordId: string): Promise<I
   // Check governance manifest links — if approved (non-DRAFT) docs are mapped to this control,
   // treat the governance document lane as satisfied regardless of individual artifact uploads.
   // This allows the QMS manifest ingest to satisfy governance requirements for hybrid controls.
-  const govDocLinks = await db
-    .select({ docCode: governanceDocumentControlLinks.docCode })
-    .from(governanceDocumentControlLinks)
-    .where(
-      and(
-        eq(governanceDocumentControlLinks.organizationId, record.organizationId),
-        eq(governanceDocumentControlLinks.controlId, controlId)
-      )
-    )
-    .limit(10);
+  //
+  // Priority: if control_assessment_logic declares required_governance_doc_ids, check those
+  // specific docs. Otherwise fall back to any doc in governance_document_control_links.
+  const assessmentCtl = getControlAssessmentLogic().controls.find(
+    (c) => c.control_id === controlId,
+  );
+  const requiredDocIds = assessmentCtl?.required_governance_doc_ids;
 
   let hasApprovedGovDocs = false;
-  if (govDocLinks.length > 0) {
-    const docCodes = govDocLinks.map((l) => l.docCode);
-    // Check if any of those docs are non-DRAFT
-    for (const code of docCodes) {
+
+  if (requiredDocIds && requiredDocIds.length > 0) {
+    // Canonical check: at least one required doc must be APPROVED in governance_documents.
+    for (const code of requiredDocIds) {
       const [doc] = await db
         .select({ status: governanceDocuments.status })
         .from(governanceDocuments)
@@ -528,6 +525,38 @@ export async function calculateControlStatus(controlRecordId: string): Promise<I
       if (doc && doc.status !== "DRAFT") {
         hasApprovedGovDocs = true;
         break;
+      }
+    }
+  } else {
+    // Fallback: any non-DRAFT doc linked to this control via the manifest bridge.
+    const govDocLinks = await db
+      .select({ docCode: governanceDocumentControlLinks.docCode })
+      .from(governanceDocumentControlLinks)
+      .where(
+        and(
+          eq(governanceDocumentControlLinks.organizationId, record.organizationId),
+          eq(governanceDocumentControlLinks.controlId, controlId)
+        )
+      )
+      .limit(10);
+
+    if (govDocLinks.length > 0) {
+      const docCodes = govDocLinks.map((l) => l.docCode);
+      for (const code of docCodes) {
+        const [doc] = await db
+          .select({ status: governanceDocuments.status })
+          .from(governanceDocuments)
+          .where(
+            and(
+              eq(governanceDocuments.organizationId, record.organizationId),
+              eq(governanceDocuments.docId, code)
+            )
+          )
+          .limit(1);
+        if (doc && doc.status !== "DRAFT") {
+          hasApprovedGovDocs = true;
+          break;
+        }
       }
     }
   }
