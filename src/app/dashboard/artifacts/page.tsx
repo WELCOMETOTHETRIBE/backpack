@@ -11,7 +11,7 @@ import {
   governanceArtifactCompletions,
   boundaries,
 } from "@/db/schema";
-import { eq, desc, and, inArray, sql } from "drizzle-orm";
+import { eq, desc, and, inArray, or, isNull, sql } from "drizzle-orm";
 import { countLinksForArtifacts } from "@/lib/artifacts/artifact-links";
 import { MILESTONES_BY_KEY } from "@/data/cmmc/client-required-artifacts";
 import { getCadenceRuleByRegisterId } from "@/data/cmmc/register-cadence-rules";
@@ -52,9 +52,14 @@ export default async function ArtifactsPage() {
   // provisioned), the pointer is covered and should NOT appear as outstanding
   // work in the Artifacts tab.
   const orgRegisterRows = await db
-    .select({ id: governanceRegisters.id, registerKey: governanceRegisters.registerKey })
+    .select({ id: governanceRegisters.id, registerKey: governanceRegisters.registerKey, organizationId: governanceRegisters.organizationId })
     .from(governanceRegisters)
-    .where(eq(governanceRegisters.organizationId, orgId));
+    .where(
+      or(
+        eq(governanceRegisters.organizationId, orgId),
+        isNull(governanceRegisters.organizationId)
+      )
+    );
   const provisionedKeys = new Set(orgRegisterRows.map((r) => r.registerKey));
   const orgBoundaries = await db
     .select({ id: boundaries.id })
@@ -79,7 +84,12 @@ export default async function ArtifactsPage() {
             : [])
         )
       )
-      .where(eq(governanceRegisters.organizationId, orgId))
+      .where(
+        or(
+          eq(governanceRegisters.organizationId, orgId),
+          isNull(governanceRegisters.organizationId)
+        )
+      )
       .groupBy(governanceRegisters.registerKey);
     for (const r of finalRows) finalCounts.set(r.registerKey, Number(r.cnt) || 0);
   }
