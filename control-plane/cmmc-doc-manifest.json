@@ -1,0 +1,3190 @@
+{
+  "summary": {
+    "generated_at": "2026-05-16T16:35:50.259Z",
+    "qms_inventory": {
+      "total": 96,
+      "effective": 54,
+      "approved_not_effective": 1,
+      "in_review": 3,
+      "draft": 38
+    },
+    "cmmc_required_artifacts": {
+      "total_distinct_labels": 132,
+      "effective_in_qms": 76,
+      "drafted_not_released": 8,
+      "missing_entirely_as_doc": 19,
+      "non_releasable_records_or_lists": 29
+    },
+    "orphaned_qms_docs": 39
+  },
+  "manifest": [
+    {
+      "artifact_label": "Access Control Policy",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.1.1",
+        "3.1.2",
+        "3.1.4"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-POL-210",
+        "title": "Access Control Policy - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Access Enforcement and Least Privilege Procedure",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.1.5",
+        "3.1.6",
+        "3.1.7"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-253",
+        "title": "Access Enforcement and Least Privilege Procedure",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Audit and Accountability Policy",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.3.1"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-POL-218",
+        "title": "Audit and Accountability Policy - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Audit Logging Configuration Standard / Guide",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.3.3",
+        "3.3.4",
+        "3.3.5",
+        "3.3.6",
+        "3.3.7",
+        "3.3.8"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SEC-109",
+        "title": "Audit Logging Configuration Guide - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Authorized personnel access list",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.10.1"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "Boundary Protection and Network Segmentation Procedure",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.13.1",
+        "3.13.5",
+        "3.13.6",
+        "3.13.7"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-250",
+        "title": "Boundary Protection and Network Segmentation Procedure",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Configuration Management Policy",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.4.1",
+        "3.4.3"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-POL-220",
+        "title": "Configuration Management Policy - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Cryptographic Key Management Procedure",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.13.10",
+        "3.13.11"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-251",
+        "title": "Cryptographic Key Management Procedure",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "CUI Marking and Handling Procedure",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.8.1",
+        "3.8.2",
+        "3.8.4",
+        "3.8.5"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-248",
+        "title": "CUI Marking and Handling Procedure",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Definition of audit record content & retention requirements",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.3.1"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "Definition of authenticator strength requirements",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.5.7"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "Definition of password complexity, change frequency, and reuse rules",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.5.8"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "Definition of the period for which identifiers cannot be reused",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.5.5"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "Definition of the period of inactivity after which an identifier is disabled",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.5.6"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "External System Connection Policy",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.1.20"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-POL-229",
+        "title": "External System Connections & ISA Policy - CMMC Level 2",
+        "status": "DRAFT",
+        "version": "1.0",
+        "released": false
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Gov docs for information transfer controls",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.13.4"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-244",
+        "title": "Procedures for Information Transfer Controls",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Gov docs for RDP/collaborative device use and restrictions",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.13.12"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-245",
+        "title": "Procedures for RDP and Collaborative Device Use and Restrictions",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Gov docs for separation of duties and system management",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.13.3"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-243",
+        "title": "Procedures for Separation of Duties and System Management",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Identification and Authentication Policy",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.5.1",
+        "3.5.3",
+        "3.5.4"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-POL-211",
+        "title": "Identification & Authentication Policy - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Incident Response Policy",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.6.1"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-POL-215",
+        "title": "Incident Response Policy - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Incident response training materials and records",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.6.2"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-POL-215",
+        "title": "Incident Response Policy - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Information Flow Control Policy",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.1.3"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "Insider Threat Policy & Procedures",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.2.3"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-POL-219",
+        "title": "Awareness and Training Policy - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Insider Threat Training Materials",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.2.3"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "Inventory records of physical access devices",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.10.4"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "Legal review and approval records for banner content",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.1.9"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "List of alternative physical safeguards",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.13.8"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "List of approved maintenance tools",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.7.4"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "List of authorized maintenance personnel",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.7.2"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "List of authorized software & approval records",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.4.6"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "List of defined auditable events",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.3.1"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "List of defined roles and responsibilities requiring separation",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.1.4"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "List of individuals with authorized access to audit records",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.3.5"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "List of individuals/roles authorized to generate audit reports",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.3.6"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "List of personnel with assigned security roles",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.2.2"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "List of privileged accounts to be audited",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.3.9"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "List of prohibited or restricted software",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.4.7"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "List of users authorized to post public content",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.1.22"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "Maintenance Policy",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.7.1"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-POL-221",
+        "title": "Maintenance Policy - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Media Handling & Data Disposal Policy",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.8.1",
+        "3.8.2",
+        "3.8.3",
+        "3.8.4",
+        "3.8.5",
+        "3.8.6",
+        "3.8.7",
+        "3.8.8",
+        "3.8.9"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-POL-213",
+        "title": "Media Handling & Data Disposal Policy - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Media Protection Policy",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.8.1"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-POL-213",
+        "title": "Media Handling & Data Disposal Policy - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "MFA Implementation Standard / Guide",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.5.3"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SEC-108",
+        "title": "MFA Implementation Guide - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Network/security architecture documentation and procedures",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.13.5"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-IT-301",
+        "title": "System Description and Architecture - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Personnel Security Policy",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.9.1"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-POL-222",
+        "title": "Personnel Security Policy - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Personnel Termination Procedure",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.9.2"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-234",
+        "title": "Personnel Termination Procedure - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Physical Access Control Procedure",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.10.1",
+        "3.10.2",
+        "3.10.4"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-236",
+        "title": "Physical Access Device Control Procedure - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Physical and Environmental Protection Policy",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.10.1"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-POL-212",
+        "title": "Physical Security Policy - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Physical Security Policy",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.10.1",
+        "3.10.2",
+        "3.10.3",
+        "3.10.4",
+        "3.10.5",
+        "3.10.6"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-POL-212",
+        "title": "Physical Security Policy - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Plan of Action and Milestones (POA&M) Management Procedure",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.12.2"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-231",
+        "title": "Plan of Action and Milestones (POA&M) Process Procedure - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Policy for authentication feedback (obscure feedback)",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.5.11"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-POL-228",
+        "title": "Policy for Authentication Feedback (Obscure Feedback)",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Procedures for Access Enforcement",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.1.2"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-253",
+        "title": "Access Enforcement and Least Privilege Procedure",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Procedures for Access Restrictions for Changes",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.4.5"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "Procedures for Account Management",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.1.1"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-221",
+        "title": "User Account Provisioning and Deprovisioning Procedure - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Procedures for Audit Record Protection",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.3.5"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "Procedures for Audit Review, Analysis, and Reporting",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.3.2"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-226",
+        "title": "Audit Log Review Procedure - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Procedures for Auditable Events",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.3.1"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "Procedures for Authenticator Management",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.5.3",
+        "3.5.7"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "Procedures for Boundary Protection",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.13.1"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-250",
+        "title": "Boundary Protection and Network Segmentation Procedure",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Procedures for Configuration Change Control",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.4.2"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-225",
+        "title": "Configuration Change Awareness Procedure - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Procedures for Configuration Management",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.4.1",
+        "3.4.3"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-225",
+        "title": "Configuration Change Awareness Procedure - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Procedures for Continuous Monitoring",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.12.3"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-256",
+        "title": "Continuous Control Monitoring Procedure - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Procedures for Controlled Maintenance",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.7.2"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-239",
+        "title": "Procedures for System Monitoring",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Procedures for Cryptographic Key Management",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.13.10"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-251",
+        "title": "Cryptographic Key Management Procedure",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Procedures for CUI Asset Control",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.10.5"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "Procedures for CUI Handling",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.1.22"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-248",
+        "title": "CUI Marking and Handling Procedure",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Procedures for CUI Media Handling and Transport",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.8.4",
+        "3.8.5",
+        "3.8.6"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-247",
+        "title": "Procedures for CUI Media Handling and Transport",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Procedures for establishing, changing, and revoking authenticators",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.5.10",
+        "3.5.9"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "Procedures for Flaw Remediation",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.14.1"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-254",
+        "title": "Procedures for Flaw Remediation",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Procedures for Identifier Management",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.5.5"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "Procedures for Incident Reporting",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.6.2"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-223",
+        "title": "Incident Identification and Reporting",
+        "status": "DRAFT",
+        "version": "",
+        "released": false
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Procedures for Incident Response Testing",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.6.3"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-232",
+        "title": "Incident Response Testing Procedure - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Procedures for Information Flow Enforcement",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.1.3"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "Procedures for Least Functionality",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.4.6"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "Procedures for Least Privilege",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.1.5"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-253",
+        "title": "Access Enforcement and Least Privilege Procedure",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Procedures for Limiting Audit Report Generation",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.3.6"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "Procedures for Maintenance Tool Management",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.7.4"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-238",
+        "title": "Maintenance Tool Control",
+        "status": "DRAFT",
+        "version": "",
+        "released": false
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Procedures for Malicious Code Protection",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.11.3",
+        "3.13.13",
+        "3.14.2"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "Procedures for Media Access",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.8.2"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "Procedures for Media Control",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.8.5"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "Procedures for Media Protection",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.8.1"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "Procedures for Media Sanitization",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.7.6",
+        "3.8.3",
+        "3.8.7"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-246",
+        "title": "Procedures for Media Sanitization",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Procedures for Media Sanitization & Disposal",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.8.3"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-246",
+        "title": "Procedures for Media Sanitization",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "fuzzy",
+      "match_notes": "Jaccard score 0.67"
+    },
+    {
+      "artifact_label": "Procedures for Media Storage and Transport",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.8.8"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-247",
+        "title": "Procedures for CUI Media Handling and Transport",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "fuzzy",
+      "match_notes": "Jaccard score 0.50"
+    },
+    {
+      "artifact_label": "Procedures for mobile code/script control",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.13.13"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-241",
+        "title": "Procedures for Mobile Code and Script Control",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "exact",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Procedures for Mobile Device Access",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.1.18"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-236",
+        "title": "Physical Access Device Control Procedure - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "fuzzy",
+      "match_notes": "Jaccard score 0.40"
+    },
+    {
+      "artifact_label": "Procedures for Personnel Screening",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.9.1"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-233",
+        "title": "Personnel Screening Procedure - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "exact",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Procedures for Personnel Termination and Transfer",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.9.2"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-234",
+        "title": "Personnel Termination Procedure - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "fuzzy",
+      "match_notes": "Jaccard score 0.67"
+    },
+    {
+      "artifact_label": "Procedures for Physical Access Authorizations",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.10.1"
+      ],
+      "qms_match": {
+        "doc_id": "PHYS-ACCESS-PROC",
+        "title": "Physical Access Log Procedure",
+        "status": "DRAFT",
+        "version": "",
+        "released": false
+      },
+      "match_confidence": "fuzzy",
+      "match_notes": "Jaccard score 0.50"
+    },
+    {
+      "artifact_label": "Procedures for Physical Access Control",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.10.4"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-236",
+        "title": "Physical Access Device Control Procedure - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "exact",
+      "match_notes": "Jaccard score 0.75"
+    },
+    {
+      "artifact_label": "Procedures for Physical Access Monitoring",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.10.2"
+      ],
+      "qms_match": {
+        "doc_id": "PHYS-ACCESS-PROC",
+        "title": "Physical Access Log Procedure",
+        "status": "DRAFT",
+        "version": "",
+        "released": false
+      },
+      "match_confidence": "fuzzy",
+      "match_notes": "Jaccard score 0.50"
+    },
+    {
+      "artifact_label": "Procedures for Plan of Action and Milestones (POA&M)",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.12.2"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-231",
+        "title": "Plan of Action and Milestones (POA&M) Process Procedure - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "exact",
+      "match_notes": "Jaccard score 0.80"
+    },
+    {
+      "artifact_label": "Procedures for Publicly Accessible Content",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.1.22"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "Procedures for Remote Access",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.1.12",
+        "3.5.3"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-224",
+        "title": "Physical Environment and Remote Work Controls - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Procedures for Remote Maintenance",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.7.5"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-POL-221",
+        "title": "Maintenance Policy - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "fuzzy",
+      "match_notes": "Jaccard score 0.50"
+    },
+    {
+      "artifact_label": "Procedures for Risk Assessment",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.11.1"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-229",
+        "title": "Risk Assessment",
+        "status": "DRAFT",
+        "version": "",
+        "released": false
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Procedures for Role-Based Security Training",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.2.2"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-227",
+        "title": "Security Awareness Training Procedure - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "fuzzy",
+      "match_notes": "Jaccard score 0.40"
+    },
+    {
+      "artifact_label": "Procedures for Security Assessments",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.12.1"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-227",
+        "title": "Security Awareness Training Procedure - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Procedures for Security Awareness Training",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.2.1"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-227",
+        "title": "Security Awareness Training Procedure - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "exact",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Procedures for Security Engineering Principles",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.13.2"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "Procedures for Separation of Duties",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.1.4"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-235",
+        "title": "Separation of Duties Matrix",
+        "status": "DRAFT",
+        "version": "2.0",
+        "released": false
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Procedures for Session Audit",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.3.9"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "Procedures for session/connection termination",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.13.9"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-240",
+        "title": "Procedures for Session and Connection Termination",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "exact",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Procedures for System Maintenance",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.7.1"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-POL-221",
+        "title": "Maintenance Policy - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "fuzzy",
+      "match_notes": "Jaccard score 0.50"
+    },
+    {
+      "artifact_label": "Procedures for System Monitoring",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.14.3",
+        "3.14.6",
+        "3.14.7"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-239",
+        "title": "Procedures for System Monitoring",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "exact",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Procedures for System Security Plan Development and Review",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.12.4"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-IT-307",
+        "title": "System Security Plan - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Procedures for Transmission Confidentiality",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.13.8"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "Procedures for transmission integrity (SMB signing/crypto)",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.13.15"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-242",
+        "title": "Procedures for Transmission Integrity (SMB Signing and Cryptographic Protection)",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "fuzzy",
+      "match_notes": "Jaccard score 0.57"
+    },
+    {
+      "artifact_label": "Procedures for User Identification and Authentication",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.5.1",
+        "3.5.4"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-POL-211",
+        "title": "Identification & Authentication Policy - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "fuzzy",
+      "match_notes": "Jaccard score 0.67"
+    },
+    {
+      "artifact_label": "Procedures for Visitor Control",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.10.3"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-249",
+        "title": "Visitor Control Procedure",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "exact",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Procedures for Vulnerability Management",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.11.2"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SEC-106",
+        "title": "Vulnerability Management",
+        "status": "DRAFT",
+        "version": "",
+        "released": false
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Procedures for Wireless Access",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.1.16"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "Record Retention Policy",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.3.8",
+        "3.3.9"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-POL-001",
+        "title": "Record Retention Policy - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "exact",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Records of public information reviews",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.1.22"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "Risk Assessment Policy",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.11.1"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-POL-223",
+        "title": "Risk Assessment Policy - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Role-Based Training Curriculum & Materials",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.2.2"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "Security Assessment and Authorization Policy",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.12.1"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-POL-224",
+        "title": "Security Assessment Policy - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "fuzzy",
+      "match_notes": "Jaccard score 0.67"
+    },
+    {
+      "artifact_label": "Security Awareness and Training Policy",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.2.1"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-227",
+        "title": "Security Awareness Training Procedure - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "exact",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Security Awareness Training Curriculum & Materials",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.2.1"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-227",
+        "title": "Security Awareness Training Procedure - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "fuzzy",
+      "match_notes": "Jaccard score 0.60"
+    },
+    {
+      "artifact_label": "Security Planning Policy",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.12.4"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-POL-225",
+        "title": "System and Communications Protection Policy - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Software Restriction Policy",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.4.8",
+        "3.4.9"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-POL-226",
+        "title": "Software Restriction Policy - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "exact",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "System and Communications Protection Policy",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.13.1",
+        "3.13.10",
+        "3.13.11",
+        "3.13.12",
+        "3.13.13",
+        "3.13.14",
+        "3.13.15",
+        "3.13.16",
+        "3.13.2",
+        "3.13.3",
+        "3.13.4",
+        "3.13.5",
+        "3.13.6",
+        "3.13.7",
+        "3.13.8",
+        "3.13.9"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-POL-226",
+        "title": "Software Restriction Policy - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "System and Information Integrity Policy",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.14.1"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-POL-214",
+        "title": "System & Information Integrity Policy - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "System Boundary and Scope Statement",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.12.4"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-IT-308",
+        "title": "System Boundary & Data Handling Statement - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "System Inventory and Asset Management Procedure",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.4.2"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-252",
+        "title": "System Inventory and Asset Management Procedure",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "exact",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "System Security Plan (SSP)",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.12.4"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-IT-307",
+        "title": "System Security Plan - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "System Use Notification / Warning Banner Text",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.1.9"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "Training records demonstrating insider threat awareness training",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.2.3"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "Training records for all personnel with security responsibilities",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.2.2"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "Training records for all users, managers, and administrators",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.2.1"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "Visitor access logs",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.10.3"
+      ],
+      "qms_match": null,
+      "match_confidence": "none",
+      "match_notes": "no QMS doc title overlap ≥ 0.4"
+    },
+    {
+      "artifact_label": "Visitor Control Procedure",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.10.3"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-249",
+        "title": "Visitor Control Procedure",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "exact",
+      "match_notes": "Jaccard score 1.00"
+    },
+    {
+      "artifact_label": "Vulnerability Scanning and Remediation Procedure",
+      "handling": "UPLOAD",
+      "required_by_controls": [
+        "3.11.2",
+        "3.11.3"
+      ],
+      "qms_match": {
+        "doc_id": "MAC-SOP-230",
+        "title": "Vulnerability Scanning and Remediation Procedure - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
+      },
+      "match_confidence": "exact",
+      "match_notes": "Jaccard score 1.00"
+    }
+  ],
+  "orphans": [
+    {
+      "doc_id": "MAC-SEC-312",
+      "title": "Azure Inheritance and Shared Responsibility Statement (CUI Enclave)",
+      "status": "EFFECTIVE",
+      "version": "1.0"
+    },
+    {
+      "doc_id": "MAC-POL-235",
+      "title": "Separation of Duties Policy - CMMC Level 2",
+      "status": "DRAFT",
+      "version": "1.0"
+    },
+    {
+      "doc_id": "MAC-SOP-257",
+      "title": "Quarterly Separation of Duties Review",
+      "status": "DRAFT",
+      "version": "1.0"
+    },
+    {
+      "doc_id": "MAC-SOP-258",
+      "title": "Privileged Onboarding to MAC-Vault-* Groups",
+      "status": "DRAFT",
+      "version": "1.0"
+    },
+    {
+      "doc_id": "MAC-SOP-259",
+      "title": "R10 Incident-Responder Break-Glass Activation and Post-Hoc Review",
+      "status": "DRAFT",
+      "version": "1.0"
+    },
+    {
+      "doc_id": "MAC-IT-304",
+      "title": "System Security Plan",
+      "status": "DRAFT",
+      "version": ""
+    },
+    {
+      "doc_id": "MAC-CMP-001",
+      "title": "Configuration Management Plan - CMMC Level 2",
+      "status": "EFFECTIVE",
+      "version": "1.0"
+    },
+    {
+      "doc_id": "MAC-IRP-001",
+      "title": "Incident Response Plan",
+      "status": "DRAFT",
+      "version": ""
+    },
+    {
+      "doc_id": "MAC-IT-105",
+      "title": "System Boundary",
+      "status": "DRAFT",
+      "version": ""
+    },
+    {
+      "doc_id": "MAC-IT-305",
+      "title": "CUI Data Flow Diagram",
+      "status": "DRAFT",
+      "version": ""
+    },
+    {
+      "doc_id": "MAC-IT-306",
+      "title": "CUI Vault Architecture Diagram",
+      "status": "DRAFT",
+      "version": ""
+    },
+    {
+      "doc_id": "MAC-SEC-302",
+      "title": "FCI and CUI Scope and Data Boundary Statement",
+      "status": "DRAFT",
+      "version": ""
+    },
+    {
+      "doc_id": "MAC-SEC-303",
+      "title": "FCI and CUI Data Handling and Flow Summary",
+      "status": "DRAFT",
+      "version": ""
+    },
+    {
+      "doc_id": "MAC-POL-216",
+      "title": "System Integrity Policy Reference",
+      "status": "DRAFT",
+      "version": ""
+    },
+    {
+      "doc_id": "MAC-POL-217",
+      "title": "Ongoing Stakeholder Requirements",
+      "status": "DRAFT",
+      "version": ""
+    },
+    {
+      "doc_id": "MAC-SOP-222",
+      "title": "Account Lifecycle Enforcement",
+      "status": "DRAFT",
+      "version": ""
+    },
+    {
+      "doc_id": "MAC-SOP-228",
+      "title": "Configuration Baseline Management",
+      "status": "DRAFT",
+      "version": ""
+    },
+    {
+      "doc_id": "MAC-SOP-237",
+      "title": "Mobile Code Control",
+      "status": "DRAFT",
+      "version": ""
+    },
+    {
+      "doc_id": "MAC-FRM-203",
+      "title": "User Access and FCI/CUI Handling Acknowledgement",
+      "status": "DRAFT",
+      "version": ""
+    },
+    {
+      "doc_id": "MAC-FRM-204",
+      "title": "CUI Enclave User Agreement and Rules of Behavior",
+      "status": "DRAFT",
+      "version": ""
+    },
+    {
+      "doc_id": "MAC-AUD-405",
+      "title": "POA&M Tracking Log",
+      "status": "DRAFT",
+      "version": ""
+    },
+    {
+      "doc_id": "MAC-AUD-408",
+      "title": "System Control Traceability Matrix",
+      "status": "DRAFT",
+      "version": ""
+    },
+    {
+      "doc_id": "MAC-SEC-101",
+      "title": "Endpoint Protection",
+      "status": "DRAFT",
+      "version": ""
+    },
+    {
+      "doc_id": "MAC-SEC-104",
+      "title": "Physical Security",
+      "status": "DRAFT",
+      "version": ""
+    },
+    {
+      "doc_id": "MAC-SEC-107",
+      "title": "Incident Response Quick Card",
+      "status": "DRAFT",
+      "version": ""
+    },
+    {
+      "doc_id": "SIA-TPL",
+      "title": "Security Impact Analysis Template",
+      "status": "DRAFT",
+      "version": ""
+    },
+    {
+      "doc_id": "SCREENING-TPL",
+      "title": "Screening Records Template",
+      "status": "DRAFT",
+      "version": ""
+    },
+    {
+      "doc_id": "ENDPOINT-AV-TPL",
+      "title": "Endpoint AV Verification Template",
+      "status": "DRAFT",
+      "version": ""
+    },
+    {
+      "doc_id": "VULN-LOG-TPL",
+      "title": "Vulnerability Remediation Log Template",
+      "status": "DRAFT",
+      "version": ""
+    },
+    {
+      "doc_id": "EVIDENCE_INDEX",
+      "title": "Evidence Index",
+      "status": "DRAFT",
+      "version": ""
+    },
+    {
+      "doc_id": "CONTROL_MAPPING",
+      "title": "Control Mapping NIST 800-171 R2",
+      "status": "DRAFT",
+      "version": ""
+    },
+    {
+      "doc_id": "MAC-GOV-FRM-002",
+      "title": "Contract Intake Sheet",
+      "status": "IN_REVIEW",
+      "version": "1.0"
+    },
+    {
+      "doc_id": "MAC-GOV-SOP-003",
+      "title": "Contract Intake & Lifecycle Management",
+      "status": "EFFECTIVE",
+      "version": "1.0"
+    },
+    {
+      "doc_id": "SSP-001",
+      "title": "System Security Plan — x",
+      "status": "DRAFT",
+      "version": "1.0"
+    },
+    {
+      "doc_id": "SSP-017",
+      "title": "System Security Plan — MacTech CUI Vault",
+      "status": "EFFECTIVE",
+      "version": "17.0"
+    },
+    {
+      "doc_id": "SSP-023",
+      "title": "System Security Plan — MacTech CUI Vault",
+      "status": "IN_REVIEW",
+      "version": "23.0"
+    },
+    {
+      "doc_id": "SSP-024",
+      "title": "System Security Plan — MacTech CUI Vault",
+      "status": "APPROVED",
+      "version": "24.0"
+    },
+    {
+      "doc_id": "SSP-025",
+      "title": "System Security Plan — MacTech CUI Vault",
+      "status": "IN_REVIEW",
+      "version": "25.0"
+    },
+    {
+      "doc_id": "SSP-099",
+      "title": "System Security Plan — x",
+      "status": "DRAFT",
+      "version": "99.0"
+    }
+  ],
+  "buckets": {
+    "required_and_effective": [
+      {
+        "label": "Access Control Policy",
+        "controls": [
+          "3.1.1",
+          "3.1.2",
+          "3.1.4"
+        ],
+        "doc_id": "MAC-POL-210",
+        "title": "Access Control Policy - CMMC Level 2"
+      },
+      {
+        "label": "Access Enforcement and Least Privilege Procedure",
+        "controls": [
+          "3.1.5",
+          "3.1.6",
+          "3.1.7"
+        ],
+        "doc_id": "MAC-SOP-253",
+        "title": "Access Enforcement and Least Privilege Procedure"
+      },
+      {
+        "label": "Audit and Accountability Policy",
+        "controls": [
+          "3.3.1"
+        ],
+        "doc_id": "MAC-POL-218",
+        "title": "Audit and Accountability Policy - CMMC Level 2"
+      },
+      {
+        "label": "Audit Logging Configuration Standard / Guide",
+        "controls": [
+          "3.3.3",
+          "3.3.4",
+          "3.3.5",
+          "3.3.6",
+          "3.3.7",
+          "3.3.8"
+        ],
+        "doc_id": "MAC-SEC-109",
+        "title": "Audit Logging Configuration Guide - CMMC Level 2"
+      },
+      {
+        "label": "Boundary Protection and Network Segmentation Procedure",
+        "controls": [
+          "3.13.1",
+          "3.13.5",
+          "3.13.6",
+          "3.13.7"
+        ],
+        "doc_id": "MAC-SOP-250",
+        "title": "Boundary Protection and Network Segmentation Procedure"
+      },
+      {
+        "label": "Configuration Management Policy",
+        "controls": [
+          "3.4.1",
+          "3.4.3"
+        ],
+        "doc_id": "MAC-POL-220",
+        "title": "Configuration Management Policy - CMMC Level 2"
+      },
+      {
+        "label": "Cryptographic Key Management Procedure",
+        "controls": [
+          "3.13.10",
+          "3.13.11"
+        ],
+        "doc_id": "MAC-SOP-251",
+        "title": "Cryptographic Key Management Procedure"
+      },
+      {
+        "label": "CUI Marking and Handling Procedure",
+        "controls": [
+          "3.8.1",
+          "3.8.2",
+          "3.8.4",
+          "3.8.5"
+        ],
+        "doc_id": "MAC-SOP-248",
+        "title": "CUI Marking and Handling Procedure"
+      },
+      {
+        "label": "Gov docs for information transfer controls",
+        "controls": [
+          "3.13.4"
+        ],
+        "doc_id": "MAC-SOP-244",
+        "title": "Procedures for Information Transfer Controls"
+      },
+      {
+        "label": "Gov docs for RDP/collaborative device use and restrictions",
+        "controls": [
+          "3.13.12"
+        ],
+        "doc_id": "MAC-SOP-245",
+        "title": "Procedures for RDP and Collaborative Device Use and Restrictions"
+      },
+      {
+        "label": "Gov docs for separation of duties and system management",
+        "controls": [
+          "3.13.3"
+        ],
+        "doc_id": "MAC-SOP-243",
+        "title": "Procedures for Separation of Duties and System Management"
+      },
+      {
+        "label": "Identification and Authentication Policy",
+        "controls": [
+          "3.5.1",
+          "3.5.3",
+          "3.5.4"
+        ],
+        "doc_id": "MAC-POL-211",
+        "title": "Identification & Authentication Policy - CMMC Level 2"
+      },
+      {
+        "label": "Incident Response Policy",
+        "controls": [
+          "3.6.1"
+        ],
+        "doc_id": "MAC-POL-215",
+        "title": "Incident Response Policy - CMMC Level 2"
+      },
+      {
+        "label": "Incident response training materials and records",
+        "controls": [
+          "3.6.2"
+        ],
+        "doc_id": "MAC-POL-215",
+        "title": "Incident Response Policy - CMMC Level 2"
+      },
+      {
+        "label": "Insider Threat Policy & Procedures",
+        "controls": [
+          "3.2.3"
+        ],
+        "doc_id": "MAC-POL-219",
+        "title": "Awareness and Training Policy - CMMC Level 2"
+      },
+      {
+        "label": "Maintenance Policy",
+        "controls": [
+          "3.7.1"
+        ],
+        "doc_id": "MAC-POL-221",
+        "title": "Maintenance Policy - CMMC Level 2"
+      },
+      {
+        "label": "Media Handling & Data Disposal Policy",
+        "controls": [
+          "3.8.1",
+          "3.8.2",
+          "3.8.3",
+          "3.8.4",
+          "3.8.5",
+          "3.8.6",
+          "3.8.7",
+          "3.8.8",
+          "3.8.9"
+        ],
+        "doc_id": "MAC-POL-213",
+        "title": "Media Handling & Data Disposal Policy - CMMC Level 2"
+      },
+      {
+        "label": "Media Protection Policy",
+        "controls": [
+          "3.8.1"
+        ],
+        "doc_id": "MAC-POL-213",
+        "title": "Media Handling & Data Disposal Policy - CMMC Level 2"
+      },
+      {
+        "label": "MFA Implementation Standard / Guide",
+        "controls": [
+          "3.5.3"
+        ],
+        "doc_id": "MAC-SEC-108",
+        "title": "MFA Implementation Guide - CMMC Level 2"
+      },
+      {
+        "label": "Network/security architecture documentation and procedures",
+        "controls": [
+          "3.13.5"
+        ],
+        "doc_id": "MAC-IT-301",
+        "title": "System Description and Architecture - CMMC Level 2"
+      },
+      {
+        "label": "Personnel Security Policy",
+        "controls": [
+          "3.9.1"
+        ],
+        "doc_id": "MAC-POL-222",
+        "title": "Personnel Security Policy - CMMC Level 2"
+      },
+      {
+        "label": "Personnel Termination Procedure",
+        "controls": [
+          "3.9.2"
+        ],
+        "doc_id": "MAC-SOP-234",
+        "title": "Personnel Termination Procedure - CMMC Level 2"
+      },
+      {
+        "label": "Physical Access Control Procedure",
+        "controls": [
+          "3.10.1",
+          "3.10.2",
+          "3.10.4"
+        ],
+        "doc_id": "MAC-SOP-236",
+        "title": "Physical Access Device Control Procedure - CMMC Level 2"
+      },
+      {
+        "label": "Physical and Environmental Protection Policy",
+        "controls": [
+          "3.10.1"
+        ],
+        "doc_id": "MAC-POL-212",
+        "title": "Physical Security Policy - CMMC Level 2"
+      },
+      {
+        "label": "Physical Security Policy",
+        "controls": [
+          "3.10.1",
+          "3.10.2",
+          "3.10.3",
+          "3.10.4",
+          "3.10.5",
+          "3.10.6"
+        ],
+        "doc_id": "MAC-POL-212",
+        "title": "Physical Security Policy - CMMC Level 2"
+      },
+      {
+        "label": "Plan of Action and Milestones (POA&M) Management Procedure",
+        "controls": [
+          "3.12.2"
+        ],
+        "doc_id": "MAC-SOP-231",
+        "title": "Plan of Action and Milestones (POA&M) Process Procedure - CMMC Level 2"
+      },
+      {
+        "label": "Policy for authentication feedback (obscure feedback)",
+        "controls": [
+          "3.5.11"
+        ],
+        "doc_id": "MAC-POL-228",
+        "title": "Policy for Authentication Feedback (Obscure Feedback)"
+      },
+      {
+        "label": "Procedures for Access Enforcement",
+        "controls": [
+          "3.1.2"
+        ],
+        "doc_id": "MAC-SOP-253",
+        "title": "Access Enforcement and Least Privilege Procedure"
+      },
+      {
+        "label": "Procedures for Account Management",
+        "controls": [
+          "3.1.1"
+        ],
+        "doc_id": "MAC-SOP-221",
+        "title": "User Account Provisioning and Deprovisioning Procedure - CMMC Level 2"
+      },
+      {
+        "label": "Procedures for Audit Review, Analysis, and Reporting",
+        "controls": [
+          "3.3.2"
+        ],
+        "doc_id": "MAC-SOP-226",
+        "title": "Audit Log Review Procedure - CMMC Level 2"
+      },
+      {
+        "label": "Procedures for Boundary Protection",
+        "controls": [
+          "3.13.1"
+        ],
+        "doc_id": "MAC-SOP-250",
+        "title": "Boundary Protection and Network Segmentation Procedure"
+      },
+      {
+        "label": "Procedures for Configuration Change Control",
+        "controls": [
+          "3.4.2"
+        ],
+        "doc_id": "MAC-SOP-225",
+        "title": "Configuration Change Awareness Procedure - CMMC Level 2"
+      },
+      {
+        "label": "Procedures for Configuration Management",
+        "controls": [
+          "3.4.1",
+          "3.4.3"
+        ],
+        "doc_id": "MAC-SOP-225",
+        "title": "Configuration Change Awareness Procedure - CMMC Level 2"
+      },
+      {
+        "label": "Procedures for Continuous Monitoring",
+        "controls": [
+          "3.12.3"
+        ],
+        "doc_id": "MAC-SOP-256",
+        "title": "Continuous Control Monitoring Procedure - CMMC Level 2"
+      },
+      {
+        "label": "Procedures for Controlled Maintenance",
+        "controls": [
+          "3.7.2"
+        ],
+        "doc_id": "MAC-SOP-239",
+        "title": "Procedures for System Monitoring"
+      },
+      {
+        "label": "Procedures for Cryptographic Key Management",
+        "controls": [
+          "3.13.10"
+        ],
+        "doc_id": "MAC-SOP-251",
+        "title": "Cryptographic Key Management Procedure"
+      },
+      {
+        "label": "Procedures for CUI Handling",
+        "controls": [
+          "3.1.22"
+        ],
+        "doc_id": "MAC-SOP-248",
+        "title": "CUI Marking and Handling Procedure"
+      },
+      {
+        "label": "Procedures for CUI Media Handling and Transport",
+        "controls": [
+          "3.8.4",
+          "3.8.5",
+          "3.8.6"
+        ],
+        "doc_id": "MAC-SOP-247",
+        "title": "Procedures for CUI Media Handling and Transport"
+      },
+      {
+        "label": "Procedures for Flaw Remediation",
+        "controls": [
+          "3.14.1"
+        ],
+        "doc_id": "MAC-SOP-254",
+        "title": "Procedures for Flaw Remediation"
+      },
+      {
+        "label": "Procedures for Incident Response Testing",
+        "controls": [
+          "3.6.3"
+        ],
+        "doc_id": "MAC-SOP-232",
+        "title": "Incident Response Testing Procedure - CMMC Level 2"
+      },
+      {
+        "label": "Procedures for Least Privilege",
+        "controls": [
+          "3.1.5"
+        ],
+        "doc_id": "MAC-SOP-253",
+        "title": "Access Enforcement and Least Privilege Procedure"
+      },
+      {
+        "label": "Procedures for Media Sanitization",
+        "controls": [
+          "3.7.6",
+          "3.8.3",
+          "3.8.7"
+        ],
+        "doc_id": "MAC-SOP-246",
+        "title": "Procedures for Media Sanitization"
+      },
+      {
+        "label": "Procedures for Media Sanitization & Disposal",
+        "controls": [
+          "3.8.3"
+        ],
+        "doc_id": "MAC-SOP-246",
+        "title": "Procedures for Media Sanitization"
+      },
+      {
+        "label": "Procedures for Media Storage and Transport",
+        "controls": [
+          "3.8.8"
+        ],
+        "doc_id": "MAC-SOP-247",
+        "title": "Procedures for CUI Media Handling and Transport"
+      },
+      {
+        "label": "Procedures for mobile code/script control",
+        "controls": [
+          "3.13.13"
+        ],
+        "doc_id": "MAC-SOP-241",
+        "title": "Procedures for Mobile Code and Script Control"
+      },
+      {
+        "label": "Procedures for Mobile Device Access",
+        "controls": [
+          "3.1.18"
+        ],
+        "doc_id": "MAC-SOP-236",
+        "title": "Physical Access Device Control Procedure - CMMC Level 2"
+      },
+      {
+        "label": "Procedures for Personnel Screening",
+        "controls": [
+          "3.9.1"
+        ],
+        "doc_id": "MAC-SOP-233",
+        "title": "Personnel Screening Procedure - CMMC Level 2"
+      },
+      {
+        "label": "Procedures for Personnel Termination and Transfer",
+        "controls": [
+          "3.9.2"
+        ],
+        "doc_id": "MAC-SOP-234",
+        "title": "Personnel Termination Procedure - CMMC Level 2"
+      },
+      {
+        "label": "Procedures for Physical Access Control",
+        "controls": [
+          "3.10.4"
+        ],
+        "doc_id": "MAC-SOP-236",
+        "title": "Physical Access Device Control Procedure - CMMC Level 2"
+      },
+      {
+        "label": "Procedures for Plan of Action and Milestones (POA&M)",
+        "controls": [
+          "3.12.2"
+        ],
+        "doc_id": "MAC-SOP-231",
+        "title": "Plan of Action and Milestones (POA&M) Process Procedure - CMMC Level 2"
+      },
+      {
+        "label": "Procedures for Remote Access",
+        "controls": [
+          "3.1.12",
+          "3.5.3"
+        ],
+        "doc_id": "MAC-SOP-224",
+        "title": "Physical Environment and Remote Work Controls - CMMC Level 2"
+      },
+      {
+        "label": "Procedures for Remote Maintenance",
+        "controls": [
+          "3.7.5"
+        ],
+        "doc_id": "MAC-POL-221",
+        "title": "Maintenance Policy - CMMC Level 2"
+      },
+      {
+        "label": "Procedures for Role-Based Security Training",
+        "controls": [
+          "3.2.2"
+        ],
+        "doc_id": "MAC-SOP-227",
+        "title": "Security Awareness Training Procedure - CMMC Level 2"
+      },
+      {
+        "label": "Procedures for Security Assessments",
+        "controls": [
+          "3.12.1"
+        ],
+        "doc_id": "MAC-SOP-227",
+        "title": "Security Awareness Training Procedure - CMMC Level 2"
+      },
+      {
+        "label": "Procedures for Security Awareness Training",
+        "controls": [
+          "3.2.1"
+        ],
+        "doc_id": "MAC-SOP-227",
+        "title": "Security Awareness Training Procedure - CMMC Level 2"
+      },
+      {
+        "label": "Procedures for session/connection termination",
+        "controls": [
+          "3.13.9"
+        ],
+        "doc_id": "MAC-SOP-240",
+        "title": "Procedures for Session and Connection Termination"
+      },
+      {
+        "label": "Procedures for System Maintenance",
+        "controls": [
+          "3.7.1"
+        ],
+        "doc_id": "MAC-POL-221",
+        "title": "Maintenance Policy - CMMC Level 2"
+      },
+      {
+        "label": "Procedures for System Monitoring",
+        "controls": [
+          "3.14.3",
+          "3.14.6",
+          "3.14.7"
+        ],
+        "doc_id": "MAC-SOP-239",
+        "title": "Procedures for System Monitoring"
+      },
+      {
+        "label": "Procedures for System Security Plan Development and Review",
+        "controls": [
+          "3.12.4"
+        ],
+        "doc_id": "MAC-IT-307",
+        "title": "System Security Plan - CMMC Level 2"
+      },
+      {
+        "label": "Procedures for transmission integrity (SMB signing/crypto)",
+        "controls": [
+          "3.13.15"
+        ],
+        "doc_id": "MAC-SOP-242",
+        "title": "Procedures for Transmission Integrity (SMB Signing and Cryptographic Protection)"
+      },
+      {
+        "label": "Procedures for User Identification and Authentication",
+        "controls": [
+          "3.5.1",
+          "3.5.4"
+        ],
+        "doc_id": "MAC-POL-211",
+        "title": "Identification & Authentication Policy - CMMC Level 2"
+      },
+      {
+        "label": "Procedures for Visitor Control",
+        "controls": [
+          "3.10.3"
+        ],
+        "doc_id": "MAC-SOP-249",
+        "title": "Visitor Control Procedure"
+      },
+      {
+        "label": "Record Retention Policy",
+        "controls": [
+          "3.3.8",
+          "3.3.9"
+        ],
+        "doc_id": "MAC-POL-001",
+        "title": "Record Retention Policy - CMMC Level 2"
+      },
+      {
+        "label": "Risk Assessment Policy",
+        "controls": [
+          "3.11.1"
+        ],
+        "doc_id": "MAC-POL-223",
+        "title": "Risk Assessment Policy - CMMC Level 2"
+      },
+      {
+        "label": "Security Assessment and Authorization Policy",
+        "controls": [
+          "3.12.1"
+        ],
+        "doc_id": "MAC-POL-224",
+        "title": "Security Assessment Policy - CMMC Level 2"
+      },
+      {
+        "label": "Security Awareness and Training Policy",
+        "controls": [
+          "3.2.1"
+        ],
+        "doc_id": "MAC-SOP-227",
+        "title": "Security Awareness Training Procedure - CMMC Level 2"
+      },
+      {
+        "label": "Security Awareness Training Curriculum & Materials",
+        "controls": [
+          "3.2.1"
+        ],
+        "doc_id": "MAC-SOP-227",
+        "title": "Security Awareness Training Procedure - CMMC Level 2"
+      },
+      {
+        "label": "Security Planning Policy",
+        "controls": [
+          "3.12.4"
+        ],
+        "doc_id": "MAC-POL-225",
+        "title": "System and Communications Protection Policy - CMMC Level 2"
+      },
+      {
+        "label": "Software Restriction Policy",
+        "controls": [
+          "3.4.8",
+          "3.4.9"
+        ],
+        "doc_id": "MAC-POL-226",
+        "title": "Software Restriction Policy - CMMC Level 2"
+      },
+      {
+        "label": "System and Communications Protection Policy",
+        "controls": [
+          "3.13.1",
+          "3.13.10",
+          "3.13.11",
+          "3.13.12",
+          "3.13.13",
+          "3.13.14",
+          "3.13.15",
+          "3.13.16",
+          "3.13.2",
+          "3.13.3",
+          "3.13.4",
+          "3.13.5",
+          "3.13.6",
+          "3.13.7",
+          "3.13.8",
+          "3.13.9"
+        ],
+        "doc_id": "MAC-POL-226",
+        "title": "Software Restriction Policy - CMMC Level 2"
+      },
+      {
+        "label": "System and Information Integrity Policy",
+        "controls": [
+          "3.14.1"
+        ],
+        "doc_id": "MAC-POL-214",
+        "title": "System & Information Integrity Policy - CMMC Level 2"
+      },
+      {
+        "label": "System Boundary and Scope Statement",
+        "controls": [
+          "3.12.4"
+        ],
+        "doc_id": "MAC-IT-308",
+        "title": "System Boundary & Data Handling Statement - CMMC Level 2"
+      },
+      {
+        "label": "System Inventory and Asset Management Procedure",
+        "controls": [
+          "3.4.2"
+        ],
+        "doc_id": "MAC-SOP-252",
+        "title": "System Inventory and Asset Management Procedure"
+      },
+      {
+        "label": "System Security Plan (SSP)",
+        "controls": [
+          "3.12.4"
+        ],
+        "doc_id": "MAC-IT-307",
+        "title": "System Security Plan - CMMC Level 2"
+      },
+      {
+        "label": "Visitor Control Procedure",
+        "controls": [
+          "3.10.3"
+        ],
+        "doc_id": "MAC-SOP-249",
+        "title": "Visitor Control Procedure"
+      },
+      {
+        "label": "Vulnerability Scanning and Remediation Procedure",
+        "controls": [
+          "3.11.2",
+          "3.11.3"
+        ],
+        "doc_id": "MAC-SOP-230",
+        "title": "Vulnerability Scanning and Remediation Procedure - CMMC Level 2"
+      }
+    ],
+    "required_drafted_not_released": [
+      {
+        "label": "External System Connection Policy",
+        "controls": [
+          "3.1.20"
+        ],
+        "doc_id": "MAC-POL-229",
+        "title": "External System Connections & ISA Policy - CMMC Level 2",
+        "qms_status": "DRAFT"
+      },
+      {
+        "label": "Procedures for Incident Reporting",
+        "controls": [
+          "3.6.2"
+        ],
+        "doc_id": "MAC-SOP-223",
+        "title": "Incident Identification and Reporting",
+        "qms_status": "DRAFT"
+      },
+      {
+        "label": "Procedures for Maintenance Tool Management",
+        "controls": [
+          "3.7.4"
+        ],
+        "doc_id": "MAC-SOP-238",
+        "title": "Maintenance Tool Control",
+        "qms_status": "DRAFT"
+      },
+      {
+        "label": "Procedures for Physical Access Authorizations",
+        "controls": [
+          "3.10.1"
+        ],
+        "doc_id": "PHYS-ACCESS-PROC",
+        "title": "Physical Access Log Procedure",
+        "qms_status": "DRAFT"
+      },
+      {
+        "label": "Procedures for Physical Access Monitoring",
+        "controls": [
+          "3.10.2"
+        ],
+        "doc_id": "PHYS-ACCESS-PROC",
+        "title": "Physical Access Log Procedure",
+        "qms_status": "DRAFT"
+      },
+      {
+        "label": "Procedures for Risk Assessment",
+        "controls": [
+          "3.11.1"
+        ],
+        "doc_id": "MAC-SOP-229",
+        "title": "Risk Assessment",
+        "qms_status": "DRAFT"
+      },
+      {
+        "label": "Procedures for Separation of Duties",
+        "controls": [
+          "3.1.4"
+        ],
+        "doc_id": "MAC-SOP-235",
+        "title": "Separation of Duties Matrix",
+        "qms_status": "DRAFT"
+      },
+      {
+        "label": "Procedures for Vulnerability Management",
+        "controls": [
+          "3.11.2"
+        ],
+        "doc_id": "MAC-SEC-106",
+        "title": "Vulnerability Management",
+        "qms_status": "DRAFT"
+      }
+    ],
+    "required_missing_entirely": [
+      {
+        "label": "Procedures for Access Restrictions for Changes",
+        "controls": [
+          "3.4.5"
+        ]
+      },
+      {
+        "label": "Procedures for Audit Record Protection",
+        "controls": [
+          "3.3.5"
+        ]
+      },
+      {
+        "label": "Procedures for Auditable Events",
+        "controls": [
+          "3.3.1"
+        ]
+      },
+      {
+        "label": "Procedures for Authenticator Management",
+        "controls": [
+          "3.5.3",
+          "3.5.7"
+        ]
+      },
+      {
+        "label": "Procedures for CUI Asset Control",
+        "controls": [
+          "3.10.5"
+        ]
+      },
+      {
+        "label": "Procedures for establishing, changing, and revoking authenticators",
+        "controls": [
+          "3.5.10",
+          "3.5.9"
+        ]
+      },
+      {
+        "label": "Procedures for Identifier Management",
+        "controls": [
+          "3.5.5"
+        ]
+      },
+      {
+        "label": "Procedures for Information Flow Enforcement",
+        "controls": [
+          "3.1.3"
+        ]
+      },
+      {
+        "label": "Procedures for Least Functionality",
+        "controls": [
+          "3.4.6"
+        ]
+      },
+      {
+        "label": "Procedures for Limiting Audit Report Generation",
+        "controls": [
+          "3.3.6"
+        ]
+      },
+      {
+        "label": "Procedures for Malicious Code Protection",
+        "controls": [
+          "3.11.3",
+          "3.13.13",
+          "3.14.2"
+        ]
+      },
+      {
+        "label": "Procedures for Media Access",
+        "controls": [
+          "3.8.2"
+        ]
+      },
+      {
+        "label": "Procedures for Media Control",
+        "controls": [
+          "3.8.5"
+        ]
+      },
+      {
+        "label": "Procedures for Media Protection",
+        "controls": [
+          "3.8.1"
+        ]
+      },
+      {
+        "label": "Procedures for Publicly Accessible Content",
+        "controls": [
+          "3.1.22"
+        ]
+      },
+      {
+        "label": "Procedures for Security Engineering Principles",
+        "controls": [
+          "3.13.2"
+        ]
+      },
+      {
+        "label": "Procedures for Session Audit",
+        "controls": [
+          "3.3.9"
+        ]
+      },
+      {
+        "label": "Procedures for Transmission Confidentiality",
+        "controls": [
+          "3.13.8"
+        ]
+      },
+      {
+        "label": "Procedures for Wireless Access",
+        "controls": [
+          "3.1.16"
+        ]
+      }
+    ],
+    "required_non_releasable": [
+      {
+        "label": "Authorized personnel access list",
+        "controls": [
+          "3.10.1"
+        ]
+      },
+      {
+        "label": "Definition of audit record content & retention requirements",
+        "controls": [
+          "3.3.1"
+        ]
+      },
+      {
+        "label": "Definition of authenticator strength requirements",
+        "controls": [
+          "3.5.7"
+        ]
+      },
+      {
+        "label": "Definition of password complexity, change frequency, and reuse rules",
+        "controls": [
+          "3.5.8"
+        ]
+      },
+      {
+        "label": "Definition of the period for which identifiers cannot be reused",
+        "controls": [
+          "3.5.5"
+        ]
+      },
+      {
+        "label": "Definition of the period of inactivity after which an identifier is disabled",
+        "controls": [
+          "3.5.6"
+        ]
+      },
+      {
+        "label": "Information Flow Control Policy",
+        "controls": [
+          "3.1.3"
+        ]
+      },
+      {
+        "label": "Insider Threat Training Materials",
+        "controls": [
+          "3.2.3"
+        ]
+      },
+      {
+        "label": "Inventory records of physical access devices",
+        "controls": [
+          "3.10.4"
+        ]
+      },
+      {
+        "label": "Legal review and approval records for banner content",
+        "controls": [
+          "3.1.9"
+        ]
+      },
+      {
+        "label": "List of alternative physical safeguards",
+        "controls": [
+          "3.13.8"
+        ]
+      },
+      {
+        "label": "List of approved maintenance tools",
+        "controls": [
+          "3.7.4"
+        ]
+      },
+      {
+        "label": "List of authorized maintenance personnel",
+        "controls": [
+          "3.7.2"
+        ]
+      },
+      {
+        "label": "List of authorized software & approval records",
+        "controls": [
+          "3.4.6"
+        ]
+      },
+      {
+        "label": "List of defined auditable events",
+        "controls": [
+          "3.3.1"
+        ]
+      },
+      {
+        "label": "List of defined roles and responsibilities requiring separation",
+        "controls": [
+          "3.1.4"
+        ]
+      },
+      {
+        "label": "List of individuals with authorized access to audit records",
+        "controls": [
+          "3.3.5"
+        ]
+      },
+      {
+        "label": "List of individuals/roles authorized to generate audit reports",
+        "controls": [
+          "3.3.6"
+        ]
+      },
+      {
+        "label": "List of personnel with assigned security roles",
+        "controls": [
+          "3.2.2"
+        ]
+      },
+      {
+        "label": "List of privileged accounts to be audited",
+        "controls": [
+          "3.3.9"
+        ]
+      },
+      {
+        "label": "List of prohibited or restricted software",
+        "controls": [
+          "3.4.7"
+        ]
+      },
+      {
+        "label": "List of users authorized to post public content",
+        "controls": [
+          "3.1.22"
+        ]
+      },
+      {
+        "label": "Records of public information reviews",
+        "controls": [
+          "3.1.22"
+        ]
+      },
+      {
+        "label": "Role-Based Training Curriculum & Materials",
+        "controls": [
+          "3.2.2"
+        ]
+      },
+      {
+        "label": "System Use Notification / Warning Banner Text",
+        "controls": [
+          "3.1.9"
+        ]
+      },
+      {
+        "label": "Training records demonstrating insider threat awareness training",
+        "controls": [
+          "3.2.3"
+        ]
+      },
+      {
+        "label": "Training records for all personnel with security responsibilities",
+        "controls": [
+          "3.2.2"
+        ]
+      },
+      {
+        "label": "Training records for all users, managers, and administrators",
+        "controls": [
+          "3.2.1"
+        ]
+      },
+      {
+        "label": "Visitor access logs",
+        "controls": [
+          "3.10.3"
+        ]
+      }
+    ]
+  }
+}

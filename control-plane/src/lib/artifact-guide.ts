@@ -98,10 +98,20 @@ export const CMMC_ARTIFACT_SPECS: ControlArtifactSpec[] = [
   ]},
   { controlId: "3.1.19", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
   { controlId: "3.1.20", satisfactionType: "Governance-Centric", artifacts: [
-    { label: "Procedures for Publicly Accessible Content", handling: "UPLOAD" }, { label: "List of users authorized to post public content", handling: "UPLOAD" }, { label: "Records of public information reviews", handling: "UPLOAD" },
+    // 3.1.20 = "Verify and control/limit connections to and use of external information systems."
+    // The artifacts previously listed here (Publicly Accessible Content) belong
+    // to 3.1.22 — fixed.
+    { label: "External System Connection Policy", handling: "UPLOAD" },
+    { label: "External System Connections / ISA Register", handling: "REFERENCE" },
+    { label: "Records of external connection authorization reviews", handling: "REFERENCE" },
   ]},
   { controlId: "3.1.21", satisfactionType: "Technical-Centric", artifacts: [N_A_ARTIFACT] },
-  { controlId: "3.1.22", satisfactionType: "Governance-Centric", artifacts: [{ label: "Procedures for CUI Handling", handling: "UPLOAD" }] },
+  { controlId: "3.1.22", satisfactionType: "Governance-Centric", artifacts: [
+    { label: "Procedures for CUI Handling", handling: "UPLOAD" },
+    { label: "Procedures for Publicly Accessible Content", handling: "UPLOAD" },
+    { label: "List of users authorized to post public content", handling: "UPLOAD" },
+    { label: "Records of public information reviews", handling: "UPLOAD" },
+  ]},
   // AT
   { controlId: "3.2.1", satisfactionType: "Governance-Centric", artifacts: [
     { label: "Security Awareness and Training Policy", handling: "UPLOAD" }, { label: "Procedures for Security Awareness Training", handling: "UPLOAD" },
