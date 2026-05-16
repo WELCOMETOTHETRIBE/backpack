@@ -9,7 +9,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { governanceRegisters, governanceRegisterEntries, controlRecords } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, or, isNull } from "drizzle-orm";
 import { getRegisterSchemas } from "@/data/cmmc/register-schemas";
 import { CONTROL_INTELLIGENCE, cadenceToDays } from "@/data/cmmc/control-intelligence";
 import {
@@ -82,8 +82,21 @@ export async function GET() {
   const orgRegisters = await db
     .select()
     .from(governanceRegisters)
-    .where(eq(governanceRegisters.organizationId, orgId));
-  const orgRegisterMap = new Map(orgRegisters.map((r) => [r.registerKey, r]));
+    .where(
+      or(
+        eq(governanceRegisters.organizationId, orgId),
+        isNull(governanceRegisters.organizationId)
+      )
+    );
+  // Org-specific registers take precedence over template (organizationId IS NULL) ones.
+  // Build the map so org rows win when both exist for the same key.
+  const orgRegisterMap = new Map<string, (typeof orgRegisters)[number]>();
+  for (const r of orgRegisters) {
+    const existing = orgRegisterMap.get(r.registerKey);
+    if (!existing || existing.organizationId === null) {
+      orgRegisterMap.set(r.registerKey, r);
+    }
+  }
 
   // Control statuses for N/A cascading — a register whose every mapped
   // control is inherited or not_applicable has no active obligation for

@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { governanceRegisters, governanceRegisterEntries } from "@/db/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, or, isNull, sql } from "drizzle-orm";
 import { getEvidenceMap } from "@/data/cmmc";
 import { ensureEvidenceEngineRegistersForOrg, getRegisterStatsForOrgAndBoundary } from "@/lib/evidence-engine/control-dashboard";
 import { resolveEffectiveBoundary } from "@/lib/evidence-engine/resolve-boundary";
@@ -49,7 +49,12 @@ export default async function EvidenceEngineRegistersPage({ searchParams }: Page
       name: governanceRegisters.name,
     })
     .from(governanceRegisters)
-    .where(eq(governanceRegisters.organizationId, orgId));
+    .where(
+      or(
+        eq(governanceRegisters.organizationId, orgId),
+        isNull(governanceRegisters.organizationId)
+      )
+    );
 
   const aggregated = await db
     .select({
@@ -61,7 +66,10 @@ export default async function EvidenceEngineRegistersPage({ searchParams }: Page
     .innerJoin(governanceRegisters, eq(governanceRegisterEntries.registerId, governanceRegisters.id))
     .where(
       and(
-        eq(governanceRegisters.organizationId, orgId),
+        or(
+          eq(governanceRegisters.organizationId, orgId),
+          isNull(governanceRegisters.organizationId)
+        ),
         eq(governanceRegisterEntries.boundaryId, effectiveBoundaryId)
       )
     )

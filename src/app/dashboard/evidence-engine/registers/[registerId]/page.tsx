@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { governanceRegisters, governanceRegisterEntries, organizations } from "@/db/schema";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, desc, or, isNull, sql } from "drizzle-orm";
 import {
   getSummaryTemplate,
   renderSummary,
@@ -59,7 +59,10 @@ export default async function EvidenceEngineRegisterEntriesPage({ params, search
     .from(governanceRegisters)
     .where(
       and(
-        eq(governanceRegisters.organizationId, orgId),
+        or(
+          eq(governanceRegisters.organizationId, orgId),
+          isNull(governanceRegisters.organizationId)
+        ),
         sql`${governanceRegisters.registerKey} IN (${sql.join(
           candidates.map((k) => sql`${k}`),
           sql`, `
