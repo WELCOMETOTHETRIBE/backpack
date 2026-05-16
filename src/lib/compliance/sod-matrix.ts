@@ -47,8 +47,15 @@ export interface SodMatrixSource {
   docControlStatus: string;
 }
 
+export interface SodMatrixParentPolicy {
+  documentNumber: string;
+  documentName: string;
+  relationship: string;
+}
+
 export interface SodMatrix {
   source: SodMatrixSource;
+  parentPolicy: SodMatrixParentPolicy | null;
   primaryControl: string;
   crossWalks: string[];
   legend: Record<CellDisposition, SodLegendEntry>;
@@ -66,6 +73,11 @@ const raw = sodMatrixJson as unknown as {
     released_at: string | null;
     sha256: string | null;
     doc_control_status: string;
+  };
+  parent_policy?: {
+    document_number: string;
+    document_name: string;
+    relationship: string;
   };
   control: { primary: string; cross_walks: string[] };
   legend: Record<CellDisposition, SodLegendEntry>;
@@ -92,6 +104,13 @@ const SOD_MATRIX: SodMatrix = {
     sha256: raw.source.sha256,
     docControlStatus: raw.source.doc_control_status,
   },
+  parentPolicy: raw.parent_policy
+    ? {
+        documentNumber: raw.parent_policy.document_number,
+        documentName: raw.parent_policy.document_name,
+        relationship: raw.parent_policy.relationship,
+      }
+    : null,
   primaryControl: raw.control.primary,
   crossWalks: raw.control.cross_walks,
   legend: raw.legend,

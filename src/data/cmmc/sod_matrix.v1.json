@@ -3,11 +3,16 @@
   "comment": "Static mirror of MAC-SOP-235 — Separation of Duties Matrix (MacTech CUI Vault). QMS is authoritative. Trust Codex consumes this as read-only reference data and uses it to drive the SCTM 3.1.4 matrix viewer, the preventive provisioning check, and the detective scan. On MAC-SOP-235 release via Doc Control, a sod_matrix_review register entry is auto-seeded; this file is updated to match the released version's sha256 in a follow-on PR.",
   "source": {
     "document_number": "MAC-SOP-235",
-    "document_name": "Separation of Duties Matrix — MacTech CUI Vault",
+    "document_name": "Separation of Duties Matrix — MacTech CUI Vault (Windows Server 2025 Operational Appendix)",
     "version": "2.0",
     "released_at": null,
     "sha256": null,
     "doc_control_status": "draft"
+  },
+  "parent_policy": {
+    "document_number": "MAC-POL-235",
+    "document_name": "Separation of Duties Policy",
+    "relationship": "MAC-SOP-235 is the Windows Server 2025 enclave operational appendix to MAC-POL-235. MAC-POL-235 is the workflow-level personnel SoD policy across MacTech (PRs, ISAs, RAs, QMS Doc Control, PIM, maintenance, access, audit log); this matrix narrows to the named R1–R10 administrative roles inside the Vault."
   },
   "control": {
     "primary": "3.1.4",

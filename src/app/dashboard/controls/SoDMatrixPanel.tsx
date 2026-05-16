@@ -90,6 +90,15 @@ export function SoDMatrixPanel() {
                 register entry on release.
               </p>
             )}
+            {sod.parentPolicy && (
+              <p className="mt-2 text-[11px] text-slate-600 italic">
+                Operational appendix to{" "}
+                <span className="font-mono font-semibold text-slate-800">
+                  {sod.parentPolicy.documentNumber}
+                </span>{" "}
+                — {sod.parentPolicy.documentName}. {sod.parentPolicy.relationship}
+              </p>
+            )}
           </div>
           <div className="flex flex-wrap gap-1.5">
             {sod.crossWalks.map((cw) => (

@@ -37,8 +37,9 @@ export const CONTROL_EVIDENCE_GUIDE: Record<string, ControlEvidenceGuideEntry> =
   },
   "3.1.4": {
     evidenceExamples: [
-    "MAC-SOP-235 — Separation of Duties Matrix (CUI Vault, R1–R10).",
-    "MAC-POL-210 §8.1 — Separation of Duties policy section referencing MAC-SOP-235.",
+    "MAC-POL-235 — Separation of Duties Policy (workflow-level personnel SoD across MacTech: code, ISA, RA, QMS Doc Control, PIM, maintenance, access, audit log review).",
+    "MAC-SOP-235 v2.0 — Separation of Duties Matrix (Windows Server 2025 enclave operational appendix to MAC-POL-235; R1–R10 admin role matrix).",
+    "MAC-POL-210 §8.1 — Access Control Policy section referencing both MAC-POL-235 and MAC-SOP-235.",
     "Trust Codex sod_matrix register — quarterly sod_matrix_review entry (signed) and any open sod_exception_approved entries.",
     "Trust Codex SCTM 3.1.4 detail — read-only matrix viewer pinned to the released MAC-SOP-235 sha256.",
     "AD/Entra export: members of MAC-Vault-* groups, evaluated against the matrix; latest detective-scan report attached.",

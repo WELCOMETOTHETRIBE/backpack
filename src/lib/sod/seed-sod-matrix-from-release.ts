@@ -32,8 +32,22 @@ const REGISTER_SCHEMA_ID = "sod_matrix";
 const ENTRY_TYPE = "sod_matrix_review";
 const REVIEWER_LABEL = "Quality Doc Control (QMS-attested)";
 
-/** Doc numbers that, when released by Doc Control, trigger a sod_matrix_review seed. */
-export const SOD_MATRIX_TRIGGER_DOC_NUMBERS = new Set(["MAC-SOP-235"]);
+/**
+ * Doc numbers that, when released by Doc Control, trigger a sod_matrix_review
+ * seed.
+ *
+ * MAC-POL-235 is the parent policy (workflow-level personnel SoD across
+ * MacTech: PRs, ISAs, RAs, QMS Doc Control, PIM, maintenance, access,
+ * audit log review). MAC-SOP-235 is the Windows Server 2025 enclave
+ * operational appendix (R1–R10 admin role matrix). Per MAC-POL-210
+ * §8.1: "On release of either, Trust Codex auto-seeds a
+ * sod_matrix_review register entry as the operational evidence of
+ * review." Both rolls up to AC.L2-3.1.4 in Codex.
+ */
+export const SOD_MATRIX_TRIGGER_DOC_NUMBERS = new Set([
+  "MAC-POL-235",
+  "MAC-SOP-235",
+]);
 
 type Tx = typeof db | Parameters<Parameters<typeof db.transaction>[0]>[0];
 
