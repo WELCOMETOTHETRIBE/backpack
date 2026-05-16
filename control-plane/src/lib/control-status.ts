@@ -627,6 +627,46 @@ export async function calculateControlStatus(controlRecordId: string): Promise<I
       }
     }
   }
+
+  // Fresh-fail gate: hold as in_progress if the most-recent validator run
+  // that emitted findings for this control reported any failing checks.
+  // Symmetric to the cloud-PASS lookup but uses most-recent-run semantics
+  // — a freshly-failing validator overrides stale historical PASS rows
+  // (dedup is keyed on inputs_manifest_sha256, so a new run with new
+  // inputs doesn't wipe prior runs, and we don't want a 6-month-old PASS
+  // masking today's FAIL). Signed attestation supersedes per existing
+  // attestation-gate semantics: if the customer signed it, accept that.
+  if (allComplete && !hasSignedAttestation) {
+    const [latestRun] = await db
+      .select({ id: evidenceRuns.id })
+      .from(evidenceFindings)
+      .innerJoin(evidenceRuns, eq(evidenceFindings.evidenceRunId, evidenceRuns.id))
+      .where(
+        and(
+          eq(evidenceRuns.organizationId, record.organizationId),
+          eq(evidenceFindings.controlId, controlId),
+        ),
+      )
+      .orderBy(desc(evidenceRuns.collectedAt))
+      .limit(1);
+    if (latestRun) {
+      const [freshFail] = await db
+        .select({ run: evidenceFindings.evidenceRunId })
+        .from(evidenceFindings)
+        .where(
+          and(
+            eq(evidenceFindings.evidenceRunId, latestRun.id),
+            eq(evidenceFindings.controlId, controlId),
+            eq(evidenceFindings.pass, false),
+          ),
+        )
+        .limit(1);
+      if (freshFail) {
+        allComplete = false;
+      }
+    }
+  }
+
   const hasSomeProgress =
     existingArtifacts.length > 0 ||
     hasNarrative ||
