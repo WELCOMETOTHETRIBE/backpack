@@ -143,15 +143,23 @@ export default async function EvidenceEngineRegisterEntriesPage({ params, search
   const entriesWithSummary = entries.map((e) => {
     const data = (e.entryData ?? {}) as Record<string, unknown>;
     const entryType = e.entryType ?? "unknown";
-    const template = getSummaryTemplate(registerKey, entryType);
-    const summary = template
-      ? renderSummary(template, data)
-      : getFallbackSummary(entryType, data);
+    const isAutoRecorded = entryType === "auto_recorded";
+    let summary: string;
+    if (isAutoRecorded) {
+      const controls = Array.isArray(data.controls_checked) ? (data.controls_checked as string[]) : [];
+      summary = controls.length > 0
+        ? `Auto-recorded from evidence run · ${controls.length} control check${controls.length !== 1 ? "s" : ""}: ${controls.slice(0, 5).join(", ")}${controls.length > 5 ? ` +${controls.length - 5} more` : ""}`
+        : (typeof data.note === "string" ? data.note : "Auto-recorded from evidence run");
+    } else {
+      const template = getSummaryTemplate(registerKey, entryType);
+      summary = template ? renderSummary(template, data) : getFallbackSummary(entryType, data);
+    }
     return {
       id: e.id,
       summary,
       status: e.status,
       entryType: e.entryType,
+      isAutoRecorded,
       finalizedAt: e.finalizedAt,
       createdAt: e.createdAt,
       // Vuln-register-only fields. Strings or null on every row to keep
@@ -190,9 +198,7 @@ export default async function EvidenceEngineRegisterEntriesPage({ params, search
           <p className="mt-2 text-sm text-[var(--color-gray-600)]">{register.description}</p>
         )}
         <div className="mt-2 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-800">
-          <strong>How it works:</strong> New entries start as <span className="rounded bg-gray-200 px-1 font-medium text-gray-700">Draft</span>.
-          An admin reviews and approves them, changing status to <span className="rounded bg-green-200 px-1 font-medium text-green-700">Final</span>.
-          Only finalized entries count toward compliance and are visible in auditor view.
+          <strong>How it works:</strong> Manual entries start as <span className="rounded bg-gray-200 px-1 font-medium text-gray-700">Draft</span> and require admin approval to become <span className="rounded bg-green-200 px-1 font-medium text-green-700">Final</span>. <span className="inline-flex items-center gap-0.5 rounded-full bg-violet-100 px-1.5 font-medium text-violet-800">⚡ EnclaveWatch</span> entries are auto-recorded and finalized immediately from evidence runs. Only final entries count toward compliance.
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-4">
           <AuditorToggle registerKey={registerKey} auditorOnly={auditorOnly} />
@@ -251,6 +257,10 @@ export default async function EvidenceEngineRegisterEntriesPage({ params, search
                     {isAttestation ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 border border-sky-200 px-2 py-0.5 text-[11px] font-medium text-sky-800">
                         No-events attestation
+                      </span>
+                    ) : e.isAutoRecorded ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 border border-violet-200 px-2 py-0.5 text-[11px] font-medium text-violet-800">
+                        ⚡ EnclaveWatch
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1.5">
