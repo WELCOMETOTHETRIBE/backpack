@@ -1,0 +1,221 @@
+{
+  "$schema": "v1",
+  "comment": "Static mirror of MAC-SOP-235 — Separation of Duties Matrix (MacTech CUI Vault). QMS is authoritative. Trust Codex consumes this as read-only reference data and uses it to drive the SCTM 3.1.4 matrix viewer, the preventive provisioning check, and the detective scan. On MAC-SOP-235 release via Doc Control, a sod_matrix_review register entry is auto-seeded; this file is updated to match the released version's sha256 in a follow-on PR.",
+  "source": {
+    "document_number": "MAC-SOP-235",
+    "document_name": "Separation of Duties Matrix — MacTech CUI Vault",
+    "version": "2.0",
+    "released_at": null,
+    "sha256": null,
+    "doc_control_status": "draft"
+  },
+  "control": {
+    "primary": "3.1.4",
+    "cross_walks": ["3.1.5", "3.3.1", "3.4.1"]
+  },
+  "legend": {
+    "P": {
+      "label": "Prohibited",
+      "color": "red",
+      "description": "A single identity must never hold both roles. Preventive controls block the combination; detective controls flag any drift."
+    },
+    "C": {
+      "label": "Compensating",
+      "color": "amber",
+      "description": "Allowed only with documented compensating controls — dual control on sensitive actions, enhanced logging, and quarterly peer review at minimum."
+    },
+    "A": {
+      "label": "Allowed",
+      "color": "emerald",
+      "description": "Permitted without additional controls."
+    }
+  },
+  "roles": [
+    {
+      "id": "R1",
+      "code": "SA",
+      "name": "System Administrator",
+      "summary": "OS patching, configuration, performance; Hyper-V host, guest OS, Windows roles.",
+      "ad_group": "MAC-Vault-SysAdmins",
+      "admin_tier": "Tier 1",
+      "enforcement_mechanism": "JIT activation via PIM; PAW required; LAPS for local-admin rotation."
+    },
+    {
+      "id": "R2",
+      "code": "Sec",
+      "name": "Security Administrator",
+      "summary": "Baselines, GPO hardening, EDR/AV policy, cryptography; STIG/HVS, BitLocker, AppLocker/WDAC.",
+      "ad_group": "MAC-Vault-SecAdmins",
+      "admin_tier": "Tier 0",
+      "enforcement_mechanism": "Separate forest admin tier; signed GPO workflow; WDAC policy authorship."
+    },
+    {
+      "id": "R3",
+      "code": "AuA",
+      "name": "Audit Administrator",
+      "summary": "Audit policy configuration, log forwarding, SIEM ingestion; Event Viewer, WEF subscriptions, SIEM rules.",
+      "ad_group": "MAC-Vault-AuditAdmins",
+      "admin_tier": "Tier 0 (isolated)",
+      "enforcement_mechanism": "Dedicated audit-collector VM; write-once log storage; isolated from R1/R2 span of control."
+    },
+    {
+      "id": "R4",
+      "code": "Aud",
+      "name": "Auditor / Reviewer",
+      "summary": "Read-only review of audit records; no modify rights.",
+      "ad_group": "MAC-Vault-Auditors",
+      "admin_tier": "n/a",
+      "enforcement_mechanism": "Event Log Readers built-in group only; no shell access; no write rights."
+    },
+    {
+      "id": "R5",
+      "code": "Id",
+      "name": "Identity / Account Administrator",
+      "summary": "User and group provisioning, MFA enrollment; AD and Entra accounts touching the Vault.",
+      "ad_group": "MAC-Vault-Identity",
+      "admin_tier": "Tier 1",
+      "enforcement_mechanism": "Delegated OU rights only; not a member of Domain Admins; PIM-eligible."
+    },
+    {
+      "id": "R6",
+      "code": "Apv",
+      "name": "Access Approver (Data Owner)",
+      "summary": "Authorizes CUI access; approval workflow only.",
+      "ad_group": "MAC-Vault-DataOwners",
+      "admin_tier": "n/a",
+      "enforcement_mechanism": "Approval workflow inside ticketing / Trust Codex; no AD rights of any kind."
+    },
+    {
+      "id": "R7",
+      "code": "Bkp",
+      "name": "Backup Operator",
+      "summary": "Scheduled backup and restore, media handling.",
+      "ad_group": "MAC-Vault-Backup",
+      "admin_tier": "Tier 2",
+      "enforcement_mechanism": "Built-in Backup Operators on backup hosts only; not granted on Vault hosts; cannot read CUI in clear."
+    },
+    {
+      "id": "R8",
+      "code": "Cus",
+      "name": "CUI Custodian",
+      "summary": "CUI ingest, classification, release inside Vault applications.",
+      "ad_group": "MAC-Vault-Custodians",
+      "admin_tier": "n/a",
+      "enforcement_mechanism": "Application-layer RBAC inside Vault apps; no OS logon rights to Vault servers."
+    },
+    {
+      "id": "R9",
+      "code": "Chg",
+      "name": "Change Manager / CCB",
+      "summary": "Approves changes pre-implementation.",
+      "ad_group": "MAC-Vault-CCB",
+      "admin_tier": "n/a",
+      "enforcement_mechanism": "Ticketing approver role; no production access."
+    },
+    {
+      "id": "R10",
+      "code": "IR",
+      "name": "Incident Responder",
+      "summary": "Containment, forensics during declared incidents.",
+      "ad_group": "MAC-Vault-IR",
+      "admin_tier": "Tier 1 (JIT only)",
+      "enforcement_mechanism": "Break-glass via PIM activation with MFA, time-boxed; activity forwarded to independent SIEM; post-incident review required."
+    }
+  ],
+  "matrix": {
+    "R1":  { "R2":"C", "R3":"P", "R4":"P", "R5":"C", "R6":"P", "R7":"C", "R8":"P", "R9":"P", "R10":"C" },
+    "R2":  { "R1":"C", "R3":"P", "R4":"P", "R5":"C", "R6":"P", "R7":"A", "R8":"P", "R9":"P", "R10":"C" },
+    "R3":  { "R1":"P", "R2":"P", "R4":"C", "R5":"P", "R6":"A", "R7":"A", "R8":"A", "R9":"A", "R10":"P" },
+    "R4":  { "R1":"P", "R2":"P", "R3":"C", "R5":"P", "R6":"A", "R7":"A", "R8":"A", "R9":"A", "R10":"P" },
+    "R5":  { "R1":"C", "R2":"C", "R3":"P", "R4":"P", "R6":"P", "R7":"A", "R8":"C", "R9":"A", "R10":"A" },
+    "R6":  { "R1":"P", "R2":"P", "R3":"A", "R4":"A", "R5":"P", "R7":"A", "R8":"C", "R9":"A", "R10":"A" },
+    "R7":  { "R1":"C", "R2":"A", "R3":"A", "R4":"A", "R5":"A", "R6":"A", "R8":"A", "R9":"A", "R10":"A" },
+    "R8":  { "R1":"P", "R2":"P", "R3":"A", "R4":"A", "R5":"C", "R6":"C", "R7":"A", "R9":"A", "R10":"A" },
+    "R9":  { "R1":"P", "R2":"P", "R3":"A", "R4":"A", "R5":"A", "R6":"A", "R7":"A", "R8":"A", "R10":"A" },
+    "R10": { "R1":"C", "R2":"C", "R3":"P", "R4":"P", "R5":"A", "R6":"A", "R7":"A", "R8":"A", "R9":"A" }
+  },
+  "compensating_controls": [
+    {
+      "pair": ["R1", "R2"],
+      "label": "SA + Sec",
+      "controls": [
+        "Dual-control change tickets for all GPO and WDAC modifications.",
+        "R3 reviews change diff before deploy.",
+        "Enhanced session logging on PAW."
+      ]
+    },
+    {
+      "pair": ["R1", "R5"],
+      "label": "SA + Id",
+      "controls": [
+        "Dual control on privileged-group additions.",
+        "Separate approval chain (R2 or R9) for any AD privileged group change.",
+        "Enhanced WEF logging on identity events."
+      ]
+    },
+    {
+      "pair": ["R1", "R7"],
+      "label": "SA + Bkp",
+      "controls": [
+        "Backup operations restricted to backup hosts only; no SA tooling on backup hosts.",
+        "Restore operations require dual control with R5 or R9."
+      ]
+    },
+    {
+      "pair": ["R1", "R10"],
+      "label": "SA + IR",
+      "controls": [
+        "R10 PIM activation requires R2 approval (cannot be self-approved by an SA holder).",
+        "Incident-only timeboxing.",
+        "Mandatory post-incident SoD review for any R1/R10-combined identity."
+      ]
+    },
+    {
+      "pair": ["R2", "R5"],
+      "label": "Sec + Id",
+      "controls": [
+        "Dual control on Tier 0 group changes.",
+        "Identity changes touching MAC-Vault-SecAdmins require R9 (CCB) sign-off.",
+        "Enhanced Entra audit alerts on the combined identity."
+      ]
+    },
+    {
+      "pair": ["R2", "R10"],
+      "label": "Sec + IR",
+      "controls": [
+        "R10 activation by a Sec-role holder requires R9 (CCB) approval.",
+        "Standing review of all incident actions by an independent R3-domain auditor."
+      ]
+    },
+    {
+      "pair": ["R3", "R4"],
+      "label": "AuA + Aud",
+      "controls": [
+        "Discouraged but permitted in small teams.",
+        "Quarterly peer review of audit configuration changes by an external reviewer.",
+        "Written CISO acknowledgment of the residual risk."
+      ]
+    },
+    {
+      "pair": ["R5", "R8"],
+      "label": "Id + Cus",
+      "controls": [
+        "Custodian activities by an identity that also provisions accounts must be peer-reviewed.",
+        "Provisioning actions for own role family prohibited."
+      ]
+    },
+    {
+      "pair": ["R6", "R8"],
+      "label": "Apv + Cus",
+      "controls": [
+        "Same identity cannot approve and process the same access request.",
+        "Ticket workflow enforces approver ≠ requester ≠ processor."
+      ]
+    }
+  ],
+  "fail_open_sla": {
+    "P_cell_minutes": 240,
+    "C_cell_minutes": 1440,
+    "rationale": "Preventive workflow fails open if Trust Codex is unreachable; detective scan catches the resulting conflict within the SLA window. Documented in MAC-SOP-235 §7.1."
+  }
+}

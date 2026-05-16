@@ -39,6 +39,11 @@ import { regenerateOISForManifest } from "@/lib/evidence-engine/adjudication/qms
 import { bridgeQmsManifestToGovernance } from "@/lib/evidence-engine/adjudication/qms-manifest-status-bridge";
 import { scoreControlsAffectedBy } from "@/lib/canonical-state/rescore-trigger";
 import { linkFromManifestRun } from "@/lib/ssp/doc-control-linker";
+import {
+  seedSodMatrixReviewFromRelease,
+  recomputeSodMatrixAffectedControls,
+  SOD_MATRIX_TRIGGER_DOC_NUMBERS,
+} from "@/lib/sod/seed-sod-matrix-from-release";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -350,6 +355,80 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error(
       "[qms-manifest-ingest] doc-control linker failed (non-blocking):",
+      err,
+    );
+  }
+
+  // 9a-ter. SoD Matrix auto-seed. When MAC-SOP-235 (the Separation of
+  //         Duties Matrix) is released via Doc Control, auto-create a
+  //         sod_matrix_review register entry so 3.1.4's register lane
+  //         reflects the reviewed state without manual operator action.
+  //         Mirrors the SSP → policy_review seed pattern. Best-effort.
+  try {
+    const sodTriggers = envelope.documents.filter(
+      (d) => d.released && SOD_MATRIX_TRIGGER_DOC_NUMBERS.has(d.document_number),
+    );
+    for (const d of sodTriggers) {
+      const releasedAt = d.released_at ? new Date(d.released_at) : new Date();
+      const seedResult = await db.transaction(async (tx) =>
+        seedSodMatrixReviewFromRelease(tx, {
+          organizationId: orgRow.id,
+          qmsDocumentNumber: d.document_number,
+          qmsSha256: d.sha256,
+          releasedAt,
+          previousReleasedAt: null,
+        }),
+      );
+      if (seedResult.kind === "created") {
+        console.log(
+          `[qms-manifest-ingest] sod-matrix seed: created entry ${seedResult.entryId} for ${d.document_number}`,
+        );
+        try {
+          await writeAuditLog({
+            organizationId: orgRow.id,
+            action: "governance_register.entry.auto_seeded",
+            resourceType: "governance_register_entry",
+            resourceId: seedResult.entryId,
+            details: {
+              source: "doc_control_release",
+              register_schema_id: "sod_matrix",
+              qms_document_number: d.document_number,
+              qms_sha256: d.sha256,
+              released_at: releasedAt.toISOString(),
+            },
+          });
+        } catch (err) {
+          console.error(
+            "[qms-manifest-ingest] audit log for sod-matrix seed failed:",
+            err,
+          );
+        }
+        try {
+          const recompute = await recomputeSodMatrixAffectedControls(orgRow.id);
+          if (recompute.errors.length > 0) {
+            console.error(
+              "[qms-manifest-ingest] sod-matrix post-seed recompute had errors:",
+              recompute.errors,
+            );
+          }
+          console.log(
+            `[qms-manifest-ingest] sod-matrix post-seed recompute: ${recompute.recalculated} control(s) recalculated`,
+          );
+        } catch (err) {
+          console.error(
+            "[qms-manifest-ingest] sod-matrix post-seed recompute failed (non-blocking):",
+            err,
+          );
+        }
+      } else if (seedResult.kind === "skipped") {
+        console.warn(
+          `[qms-manifest-ingest] sod-matrix seed skipped for ${d.document_number}: ${seedResult.reason}`,
+        );
+      }
+    }
+  } catch (err) {
+    console.error(
+      "[qms-manifest-ingest] sod-matrix auto-seed failed (non-blocking):",
       err,
     );
   }

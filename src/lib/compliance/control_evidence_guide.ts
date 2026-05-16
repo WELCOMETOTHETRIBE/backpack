@@ -37,7 +37,14 @@ export const CONTROL_EVIDENCE_GUIDE: Record<string, ControlEvidenceGuideEntry> =
   },
   "3.1.4": {
     evidenceExamples: [
-    "Separation of Duties Matrix.xlsx"
+    "MAC-SOP-235 — Separation of Duties Matrix (CUI Vault, R1–R10).",
+    "MAC-POL-210 §8.1 — Separation of Duties policy section referencing MAC-SOP-235.",
+    "Trust Codex sod_matrix register — quarterly sod_matrix_review entry (signed) and any open sod_exception_approved entries.",
+    "Trust Codex SCTM 3.1.4 detail — read-only matrix viewer pinned to the released MAC-SOP-235 sha256.",
+    "AD/Entra export: members of MAC-Vault-* groups, evaluated against the matrix; latest detective-scan report attached.",
+    "PIM activation log sample for R1, R5, R10 showing eligible-vs-active separation and time-boxing.",
+    "GPO export: Deny logon locally / via RDP / as service entries for the prohibited combinations.",
+    "WEF subscription manifest showing privileged-action event capture to the independent collector (R3 span)."
     ]
   },
   "3.1.5": {

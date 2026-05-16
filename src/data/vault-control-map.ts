@@ -172,7 +172,7 @@ const OS_EVIDENCE: Record<string, OsEvidence> = {
 const GOV_DOCS: Record<string, string[]> = {
   "3.1.1":  ["MAC-POL-210"],
   "3.1.2":  ["MAC-POL-210"],
-  "3.1.4":  ["MAC-POL-210"],
+  "3.1.4":  ["MAC-POL-210", "MAC-SOP-235"],
   "3.1.12": ["MAC-SOP-224"],
   "3.2.1":  ["MAC-POL-219", "MAC-SOP-227"],
   "3.2.2":  ["MAC-POL-219", "MAC-SOP-227"],
