@@ -25,6 +25,7 @@ import {
 import { CollapsibleBlock } from "./CollapsibleBlock";
 import { SoDMatrixPanel } from "./SoDMatrixPanel";
 import { SoDFindingsPanel } from "./SoDFindingsPanel";
+import { SoDAttestationPanel } from "./SoDAttestationPanel";
 import Link from "next/link";
 import {
   parseAssessmentGuideSections,
@@ -52,7 +53,7 @@ import vaultNarratives from "@/data/cmmc/vault-narratives.json";
 // bundle, breaking the build).
 import { sprsScoringData } from "@/lib/sprs/sprs_scoring_data";
 
-type DetailTab = "guide" | "policy" | "sod" | "sod_findings" | "evidence" | "poam" | "history";
+type DetailTab = "guide" | "policy" | "sod" | "sod_findings" | "sod_attestation" | "evidence" | "poam" | "history";
 
 const VAULT_NARRATIVES = vaultNarratives as Record<string, string>;
 
@@ -975,6 +976,7 @@ export function SCTMControlDetail({
             // with separation-of-duties artifacts can opt in by control id here.
             ...(record.controlId === "3.1.4" ? [{ id: "sod" as const, label: "SoD Matrix" }] : []),
             ...(record.controlId === "3.1.4" ? [{ id: "sod_findings" as const, label: "Findings" }] : []),
+            ...(record.controlId === "3.1.4" ? [{ id: "sod_attestation" as const, label: "Attestation" }] : []),
             { id: "evidence", label: `Evidence${evidenceLinks.length > 0 ? ` (${evidenceLinks.length})` : ""}` },
             { id: "poam", label: "POA&M" },
             { id: "history", label: `History${history.length > 0 ? ` (${history.length})` : ""}` },
@@ -1160,6 +1162,10 @@ export function SCTMControlDetail({
 
         {activeTab === "sod_findings" && record.controlId === "3.1.4" && (
           <SoDFindingsPanel />
+        )}
+
+        {activeTab === "sod_attestation" && record.controlId === "3.1.4" && (
+          <SoDAttestationPanel />
         )}
 
         {activeTab === "evidence" && (

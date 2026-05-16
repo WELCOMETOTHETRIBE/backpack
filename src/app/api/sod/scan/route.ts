@@ -32,6 +32,7 @@ import { sodFindings, boundaries } from "@/db/schema";
 import { requireOrg, requireRole } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
 import { detectiveScan, scanMatrixVersion, type PrincipalGroupExport } from "@/lib/sod/detective-scan";
+import { getAttestedPrincipals } from "@/lib/sod/attestations";
 
 interface ScanRequestBody {
   scan_run_id?: unknown;
@@ -100,8 +101,11 @@ export async function POST(req: Request) {
     );
   }
 
-  // Pure scan.
-  const result = detectiveScan({ principals });
+  // Pure scan, with currently-attested principals passed in so C-cells
+  // covered by a fresh quarterly attestation aren't re-flagged on every
+  // run. P-cells are always flagged regardless of attestation.
+  const attestedPrincipals = await getAttestedPrincipals(orgId);
+  const result = detectiveScan({ principals, attestedPrincipals });
 
   // Persist. For each finding, insert if no open row already exists for
   // (org, principal, pair) — relies on the partial unique index. ON CONFLICT
