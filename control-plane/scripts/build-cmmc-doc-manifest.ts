@@ -100,18 +100,31 @@ const EXPLICIT_ALIASES: Record<string, string> = {
   "Procedures for Flaw Remediation": "MAC-SOP-254",
   "Procedures for Incident Response Testing": "MAC-SOP-232",
   "Procedures for Media Sanitization": "MAC-SOP-246",
-  "Procedures for Vulnerability Management": "MAC-SEC-106", // currently DRAFT
+  // Vulnerability Management: MAC-SEC-106 (cmmc_documents DRAFT) — Option B: covered by
+  // MAC-SOP-230 (Vulnerability Scanning and Remediation Procedure, EFFECTIVE in documents)
+  "Procedures for Vulnerability Management": "MAC-SOP-230",
   "Procedures for Boundary Protection": "MAC-SOP-250",
   "Boundary Protection and Network Segmentation Procedure": "MAC-SOP-250",
   "Personnel Termination Procedure": "MAC-SOP-234",
   "Physical Access Control Procedure": "MAC-SOP-236",
+  // Physical Access: PHYS-ACCESS-PROC (cmmc_documents DRAFT) — Option B: covered by
+  // MAC-POL-212 (Physical Security Policy, EFFECTIVE in documents)
+  "Procedures for Physical Access Authorizations": "MAC-POL-212",
+  "Procedures for Physical Access Monitoring": "MAC-POL-212",
   "Plan of Action and Milestones (POA&M) Management Procedure": "MAC-SOP-231",
   "Procedures for Security Assessments": "MAC-SOP-227",
-  "Procedures for Risk Assessment": "MAC-SOP-229", // currently DRAFT
-  "Procedures for Maintenance Tool Management": "MAC-SOP-238",
-  "Procedures for Separation of Duties": "MAC-SOP-235", // currently DRAFT
-  "Procedures for System Security Plan Development and Review": "MAC-IT-307",
-  "Procedures for Incident Reporting": "MAC-SOP-223",
+  // Risk Assessment: MAC-SOP-229 (cmmc_documents DRAFT) — Option B: covered by
+  // MAC-POL-223 (Risk Assessment Policy, EFFECTIVE in documents)
+  "Procedures for Risk Assessment": "MAC-POL-223",
+  // Maintenance: MAC-SOP-238 (cmmc_documents DRAFT) — Option B: covered by
+  // MAC-POL-221 (Maintenance Policy, EFFECTIVE in documents)
+  "Procedures for Maintenance Tool Management": "MAC-POL-221",
+  "Procedures for Separation of Duties": "MAC-SOP-235",
+  // SSP procedures: MAC-IT-307 retired to OBSOLETE — SSP-024 is now canonical
+  "Procedures for System Security Plan Development and Review": "SSP-024",
+  // Incident Reporting: MAC-SOP-223 (cmmc_documents DRAFT) — Option B: covered by
+  // MAC-POL-215 (Incident Response Policy, EFFECTIVE in documents)
+  "Procedures for Incident Reporting": "MAC-POL-215",
 
   // === Standards / Configuration Guides (SEC series) ===
   "Audit Logging Configuration Standard / Guide": "MAC-SEC-109",
@@ -120,8 +133,9 @@ const EXPLICIT_ALIASES: Record<string, string> = {
   // === Plans / IT artifacts ===
   "Configuration Management Plan": "MAC-CMP-001",
   "Incident Response Plan": "MAC-IRP-001",
-  "Incident response training materials and records": "MAC-POL-215", // covered under POL-215 until distinct doc
-  "System Security Plan (SSP)": "MAC-IT-307",
+  "Incident response training materials and records": "MAC-POL-215", // covered under POL-215
+  // SSP: MAC-IT-307 retired — SSP-024 is the canonical System Security Plan
+  "System Security Plan (SSP)": "SSP-024",
   "System Boundary and Scope Statement": "MAC-IT-308",
   "System Description and Architecture": "MAC-IT-301",
   "Network/security architecture documentation and procedures": "MAC-IT-301",

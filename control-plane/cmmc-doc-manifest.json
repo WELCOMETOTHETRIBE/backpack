@@ -1,21 +1,21 @@
 {
   "summary": {
-    "generated_at": "2026-05-16T16:35:50.259Z",
+    "generated_at": "2026-05-16T17:10:01.047Z",
     "qms_inventory": {
-      "total": 96,
-      "effective": 54,
-      "approved_not_effective": 1,
-      "in_review": 3,
-      "draft": 38
+      "total": 90,
+      "effective": 59,
+      "approved_not_effective": 0,
+      "in_review": 1,
+      "draft": 30
     },
     "cmmc_required_artifacts": {
       "total_distinct_labels": 132,
-      "effective_in_qms": 76,
-      "drafted_not_released": 8,
+      "effective_in_qms": 84,
+      "drafted_not_released": 0,
       "missing_entirely_as_doc": 19,
       "non_releasable_records_or_lists": 29
     },
-    "orphaned_qms_docs": 39
+    "orphaned_qms_docs": 38
   },
   "manifest": [
     {
@@ -232,9 +232,9 @@
       "qms_match": {
         "doc_id": "MAC-POL-229",
         "title": "External System Connections & ISA Policy - CMMC Level 2",
-        "status": "DRAFT",
+        "status": "EFFECTIVE",
         "version": "1.0",
-        "released": false
+        "released": true
       },
       "match_confidence": "alias",
       "match_notes": "Jaccard score 1.00"
@@ -994,11 +994,11 @@
         "3.6.2"
       ],
       "qms_match": {
-        "doc_id": "MAC-SOP-223",
-        "title": "Incident Identification and Reporting",
-        "status": "DRAFT",
-        "version": "",
-        "released": false
+        "doc_id": "MAC-POL-215",
+        "title": "Incident Response Policy - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
       },
       "match_confidence": "alias",
       "match_notes": "Jaccard score 1.00"
@@ -1072,11 +1072,11 @@
         "3.7.4"
       ],
       "qms_match": {
-        "doc_id": "MAC-SOP-238",
-        "title": "Maintenance Tool Control",
-        "status": "DRAFT",
-        "version": "",
-        "released": false
+        "doc_id": "MAC-POL-221",
+        "title": "Maintenance Policy - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
       },
       "match_confidence": "alias",
       "match_notes": "Jaccard score 1.00"
@@ -1244,14 +1244,14 @@
         "3.10.1"
       ],
       "qms_match": {
-        "doc_id": "PHYS-ACCESS-PROC",
-        "title": "Physical Access Log Procedure",
-        "status": "DRAFT",
-        "version": "",
-        "released": false
+        "doc_id": "MAC-POL-212",
+        "title": "Physical Security Policy - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
       },
-      "match_confidence": "fuzzy",
-      "match_notes": "Jaccard score 0.50"
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
     },
     {
       "artifact_label": "Procedures for Physical Access Control",
@@ -1276,14 +1276,14 @@
         "3.10.2"
       ],
       "qms_match": {
-        "doc_id": "PHYS-ACCESS-PROC",
-        "title": "Physical Access Log Procedure",
-        "status": "DRAFT",
-        "version": "",
-        "released": false
+        "doc_id": "MAC-POL-212",
+        "title": "Physical Security Policy - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
       },
-      "match_confidence": "fuzzy",
-      "match_notes": "Jaccard score 0.50"
+      "match_confidence": "alias",
+      "match_notes": "Jaccard score 1.00"
     },
     {
       "artifact_label": "Procedures for Plan of Action and Milestones (POA&M)",
@@ -1351,11 +1351,11 @@
         "3.11.1"
       ],
       "qms_match": {
-        "doc_id": "MAC-SOP-229",
-        "title": "Risk Assessment",
-        "status": "DRAFT",
-        "version": "",
-        "released": false
+        "doc_id": "MAC-POL-223",
+        "title": "Risk Assessment Policy - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
       },
       "match_confidence": "alias",
       "match_notes": "Jaccard score 1.00"
@@ -1427,9 +1427,9 @@
       "qms_match": {
         "doc_id": "MAC-SOP-235",
         "title": "Separation of Duties Matrix",
-        "status": "DRAFT",
+        "status": "EFFECTIVE",
         "version": "2.0",
-        "released": false
+        "released": true
       },
       "match_confidence": "alias",
       "match_notes": "Jaccard score 1.00"
@@ -1501,10 +1501,10 @@
         "3.12.4"
       ],
       "qms_match": {
-        "doc_id": "MAC-IT-307",
-        "title": "System Security Plan - CMMC Level 2",
+        "doc_id": "SSP-024",
+        "title": "System Security Plan — MacTech CUI Vault",
         "status": "EFFECTIVE",
-        "version": "1.0",
+        "version": "24.0",
         "released": true
       },
       "match_confidence": "alias",
@@ -1576,11 +1576,11 @@
         "3.11.2"
       ],
       "qms_match": {
-        "doc_id": "MAC-SEC-106",
-        "title": "Vulnerability Management",
-        "status": "DRAFT",
-        "version": "",
-        "released": false
+        "doc_id": "MAC-SOP-230",
+        "title": "Vulnerability Scanning and Remediation Procedure - CMMC Level 2",
+        "status": "EFFECTIVE",
+        "version": "1.0",
+        "released": true
       },
       "match_confidence": "alias",
       "match_notes": "Jaccard score 1.00"
@@ -1815,10 +1815,10 @@
         "3.12.4"
       ],
       "qms_match": {
-        "doc_id": "MAC-IT-307",
-        "title": "System Security Plan - CMMC Level 2",
+        "doc_id": "SSP-024",
+        "title": "System Security Plan — MacTech CUI Vault",
         "status": "EFFECTIVE",
-        "version": "1.0",
+        "version": "24.0",
         "released": true
       },
       "match_confidence": "alias",
@@ -1918,25 +1918,25 @@
     {
       "doc_id": "MAC-POL-235",
       "title": "Separation of Duties Policy - CMMC Level 2",
-      "status": "DRAFT",
+      "status": "EFFECTIVE",
       "version": "1.0"
     },
     {
       "doc_id": "MAC-SOP-257",
       "title": "Quarterly Separation of Duties Review",
-      "status": "DRAFT",
+      "status": "EFFECTIVE",
       "version": "1.0"
     },
     {
       "doc_id": "MAC-SOP-258",
       "title": "Privileged Onboarding to MAC-Vault-* Groups",
-      "status": "DRAFT",
+      "status": "EFFECTIVE",
       "version": "1.0"
     },
     {
       "doc_id": "MAC-SOP-259",
       "title": "R10 Incident-Responder Break-Glass Activation and Post-Hoc Review",
-      "status": "DRAFT",
+      "status": "EFFECTIVE",
       "version": "1.0"
     },
     {
@@ -2006,14 +2006,32 @@
       "version": ""
     },
     {
+      "doc_id": "MAC-SOP-223",
+      "title": "Incident Identification and Reporting",
+      "status": "DRAFT",
+      "version": ""
+    },
+    {
       "doc_id": "MAC-SOP-228",
       "title": "Configuration Baseline Management",
       "status": "DRAFT",
       "version": ""
     },
     {
+      "doc_id": "MAC-SOP-229",
+      "title": "Risk Assessment",
+      "status": "DRAFT",
+      "version": ""
+    },
+    {
       "doc_id": "MAC-SOP-237",
       "title": "Mobile Code Control",
+      "status": "DRAFT",
+      "version": ""
+    },
+    {
+      "doc_id": "MAC-SOP-238",
+      "title": "Maintenance Tool Control",
       "status": "DRAFT",
       "version": ""
     },
@@ -2054,6 +2072,12 @@
       "version": ""
     },
     {
+      "doc_id": "MAC-SEC-106",
+      "title": "Vulnerability Management",
+      "status": "DRAFT",
+      "version": ""
+    },
+    {
       "doc_id": "MAC-SEC-107",
       "title": "Incident Response Quick Card",
       "status": "DRAFT",
@@ -2084,6 +2108,12 @@
       "version": ""
     },
     {
+      "doc_id": "PHYS-ACCESS-PROC",
+      "title": "Physical Access Log Procedure",
+      "status": "DRAFT",
+      "version": ""
+    },
+    {
       "doc_id": "EVIDENCE_INDEX",
       "title": "Evidence Index",
       "status": "DRAFT",
@@ -2106,42 +2136,6 @@
       "title": "Contract Intake & Lifecycle Management",
       "status": "EFFECTIVE",
       "version": "1.0"
-    },
-    {
-      "doc_id": "SSP-001",
-      "title": "System Security Plan — x",
-      "status": "DRAFT",
-      "version": "1.0"
-    },
-    {
-      "doc_id": "SSP-017",
-      "title": "System Security Plan — MacTech CUI Vault",
-      "status": "EFFECTIVE",
-      "version": "17.0"
-    },
-    {
-      "doc_id": "SSP-023",
-      "title": "System Security Plan — MacTech CUI Vault",
-      "status": "IN_REVIEW",
-      "version": "23.0"
-    },
-    {
-      "doc_id": "SSP-024",
-      "title": "System Security Plan — MacTech CUI Vault",
-      "status": "APPROVED",
-      "version": "24.0"
-    },
-    {
-      "doc_id": "SSP-025",
-      "title": "System Security Plan — MacTech CUI Vault",
-      "status": "IN_REVIEW",
-      "version": "25.0"
-    },
-    {
-      "doc_id": "SSP-099",
-      "title": "System Security Plan — x",
-      "status": "DRAFT",
-      "version": "99.0"
     }
   ],
   "buckets": {
@@ -2226,6 +2220,14 @@
         ],
         "doc_id": "MAC-SOP-248",
         "title": "CUI Marking and Handling Procedure"
+      },
+      {
+        "label": "External System Connection Policy",
+        "controls": [
+          "3.1.20"
+        ],
+        "doc_id": "MAC-POL-229",
+        "title": "External System Connections & ISA Policy - CMMC Level 2"
       },
       {
         "label": "Gov docs for information transfer controls",
@@ -2496,6 +2498,14 @@
         "title": "Procedures for Flaw Remediation"
       },
       {
+        "label": "Procedures for Incident Reporting",
+        "controls": [
+          "3.6.2"
+        ],
+        "doc_id": "MAC-POL-215",
+        "title": "Incident Response Policy - CMMC Level 2"
+      },
+      {
         "label": "Procedures for Incident Response Testing",
         "controls": [
           "3.6.3"
@@ -2510,6 +2520,14 @@
         ],
         "doc_id": "MAC-SOP-253",
         "title": "Access Enforcement and Least Privilege Procedure"
+      },
+      {
+        "label": "Procedures for Maintenance Tool Management",
+        "controls": [
+          "3.7.4"
+        ],
+        "doc_id": "MAC-POL-221",
+        "title": "Maintenance Policy - CMMC Level 2"
       },
       {
         "label": "Procedures for Media Sanitization",
@@ -2570,12 +2588,28 @@
         "title": "Personnel Termination Procedure - CMMC Level 2"
       },
       {
+        "label": "Procedures for Physical Access Authorizations",
+        "controls": [
+          "3.10.1"
+        ],
+        "doc_id": "MAC-POL-212",
+        "title": "Physical Security Policy - CMMC Level 2"
+      },
+      {
         "label": "Procedures for Physical Access Control",
         "controls": [
           "3.10.4"
         ],
         "doc_id": "MAC-SOP-236",
         "title": "Physical Access Device Control Procedure - CMMC Level 2"
+      },
+      {
+        "label": "Procedures for Physical Access Monitoring",
+        "controls": [
+          "3.10.2"
+        ],
+        "doc_id": "MAC-POL-212",
+        "title": "Physical Security Policy - CMMC Level 2"
       },
       {
         "label": "Procedures for Plan of Action and Milestones (POA&M)",
@@ -2603,6 +2637,14 @@
         "title": "Maintenance Policy - CMMC Level 2"
       },
       {
+        "label": "Procedures for Risk Assessment",
+        "controls": [
+          "3.11.1"
+        ],
+        "doc_id": "MAC-POL-223",
+        "title": "Risk Assessment Policy - CMMC Level 2"
+      },
+      {
         "label": "Procedures for Role-Based Security Training",
         "controls": [
           "3.2.2"
@@ -2625,6 +2667,14 @@
         ],
         "doc_id": "MAC-SOP-227",
         "title": "Security Awareness Training Procedure - CMMC Level 2"
+      },
+      {
+        "label": "Procedures for Separation of Duties",
+        "controls": [
+          "3.1.4"
+        ],
+        "doc_id": "MAC-SOP-235",
+        "title": "Separation of Duties Matrix"
       },
       {
         "label": "Procedures for session/connection termination",
@@ -2657,8 +2707,8 @@
         "controls": [
           "3.12.4"
         ],
-        "doc_id": "MAC-IT-307",
-        "title": "System Security Plan - CMMC Level 2"
+        "doc_id": "SSP-024",
+        "title": "System Security Plan — MacTech CUI Vault"
       },
       {
         "label": "Procedures for transmission integrity (SMB signing/crypto)",
@@ -2684,6 +2734,14 @@
         ],
         "doc_id": "MAC-SOP-249",
         "title": "Visitor Control Procedure"
+      },
+      {
+        "label": "Procedures for Vulnerability Management",
+        "controls": [
+          "3.11.2"
+        ],
+        "doc_id": "MAC-SOP-230",
+        "title": "Vulnerability Scanning and Remediation Procedure - CMMC Level 2"
       },
       {
         "label": "Record Retention Policy",
@@ -2795,8 +2853,8 @@
         "controls": [
           "3.12.4"
         ],
-        "doc_id": "MAC-IT-307",
-        "title": "System Security Plan - CMMC Level 2"
+        "doc_id": "SSP-024",
+        "title": "System Security Plan — MacTech CUI Vault"
       },
       {
         "label": "Visitor Control Procedure",
@@ -2816,80 +2874,7 @@
         "title": "Vulnerability Scanning and Remediation Procedure - CMMC Level 2"
       }
     ],
-    "required_drafted_not_released": [
-      {
-        "label": "External System Connection Policy",
-        "controls": [
-          "3.1.20"
-        ],
-        "doc_id": "MAC-POL-229",
-        "title": "External System Connections & ISA Policy - CMMC Level 2",
-        "qms_status": "DRAFT"
-      },
-      {
-        "label": "Procedures for Incident Reporting",
-        "controls": [
-          "3.6.2"
-        ],
-        "doc_id": "MAC-SOP-223",
-        "title": "Incident Identification and Reporting",
-        "qms_status": "DRAFT"
-      },
-      {
-        "label": "Procedures for Maintenance Tool Management",
-        "controls": [
-          "3.7.4"
-        ],
-        "doc_id": "MAC-SOP-238",
-        "title": "Maintenance Tool Control",
-        "qms_status": "DRAFT"
-      },
-      {
-        "label": "Procedures for Physical Access Authorizations",
-        "controls": [
-          "3.10.1"
-        ],
-        "doc_id": "PHYS-ACCESS-PROC",
-        "title": "Physical Access Log Procedure",
-        "qms_status": "DRAFT"
-      },
-      {
-        "label": "Procedures for Physical Access Monitoring",
-        "controls": [
-          "3.10.2"
-        ],
-        "doc_id": "PHYS-ACCESS-PROC",
-        "title": "Physical Access Log Procedure",
-        "qms_status": "DRAFT"
-      },
-      {
-        "label": "Procedures for Risk Assessment",
-        "controls": [
-          "3.11.1"
-        ],
-        "doc_id": "MAC-SOP-229",
-        "title": "Risk Assessment",
-        "qms_status": "DRAFT"
-      },
-      {
-        "label": "Procedures for Separation of Duties",
-        "controls": [
-          "3.1.4"
-        ],
-        "doc_id": "MAC-SOP-235",
-        "title": "Separation of Duties Matrix",
-        "qms_status": "DRAFT"
-      },
-      {
-        "label": "Procedures for Vulnerability Management",
-        "controls": [
-          "3.11.2"
-        ],
-        "doc_id": "MAC-SEC-106",
-        "title": "Vulnerability Management",
-        "qms_status": "DRAFT"
-      }
-    ],
+    "required_drafted_not_released": [],
     "required_missing_entirely": [
       {
         "label": "Procedures for Access Restrictions for Changes",

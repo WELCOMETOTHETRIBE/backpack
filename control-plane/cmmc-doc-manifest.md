@@ -1,22 +1,22 @@
 # CMMC L2 Canonical Document Manifest
 
-_Generated 2026-05-16T16:35:50.259Z_
+_Generated 2026-05-16T17:10:01.047Z_
 
 ## Summary
 
 | Bucket | Count |
 |---|---|
-| **QMS total documents** (not OBSOLETE) | 96 |
-| &nbsp;&nbsp;EFFECTIVE | 54 |
-| &nbsp;&nbsp;APPROVED (signed, not effective) | 1 |
-| &nbsp;&nbsp;IN_REVIEW | 3 |
-| &nbsp;&nbsp;DRAFT | 38 |
+| **QMS total documents** (not OBSOLETE) | 90 |
+| &nbsp;&nbsp;EFFECTIVE | 59 |
+| &nbsp;&nbsp;APPROVED (signed, not effective) | 0 |
+| &nbsp;&nbsp;IN_REVIEW | 1 |
+| &nbsp;&nbsp;DRAFT | 30 |
 | **CMMC L2 required UPLOAD artifacts** (de-duped) | 132 |
-| &nbsp;&nbsp;EFFECTIVE in QMS ✅ | 76 |
-| &nbsp;&nbsp;Drafted but not yet released ⚠️ | 8 |
+| &nbsp;&nbsp;EFFECTIVE in QMS ✅ | 84 |
+| &nbsp;&nbsp;Drafted but not yet released ⚠️ | 0 |
 | &nbsp;&nbsp;Missing as a doc ❌ | 19 |
 | &nbsp;&nbsp;Records / lists (live in registers, not QMS) 📋 | 29 |
-| **QMS docs NOT mapping to any CMMC requirement** (orphans) | 39 |
+| **QMS docs NOT mapping to any CMMC requirement** (orphans) | 38 |
 
 ## Bucket 1 — ✅ Effective in QMS
 
@@ -30,6 +30,7 @@ _Generated 2026-05-16T16:35:50.259Z_
 | Configuration Management Policy | MAC-POL-220 v1.0 | 3.4.1, 3.4.3 |
 | Cryptographic Key Management Procedure | MAC-SOP-251 v1.0 | 3.13.10, 3.13.11 |
 | CUI Marking and Handling Procedure | MAC-SOP-248 v1.0 | 3.8.1, 3.8.2, 3.8.4, 3.8.5 |
+| External System Connection Policy | MAC-POL-229 v1.0 | 3.1.20 |
 | Gov docs for information transfer controls | MAC-SOP-244 v1.0 | 3.13.4 |
 | Gov docs for RDP/collaborative device use and restrictions | MAC-SOP-245 v1.0 | 3.13.12 |
 | Gov docs for separation of duties and system management | MAC-SOP-243 v1.0 | 3.13.3 |
@@ -61,8 +62,10 @@ _Generated 2026-05-16T16:35:50.259Z_
 | Procedures for CUI Handling | MAC-SOP-248 v1.0 | 3.1.22 |
 | Procedures for CUI Media Handling and Transport | MAC-SOP-247 v1.0 | 3.8.4, 3.8.5, 3.8.6 |
 | Procedures for Flaw Remediation | MAC-SOP-254 v1.0 | 3.14.1 |
+| Procedures for Incident Reporting | MAC-POL-215 v1.0 | 3.6.2 |
 | Procedures for Incident Response Testing | MAC-SOP-232 v1.0 | 3.6.3 |
 | Procedures for Least Privilege | MAC-SOP-253 v1.0 | 3.1.5 |
+| Procedures for Maintenance Tool Management | MAC-POL-221 v1.0 | 3.7.4 |
 | Procedures for Media Sanitization | MAC-SOP-246 v1.0 | 3.7.6, 3.8.3, 3.8.7 |
 | Procedures for Media Sanitization & Disposal | MAC-SOP-246 v1.0 | 3.8.3 |
 | Procedures for Media Storage and Transport | MAC-SOP-247 v1.0 | 3.8.8 |
@@ -70,20 +73,25 @@ _Generated 2026-05-16T16:35:50.259Z_
 | Procedures for Mobile Device Access | MAC-SOP-236 v1.0 | 3.1.18 |
 | Procedures for Personnel Screening | MAC-SOP-233 v1.0 | 3.9.1 |
 | Procedures for Personnel Termination and Transfer | MAC-SOP-234 v1.0 | 3.9.2 |
+| Procedures for Physical Access Authorizations | MAC-POL-212 v1.0 | 3.10.1 |
 | Procedures for Physical Access Control | MAC-SOP-236 v1.0 | 3.10.4 |
+| Procedures for Physical Access Monitoring | MAC-POL-212 v1.0 | 3.10.2 |
 | Procedures for Plan of Action and Milestones (POA&M) | MAC-SOP-231 v1.0 | 3.12.2 |
 | Procedures for Remote Access | MAC-SOP-224 v1.0 | 3.1.12, 3.5.3 |
 | Procedures for Remote Maintenance | MAC-POL-221 v1.0 | 3.7.5 |
+| Procedures for Risk Assessment | MAC-POL-223 v1.0 | 3.11.1 |
 | Procedures for Role-Based Security Training | MAC-SOP-227 v1.0 | 3.2.2 |
 | Procedures for Security Assessments | MAC-SOP-227 v1.0 | 3.12.1 |
 | Procedures for Security Awareness Training | MAC-SOP-227 v1.0 | 3.2.1 |
+| Procedures for Separation of Duties | MAC-SOP-235 v2.0 | 3.1.4 |
 | Procedures for session/connection termination | MAC-SOP-240 v1.0 | 3.13.9 |
 | Procedures for System Maintenance | MAC-POL-221 v1.0 | 3.7.1 |
 | Procedures for System Monitoring | MAC-SOP-239 v1.0 | 3.14.3, 3.14.6, 3.14.7 |
-| Procedures for System Security Plan Development and Review | MAC-IT-307 v1.0 | 3.12.4 |
+| Procedures for System Security Plan Development and Review | SSP-024 v24.0 | 3.12.4 |
 | Procedures for transmission integrity (SMB signing/crypto) | MAC-SOP-242 v1.0 | 3.13.15 |
 | Procedures for User Identification and Authentication | MAC-POL-211 v1.0 | 3.5.1, 3.5.4 |
 | Procedures for Visitor Control | MAC-SOP-249 v1.0 | 3.10.3 |
+| Procedures for Vulnerability Management | MAC-SOP-230 v1.0 | 3.11.2 |
 | Record Retention Policy | MAC-POL-001 v1.0 | 3.3.8, 3.3.9 |
 | Risk Assessment Policy | MAC-POL-223 v1.0 | 3.11.1 |
 | Security Assessment and Authorization Policy | MAC-POL-224 v1.0 | 3.12.1 |
@@ -95,7 +103,7 @@ _Generated 2026-05-16T16:35:50.259Z_
 | System and Information Integrity Policy | MAC-POL-214 v1.0 | 3.14.1 |
 | System Boundary and Scope Statement | MAC-IT-308 v1.0 | 3.12.4 |
 | System Inventory and Asset Management Procedure | MAC-SOP-252 v1.0 | 3.4.2 |
-| System Security Plan (SSP) | MAC-IT-307 v1.0 | 3.12.4 |
+| System Security Plan (SSP) | SSP-024 v24.0 | 3.12.4 |
 | Visitor Control Procedure | MAC-SOP-249 v1.0 | 3.10.3 |
 | Vulnerability Scanning and Remediation Procedure | MAC-SOP-230 v1.0 | 3.11.2, 3.11.3 |
 
@@ -103,14 +111,6 @@ _Generated 2026-05-16T16:35:50.259Z_
 
 | Required Artifact | QMS doc | QMS status | Controls blocked |
 |---|---|---|---|
-| External System Connection Policy | MAC-POL-229 v1.0 | DRAFT | 3.1.20 |
-| Procedures for Incident Reporting | MAC-SOP-223 v | DRAFT | 3.6.2 |
-| Procedures for Maintenance Tool Management | MAC-SOP-238 v | DRAFT | 3.7.4 |
-| Procedures for Physical Access Authorizations | PHYS-ACCESS-PROC v | DRAFT | 3.10.1 |
-| Procedures for Physical Access Monitoring | PHYS-ACCESS-PROC v | DRAFT | 3.10.2 |
-| Procedures for Risk Assessment | MAC-SOP-229 v | DRAFT | 3.11.1 |
-| Procedures for Separation of Duties | MAC-SOP-235 v2.0 | DRAFT | 3.1.4 |
-| Procedures for Vulnerability Management | MAC-SEC-106 v | DRAFT | 3.11.2 |
 
 ## Bucket 3 — ❌ Missing entirely from QMS (true doc gap)
 
@@ -181,10 +181,10 @@ These docs exist in QMS but the matcher couldn't tie them to a CMMC artifact lab
 | QMS doc | Title | Status |
 |---|---|---|
 | MAC-SEC-312 | Azure Inheritance and Shared Responsibility Statement (CUI Enclave) | EFFECTIVE |
-| MAC-POL-235 | Separation of Duties Policy - CMMC Level 2 | DRAFT |
-| MAC-SOP-257 | Quarterly Separation of Duties Review | DRAFT |
-| MAC-SOP-258 | Privileged Onboarding to MAC-Vault-* Groups | DRAFT |
-| MAC-SOP-259 | R10 Incident-Responder Break-Glass Activation and Post-Hoc Review | DRAFT |
+| MAC-POL-235 | Separation of Duties Policy - CMMC Level 2 | EFFECTIVE |
+| MAC-SOP-257 | Quarterly Separation of Duties Review | EFFECTIVE |
+| MAC-SOP-258 | Privileged Onboarding to MAC-Vault-* Groups | EFFECTIVE |
+| MAC-SOP-259 | R10 Incident-Responder Break-Glass Activation and Post-Hoc Review | EFFECTIVE |
 | MAC-IT-304 | System Security Plan | DRAFT |
 | MAC-CMP-001 | Configuration Management Plan - CMMC Level 2 | EFFECTIVE |
 | MAC-IRP-001 | Incident Response Plan | DRAFT |
@@ -196,26 +196,25 @@ These docs exist in QMS but the matcher couldn't tie them to a CMMC artifact lab
 | MAC-POL-216 | System Integrity Policy Reference | DRAFT |
 | MAC-POL-217 | Ongoing Stakeholder Requirements | DRAFT |
 | MAC-SOP-222 | Account Lifecycle Enforcement | DRAFT |
+| MAC-SOP-223 | Incident Identification and Reporting | DRAFT |
 | MAC-SOP-228 | Configuration Baseline Management | DRAFT |
+| MAC-SOP-229 | Risk Assessment | DRAFT |
 | MAC-SOP-237 | Mobile Code Control | DRAFT |
+| MAC-SOP-238 | Maintenance Tool Control | DRAFT |
 | MAC-FRM-203 | User Access and FCI/CUI Handling Acknowledgement | DRAFT |
 | MAC-FRM-204 | CUI Enclave User Agreement and Rules of Behavior | DRAFT |
 | MAC-AUD-405 | POA&M Tracking Log | DRAFT |
 | MAC-AUD-408 | System Control Traceability Matrix | DRAFT |
 | MAC-SEC-101 | Endpoint Protection | DRAFT |
 | MAC-SEC-104 | Physical Security | DRAFT |
+| MAC-SEC-106 | Vulnerability Management | DRAFT |
 | MAC-SEC-107 | Incident Response Quick Card | DRAFT |
 | SIA-TPL | Security Impact Analysis Template | DRAFT |
 | SCREENING-TPL | Screening Records Template | DRAFT |
 | ENDPOINT-AV-TPL | Endpoint AV Verification Template | DRAFT |
 | VULN-LOG-TPL | Vulnerability Remediation Log Template | DRAFT |
+| PHYS-ACCESS-PROC | Physical Access Log Procedure | DRAFT |
 | EVIDENCE_INDEX | Evidence Index | DRAFT |
 | CONTROL_MAPPING | Control Mapping NIST 800-171 R2 | DRAFT |
 | MAC-GOV-FRM-002 | Contract Intake Sheet | IN_REVIEW |
 | MAC-GOV-SOP-003 | Contract Intake & Lifecycle Management | EFFECTIVE |
-| SSP-001 | System Security Plan — x | DRAFT |
-| SSP-017 | System Security Plan — MacTech CUI Vault | EFFECTIVE |
-| SSP-023 | System Security Plan — MacTech CUI Vault | IN_REVIEW |
-| SSP-024 | System Security Plan — MacTech CUI Vault | APPROVED |
-| SSP-025 | System Security Plan — MacTech CUI Vault | IN_REVIEW |
-| SSP-099 | System Security Plan — x | DRAFT |
