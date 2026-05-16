@@ -137,6 +137,11 @@ export interface ControlAssessmentControl {
   requires_operational_evidence: boolean;
   register_requirements: ControlRegisterRequirement[];
   scoring: ControlScoringDef;
+  /** Canonical QMS document numbers that satisfy this control's governance lane.
+   *  At least one must be APPROVED in governance_documents for hasApprovedGovDocs
+   *  to return true. Populated from the canonical doc→control mapping.
+   *  Controls with no specific procedure doc have SSP-024 as the sole entry. */
+  required_governance_doc_ids?: string[];
 }
 
 export interface ControlAssessmentLogic {

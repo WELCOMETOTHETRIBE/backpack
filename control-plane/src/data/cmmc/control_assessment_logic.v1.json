@@ -1,7 +1,7 @@
 {
   "schema": "mactech.cmmc.control-assessment-logic.v1",
-  "version": "1.0.0",
-  "generated_at": "2026-03-05T05:38:39Z",
+  "version": "1.1.0",
+  "generated_at": "2026-05-16T18:41:34Z",
   "defaults": {
     "cadence_window_days": 90,
     "min_final_entries_per_register": 1,
@@ -28,7 +28,12 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-GOV-SOP-003",
+        "MAC-POL-210",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.1.2",
@@ -50,7 +55,12 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-GOV-SOP-003",
+        "MAC-POL-210",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.1.3",
@@ -67,7 +77,10 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.1.4",
@@ -89,7 +102,16 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-210",
+        "MAC-POL-235",
+        "MAC-SOP-235",
+        "MAC-SOP-257",
+        "MAC-SOP-258",
+        "MAC-SOP-259",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.1.5",
@@ -116,7 +138,12 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-SOP-253",
+        "MAC-SOP-258",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.1.6",
@@ -138,7 +165,12 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-SOP-253",
+        "MAC-SOP-258",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.1.7",
@@ -160,7 +192,11 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-SOP-253",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.1.8",
@@ -177,7 +213,10 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.1.9",
@@ -194,7 +233,10 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.1.10",
@@ -211,7 +253,10 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.1.11",
@@ -228,7 +273,10 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.1.12",
@@ -245,7 +293,11 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-SOP-224",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.1.13",
@@ -262,7 +314,10 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.1.14",
@@ -279,7 +334,10 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.1.15",
@@ -306,7 +364,10 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.1.16",
@@ -333,7 +394,10 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.1.17",
@@ -350,7 +414,10 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.1.18",
@@ -367,7 +434,10 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.1.19",
@@ -384,7 +454,10 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.1.20",
@@ -406,7 +479,11 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-229",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.1.21",
@@ -423,7 +500,10 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.1.22",
@@ -440,7 +520,10 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.2.1",
@@ -457,7 +540,12 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-219",
+        "MAC-SOP-227",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.2.2",
@@ -474,7 +562,10 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.2.3",
@@ -491,7 +582,10 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.3.1",
@@ -508,7 +602,11 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-218",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.3.2",
@@ -525,7 +623,11 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-SOP-226",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.3.3",
@@ -542,7 +644,11 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-SEC-109",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.3.4",
@@ -564,7 +670,11 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-SEC-109",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.3.5",
@@ -586,7 +696,11 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-SEC-109",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.3.6",
@@ -603,7 +717,11 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-SEC-109",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.3.7",
@@ -620,7 +738,11 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-SEC-109",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.3.8",
@@ -637,7 +759,12 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-001",
+        "MAC-SEC-109",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.3.9",
@@ -654,7 +781,11 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-001",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.4.1",
@@ -676,7 +807,12 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-CMP-001",
+        "MAC-POL-220",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.4.2",
@@ -698,7 +834,13 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-CMP-001",
+        "MAC-SOP-225",
+        "MAC-SOP-252",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.4.3",
@@ -720,7 +862,12 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-CMP-001",
+        "MAC-POL-220",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.4.4",
@@ -742,7 +889,10 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.4.5",
@@ -764,7 +914,10 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.4.6",
@@ -786,7 +939,10 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.4.7",
@@ -808,7 +964,10 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.4.8",
@@ -830,7 +989,11 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-226",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.4.9",
@@ -852,7 +1015,11 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-226",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.5.1",
@@ -874,7 +1041,12 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-211",
+        "MAC-SOP-221",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.5.2",
@@ -896,7 +1068,10 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.5.3",
@@ -918,7 +1093,13 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-211",
+        "MAC-SEC-108",
+        "MAC-SOP-224",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.5.4",
@@ -935,7 +1116,12 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-211",
+        "MAC-SOP-221",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.5.5",
@@ -952,7 +1138,10 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.5.6",
@@ -969,7 +1158,10 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.5.7",
@@ -986,7 +1178,11 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-211",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.5.8",
@@ -1003,7 +1199,10 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.5.9",
@@ -1020,7 +1219,11 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-SOP-221",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.5.10",
@@ -1037,7 +1240,11 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-SOP-221",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.5.11",
@@ -1054,7 +1261,11 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-228",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.6.1",
@@ -1071,7 +1282,14 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-IRP-001",
+        "MAC-POL-215",
+        "MAC-SEC-107",
+        "MAC-SOP-259",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.6.2",
@@ -1088,7 +1306,13 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-IRP-001",
+        "MAC-SEC-107",
+        "MAC-SOP-259",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.6.3",
@@ -1110,7 +1334,12 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-IRP-001",
+        "MAC-SOP-232",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.7.1",
@@ -1127,7 +1356,11 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-221",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.7.2",
@@ -1144,7 +1377,10 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.7.3",
@@ -1166,7 +1402,10 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.7.4",
@@ -1188,7 +1427,10 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.7.5",
@@ -1205,7 +1447,10 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.7.6",
@@ -1222,7 +1467,10 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.8.1",
@@ -1239,7 +1487,12 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-213",
+        "MAC-SOP-248",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.8.2",
@@ -1256,7 +1509,12 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-213",
+        "MAC-SOP-248",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.8.3",
@@ -1273,7 +1531,12 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-213",
+        "MAC-SOP-246",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.8.4",
@@ -1290,7 +1553,13 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-213",
+        "MAC-SOP-247",
+        "MAC-SOP-248",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.8.5",
@@ -1307,7 +1576,13 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-213",
+        "MAC-SOP-247",
+        "MAC-SOP-248",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.8.6",
@@ -1324,7 +1599,12 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-213",
+        "MAC-SOP-247",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.8.7",
@@ -1341,7 +1621,12 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-213",
+        "MAC-SOP-246",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.8.8",
@@ -1358,7 +1643,11 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-213",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.8.9",
@@ -1375,7 +1664,11 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-213",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.9.1",
@@ -1392,7 +1685,12 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-222",
+        "MAC-SOP-233",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.9.2",
@@ -1409,7 +1707,11 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-SOP-234",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.10.1",
@@ -1426,7 +1728,14 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-212",
+        "MAC-SEC-104",
+        "MAC-SEC-312",
+        "MAC-SOP-236",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.10.2",
@@ -1443,7 +1752,14 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-212",
+        "MAC-SEC-104",
+        "MAC-SEC-312",
+        "MAC-SOP-236",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.10.3",
@@ -1460,7 +1776,14 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-212",
+        "MAC-SEC-104",
+        "MAC-SEC-312",
+        "MAC-SOP-249",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.10.4",
@@ -1482,7 +1805,14 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-212",
+        "MAC-SEC-104",
+        "MAC-SEC-312",
+        "MAC-SOP-236",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.10.5",
@@ -1504,7 +1834,14 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-212",
+        "MAC-SEC-104",
+        "MAC-SEC-312",
+        "MAC-SOP-236",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.10.6",
@@ -1521,7 +1858,13 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-212",
+        "MAC-SEC-104",
+        "MAC-SEC-312",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.11.1",
@@ -1531,14 +1874,18 @@
         {
           "register_id": "risk_register",
           "min_final_entries": 1,
-          "cadence_days": 90
+          "cadence_days": 365
         }
       ],
       "scoring": {
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-223",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.11.2",
@@ -1560,7 +1907,13 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-SEC-106",
+        "MAC-SOP-230",
+        "MAC-SOP-254",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.11.3",
@@ -1577,7 +1930,13 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-214",
+        "MAC-SEC-106",
+        "MAC-SOP-230",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.12.1",
@@ -1599,7 +1958,11 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-224",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.12.2",
@@ -1616,7 +1979,11 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-SOP-231",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.12.3",
@@ -1638,7 +2005,11 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-SOP-256",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.12.4",
@@ -1655,7 +2026,16 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-IT-105",
+        "MAC-IT-301",
+        "MAC-IT-304",
+        "MAC-IT-305",
+        "MAC-IT-308",
+        "MAC-SEC-302",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.13.1",
@@ -1672,7 +2052,14 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-IT-308",
+        "MAC-POL-225",
+        "MAC-SEC-312",
+        "MAC-SOP-250",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.13.2",
@@ -1689,7 +2076,12 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-225",
+        "MAC-SEC-312",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.13.3",
@@ -1706,7 +2098,12 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-225",
+        "MAC-SOP-243",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.13.5",
@@ -1723,7 +2120,17 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-IT-301",
+        "MAC-IT-305",
+        "MAC-IT-306",
+        "MAC-IT-308",
+        "MAC-POL-225",
+        "MAC-SEC-312",
+        "MAC-SOP-250",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.13.7",
@@ -1740,7 +2147,13 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-225",
+        "MAC-SEC-312",
+        "MAC-SOP-250",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.13.8",
@@ -1757,7 +2170,11 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-225",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.13.10",
@@ -1774,7 +2191,12 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-225",
+        "MAC-SOP-251",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.13.11",
@@ -1791,7 +2213,12 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-225",
+        "MAC-SOP-251",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.13.12",
@@ -1808,7 +2235,12 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-225",
+        "MAC-SOP-245",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.13.13",
@@ -1825,7 +2257,13 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-214",
+        "MAC-POL-225",
+        "MAC-SOP-241",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.13.14",
@@ -1842,7 +2280,11 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-225",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.13.15",
@@ -1859,7 +2301,12 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-225",
+        "MAC-SOP-242",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.13.16",
@@ -1876,7 +2323,11 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-225",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.13.4",
@@ -1885,7 +2336,12 @@
       "register_requirements": [],
       "scoring": {
         "na": "no_operational_registers_mapped"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-225",
+        "MAC-SOP-244",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.13.6",
@@ -1894,7 +2350,13 @@
       "register_requirements": [],
       "scoring": {
         "na": "no_operational_registers_mapped"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-225",
+        "MAC-SEC-312",
+        "MAC-SOP-250",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.13.9",
@@ -1903,7 +2365,12 @@
       "register_requirements": [],
       "scoring": {
         "na": "no_operational_registers_mapped"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-225",
+        "MAC-SOP-240",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.14.1",
@@ -1925,7 +2392,11 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-SOP-254",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.14.2",
@@ -1947,7 +2418,12 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-POL-214",
+        "MAC-SEC-101",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.14.3",
@@ -1969,7 +2445,12 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-SEC-101",
+        "MAC-SOP-239",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.14.4",
@@ -1991,7 +2472,11 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-SEC-101",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.14.5",
@@ -2013,7 +2498,11 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-SEC-101",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.14.6",
@@ -2035,7 +2524,12 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-SEC-101",
+        "MAC-SOP-239",
+        "SSP-024"
+      ]
     },
     {
       "control_id": "3.14.7",
@@ -2062,7 +2556,12 @@
         "pass": "all_requirements_met",
         "partial": "some_requirements_met",
         "fail": "no_requirements_met"
-      }
+      },
+      "required_governance_doc_ids": [
+        "MAC-SEC-101",
+        "MAC-SOP-239",
+        "SSP-024"
+      ]
     }
   ]
 }

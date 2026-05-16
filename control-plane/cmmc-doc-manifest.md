@@ -1,16 +1,16 @@
 # CMMC L2 Canonical Document Manifest
 
-_Generated 2026-05-16T17:33:15.378Z_
+_Generated 2026-05-16T18:16:48.046Z_
 
 ## Summary
 
 | Bucket | Count |
 |---|---|
 | **QMS total documents** (not OBSOLETE) | 90 |
-| &nbsp;&nbsp;EFFECTIVE | 59 |
+| &nbsp;&nbsp;EFFECTIVE | 60 |
 | &nbsp;&nbsp;APPROVED (signed, not effective) | 0 |
 | &nbsp;&nbsp;IN_REVIEW | 1 |
-| &nbsp;&nbsp;DRAFT | 30 |
+| &nbsp;&nbsp;DRAFT | 29 |
 | **CMMC L2 required UPLOAD artifacts** (de-duped) | 84 |
 | &nbsp;&nbsp;EFFECTIVE in QMS ✅ | 84 |
 | &nbsp;&nbsp;Drafted but not yet released ⚠️ | 0 |
@@ -139,7 +139,7 @@ These docs exist in QMS but the matcher couldn't tie them to a CMMC artifact lab
 | MAC-SOP-259 | R10 Incident-Responder Break-Glass Activation and Post-Hoc Review | EFFECTIVE |
 | MAC-IT-304 | System Security Plan | DRAFT |
 | MAC-CMP-001 | Configuration Management Plan - CMMC Level 2 | EFFECTIVE |
-| MAC-IRP-001 | Incident Response Plan | DRAFT |
+| MAC-IRP-001 | Incident Response Plan — CUI Vault (CMMC L2 Boundary) | EFFECTIVE |
 | MAC-IT-105 | System Boundary | DRAFT |
 | MAC-IT-305 | CUI Data Flow Diagram | DRAFT |
 | MAC-IT-306 | CUI Vault Architecture Diagram | DRAFT |
