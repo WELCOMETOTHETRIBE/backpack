@@ -1,6 +1,6 @@
 {
   "summary": {
-    "generated_at": "2026-05-16T17:10:01.047Z",
+    "generated_at": "2026-05-16T17:33:15.378Z",
     "qms_inventory": {
       "total": 90,
       "effective": 59,
@@ -9,11 +9,11 @@
       "draft": 30
     },
     "cmmc_required_artifacts": {
-      "total_distinct_labels": 132,
+      "total_distinct_labels": 84,
       "effective_in_qms": 84,
       "drafted_not_released": 0,
-      "missing_entirely_as_doc": 19,
-      "non_releasable_records_or_lists": 29
+      "missing_entirely_as_doc": 0,
+      "non_releasable_records_or_lists": 0
     },
     "orphaned_qms_docs": 38
   },
@@ -92,16 +92,6 @@
       "match_notes": "Jaccard score 1.00"
     },
     {
-      "artifact_label": "Authorized personnel access list",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.10.1"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
       "artifact_label": "Boundary Protection and Network Segmentation Procedure",
       "handling": "UPLOAD",
       "required_by_controls": [
@@ -172,56 +162,6 @@
       },
       "match_confidence": "alias",
       "match_notes": "Jaccard score 1.00"
-    },
-    {
-      "artifact_label": "Definition of audit record content & retention requirements",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.3.1"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
-      "artifact_label": "Definition of authenticator strength requirements",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.5.7"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
-      "artifact_label": "Definition of password complexity, change frequency, and reuse rules",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.5.8"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
-      "artifact_label": "Definition of the period for which identifiers cannot be reused",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.5.5"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
-      "artifact_label": "Definition of the period of inactivity after which an identifier is disabled",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.5.6"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
     },
     {
       "artifact_label": "External System Connection Policy",
@@ -338,16 +278,6 @@
       "match_notes": "Jaccard score 1.00"
     },
     {
-      "artifact_label": "Information Flow Control Policy",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.1.3"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
       "artifact_label": "Insider Threat Policy & Procedures",
       "handling": "UPLOAD",
       "required_by_controls": [
@@ -362,156 +292,6 @@
       },
       "match_confidence": "alias",
       "match_notes": "Jaccard score 1.00"
-    },
-    {
-      "artifact_label": "Insider Threat Training Materials",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.2.3"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
-      "artifact_label": "Inventory records of physical access devices",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.10.4"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
-      "artifact_label": "Legal review and approval records for banner content",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.1.9"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
-      "artifact_label": "List of alternative physical safeguards",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.13.8"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
-      "artifact_label": "List of approved maintenance tools",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.7.4"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
-      "artifact_label": "List of authorized maintenance personnel",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.7.2"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
-      "artifact_label": "List of authorized software & approval records",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.4.6"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
-      "artifact_label": "List of defined auditable events",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.3.1"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
-      "artifact_label": "List of defined roles and responsibilities requiring separation",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.1.4"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
-      "artifact_label": "List of individuals with authorized access to audit records",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.3.5"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
-      "artifact_label": "List of individuals/roles authorized to generate audit reports",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.3.6"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
-      "artifact_label": "List of personnel with assigned security roles",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.2.2"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
-      "artifact_label": "List of privileged accounts to be audited",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.3.9"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
-      "artifact_label": "List of prohibited or restricted software",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.4.7"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
-      "artifact_label": "List of users authorized to post public content",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.1.22"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
     },
     {
       "artifact_label": "Maintenance Policy",
@@ -737,16 +517,6 @@
       "match_notes": "Jaccard score 1.00"
     },
     {
-      "artifact_label": "Procedures for Access Restrictions for Changes",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.4.5"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
       "artifact_label": "Procedures for Account Management",
       "handling": "UPLOAD",
       "required_by_controls": [
@@ -763,16 +533,6 @@
       "match_notes": "Jaccard score 1.00"
     },
     {
-      "artifact_label": "Procedures for Audit Record Protection",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.3.5"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
       "artifact_label": "Procedures for Audit Review, Analysis, and Reporting",
       "handling": "UPLOAD",
       "required_by_controls": [
@@ -787,27 +547,6 @@
       },
       "match_confidence": "alias",
       "match_notes": "Jaccard score 1.00"
-    },
-    {
-      "artifact_label": "Procedures for Auditable Events",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.3.1"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
-      "artifact_label": "Procedures for Authenticator Management",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.5.3",
-        "3.5.7"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
     },
     {
       "artifact_label": "Procedures for Boundary Protection",
@@ -907,16 +646,6 @@
       "match_notes": "Jaccard score 1.00"
     },
     {
-      "artifact_label": "Procedures for CUI Asset Control",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.10.5"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
       "artifact_label": "Procedures for CUI Handling",
       "handling": "UPLOAD",
       "required_by_controls": [
@@ -951,17 +680,6 @@
       "match_notes": "Jaccard score 1.00"
     },
     {
-      "artifact_label": "Procedures for establishing, changing, and revoking authenticators",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.5.10",
-        "3.5.9"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
       "artifact_label": "Procedures for Flaw Remediation",
       "handling": "UPLOAD",
       "required_by_controls": [
@@ -976,16 +694,6 @@
       },
       "match_confidence": "alias",
       "match_notes": "Jaccard score 1.00"
-    },
-    {
-      "artifact_label": "Procedures for Identifier Management",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.5.5"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
     },
     {
       "artifact_label": "Procedures for Incident Reporting",
@@ -1020,26 +728,6 @@
       "match_notes": "Jaccard score 1.00"
     },
     {
-      "artifact_label": "Procedures for Information Flow Enforcement",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.1.3"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
-      "artifact_label": "Procedures for Least Functionality",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.4.6"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
       "artifact_label": "Procedures for Least Privilege",
       "handling": "UPLOAD",
       "required_by_controls": [
@@ -1056,16 +744,6 @@
       "match_notes": "Jaccard score 1.00"
     },
     {
-      "artifact_label": "Procedures for Limiting Audit Report Generation",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.3.6"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
       "artifact_label": "Procedures for Maintenance Tool Management",
       "handling": "UPLOAD",
       "required_by_controls": [
@@ -1080,48 +758,6 @@
       },
       "match_confidence": "alias",
       "match_notes": "Jaccard score 1.00"
-    },
-    {
-      "artifact_label": "Procedures for Malicious Code Protection",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.11.3",
-        "3.13.13",
-        "3.14.2"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
-      "artifact_label": "Procedures for Media Access",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.8.2"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
-      "artifact_label": "Procedures for Media Control",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.8.5"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
-      "artifact_label": "Procedures for Media Protection",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.8.1"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
     },
     {
       "artifact_label": "Procedures for Media Sanitization",
@@ -1302,16 +938,6 @@
       "match_notes": "Jaccard score 0.80"
     },
     {
-      "artifact_label": "Procedures for Publicly Accessible Content",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.1.22"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
       "artifact_label": "Procedures for Remote Access",
       "handling": "UPLOAD",
       "required_by_controls": [
@@ -1409,16 +1035,6 @@
       "match_notes": "Jaccard score 1.00"
     },
     {
-      "artifact_label": "Procedures for Security Engineering Principles",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.13.2"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
       "artifact_label": "Procedures for Separation of Duties",
       "handling": "UPLOAD",
       "required_by_controls": [
@@ -1433,16 +1049,6 @@
       },
       "match_confidence": "alias",
       "match_notes": "Jaccard score 1.00"
-    },
-    {
-      "artifact_label": "Procedures for Session Audit",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.3.9"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
     },
     {
       "artifact_label": "Procedures for session/connection termination",
@@ -1511,16 +1117,6 @@
       "match_notes": "Jaccard score 1.00"
     },
     {
-      "artifact_label": "Procedures for Transmission Confidentiality",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.13.8"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
       "artifact_label": "Procedures for transmission integrity (SMB signing/crypto)",
       "handling": "UPLOAD",
       "required_by_controls": [
@@ -1586,16 +1182,6 @@
       "match_notes": "Jaccard score 1.00"
     },
     {
-      "artifact_label": "Procedures for Wireless Access",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.1.16"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
       "artifact_label": "Record Retention Policy",
       "handling": "UPLOAD",
       "required_by_controls": [
@@ -1613,16 +1199,6 @@
       "match_notes": "Jaccard score 1.00"
     },
     {
-      "artifact_label": "Records of public information reviews",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.1.22"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
       "artifact_label": "Risk Assessment Policy",
       "handling": "UPLOAD",
       "required_by_controls": [
@@ -1637,16 +1213,6 @@
       },
       "match_confidence": "alias",
       "match_notes": "Jaccard score 1.00"
-    },
-    {
-      "artifact_label": "Role-Based Training Curriculum & Materials",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.2.2"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
     },
     {
       "artifact_label": "Security Assessment and Authorization Policy",
@@ -1823,56 +1389,6 @@
       },
       "match_confidence": "alias",
       "match_notes": "Jaccard score 1.00"
-    },
-    {
-      "artifact_label": "System Use Notification / Warning Banner Text",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.1.9"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
-      "artifact_label": "Training records demonstrating insider threat awareness training",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.2.3"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
-      "artifact_label": "Training records for all personnel with security responsibilities",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.2.2"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
-      "artifact_label": "Training records for all users, managers, and administrators",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.2.1"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
-    },
-    {
-      "artifact_label": "Visitor access logs",
-      "handling": "UPLOAD",
-      "required_by_controls": [
-        "3.10.3"
-      ],
-      "qms_match": null,
-      "match_confidence": "none",
-      "match_notes": "no QMS doc title overlap ≥ 0.4"
     },
     {
       "artifact_label": "Visitor Control Procedure",
@@ -2875,301 +2391,7 @@
       }
     ],
     "required_drafted_not_released": [],
-    "required_missing_entirely": [
-      {
-        "label": "Procedures for Access Restrictions for Changes",
-        "controls": [
-          "3.4.5"
-        ]
-      },
-      {
-        "label": "Procedures for Audit Record Protection",
-        "controls": [
-          "3.3.5"
-        ]
-      },
-      {
-        "label": "Procedures for Auditable Events",
-        "controls": [
-          "3.3.1"
-        ]
-      },
-      {
-        "label": "Procedures for Authenticator Management",
-        "controls": [
-          "3.5.3",
-          "3.5.7"
-        ]
-      },
-      {
-        "label": "Procedures for CUI Asset Control",
-        "controls": [
-          "3.10.5"
-        ]
-      },
-      {
-        "label": "Procedures for establishing, changing, and revoking authenticators",
-        "controls": [
-          "3.5.10",
-          "3.5.9"
-        ]
-      },
-      {
-        "label": "Procedures for Identifier Management",
-        "controls": [
-          "3.5.5"
-        ]
-      },
-      {
-        "label": "Procedures for Information Flow Enforcement",
-        "controls": [
-          "3.1.3"
-        ]
-      },
-      {
-        "label": "Procedures for Least Functionality",
-        "controls": [
-          "3.4.6"
-        ]
-      },
-      {
-        "label": "Procedures for Limiting Audit Report Generation",
-        "controls": [
-          "3.3.6"
-        ]
-      },
-      {
-        "label": "Procedures for Malicious Code Protection",
-        "controls": [
-          "3.11.3",
-          "3.13.13",
-          "3.14.2"
-        ]
-      },
-      {
-        "label": "Procedures for Media Access",
-        "controls": [
-          "3.8.2"
-        ]
-      },
-      {
-        "label": "Procedures for Media Control",
-        "controls": [
-          "3.8.5"
-        ]
-      },
-      {
-        "label": "Procedures for Media Protection",
-        "controls": [
-          "3.8.1"
-        ]
-      },
-      {
-        "label": "Procedures for Publicly Accessible Content",
-        "controls": [
-          "3.1.22"
-        ]
-      },
-      {
-        "label": "Procedures for Security Engineering Principles",
-        "controls": [
-          "3.13.2"
-        ]
-      },
-      {
-        "label": "Procedures for Session Audit",
-        "controls": [
-          "3.3.9"
-        ]
-      },
-      {
-        "label": "Procedures for Transmission Confidentiality",
-        "controls": [
-          "3.13.8"
-        ]
-      },
-      {
-        "label": "Procedures for Wireless Access",
-        "controls": [
-          "3.1.16"
-        ]
-      }
-    ],
-    "required_non_releasable": [
-      {
-        "label": "Authorized personnel access list",
-        "controls": [
-          "3.10.1"
-        ]
-      },
-      {
-        "label": "Definition of audit record content & retention requirements",
-        "controls": [
-          "3.3.1"
-        ]
-      },
-      {
-        "label": "Definition of authenticator strength requirements",
-        "controls": [
-          "3.5.7"
-        ]
-      },
-      {
-        "label": "Definition of password complexity, change frequency, and reuse rules",
-        "controls": [
-          "3.5.8"
-        ]
-      },
-      {
-        "label": "Definition of the period for which identifiers cannot be reused",
-        "controls": [
-          "3.5.5"
-        ]
-      },
-      {
-        "label": "Definition of the period of inactivity after which an identifier is disabled",
-        "controls": [
-          "3.5.6"
-        ]
-      },
-      {
-        "label": "Information Flow Control Policy",
-        "controls": [
-          "3.1.3"
-        ]
-      },
-      {
-        "label": "Insider Threat Training Materials",
-        "controls": [
-          "3.2.3"
-        ]
-      },
-      {
-        "label": "Inventory records of physical access devices",
-        "controls": [
-          "3.10.4"
-        ]
-      },
-      {
-        "label": "Legal review and approval records for banner content",
-        "controls": [
-          "3.1.9"
-        ]
-      },
-      {
-        "label": "List of alternative physical safeguards",
-        "controls": [
-          "3.13.8"
-        ]
-      },
-      {
-        "label": "List of approved maintenance tools",
-        "controls": [
-          "3.7.4"
-        ]
-      },
-      {
-        "label": "List of authorized maintenance personnel",
-        "controls": [
-          "3.7.2"
-        ]
-      },
-      {
-        "label": "List of authorized software & approval records",
-        "controls": [
-          "3.4.6"
-        ]
-      },
-      {
-        "label": "List of defined auditable events",
-        "controls": [
-          "3.3.1"
-        ]
-      },
-      {
-        "label": "List of defined roles and responsibilities requiring separation",
-        "controls": [
-          "3.1.4"
-        ]
-      },
-      {
-        "label": "List of individuals with authorized access to audit records",
-        "controls": [
-          "3.3.5"
-        ]
-      },
-      {
-        "label": "List of individuals/roles authorized to generate audit reports",
-        "controls": [
-          "3.3.6"
-        ]
-      },
-      {
-        "label": "List of personnel with assigned security roles",
-        "controls": [
-          "3.2.2"
-        ]
-      },
-      {
-        "label": "List of privileged accounts to be audited",
-        "controls": [
-          "3.3.9"
-        ]
-      },
-      {
-        "label": "List of prohibited or restricted software",
-        "controls": [
-          "3.4.7"
-        ]
-      },
-      {
-        "label": "List of users authorized to post public content",
-        "controls": [
-          "3.1.22"
-        ]
-      },
-      {
-        "label": "Records of public information reviews",
-        "controls": [
-          "3.1.22"
-        ]
-      },
-      {
-        "label": "Role-Based Training Curriculum & Materials",
-        "controls": [
-          "3.2.2"
-        ]
-      },
-      {
-        "label": "System Use Notification / Warning Banner Text",
-        "controls": [
-          "3.1.9"
-        ]
-      },
-      {
-        "label": "Training records demonstrating insider threat awareness training",
-        "controls": [
-          "3.2.3"
-        ]
-      },
-      {
-        "label": "Training records for all personnel with security responsibilities",
-        "controls": [
-          "3.2.2"
-        ]
-      },
-      {
-        "label": "Training records for all users, managers, and administrators",
-        "controls": [
-          "3.2.1"
-        ]
-      },
-      {
-        "label": "Visitor access logs",
-        "controls": [
-          "3.10.3"
-        ]
-      }
-    ]
+    "required_missing_entirely": [],
+    "required_non_releasable": []
   }
 }
