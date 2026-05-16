@@ -17,6 +17,7 @@ import { controlIdToNist } from "@/lib/compliance/controlId";
 import { syncOrgAzureInheritedControls } from "@/lib/compliance/azure-inherited-controls";
 import { calculateControlStatus } from "@/lib/control-status";
 import { scoreControlsAffectedBy } from "@/lib/canonical-state/rescore-trigger";
+import { seedRegistersFromEvidenceRun } from "@/lib/evidence-engine/auto-register-seeder";
 
 type ReportBody = {
   run_id: string;
@@ -322,6 +323,20 @@ export async function POST(
     }
   }
 
+  // Auto-seed governance registers from evidence findings (best-effort, non-blocking).
+  let registersSeeded: string[] = [];
+  try {
+    const seedResult = await seedRegistersFromEvidenceRun(
+      run.id,
+      orgId,
+      boundaryId,
+      new Date(body.collected_at.trim())
+    );
+    registersSeeded = seedResult.seeded;
+  } catch (seedErr) {
+    console.warn("[import-report] auto-register seed failed (non-blocking):", (seedErr as Error).message);
+  }
+
   return NextResponse.json({
     ok: true,
     evidence_run_id: run.id,
@@ -334,5 +349,6 @@ export async function POST(
     controls_marked_partial: controlIdsNeedingProgress.size,
     inherited_flipped: inheritedFlipped,
     recomputed_controls: recomputed,
+    registers_seeded: registersSeeded,
   });
 }
