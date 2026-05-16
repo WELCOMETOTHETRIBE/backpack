@@ -26,6 +26,7 @@ import { CollapsibleBlock } from "./CollapsibleBlock";
 import { SoDMatrixPanel } from "./SoDMatrixPanel";
 import { SoDFindingsPanel } from "./SoDFindingsPanel";
 import { SoDAttestationPanel } from "./SoDAttestationPanel";
+import { SoDBreakGlassPanel } from "./SoDBreakGlassPanel";
 import Link from "next/link";
 import {
   parseAssessmentGuideSections,
@@ -53,7 +54,7 @@ import vaultNarratives from "@/data/cmmc/vault-narratives.json";
 // bundle, breaking the build).
 import { sprsScoringData } from "@/lib/sprs/sprs_scoring_data";
 
-type DetailTab = "guide" | "policy" | "sod" | "sod_findings" | "sod_attestation" | "evidence" | "poam" | "history";
+type DetailTab = "guide" | "policy" | "sod" | "sod_findings" | "sod_attestation" | "sod_break_glass" | "evidence" | "poam" | "history";
 
 const VAULT_NARRATIVES = vaultNarratives as Record<string, string>;
 
@@ -977,6 +978,7 @@ export function SCTMControlDetail({
             ...(record.controlId === "3.1.4" ? [{ id: "sod" as const, label: "SoD Matrix" }] : []),
             ...(record.controlId === "3.1.4" ? [{ id: "sod_findings" as const, label: "Findings" }] : []),
             ...(record.controlId === "3.1.4" ? [{ id: "sod_attestation" as const, label: "Attestation" }] : []),
+            ...(record.controlId === "3.1.4" ? [{ id: "sod_break_glass" as const, label: "Break-glass" }] : []),
             { id: "evidence", label: `Evidence${evidenceLinks.length > 0 ? ` (${evidenceLinks.length})` : ""}` },
             { id: "poam", label: "POA&M" },
             { id: "history", label: `History${history.length > 0 ? ` (${history.length})` : ""}` },
@@ -1166,6 +1168,10 @@ export function SCTMControlDetail({
 
         {activeTab === "sod_attestation" && record.controlId === "3.1.4" && (
           <SoDAttestationPanel />
+        )}
+
+        {activeTab === "sod_break_glass" && record.controlId === "3.1.4" && (
+          <SoDBreakGlassPanel />
         )}
 
         {activeTab === "evidence" && (

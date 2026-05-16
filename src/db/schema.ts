@@ -3546,3 +3546,63 @@ export const sodFindings = pgTable("sod_findings", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
+
+// ============== R10 break-glass activation audit (AC.L2-3.1.4 Phase 3A) ==============
+/**
+ * One row per Entra PIM activation that elevates an identity into the
+ * R10 (MAC-Vault-IR) administrative group. EnclaveWatch posts these on
+ * a cadence to `/api/enclavewatch/r10-break-glass/activations`. Each row
+ * starts as `pending_review` and must be transitioned to `reviewed` by
+ * a non-activator within the SLA window (24h per MAC-SOP-235 §5.3).
+ *
+ * Idempotency: unique index on (org, external_activation_id) so the
+ * enclave-side collector can safely re-post any rolling-window export.
+ * The reviewer-≠-activator constraint is enforced at the API layer
+ * (PATCH /api/sod/r10-break-glass/[id]) since the activator is a
+ * free-form principal string and the reviewer is a Codex user id —
+ * they live in different identity spaces. See
+ * drizzle/0082_r10_break_glass_activations.sql.
+ */
+export const r10BreakGlassActivations = pgTable(
+  "r10_break_glass_activations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id")
+      .references(() => organizations.id, { onDelete: "cascade" })
+      .notNull(),
+    boundaryId: uuid("boundary_id")
+      .references(() => boundaries.id, { onDelete: "cascade" })
+      .notNull(),
+    externalActivationId: text("external_activation_id").notNull(),
+    activatorPrincipal: text("activator_principal").notNull(),
+    activatedRole: text("activated_role").notNull(),
+    activationStartedAt: timestamp("activation_started_at", { withTimezone: true }).notNull(),
+    activationEndsAt: timestamp("activation_ends_at", { withTimezone: true }),
+    activationReason: text("activation_reason"),
+    pimApproverPrincipal: text("pim_approver_principal"),
+    mfaClaim: text("mfa_claim"),
+    /** "pending_review" | "reviewed" | "overdue" | "void". */
+    status: varchar("status", { length: 32 }).notNull().default("pending_review"),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+    reviewedById: uuid("reviewed_by_id").references(() => users.id),
+    reviewNotes: text("review_notes"),
+    sourceEvent: jsonb("source_event").$type<Record<string, unknown>>().notNull().default({}),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    uniqueIndex("r10_break_glass_activations_external_unique").on(
+      t.organizationId,
+      t.externalActivationId,
+    ),
+    index("r10_break_glass_activations_status_idx").on(
+      t.organizationId,
+      t.status,
+      t.activationStartedAt,
+    ),
+    index("r10_break_glass_activations_activator_idx").on(
+      t.organizationId,
+      t.activatorPrincipal,
+    ),
+  ],
+);
