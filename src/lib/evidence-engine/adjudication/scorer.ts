@@ -719,6 +719,22 @@ async function scoreRequirement(
   };
 }
 
+/**
+ * Evaluate one CAE register requirement with the same counting + cadence
+ * rules as scoreControl (defaults to the same 90-day entry lookback).
+ * calculateControlStatus uses this so implementationStatus cannot reach
+ * implemented while Phase 7 register evidence would fail.
+ */
+export async function evaluateRegisterRequirementEvidence(
+  orgId: string,
+  requirement: ControlAssessmentControl["register_requirements"][number],
+  nowUtc: Date,
+  lookbackDays = 90,
+): Promise<RequirementResult> {
+  const since = new Date(nowUtc.getTime() - lookbackDays * 24 * 60 * 60 * 1000);
+  return scoreRequirement(orgId, requirement, since, nowUtc);
+}
+
 function mapStatus(
   control: ControlAssessmentControl,
   requirements: RequirementResult[],

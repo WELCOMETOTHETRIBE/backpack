@@ -6,7 +6,10 @@
  *   1. Governance lane: required artifacts + narrative (or approved governance docs)
  *   2. Technical lane: OS/enclave evidence + technical requirements
  *   3. Policy doc lane: linked policy document (for ~18 hybrid controls)
- *   4. Register lane: finalized register entries (for controls that require registers)
+ *   4. Register lane: every control_assessment_logic register_requirement
+ *      satisfied with the same evaluator CAE uses (not only the single
+ *      registerSchemaId from CONTROL_INTELLIGENCE). RA.L2-3.11.1 also
+ *      requires the finalized risk_assessments lifecycle gate.
  */
 import { db } from "@/db";
 import {
@@ -43,8 +46,11 @@ import { needsBothPipelines } from "./adjudication-helpers";
 import { requiresAttestationGate } from "./compliance/outstanding-controls";
 import { evidenceRuns, evidenceFindings } from "@/db/schema";
 import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
+import { getControlAssessmentLogic } from "@/data/cmmc/control-assessment-logic";
 import { getCadenceRuleByRegisterId } from "@/data/cmmc/register-cadence-rules";
 import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
+import { evaluateRegisterRequirementEvidence } from "@/lib/evidence-engine/adjudication/scorer";
+import { evaluateRa311LifecycleGate } from "@/lib/evidence-engine/adjudication/ra-311-lifecycle-gate";
 
 /**
  * Controls where policy / procedure documents are NECESSARY but NOT SUFFICIENT
@@ -221,12 +227,31 @@ async function isRegisterSatisfied(
   organizationId: string,
   controlId: string
 ): Promise<boolean> {
-  // Training-control coverage gate: enforced before the generic "any final
-  // entry" rule because the AT family needs full-user-population coverage.
-  // Without this, one Patrick training_record flips 3.2.1 + 3.2.3 to
-  // implemented while Brian and James have no training on file.
+  // Training-control coverage gate: enforced before register_requirements
+  // because the AT family needs full-user-population coverage via
+  // training_records (stricter than training_completion register cadence alone).
   if (TRAINING_CONTROLS[controlId]) {
     return isTrainingControlSatisfied(organizationId, controlId);
+  }
+
+  const assessmentControl = getControlAssessmentLogic().controls.find(
+    (c) => c.control_id === controlId,
+  );
+  if (assessmentControl && assessmentControl.register_requirements.length > 0) {
+    const now = new Date();
+    for (const req of assessmentControl.register_requirements) {
+      const result = await evaluateRegisterRequirementEvidence(
+        organizationId,
+        req,
+        now,
+      );
+      if (!result.satisfied) return false;
+    }
+    if (controlId === "3.11.1") {
+      const raGate = await evaluateRa311LifecycleGate(organizationId, now);
+      if (!raGate.satisfied) return false;
+    }
+    return true;
   }
 
   const intel = intelByControlId.get(controlId);
@@ -525,8 +550,10 @@ export async function calculateControlStatus(controlRecordId: string): Promise<I
     : effectiveGovernanceComplete && (hasNarrative || hasApprovedGovDocs);
 
   // ── Register lane ──
-  // Controls flagged as registerRequired in the control intelligence layer must have
-  // at least one finalized register entry to be considered "implemented".
+  // When control_assessment_logic declares register_requirements, each must
+  // pass the same evaluator as Phase 7 CAE (see isRegisterSatisfied). When
+  // it declares none, fall back to CONTROL_INTELLIGENCE for legacy single-
+  // register checks (e.g. operational registers not mirrored in CAE JSON).
   const registerComplete = await isRegisterSatisfied(record.organizationId, controlId);
 
   // Derive technical_status for the dual-evidence lane.
@@ -627,6 +654,46 @@ export async function calculateControlStatus(controlRecordId: string): Promise<I
       }
     }
   }
+
+  // Fresh-fail gate: hold as in_progress if the most-recent validator run
+  // that emitted findings for this control reported any failing checks.
+  // Symmetric to the cloud-PASS lookup but uses most-recent-run semantics
+  // — a freshly-failing validator overrides stale historical PASS rows
+  // (dedup is keyed on inputs_manifest_sha256, so a new run with new
+  // inputs doesn't wipe prior runs, and we don't want a 6-month-old PASS
+  // masking today's FAIL). Signed attestation supersedes per existing
+  // attestation-gate semantics: if the customer signed it, accept that.
+  if (allComplete && !hasSignedAttestation) {
+    const [latestRun] = await db
+      .select({ id: evidenceRuns.id })
+      .from(evidenceFindings)
+      .innerJoin(evidenceRuns, eq(evidenceFindings.evidenceRunId, evidenceRuns.id))
+      .where(
+        and(
+          eq(evidenceRuns.organizationId, record.organizationId),
+          eq(evidenceFindings.controlId, controlId),
+        ),
+      )
+      .orderBy(desc(evidenceRuns.collectedAt))
+      .limit(1);
+    if (latestRun) {
+      const [freshFail] = await db
+        .select({ run: evidenceFindings.evidenceRunId })
+        .from(evidenceFindings)
+        .where(
+          and(
+            eq(evidenceFindings.evidenceRunId, latestRun.id),
+            eq(evidenceFindings.controlId, controlId),
+            eq(evidenceFindings.pass, false),
+          ),
+        )
+        .limit(1);
+      if (freshFail) {
+        allComplete = false;
+      }
+    }
+  }
+
   const hasSomeProgress =
     existingArtifacts.length > 0 ||
     hasNarrative ||
