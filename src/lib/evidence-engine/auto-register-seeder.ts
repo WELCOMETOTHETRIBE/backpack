@@ -10,6 +10,7 @@
 import { db } from "@/db";
 import { governanceRegisters, governanceRegisterEntries, evidenceFindings } from "@/db/schema";
 import { eq, and, inArray, sql } from "drizzle-orm";
+import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
 
 /**
  * Map from registerKey → the control IDs whose findings prove the register
@@ -57,16 +58,41 @@ export async function seedRegistersFromEvidenceRun(
   const seeded: string[] = [];
   const skipped: string[] = [];
 
-  // Load all registers for this org once
+  // Load all registers for this org once (org-specific and templates).
   const registers = await db
-    .select({ id: governanceRegisters.id, registerKey: governanceRegisters.registerKey })
+    .select({
+      id: governanceRegisters.id,
+      registerKey: governanceRegisters.registerKey,
+      organizationId: governanceRegisters.organizationId,
+    })
     .from(governanceRegisters)
     .where(
-      // Registers belong to the org OR are global (organizationId IS NULL)
       sql`(${governanceRegisters.organizationId} = ${orgId} OR ${governanceRegisters.organizationId} IS NULL)`
     );
 
-  const registerByKey = new Map(registers.map((r) => [r.registerKey, r.id]));
+  // Org-specific rows take precedence over templates for the same key.
+  const registerByKey = new Map<string, string>();
+  for (const r of registers) {
+    const existing = registerByKey.get(r.registerKey);
+    if (!existing || r.organizationId !== null) {
+      registerByKey.set(r.registerKey, r.id);
+    }
+  }
+
+  /**
+   * Resolve the best register ID for a schema key, trying all alias candidates
+   * (e.g. "authenticator_mgmt" → also try "mfa_enrollment_roster").
+   * Org-specific registers are already preferred in the map construction above;
+   * this just handles the case where the org row lives under a different key.
+   */
+  function resolveRegisterId(schemaKey: string): string | undefined {
+    const candidates = resolveRegisterKeyCandidates(schemaKey);
+    for (const k of candidates) {
+      const id = registerByKey.get(k);
+      if (id) return id;
+    }
+    return undefined;
+  }
 
   // Load all control IDs touched by this run (flat set, any status)
   const allControls = Object.values(REGISTER_CONTROLS).flat();
@@ -83,7 +109,7 @@ export async function seedRegistersFromEvidenceRun(
   const foundControlIds = new Set(findings.map((f) => f.controlId));
 
   for (const [registerKey, controlIds] of Object.entries(REGISTER_CONTROLS)) {
-    const registerId = registerByKey.get(registerKey);
+    const registerId = resolveRegisterId(registerKey);
     if (!registerId) {
       // Register not seeded for this org yet — skip silently
       skipped.push(registerKey);
