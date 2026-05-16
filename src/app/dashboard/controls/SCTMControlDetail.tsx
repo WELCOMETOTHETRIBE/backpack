@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { CollapsibleBlock } from "./CollapsibleBlock";
 import { SoDMatrixPanel } from "./SoDMatrixPanel";
+import { SoDFindingsPanel } from "./SoDFindingsPanel";
 import Link from "next/link";
 import {
   parseAssessmentGuideSections,
@@ -51,7 +52,7 @@ import vaultNarratives from "@/data/cmmc/vault-narratives.json";
 // bundle, breaking the build).
 import { sprsScoringData } from "@/lib/sprs/sprs_scoring_data";
 
-type DetailTab = "guide" | "policy" | "sod" | "evidence" | "poam" | "history";
+type DetailTab = "guide" | "policy" | "sod" | "sod_findings" | "evidence" | "poam" | "history";
 
 const VAULT_NARRATIVES = vaultNarratives as Record<string, string>;
 
@@ -973,6 +974,7 @@ export function SCTMControlDetail({
             // the R1–R10 matrix is the artifact for AC.L2-3.1.4. Future controls
             // with separation-of-duties artifacts can opt in by control id here.
             ...(record.controlId === "3.1.4" ? [{ id: "sod" as const, label: "SoD Matrix" }] : []),
+            ...(record.controlId === "3.1.4" ? [{ id: "sod_findings" as const, label: "Findings" }] : []),
             { id: "evidence", label: `Evidence${evidenceLinks.length > 0 ? ` (${evidenceLinks.length})` : ""}` },
             { id: "poam", label: "POA&M" },
             { id: "history", label: `History${history.length > 0 ? ` (${history.length})` : ""}` },
@@ -1154,6 +1156,10 @@ export function SCTMControlDetail({
 
         {activeTab === "sod" && record.controlId === "3.1.4" && (
           <SoDMatrixPanel />
+        )}
+
+        {activeTab === "sod_findings" && record.controlId === "3.1.4" && (
+          <SoDFindingsPanel />
         )}
 
         {activeTab === "evidence" && (

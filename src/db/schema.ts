@@ -3506,3 +3506,43 @@ export const meetingAttendanceImports = pgTable(
     ),
   ],
 );
+
+// ============== SoD detective-scan findings (AC.L2-3.1.4) ==============
+/**
+ * One row per (organization, principal, conflicting role pair) emitted by
+ * the SoD detective scan. The scan ingests an AD/Entra group-membership
+ * export, evaluates each principal's role set against the matrix in
+ * MAC-SOP-235 (mirror at src/data/cmmc/sod_matrix.v1.json), and opens a
+ * finding per Prohibited pair or unsupported Compensating pair held
+ * simultaneously by a single principal. See drizzle/0081_sod_findings.sql.
+ *
+ * Idempotency: partial unique index on (org, principal, pair_role_a,
+ * pair_role_b) WHERE status='open'. Pair fields are stored in numeric
+ * R-id order — (R1,R8) and (R8,R1) collapse to one row.
+ */
+export const sodFindings = pgTable("sod_findings", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id")
+    .references(() => organizations.id, { onDelete: "cascade" })
+    .notNull(),
+  boundaryId: uuid("boundary_id")
+    .references(() => boundaries.id, { onDelete: "cascade" })
+    .notNull(),
+  subjectPrincipal: text("subject_principal").notNull(),
+  roleIds: jsonb("role_ids").$type<string[]>().notNull().default([]),
+  pairRoleA: varchar("pair_role_a", { length: 8 }).notNull(),
+  pairRoleB: varchar("pair_role_b", { length: 8 }).notNull(),
+  /** "P" (prohibited) or "C_no_attestation" (compensating without attestation). */
+  dispositionType: varchar("disposition_type", { length: 32 }).notNull(),
+  /** "high" (P-cells) or "medium" (unsupported C-cells). */
+  severity: varchar("severity", { length: 16 }).notNull(),
+  /** "open" | "remediated" | "justified" | "accepted_risk". */
+  status: varchar("status", { length: 32 }).notNull().default("open"),
+  openedAt: timestamp("opened_at", { withTimezone: true }).defaultNow().notNull(),
+  closedAt: timestamp("closed_at", { withTimezone: true }),
+  closedById: uuid("closed_by_id").references(() => users.id),
+  justificationText: text("justification_text"),
+  sourceScanRunId: uuid("source_scan_run_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
