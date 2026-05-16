@@ -27,6 +27,7 @@ import { SoDMatrixPanel } from "./SoDMatrixPanel";
 import { SoDFindingsPanel } from "./SoDFindingsPanel";
 import { SoDAttestationPanel } from "./SoDAttestationPanel";
 import { SoDBreakGlassPanel } from "./SoDBreakGlassPanel";
+import { ControlCrossWalkChips } from "./ControlCrossWalkChips";
 import Link from "next/link";
 import {
   parseAssessmentGuideSections,
@@ -678,6 +679,9 @@ export function SCTMControlDetail({
             {displayTitle && (
               <h1 className="mt-0.5 text-sm font-semibold text-[var(--color-gray-900)] leading-tight">{displayTitle}</h1>
             )}
+            <div className="mt-1.5">
+              <ControlCrossWalkChips controlId={record.controlId} />
+            </div>
           </div>
           {!isAssessor && (
             <button
