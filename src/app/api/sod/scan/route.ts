@@ -26,10 +26,10 @@
  * service principal in the enclave.
  */
 import { NextResponse } from "next/server";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { sodFindings, boundaries } from "@/db/schema";
-import { requireOrg, requireRole } from "@/lib/auth";
+import { resolveOrgFromSessionOrBearer } from "@/lib/auth-bearer";
 import { writeAuditLog } from "@/lib/audit";
 import { detectiveScan, scanMatrixVersion, type PrincipalGroupExport } from "@/lib/sod/detective-scan";
 import { getAttestedPrincipals } from "@/lib/sod/attestations";
@@ -40,16 +40,18 @@ interface ScanRequestBody {
 }
 
 export async function POST(req: Request) {
-  let orgId: string;
-  try {
-    orgId = await requireOrg();
-    await requireRole(["Admin", "Compliance"]);
-  } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "unauthorized" },
-      { status: 401 },
-    );
+  // Accept either an Admin/Compliance session (operator-triggered scan from
+  // the dashboard) OR a bearer token issued to EnclaveWatch (the local
+  // service running inside the customer's vault — Phase 2B scheduled
+  // exporter). The bearer auth resolves the org server-side from
+  // organizations.enclavewatch_api_token; no role check applies on the
+  // bearer path since it represents an unattended service principal in
+  // R3's domain, not a human role.
+  const authResult = await resolveOrgFromSessionOrBearer(req);
+  if (!authResult) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
+  const orgId = authResult.orgId;
 
   const body = (await req.json().catch(() => ({}))) as ScanRequestBody;
 
@@ -160,6 +162,7 @@ export async function POST(req: Request) {
         findings_total: result.findings.length,
         findings_created: created,
         findings_already_open: alreadyOpen,
+        triggered_via: authResult.via,
       },
     });
   } catch (err) {
