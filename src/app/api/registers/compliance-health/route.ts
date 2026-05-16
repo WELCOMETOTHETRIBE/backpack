@@ -126,12 +126,16 @@ export async function GET() {
 
     // Seed-data registerKeys don't always match schema register_ids (e.g.
     // schema "termination" ↔ seed "terminations"). Try every alias so the
-    // org register row actually gets found.
+    // org register row actually gets found. Prefer org-specific rows over
+    // template rows (organizationId IS NULL) when both exist.
     const candidates = resolveRegisterKeyCandidates(schema.register_id);
     let orgRegister: (typeof orgRegisters)[number] | undefined;
     for (const k of candidates) {
       const hit = orgRegisterMap.get(k);
-      if (hit) { orgRegister = hit; break; }
+      if (!hit) continue;
+      // Prefer org-specific row over template — keep looking if we only have template so far.
+      if (!orgRegister || orgRegister.organizationId === null) orgRegister = hit;
+      if (orgRegister.organizationId !== null) break;
     }
     const cadenceDays = orgRegister?.defaultCadenceDays ?? schema.default_cadence_days ?? null;
     const effectiveCadence = !cadenceDays || cadenceDays === 0 ? null : cadenceDays;
