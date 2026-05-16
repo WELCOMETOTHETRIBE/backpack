@@ -3606,3 +3606,57 @@ export const r10BreakGlassActivations = pgTable(
     ),
   ],
 );
+
+// ============== SoD preventive-control decision log (AC.L2-3.1.4 Phase 3C) ==============
+/**
+ * One row per pre-flight call to `/api/sod/provisioning-check`. The
+ * decision row IS the evidence — a "deny" row proves the matrix
+ * prevented a Prohibited combination before it reached AD; an
+ * "allow_with_attestation" row records a Compensating-cell admission.
+ * `fail_open` rows record cases where Codex couldn't return a decision
+ * (Codex unreachable, schema mismatch, etc.); the detective scan
+ * backstops those within the SLA window.
+ *
+ * No idempotency constraint — every pre-flight call is its own decision
+ * event. Repeated identical calls are individually meaningful (an
+ * operator retrying after a denial is itself defensible evidence).
+ *
+ * See drizzle/0083_sod_provisioning_decisions.sql.
+ */
+export const sodProvisioningDecisions = pgTable(
+  "sod_provisioning_decisions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id")
+      .references(() => organizations.id, { onDelete: "cascade" })
+      .notNull(),
+    boundaryId: uuid("boundary_id")
+      .references(() => boundaries.id, { onDelete: "cascade" })
+      .notNull(),
+    subjectPrincipal: text("subject_principal").notNull(),
+    targetGroup: text("target_group").notNull(),
+    existingGroups: jsonb("existing_groups").$type<string[]>().notNull().default([]),
+    resultingRoleIds: jsonb("resulting_role_ids").$type<string[]>().notNull().default([]),
+    /** "allow" | "allow_with_attestation" | "deny" | "fail_open" */
+    decision: varchar("decision", { length: 32 }).notNull(),
+    conflictPairA: varchar("conflict_pair_a", { length: 8 }),
+    conflictPairB: varchar("conflict_pair_b", { length: 8 }),
+    reason: text("reason"),
+    requestedByPrincipal: text("requested_by_principal"),
+    triggeredVia: varchar("triggered_via", { length: 16 }).notNull(),
+    requestId: text("request_id"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    index("sod_provisioning_decisions_org_decision_idx").on(
+      t.organizationId,
+      t.decision,
+      t.createdAt,
+    ),
+    index("sod_provisioning_decisions_principal_idx").on(
+      t.organizationId,
+      t.subjectPrincipal,
+      t.createdAt,
+    ),
+  ],
+);

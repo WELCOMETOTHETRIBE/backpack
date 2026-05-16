@@ -27,6 +27,7 @@ import { SoDMatrixPanel } from "./SoDMatrixPanel";
 import { SoDFindingsPanel } from "./SoDFindingsPanel";
 import { SoDAttestationPanel } from "./SoDAttestationPanel";
 import { SoDBreakGlassPanel } from "./SoDBreakGlassPanel";
+import { SoDPreflightPanel } from "./SoDPreflightPanel";
 import { ControlCrossWalkChips } from "./ControlCrossWalkChips";
 import Link from "next/link";
 import {
@@ -55,7 +56,7 @@ import vaultNarratives from "@/data/cmmc/vault-narratives.json";
 // bundle, breaking the build).
 import { sprsScoringData } from "@/lib/sprs/sprs_scoring_data";
 
-type DetailTab = "guide" | "policy" | "sod" | "sod_findings" | "sod_attestation" | "sod_break_glass" | "evidence" | "poam" | "history";
+type DetailTab = "guide" | "policy" | "sod" | "sod_findings" | "sod_attestation" | "sod_break_glass" | "sod_preflight" | "evidence" | "poam" | "history";
 
 const VAULT_NARRATIVES = vaultNarratives as Record<string, string>;
 
@@ -983,6 +984,7 @@ export function SCTMControlDetail({
             ...(record.controlId === "3.1.4" ? [{ id: "sod_findings" as const, label: "Findings" }] : []),
             ...(record.controlId === "3.1.4" ? [{ id: "sod_attestation" as const, label: "Attestation" }] : []),
             ...(record.controlId === "3.1.4" ? [{ id: "sod_break_glass" as const, label: "Break-glass" }] : []),
+            ...(record.controlId === "3.1.4" ? [{ id: "sod_preflight" as const, label: "Pre-flight" }] : []),
             { id: "evidence", label: `Evidence${evidenceLinks.length > 0 ? ` (${evidenceLinks.length})` : ""}` },
             { id: "poam", label: "POA&M" },
             { id: "history", label: `History${history.length > 0 ? ` (${history.length})` : ""}` },
@@ -1176,6 +1178,10 @@ export function SCTMControlDetail({
 
         {activeTab === "sod_break_glass" && record.controlId === "3.1.4" && (
           <SoDBreakGlassPanel />
+        )}
+
+        {activeTab === "sod_preflight" && record.controlId === "3.1.4" && (
+          <SoDPreflightPanel />
         )}
 
         {activeTab === "evidence" && (
