@@ -6,7 +6,10 @@
  *   1. Governance lane: required artifacts + narrative (or approved governance docs)
  *   2. Technical lane: OS/enclave evidence + technical requirements
  *   3. Policy doc lane: linked policy document (for ~18 hybrid controls)
- *   4. Register lane: finalized register entries (for controls that require registers)
+ *   4. Register lane: every control_assessment_logic register_requirement
+ *      satisfied with the same evaluator CAE uses (not only the single
+ *      registerSchemaId from CONTROL_INTELLIGENCE). RA.L2-3.11.1 also
+ *      requires the finalized risk_assessments lifecycle gate.
  */
 import { db } from "@/db";
 import {
@@ -43,8 +46,11 @@ import { needsBothPipelines } from "./adjudication-helpers";
 import { requiresAttestationGate } from "./compliance/outstanding-controls";
 import { evidenceRuns, evidenceFindings } from "@/db/schema";
 import { CONTROL_INTELLIGENCE } from "@/data/cmmc/control-intelligence";
+import { getControlAssessmentLogic } from "@/data/cmmc/control-assessment-logic";
 import { getCadenceRuleByRegisterId } from "@/data/cmmc/register-cadence-rules";
 import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
+import { evaluateRegisterRequirementEvidence } from "@/lib/evidence-engine/adjudication/scorer";
+import { evaluateRa311LifecycleGate } from "@/lib/evidence-engine/adjudication/ra-311-lifecycle-gate";
 
 /**
  * Controls where policy / procedure documents are NECESSARY but NOT SUFFICIENT
@@ -221,12 +227,31 @@ async function isRegisterSatisfied(
   organizationId: string,
   controlId: string
 ): Promise<boolean> {
-  // Training-control coverage gate: enforced before the generic "any final
-  // entry" rule because the AT family needs full-user-population coverage.
-  // Without this, one Patrick training_record flips 3.2.1 + 3.2.3 to
-  // implemented while Brian and James have no training on file.
+  // Training-control coverage gate: enforced before register_requirements
+  // because the AT family needs full-user-population coverage via
+  // training_records (stricter than training_completion register cadence alone).
   if (TRAINING_CONTROLS[controlId]) {
     return isTrainingControlSatisfied(organizationId, controlId);
+  }
+
+  const assessmentControl = getControlAssessmentLogic().controls.find(
+    (c) => c.control_id === controlId,
+  );
+  if (assessmentControl && assessmentControl.register_requirements.length > 0) {
+    const now = new Date();
+    for (const req of assessmentControl.register_requirements) {
+      const result = await evaluateRegisterRequirementEvidence(
+        organizationId,
+        req,
+        now,
+      );
+      if (!result.satisfied) return false;
+    }
+    if (controlId === "3.11.1") {
+      const raGate = await evaluateRa311LifecycleGate(organizationId, now);
+      if (!raGate.satisfied) return false;
+    }
+    return true;
   }
 
   const intel = intelByControlId.get(controlId);
@@ -525,8 +550,10 @@ export async function calculateControlStatus(controlRecordId: string): Promise<I
     : effectiveGovernanceComplete && (hasNarrative || hasApprovedGovDocs);
 
   // ── Register lane ──
-  // Controls flagged as registerRequired in the control intelligence layer must have
-  // at least one finalized register entry to be considered "implemented".
+  // When control_assessment_logic declares register_requirements, each must
+  // pass the same evaluator as Phase 7 CAE (see isRegisterSatisfied). When
+  // it declares none, fall back to CONTROL_INTELLIGENCE for legacy single-
+  // register checks (e.g. operational registers not mirrored in CAE JSON).
   const registerComplete = await isRegisterSatisfied(record.organizationId, controlId);
 
   // Derive technical_status for the dual-evidence lane.
@@ -586,6 +613,19 @@ export async function calculateControlStatus(controlRecordId: string): Promise<I
   if (requiresAttestationGate(controlId)) {
     if (hasSignedAttestation) {
       allComplete = true; // attestation closes the control
+      // EXCEPT for attestations that are policy commitments to a recurring
+      // execution (e.g. "we will conduct annual risk assessments"). The
+      // signed attestation proves the program exists; the lifecycle gate
+      // proves the program was actually executed. C3PAO asks both: "show me
+      // the policy" AND "show me last year's AAR." Force allComplete=false
+      // when the corresponding lifecycle gate hasn't passed, even with a
+      // signed attestation.
+      if (controlId === "3.11.1") {
+        const raGate = await evaluateRa311LifecycleGate(record.organizationId);
+        if (!raGate.satisfied) {
+          allComplete = false;
+        }
+      }
     } else {
       allComplete = false; // hold until customer signs
     }
