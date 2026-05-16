@@ -51,6 +51,10 @@ import { getControlAssessmentLogic } from "@/data/cmmc/control-assessment-logic"
 import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
 import type { ControlAssessmentControl } from "@/data/cmmc/types";
 import { canPoamElevate } from "@/lib/canonical-state/auto-poam";
+import {
+  evaluateRa311LifecycleGate,
+  type Ra311LifecycleGateResult,
+} from "@/lib/evidence-engine/adjudication/ra-311-lifecycle-gate";
 
 export type AdjudicationStatus = "satisfies" | "partial" | "gap" | "at_risk";
 
@@ -167,6 +171,22 @@ export async function scoreControl(
     );
   }
 
+  let ra311Gate: Ra311LifecycleGateResult | null = null;
+  if (controlId === "3.11.1") {
+    ra311Gate = await evaluateRa311LifecycleGate(ctx.orgId, now);
+    requirements.push({
+      register_key: "risk_assessment_envelope",
+      required_min: 1,
+      observed_final: ra311Gate.satisfied ? 1 : 0,
+      observed_isso_verified: 0,
+      cadence_days_required: 0,
+      cadence_days_actual: null,
+      satisfied: ra311Gate.satisfied,
+      evidence_entry_ids: [],
+      gap_reason: ra311Gate.gap_reason ?? undefined,
+    });
+  }
+
   const status = mapStatus(control, requirements, now);
   const confidence = computeConfidence(control, requirements, status);
 
@@ -177,7 +197,12 @@ export async function scoreControl(
   // elevator pointers) in one pass. The rescore-trigger no longer
   // post-processes the snapshot via a second UPDATE — there's
   // nothing to project.
-  const canonical = await projectCanonical(ctx.orgId, controlId, status);
+  const canonical = await projectCanonical(
+    ctx.orgId,
+    controlId,
+    status,
+    ra311Gate,
+  );
 
   return {
     control_id: controlId,
@@ -218,6 +243,10 @@ export async function scoreControl(
  *   5. Operational-plan elevator: if NOT_MET on raw evidence but an
  *      AG-compliant non-chronic-slipped POA&M exists → MET via
  *      operational_plan_of_action.
+ *   6. RA.L2-3.11.1 — MET via evidence additionally requires a finalized
+ *      risk_assessments envelope within the declared frequency (see
+ *      evaluateRa311LifecycleGate). Elevators from (1) and (5) are
+ *      unaffected.
  *
  * Per-objective verdicts: every objective inherits the requirement-
  * level finding (Phase A2 coarse seed, refined by future per-objective
@@ -228,6 +257,7 @@ async function projectCanonical(
   orgId: string,
   controlId: string,
   rollup: AdjudicationStatus,
+  ra311Gate: Ra311LifecycleGateResult | null,
 ): Promise<{
   aggregateFinding: AggregateFinding;
   metVia: MetVia;
@@ -396,7 +426,19 @@ async function projectCanonical(
     }
   }
 
-  // 4. Per-objective seed: every objective inherits the requirement-
+  // 4. RA.L2-3.11.1 lifecycle gate — clamps MET via evidence only.
+  if (
+    controlId === "3.11.1" &&
+    ra311Gate &&
+    !ra311Gate.satisfied &&
+    aggregateFinding === "MET" &&
+    metVia === "evidence"
+  ) {
+    aggregateFinding = "NOT_MET";
+    metVia = "not_met";
+  }
+
+  // 5. Per-objective seed: every objective inherits the requirement-
   // level finding. Phase A2 backfilled the objective letters from the
   // assessment guide; future per-objective scorers will refine the
   // verdict per letter from real evidence.

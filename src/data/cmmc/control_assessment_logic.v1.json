@@ -1531,7 +1531,7 @@
         {
           "register_id": "risk_register",
           "min_final_entries": 1,
-          "cadence_days": 90
+          "cadence_days": 365
         }
       ],
       "scoring": {
