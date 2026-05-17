@@ -149,10 +149,15 @@ export default async function EvidenceEngineRegisterEntriesPage({ params, search
     const isAutoRecorded = entryType === "auto_recorded";
     let summary: string;
     if (isAutoRecorded) {
-      const controls = Array.isArray(data.controls_checked) ? (data.controls_checked as string[]) : [];
-      summary = controls.length > 0
-        ? `Auto-recorded from evidence run · ${controls.length} control check${controls.length !== 1 ? "s" : ""}: ${controls.slice(0, 5).join(", ")}${controls.length > 5 ? ` +${controls.length - 5} more` : ""}`
-        : (typeof data.note === "string" ? data.note : "Auto-recorded from evidence run");
+      if (typeof data.note === "string") {
+        // Slice 3+: enriched note already includes pass/fail context
+        summary = data.note;
+      } else {
+        const controls = Array.isArray(data.controls_checked) ? (data.controls_checked as string[]) : [];
+        summary = controls.length > 0
+          ? `Auto-recorded · ${controls.length} control check${controls.length !== 1 ? "s" : ""}: ${controls.slice(0, 5).join(", ")}${controls.length > 5 ? ` +${controls.length - 5} more` : ""}`
+          : "Auto-recorded from evidence run";
+      }
     } else {
       const template = getSummaryTemplate(registerKey, entryType);
       summary = template ? renderSummary(template, data) : getFallbackSummary(entryType, data);

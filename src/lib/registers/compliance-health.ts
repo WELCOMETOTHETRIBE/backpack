@@ -179,7 +179,15 @@ export async function getComplianceRegisterHealth(orgId: string): Promise<Regist
     const controlIds = registerControlMap.get(schema.register_id);
     if (!controlIds?.length) continue;
 
-    const orgReg = orgRegisterMap.get(schema.register_id);
+    // Resolve via all alias candidates so schema ids (e.g. "authenticator_mgmt")
+    // correctly find org rows keyed under the seed-data name (e.g. "mfa_enrollment_roster").
+    let orgReg = orgRegisterMap.get(schema.register_id);
+    if (!orgReg) {
+      for (const k of resolveRegisterKeyCandidates(schema.register_id)) {
+        const hit = orgRegisterMap.get(k);
+        if (hit) { orgReg = hit; break; }
+      }
+    }
     const cadenceDays = orgReg?.defaultCadenceDays ?? schema.default_cadence_days ?? null;
     const effectiveCadence = !cadenceDays || cadenceDays === 0 ? null : cadenceDays;
     // Cadence rule carries cadence_type (drives weekly Friday-anchor) and
