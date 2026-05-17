@@ -67,7 +67,15 @@ export async function GET() {
   const orgId = (session?.user as { organizationId?: string })?.organizationId;
   if (!orgId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const schemas = getRegisterSchemas().registerSchemas;
+  // These registers are internal system logs that overlap with other registers
+  // (change_drift_log duplicates change_log; media_handling_log duplicates
+  // media_access + media_destruction). Hiding them keeps the C3PAO register
+  // list clean and avoids confusing examiners with internal-only artifacts.
+  const HIDDEN_REGISTER_IDS = new Set(["change_drift_log", "media_handling_log"]);
+
+  const schemas = getRegisterSchemas().registerSchemas.filter(
+    (s) => !HIDDEN_REGISTER_IDS.has(s.register_id)
+  );
 
   // Build register -> control IDs map from intelligence data
   const intelligenceByRegister = new Map<string, string[]>();

@@ -70,30 +70,42 @@ const CATEGORY_CONFIG: Record<RegisterCategory, { name: string; description: str
 
 // ── Display name overrides (friendlier than schema IDs) ─────────────────────
 const REGISTER_DISPLAY: Record<string, { name: string; description: string; category: RegisterCategory }> = {
-  access_authorization:    { name: "User Access Register", description: "Authorized users, roles, and access grants. Auto-seeded by EnclaveWatch from Azure identity checks.", category: "access" },
-  role_assignment_matrix:  { name: "Role Assignment Matrix", description: "Roles mapped to users; demonstrates least-privilege enforcement.", category: "access" },
-  sod_matrix:              { name: "Separation of Duties Matrix", description: "Incompatible duties documented; annual review required.", category: "access" },
-  authenticator_mgmt:      { name: "MFA Enrollment Register", description: "MFA enrollment status for all users with CUI access. Auto-seeded by EnclaveWatch from Entra MFA policy checks.", category: "access" },
-  training_completion:     { name: "Security Training Register", description: "Annual security awareness training records for all CUI users.", category: "personnel" },
-  personnel_screening:     { name: "Personnel Screening Register", description: "Pre-employment screening records per hire; annual check.", category: "personnel" },
-  termination:             { name: "Termination Action Register", description: "Access revocation actions within 24 hours of termination.", category: "personnel" },
-  audit_log_review:        { name: "Audit Log Review Register", description: "Monthly documentation of audit log reviews and anomalies found.", category: "monitoring" },
-  audit_config:            { name: "Audit Config Register", description: "Azure audit log enablement, Key Vault configuration, and log retention settings. Auto-seeded by EnclaveWatch on each evidence run.", category: "monitoring" },
-  control_monitoring:      { name: "ConMon Activity Log", description: "Continuous monitoring activities, Azure inheritance confirmations, and control check results. Auto-seeded by EnclaveWatch on each evidence run.", category: "monitoring" },
-  technical_compliance_run: { name: "Technical Compliance Log", description: "OS Collector run history; verifies continuous technical evidence.", category: "monitoring" },
-  incident_log:            { name: "Incident Response Register", description: "Incidents, response actions, DFARS reporting, tabletop exercises.", category: "incident" },
-  maintenance_log:         { name: "Maintenance Log", description: "All maintenance activities, remote sessions, and approvals.", category: "incident" },
-  change_log:              { name: "Change Control Register", description: "Every configuration change with SIA, approval, and test results. Auto-seeded by EnclaveWatch from Azure policy and remote access checks.", category: "incident" },
-  media_access:            { name: "Media Accountability Register", description: "CUI media transport chain-of-custody records.", category: "assets" },
-  media_destruction:       { name: "Media Sanitization Register", description: "BitLocker crypto-erase and physical destruction records.", category: "assets" },
-  visitor_log:             { name: "Visitor Log", description: "Controlled area visitor records with escort and purpose.", category: "assets" },
-  facility_access:         { name: "Facility Access Log", description: "Physical access reviews for non-datacenter controlled areas.", category: "assets" },
-  baseline_config:         { name: "Baseline Config Register", description: "Approved software and OS configuration baseline; seeded by EnclaveWatch OS Collector runs (quarterly review cadence).", category: "governance" },
-  risk_register:           { name: "Risk Register", description: "Formal risk assessment findings, treatments, and annual reviews.", category: "governance" },
-  assessment_findings:     { name: "Security Assessment Register", description: "Annual assessment findings, actions, and verification status.", category: "governance" },
-  poam:                    { name: "POA&M Register", description: "Open Plan of Action & Milestones with monthly milestone updates.", category: "governance" },
-  vuln_remediation:        { name: "Vulnerability Remediation Register", description: "Vulnerability scan results, patch status, and remediation timelines.", category: "governance" },
-  policy_review:           { name: "SSP & Policy Review Register", description: "Annual SSP and policy document review records.", category: "governance" },
+  // Access Control
+  access_authorization:         { name: "User Access Register", description: "Authorized users, roles, and access grants. Auto-seeded by EnclaveWatch from Azure identity checks.", category: "access" },
+  role_assignment_matrix:       { name: "Role Assignment Matrix", description: "Roles mapped to users; demonstrates least-privilege enforcement.", category: "access" },
+  sod_matrix:                   { name: "Separation of Duties Matrix", description: "Incompatible duties documented; annual review required.", category: "access" },
+  authenticator_mgmt:           { name: "MFA Enrollment Register", description: "MFA enrollment status for all users with CUI access. Auto-seeded by EnclaveWatch from Entra MFA policy checks.", category: "access" },
+  remote_access_authorization:  { name: "Remote Access Register", description: "Who is authorized to access the CUI Vault remotely (Azure Bastion, VPN, or other channel) and the method used. Annual recertification required.", category: "access" },
+  external_system_connections:  { name: "External System Connections", description: "Every external (non-org-owned) system permitted to interact with the CUI boundary — ISA register. Annual review required per 3.1.20.", category: "access" },
+  portable_storage_authorization: { name: "Portable Storage Register", description: "Per-event approval log for portable storage exceptions within the CUI boundary. Default posture prohibits portable media; entries document approved exceptions.", category: "assets" },
+  wireless_ssid_authorization:  { name: "Wireless SSID Register", description: "Authorized wireless networks in or adjacent to the CUI boundary. Cloud-only boundaries with no on-premises wireless are typically N/A here (3.1.16, 3.1.17).", category: "access" },
+  service_account_inventory:    { name: "Service Account Register", description: "Inventory of every service account, managed identity, and non-human credential in the CUI boundary. Quarterly review required per 3.5.5.", category: "access" },
+  identity_inventory:           { name: "Identity Inventory", description: "Weekly point-in-time snapshots of all users, service principals, and devices with vault scope. Auto-seeded by EnclaveWatch identity collector.", category: "monitoring" },
+  // Personnel
+  training_completion:          { name: "Security Training Register", description: "Annual security awareness training records for all CUI users.", category: "personnel" },
+  personnel_screening:          { name: "Personnel Screening Register", description: "Pre-employment screening records per hire; annual check.", category: "personnel" },
+  termination:                  { name: "Termination Action Register", description: "Access revocation actions within 24 hours of termination.", category: "personnel" },
+  // Monitoring & Audit
+  audit_log_review:             { name: "Audit Log Review Register", description: "Weekly documentation of audit log reviews and anomalies found.", category: "monitoring" },
+  audit_config:                 { name: "Audit Config Register", description: "Azure audit log enablement, Key Vault configuration, and log retention settings. Auto-seeded by EnclaveWatch on each evidence run.", category: "monitoring" },
+  control_monitoring:           { name: "ConMon Activity Log", description: "Continuous monitoring activities, Azure inheritance confirmations, and control check results. Auto-seeded by EnclaveWatch on each evidence run.", category: "monitoring" },
+  technical_compliance_run:     { name: "Technical Compliance Log", description: "OS Collector run history; verifies continuous technical evidence.", category: "monitoring" },
+  // Incident & Change
+  incident_log:                 { name: "Incident Response Register", description: "Incidents, response actions, DFARS reporting, tabletop exercises.", category: "incident" },
+  maintenance_log:              { name: "Maintenance Log", description: "All maintenance activities, remote sessions, and approvals.", category: "incident" },
+  change_log:                   { name: "Change Control Register", description: "Every configuration change with SIA, approval, and test results. Auto-seeded by EnclaveWatch from Azure policy and remote access checks.", category: "incident" },
+  // Assets & Media
+  media_access:                 { name: "Media Accountability Register", description: "CUI media transport chain-of-custody records.", category: "assets" },
+  media_destruction:            { name: "Media Sanitization Register", description: "BitLocker crypto-erase and physical destruction records.", category: "assets" },
+  visitor_log:                  { name: "Visitor Log", description: "Controlled area visitor records with escort and purpose.", category: "assets" },
+  facility_access:              { name: "Facility Access Log", description: "Physical access reviews for non-datacenter controlled areas.", category: "assets" },
+  // Governance
+  baseline_config:              { name: "Baseline Config Register", description: "Approved software and OS configuration baseline; seeded by EnclaveWatch OS Collector runs (quarterly review cadence).", category: "governance" },
+  risk_register:                { name: "Risk Register", description: "Formal risk assessment findings, treatments, and annual reviews.", category: "governance" },
+  assessment_findings:          { name: "Security Assessment Register", description: "Annual assessment findings, actions, and verification status.", category: "governance" },
+  poam:                         { name: "POA&M Register", description: "Open Plan of Action & Milestones with monthly milestone updates.", category: "governance" },
+  vuln_remediation:             { name: "Vulnerability Remediation Register", description: "Vulnerability scan results, patch status, and remediation timelines.", category: "governance" },
+  policy_review:                { name: "SSP & Policy Review Register", description: "Annual SSP and policy document review records.", category: "governance" },
 };
 
 // ── Status visuals ──────────────────────────────────────────────────────────

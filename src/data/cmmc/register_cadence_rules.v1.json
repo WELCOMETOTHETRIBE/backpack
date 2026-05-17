@@ -235,7 +235,39 @@
       "cadence_days": 7,
       "warning_days": 7,
       "expected_entries_per_year": 52,
-      "notes": "EnclaveWatch's azure_identity_inventory collector emits one snapshot per cycle (weekly). Stale beyond 14 days = warning. Each snapshot is a full point-in-time inventory of users/SPs/devices with vault scope. Primary cadence evidence for §3.5.1."
+      "notes": "EnclaveWatch's azure_identity_inventory collector emits one snapshot per cycle (weekly). Stale beyond 14 days = warning. Each snapshot is a full point-in-time inventory of users/SPs/devices with vault scope. Primary cadence evidence for \u00a73.5.1."
+    },
+    {
+      "register_id": "wireless_ssid_authorization",
+      "cadence_type": "annual",
+      "cadence_days": 365,
+      "warning_days": 30,
+      "expected_entries_per_year": 1,
+      "notes": "Annual recertification of all authorized wireless SSIDs. Per-event entries on new authorization or decommission. Cloud-only boundaries with no on-prem wireless should mark this N/A. (3.1.16, 3.1.17)"
+    },
+    {
+      "register_id": "service_account_inventory",
+      "cadence_type": "quarterly",
+      "cadence_days": 90,
+      "warning_days": 14,
+      "expected_entries_per_year": 4,
+      "notes": "Quarterly review of all service accounts, managed identities, and non-human credentials. Per-event entries on creation or decommission. (3.5.5, 3.1.5)"
+    },
+    {
+      "register_id": "change_drift_log",
+      "cadence_type": "event_driven",
+      "cadence_days": 0,
+      "warning_days": 0,
+      "expected_entries_per_year": 0,
+      "notes": "Per configuration drift detection event (no fixed cadence)."
+    },
+    {
+      "register_id": "media_handling_log",
+      "cadence_type": "event_driven",
+      "cadence_days": 0,
+      "warning_days": 0,
+      "expected_entries_per_year": 0,
+      "notes": "Per media protection event (destruction, removable-media use, encryption attestation)."
     }
   ]
 }

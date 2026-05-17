@@ -179,7 +179,7 @@
         },
         {
           "type": "privileged_grant_acknowledgment",
-          "short_help": "Auto-detected privileged role grant (Owner / Contributor / User Access Administrator) awaiting admin justification. Pattern A — admin justifies within 72h with intended business purpose, expected duration, and sunset plan, or the alert escalates to ISSO. Cross-references the underlying grant_access entry via evidence_refs[].",
+          "short_help": "Auto-detected privileged role grant (Owner / Contributor / User Access Administrator) awaiting admin justification. Pattern A \u2014 admin justifies within 72h with intended business purpose, expected duration, and sunset plan, or the alert escalates to ISSO. Cross-references the underlying grant_access entry via evidence_refs[].",
           "required": [
             "actor_user",
             "actor_user_id",
@@ -1161,7 +1161,7 @@
         },
         {
           "type": "defender_alert_acknowledgment",
-          "short_help": "Auto-detected high or critical Microsoft Defender for Endpoint alert (malware, credential theft, privilege escalation, lateral movement, exfil) awaiting admin investigation acknowledgment. Pattern A — admin acks within 24h with investigation outcome (true_positive_remediated / true_positive_in_progress / false_positive_investigated / risk_accepted) or alert escalates to ISSO. Phase 3 of Register-Automation v1.1.",
+          "short_help": "Auto-detected high or critical Microsoft Defender for Endpoint alert (malware, credential theft, privilege escalation, lateral movement, exfil) awaiting admin investigation acknowledgment. Pattern A \u2014 admin acks within 24h with investigation outcome (true_positive_remediated / true_positive_in_progress / false_positive_investigated / risk_accepted) or alert escalates to ISSO. Phase 3 of Register-Automation v1.1.",
           "required": [
             "actor_alert_id",
             "actor_alert_title",
@@ -1407,9 +1407,20 @@
             "escalated_at"
           ],
           "enums": {
-            "source": ["azure", "vault"],
-            "ip_classification": ["private", "corp", "unknown_or_shared"],
-            "isso_outcome": ["verified_timely", "overdue_escalated", "dispute_pending"]
+            "source": [
+              "azure",
+              "vault"
+            ],
+            "ip_classification": [
+              "private",
+              "corp",
+              "unknown_or_shared"
+            ],
+            "isso_outcome": [
+              "verified_timely",
+              "overdue_escalated",
+              "dispute_pending"
+            ]
           },
           "recommended_attachments": [
             "session_recording",
@@ -1920,12 +1931,12 @@
     },
     {
       "register_id": "change_drift_log",
-      "description": "Records configuration changes detected outside the change_log: events where EnclaveWatch's Sysmon-based collector saw a baseline-protected file/registry/service modification but found no matching change_log entry within ±60 minutes. Pattern A — admin justifies (\"intended, ticket #X\" / \"false positive, investigated\") within 72h or alert escalates to ISSO.",
+      "description": "Records configuration changes detected outside the change_log: events where EnclaveWatch's Sysmon-based collector saw a baseline-protected file/registry/service modification but found no matching change_log entry within \u00b160 minutes. Pattern A \u2014 admin justifies (\"intended, ticket #X\" / \"false positive, investigated\") within 72h or alert escalates to ISSO.",
       "default_cadence_days": 0,
       "entry_types": [
         {
           "type": "change_drift_acknowledgment",
-          "short_help": "Auto-detected configuration drift on a baseline-protected resource that did not match any logged change. Pattern A — admin justifies within 72h with intended business purpose / outcome / actions taken, or alert escalates to ISSO on next weekly review.",
+          "short_help": "Auto-detected configuration drift on a baseline-protected resource that did not match any logged change. Pattern A \u2014 admin justifies within 72h with intended business purpose / outcome / actions taken, or alert escalates to ISSO on next weekly review.",
           "required": [
             "actor_user",
             "actor_user_id",
@@ -2940,7 +2951,7 @@
     },
     {
       "register_id": "identity_inventory",
-      "description": "Periodic snapshots of every user, service principal/managed identity, and device with vault scope. Each entry is one cadence run's full inventory at a point in time; the register's history is the audit trail of identity-set changes. Diffs between consecutive snapshots surface adds/removes for review. Primary evidence for §3.5.1 (identify users, processes, devices); incidental evidence for §3.5.6, §3.1.5, §3.1.6.",
+      "description": "Periodic snapshots of every user, service principal/managed identity, and device with vault scope. Each entry is one cadence run's full inventory at a point in time; the register's history is the audit trail of identity-set changes. Diffs between consecutive snapshots surface adds/removes for review. Primary evidence for \u00a73.5.1 (identify users, processes, devices); incidental evidence for \u00a73.5.6, \u00a73.1.5, \u00a73.1.6.",
       "default_cadence_days": 7,
       "entry_types": [
         {
@@ -3095,6 +3106,82 @@
         "3.8.6",
         "3.8.7",
         "3.8.9"
+      ]
+    },
+    {
+      "register_id": "wireless_ssid_authorization",
+      "name": "Wireless SSID Register",
+      "description": "Documents authorized wireless networks (SSIDs) within or adjacent to the CUI boundary. For cloud-only boundaries with no on-premises wireless, this register is typically marked N/A. Required evidence for 3.1.16 (authorize wireless access) and 3.1.17 (protect wireless access).",
+      "default_cadence_days": 365,
+      "entry_schemas": [
+        {
+          "type": "authorize_wireless_network",
+          "label": "Authorize Wireless Network",
+          "fields": [
+            "ssid_name",
+            "security_protocol",
+            "authorized_users",
+            "business_justification",
+            "authorized_by",
+            "authorized_date"
+          ]
+        },
+        {
+          "type": "annual_wireless_review",
+          "label": "Annual Wireless Authorization Review",
+          "fields": [
+            "review_date",
+            "authorized_ssids",
+            "decommissioned_ssids",
+            "reviewed_by",
+            "next_review_date"
+          ]
+        }
+      ]
+    },
+    {
+      "register_id": "service_account_inventory",
+      "name": "Service Account Register",
+      "description": "Inventory of every service account, managed identity, and non-human credential within the CUI boundary. Tracks purpose, owner, privilege level, and last-reviewed date. Required evidence for 3.5.5 (manage identifiers for devices and processes) and supports least-privilege review (3.1.5).",
+      "default_cadence_days": 90,
+      "entry_schemas": [
+        {
+          "type": "service_account_review",
+          "label": "Service Account Review",
+          "fields": [
+            "review_date",
+            "account_name",
+            "account_type",
+            "privilege_level",
+            "owner",
+            "purpose",
+            "last_rotated",
+            "reviewed_by"
+          ]
+        },
+        {
+          "type": "service_account_created",
+          "label": "Service Account Created",
+          "fields": [
+            "account_name",
+            "account_type",
+            "purpose",
+            "privilege_level",
+            "owner",
+            "created_by",
+            "created_date"
+          ]
+        },
+        {
+          "type": "service_account_decommissioned",
+          "label": "Service Account Decommissioned",
+          "fields": [
+            "account_name",
+            "decommission_reason",
+            "decommissioned_by",
+            "decommission_date"
+          ]
+        }
       ]
     }
   ]
