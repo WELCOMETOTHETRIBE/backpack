@@ -9,6 +9,13 @@ import { governanceRegisters, governanceRegisterEntries, evidenceFindings } from
 import { eq, and, inArray, sql } from "drizzle-orm";
 import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
 
+type FindingRow = {
+  controlId: string;
+  checkId: string;
+  pass: boolean;
+  observed: string;
+};
+
 /**
  * Map from schema registerKey → the control IDs whose findings prove the
  * register is being maintained. At least one matching finding in the run
@@ -142,10 +149,15 @@ export async function seedRegistersFromEvidenceRun(
 
   const byKey = await loadOrgRegisters(orgId);
 
-  // Load all control IDs touched by this run in one query.
+  // Load all finding rows for this run in one query (pass/observed for enrichment).
   const allControls = [...new Set(Object.values(REGISTER_CONTROLS).flat())];
   const findings = await db
-    .select({ controlId: evidenceFindings.controlId })
+    .select({
+      controlId: evidenceFindings.controlId,
+      checkId: evidenceFindings.checkId,
+      pass: evidenceFindings.pass,
+      observed: evidenceFindings.observed,
+    })
     .from(evidenceFindings)
     .where(
       and(
@@ -155,6 +167,12 @@ export async function seedRegistersFromEvidenceRun(
     );
 
   const foundControlIds = new Set(findings.map((f) => f.controlId));
+  const findingsByControl = new Map<string, FindingRow[]>();
+  for (const f of findings) {
+    const arr = findingsByControl.get(f.controlId) ?? [];
+    arr.push(f);
+    findingsByControl.set(f.controlId, arr);
+  }
 
   for (const [registerKey, controlIds] of Object.entries(REGISTER_CONTROLS)) {
     const registerId = resolveRegisterId(registerKey, byKey);
@@ -187,6 +205,23 @@ export async function seedRegistersFromEvidenceRun(
       continue;
     }
 
+    // Build enriched check summary from actual findings.
+    const hitFindings = hitControls.flatMap((cid) => findingsByControl.get(cid) ?? []);
+    const checksPass = hitFindings.filter((f) => f.pass).length;
+    const checksFail = hitFindings.filter((f) => !f.pass).length;
+    const checksTotal = hitFindings.length;
+    const passRatePct = checksTotal > 0 ? Math.round((checksPass / checksTotal) * 100) : 100;
+    const checkSummary = hitFindings.map((f) => ({
+      control_id: f.controlId,
+      check_id: f.checkId,
+      pass: f.pass,
+      observed: f.observed.length > 200 ? f.observed.slice(0, 200) + "…" : f.observed,
+    }));
+    const statusNote =
+      checksFail === 0
+        ? `All ${checksTotal} check(s) passed`
+        : `${checksPass}/${checksTotal} checks passed`;
+
     await db.insert(governanceRegisterEntries).values({
       registerId,
       boundaryId,
@@ -199,7 +234,12 @@ export async function seedRegistersFromEvidenceRun(
         source: "evidence_run",
         evidence_run_id: evidenceRunId,
         controls_checked: hitControls,
-        note: `Auto-recorded from ${sourceLabel}. ${hitControls.length} control check(s) found for this register.`,
+        checks_total: checksTotal,
+        checks_pass: checksPass,
+        checks_fail: checksFail,
+        pass_rate_pct: passRatePct,
+        check_summary: checkSummary,
+        note: `Auto-recorded from ${sourceLabel}. ${statusNote} across ${hitControls.length} control(s).`,
       },
     });
 
