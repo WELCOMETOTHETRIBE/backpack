@@ -18,7 +18,7 @@ import { persistFilePresenceForRun } from "@/lib/evidence/per-control-file-prese
 import { ALL_CONTROL_IDS } from "@/lib/artifact-guide";
 import { controlIdToNist } from "@/lib/compliance/controlId";
 import { resolveRegisterKeyCandidates } from "@/data/cmmc/register-key-aliases";
-import { seedRegistersFromEvidenceRun } from "@/lib/evidence-engine/auto-register-seeder";
+import { seedRegistersFromEvidenceRun, seedTechnicalComplianceRun } from "@/lib/evidence-engine/auto-register-seeder";
 import { createHash } from "crypto";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -476,6 +476,24 @@ export async function POST(req: Request) {
               .returning();
 
             if (vrun) {
+              // One technical_compliance_run entry per OS Collector run,
+              // regardless of finding count — the run itself is the evidence.
+              try {
+                await seedTechnicalComplianceRun(
+                  vrun.id, orgId, targetBoundaryId, collectedAt,
+                  {
+                    runId: vrun.runId,
+                    collectorName: vrun.collectorName ?? "test_cui_hardening",
+                    collectorVersion: vrun.collectorVersion ?? "1.0",
+                    checksTotal: checks.length,
+                    checksPassed: checks.filter((c) => Boolean(c.pass)).length,
+                    checksFailed: checks.filter((c) => !c.pass).length,
+                  }
+                );
+              } catch (tcrErr) {
+                console.warn("[v2/ingest] technical_compliance_run seed failed (non-blocking):", (tcrErr as Error).message);
+              }
+
               const findingRows = checks
                 .map((c) => {
                   const nist = c.control ? controlIdToNist(c.control) : null;
